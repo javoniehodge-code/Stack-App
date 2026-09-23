@@ -1,0 +1,43 @@
+# Local development config for `supabase start`. Only the settings Stack relies
+# on are listed; everything else uses the CLI defaults.
+project_id = "stack"
+
+[api]
+port = 54321
+schemas = ["public"]
+
+[db]
+port = 54322
+major_version = 17
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[studio]
+port = 54323
+
+# Captures sign-in emails locally: http://127.0.0.1:54324
+[local_smtp]
+enabled = true
+port = 54324
+
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/auth/confirm"]
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+otp_length = 6
+otp_expiry = 3600
+
+# Sign-in emails carry a 6-digit code ({{ .Token }}) that the app asks for.
+[auth.email.template.magic_link]
+subject = "Your Stack sign-in code"
+content_path = "./supabase/templates/magic_link.html"
+
+[auth.email.template.confirmation]
+subject = "Your Stack sign-in code"
+content_path = "./supabase/templates/confirmation.html"

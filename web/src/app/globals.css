@@ -1,0 +1,87 @@
+:root {
+  /* Ink & Sage palette */
+  --bg: oklch(23% 0.012 165);
+  --surface: oklch(27% 0.012 165);
+  --sunken: oklch(20% 0.012 165);
+  --line: oklch(32% 0.012 165);
+  --line-2: oklch(34% 0.012 165);
+  --line-3: oklch(36% 0.012 165);
+  --line-4: oklch(40% 0.012 165);
+  --handle: oklch(42% 0.012 165);
+  --text: oklch(90% 0.008 160);
+  --text-2: oklch(84% 0.008 160);
+  --muted-72: oklch(72% 0.012 165);
+  --muted-66: oklch(66% 0.012 165);
+  --muted-62: oklch(62% 0.012 165);
+  --muted-60: oklch(60% 0.012 165);
+  --muted-56: oklch(56% 0.012 165);
+  --accent: oklch(78% 0.06 160);
+  --on-accent: var(--bg);
+  --outside: oklch(19% 0.01 165);
+
+  --sans: var(--font-inter), Inter, -apple-system, sans-serif;
+  --mono: var(--font-plex-mono), "IBM Plex Mono", monospace;
+
+  /* Device safe areas. The design's top paddings include a ~44px status bar. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--outside);
+  color: var(--text);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  text-align: inherit;
+}
+
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted-56);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
