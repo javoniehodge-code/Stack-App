@@ -119,3 +119,29 @@ textarea.input {
 .input:focus-visible {
   outline: none;
 }
+
+.notice {
+  font-size: 12.5px;
+  color: var(--accent);
+  margin: -4px 0 12px;
+  line-height: 1.4;
+}
+
+.switch {
+  display: block;
+  width: 100%;
+  padding: 10px 13px 4px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted-66);
+}
+
+.switch strong {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.secondary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

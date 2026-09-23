@@ -26,18 +26,20 @@ port = 54324
 site_url = "http://localhost:3000"
 additional_redirect_urls = ["http://localhost:3000/auth/confirm"]
 enable_signup = true
+minimum_password_length = 8
 
 [auth.email]
 enable_signup = true
-enable_confirmations = false
+enable_confirmations = true
 otp_length = 6
 otp_expiry = 3600
 
-# Sign-in emails carry a 6-digit code ({{ .Token }}) that the app asks for.
-[auth.email.template.magic_link]
-subject = "Your Stack sign-in code"
-content_path = "./supabase/templates/magic_link.html"
-
+# Emails carry a 6-digit code ({{ .Token }}) that the app asks for: once to
+# confirm a new account's email, and when resetting a password.
 [auth.email.template.confirmation]
-subject = "Your Stack sign-in code"
+subject = "Confirm your Stack account"
 content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Reset your Stack password"
+content_path = "./supabase/templates/recovery.html"
