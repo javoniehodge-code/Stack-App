@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap">
+  <style>body{margin:0;background:oklch(78% 0.03 75);}*{box-sizing:border-box;}a{color:oklch(78% 0.06 160);}a:hover{color:oklch(86% 0.05 160);}</style>
+</helmet>
+<div style="min-height:100vh;padding:32px;font-family:Inter,sans-serif;background:oklch(78% 0.03 75);display:flex;flex-direction:column;align-items:center;gap:16px;overflow-x:auto;min-width:1344px;">
+  <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;background:#20201c;color:#fff;padding:3px 8px;border-radius:5px;">Desktop concept · not in app</span>
+
+  <div style="width:1280px;flex-shrink:0;border-radius:14px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.3);border:1px solid #0d0d0d;background:oklch(23% 0.012 165);display:flex;flex-direction:column;">
+    <div style="height:38px;background:#161816;display:flex;align-items:center;gap:8px;padding:0 14px;flex-shrink:0;">
+      <span style="width:11px;height:11px;border-radius:50%;background:#ff5f57;"></span>
+      <span style="width:11px;height:11px;border-radius:50%;background:#febc2e;"></span>
+      <span style="width:11px;height:11px;border-radius:50%;background:#28c840;"></span>
+      <div style="flex:1;display:flex;justify-content:center;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:oklch(66% 0.012 165);background:oklch(20% 0.012 165);padding:4px 16px;border-radius:6px;">stack.app</div>
+      </div>
+    </div>
+
+    <div style="display:flex;height:860px;">
+      <div style="width:232px;flex-shrink:0;border-right:1px solid oklch(32% 0.012 165);padding:26px 16px;display:flex;flex-direction:column;gap:4px;">
+        <div style="font-weight:800;font-size:22px;color:oklch(90% 0.008 160);letter-spacing:-0.3px;padding:0 12px 22px;">Stack</div>
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="4">
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:{{ n.bg }};cursor:pointer;">
+            <span style="width:7px;height:7px;border-radius:50%;background:{{ n.dot }};"></span>
+            <span style="font-size:14px;font-weight:600;color:{{ n.color }};">{{ n.label }}</span>
+          </div>
+        </sc-for>
+        <div style="margin-top:18px;display:flex;align-items:center;justify-content:center;gap:8px;height:42px;border-radius:12px;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-size:14px;font-weight:700;cursor:pointer;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(23% 0.012 165)" strokeWidth="3" strokeLinecap="round"><path d="M12 5.5v13"></path><path d="M5.5 12h13"></path></svg>Create a stack
+        </div>
+      </div>
+
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;justify-content:center;border-bottom:1px solid oklch(32% 0.012 165);flex-shrink:0;">
+          <div style="display:flex;width:100%;max-width:420px;">
+            <div onClick="{{ selectForYou }}" style="flex:1;text-align:center;padding:16px 0 13px;cursor:pointer;border-bottom:2px solid {{ forYouBorder }};font-size:14px;font-weight:700;color:{{ forYouColor }};">For You</div>
+            <div onClick="{{ selectFollowing }}" style="flex:1;text-align:center;padding:16px 0 13px;cursor:pointer;border-bottom:2px solid {{ followingBorder }};font-size:14px;font-weight:700;color:{{ followingColor }};">Following</div>
+          </div>
+        </div>
+
+        <div style="flex:1;min-height:0;display:flex;align-items:stretch;gap:20px;padding:28px 40px;">
+          <div style="flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;max-width:1000px;margin:0 auto;">
+            <div style="border-radius:18px;background:oklch(27% 0.012 165);border:1px solid oklch(32% 0.012 165);padding:28px;display:flex;flex-direction:column;min-height:0;overflow:hidden;">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+                <div style="width:34px;height:34px;border-radius:50%;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ s.initials }}</div>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-weight:600;font-size:14px;color:oklch(90% 0.008 160);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ s.name }}</div>
+                  <div style="font-size:12.5px;color:oklch(56% 0.012 165);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ s.handle }} · {{ s.when }}</div>
+                </div>
+                <span onClick="{{ toggleFollow }}" style="font-size:12.5px;font-weight:700;padding:8px 16px;border-radius:999px;cursor:pointer;flex-shrink:0;background:{{ followBg }};color:{{ followColor }};border:1px solid {{ followBorder }};">{{ followLabel }}</span>
+              </div>
+              <div style="font-size:19px;color:oklch(84% 0.008 160);line-height:1.3;margin-bottom:18px;text-wrap:pretty;">{{ s.title }}</div>
+              <div style="flex:1;min-height:0;overflow:hidden;">
+                <sc-for list="{{ lines }}" as="ln" hint-placeholder-count="6">
+                  <sc-if value="{{ ln.label }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(66% 0.012 165);margin:14px 0 6px;">{{ ln.label }}</div>
+                  </sc-if>
+                  <div style="display:flex;align-items:center;gap:12px;font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:oklch(78% 0.008 160);line-height:2.05;">
+                    <span style="color:oklch(78% 0.06 160);font-weight:700;flex-shrink:0;">{{ ln.num }}</span>
+                    <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ln.text }}</span>
+                    <sc-if value="{{ ln.link }}" hint-placeholder-val="{{ false }}">
+                      <span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:oklch(23% 0.012 165);border:2px solid oklch(78% 0.06 160);color:oklch(78% 0.06 160);font-size:12px;font-weight:700;flex-shrink:0;">↗</span>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;align-items:center;gap:20px;margin-top:16px;padding-top:14px;border-top:1px solid oklch(32% 0.012 165);font-size:13px;color:oklch(66% 0.012 165);">
+                <span onClick="{{ toggleLike }}" style="display:flex;align-items:center;gap:6px;cursor:pointer;color:{{ likeColor }};"><span style="font-size:16px;line-height:1;">{{ likeGlyph }}</span>{{ likes }}</span>
+                <span onClick="{{ toggleSave }}" style="display:flex;align-items:center;gap:6px;cursor:pointer;color:{{ saveColor }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="{{ saveFill }}" stroke="{{ saveColor }}" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ s.saves }}</span>
+                <span style="display:flex;align-items:center;gap:6px;cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.2"></circle><circle cx="18" cy="5" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle><path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2"></path><path d="M12 12v4.8"></path></svg>{{ s.forks }}</span>
+                <span style="margin-left:auto;display:flex;cursor:pointer;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></span>
+              </div>
+            </div>
+
+            <div style="border-radius:18px;background:oklch(20% 0.012 165);border:1px dashed oklch(36% 0.012 165);display:flex;flex-direction:column;min-height:0;overflow:hidden;">
+              <div style="padding:20px 22px 12px;display:flex;align-items:baseline;justify-content:space-between;">
+                <span style="font-size:10.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(56% 0.012 165);">Comments</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(56% 0.012 165);">{{ commentCount }}</span>
+              </div>
+              <div style="flex:1;min-height:0;overflow-y:auto;padding:0 22px;">
+                <sc-for list="{{ s.comments }}" as="cm" hint-placeholder-count="3">
+                  <div style="margin-bottom:16px;">
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(56% 0.012 165);margin-bottom:3px;">{{ cm.author }}</div>
+                    <div style="font-size:13.5px;color:oklch(84% 0.008 160);line-height:1.5;">{{ cm.text }}</div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="padding:14px 18px;border-top:1px solid oklch(32% 0.012 165);">
+                <div style="display:flex;align-items:center;gap:10px;height:42px;padding:0 14px;border-radius:12px;background:oklch(27% 0.012 165);border:1px solid oklch(34% 0.012 165);">
+                  <span style="flex:1;font-size:13px;color:oklch(56% 0.012 165);">Add a comment…</span>
+                  <span style="font-size:12.5px;font-weight:700;color:oklch(78% 0.06 160);">Post</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="width:44px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;">
+            <div onClick="{{ prev }}" style="width:40px;height:40px;border-radius:50%;background:oklch(27% 0.012 165);border:1px solid oklch(34% 0.012 165);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ prevOpacity }};">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(84% 0.008 160)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5.5 14.5L12 8l6.5 6.5"></path></svg>
+            </div>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(56% 0.012 165);">{{ position }}</span>
+            <div onClick="{{ next }}" style="width:40px;height:40px;border-radius:50%;background:oklch(27% 0.012 165);border:1px solid oklch(34% 0.012 165);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ nextOpacity }};">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(84% 0.008 160)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5.5 9.5L12 16l6.5-6.5"></path></svg>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:center;padding:0 0 18px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(50% 0.012 165);">↑ ↓ or scroll to move between stacks</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { i: 0, tab: 'forYou', liked: {}, saved: {}, followed: { '@kenji.eats': true } };
+  S = [
+    { title: 'Mexico City Bars', name: 'Renata Díaz', handle: '@renata.diaz', initials: 'RD', when: '2d', likes: 842, saves: '310', forks: '96',
+      sections: [
+        { label: 'Roma Norte', lines: [['Licorería Limantour — no menu, just tell them what you like', 1], ['Departamento — rooftop, go before eight', 0], ['Baltra Bar — ring the bell twice', 1]] },
+        { label: 'Juárez', lines: [['Hanky Panky — hidden, book ahead', 1], ['Café Paraíso — mezcal flights', 0], ['Xaman — dark, herbal cocktails', 0]] },
+      ],
+      comments: [
+        { author: '@marcus.reads', text: 'Baltra Bar is no joke, bring cash.' },
+        { author: '@junehome', text: 'Went to Limantour off this list, worth the wait.' },
+        { author: '@kenji.eats', text: 'Adding Hanky Panky to my next trip because of this.' },
+        { author: '@lea.walks', text: 'Departamento at sunset is unreal. Go early like it says.' },
+      ] },
+    { title: 'Tokyo Ramen Worth the Line', name: 'Kenji Sato', handle: '@kenji.eats', initials: 'KS', when: '3d', likes: 1400, saves: '520', forks: '131',
+      sections: [
+        { label: 'Shibuya', lines: [['Fuunji — tsukemen, thick and rich', 1], ['Nagi — niboshi, open late', 0]] },
+        { label: 'Ikebukuro & beyond', lines: [['Nakiryu — tantanmen, Michelin-starred', 1], ['Rokurinsha — go right at open', 0], ['Ichiran — solo booths, 24h', 1], ['Afuri — yuzu shio, lighter', 0]] },
+      ],
+      comments: [
+        { author: '@marcus.reads', text: 'Fuunji line moves fast if you go right at open.' },
+        { author: '@junehome', text: 'Nagi wait was worth every minute.' },
+      ] },
+    { title: 'Books That Actually Changed How I Think', name: 'Marcus Webb', handle: '@marcus.reads', initials: 'MW', when: '5d', likes: 1200, saves: '612', forks: '88', bullet: true,
+      sections: [
+        { label: null, lines: [['Meditations — Marcus Aurelius', 0], ['Sapiens — Yuval Noah Harari', 1], ['Thinking, Fast and Slow — Kahneman', 0], ['The Almanack of Naval Ravikant', 1], ['Man’s Search for Meaning — Frankl', 0]] },
+      ],
+      comments: [] },
+  ];
+  _fmt(n) { return n >= 1000 ? (n / 1000).toFixed(1).replace('.0', '') + 'K' : String(n); }
+  componentDidMount() {
+    this._key = (e) => { if (e.key === 'ArrowDown') { e.preventDefault(); this.move(1); } if (e.key === 'ArrowUp') { e.preventDefault(); this.move(-1); } };
+    window.addEventListener('keydown', this._key);
+  }
+  componentWillUnmount() { window.removeEventListener('keydown', this._key); }
+  pool() { return this.state.tab === 'following' ? this.S.filter(x => this.state.followed[x.handle]) : this.S; }
+  move(d) { const n = this.pool().length; this.setState(st => ({ i: Math.max(0, Math.min(n - 1, st.i + d)) })); }
+  renderVals() {
+    const st = this.state;
+    const pool = this.pool();
+    const idx = Math.min(st.i, Math.max(0, pool.length - 1));
+    const s = pool[idx] || this.S[0];
+    let n = 0;
+    const lines = [];
+    s.sections.forEach(sec => sec.lines.forEach(([text, link], j) => { n++; lines.push({ label: j === 0 ? sec.label : null, text, link: !!link, num: s.bullet ? '•' : String(n).padStart(2, '0') }); }));
+    const liked = !!st.liked[s.handle + s.title], saved = !!st.saved[s.handle + s.title], following = !!st.followed[s.handle];
+    const nav = ['Feed', 'Explore', 'Profile', 'Saved'].map(label => {
+      const on = label === 'Feed';
+      return { label, bg: on ? 'oklch(27% 0.012 165)' : 'transparent', color: on ? 'oklch(90% 0.008 160)' : 'oklch(66% 0.012 165)', dot: on ? 'oklch(78% 0.06 160)' : 'transparent' };
+    });
+    const on = (t) => st.tab === t;
+    return {
+      nav, s, lines,
+      commentCount: s.comments.length ? String(s.comments.length) : 'Be the first',
+      likes: this._fmt(s.likes + (liked ? 1 : 0)), likeGlyph: liked ? '♥' : '♡', likeColor: liked ? 'oklch(78% 0.06 160)' : 'oklch(66% 0.012 165)',
+      saveFill: saved ? 'oklch(78% 0.06 160)' : 'none', saveColor: saved ? 'oklch(78% 0.06 160)' : 'oklch(66% 0.012 165)',
+      followLabel: following ? 'Following' : 'Follow',
+      followBg: following ? 'transparent' : 'oklch(78% 0.06 160)', followColor: following ? 'oklch(84% 0.008 160)' : 'oklch(23% 0.012 165)', followBorder: following ? 'oklch(40% 0.012 165)' : 'oklch(78% 0.06 160)',
+      toggleLike: () => this.setState(x => ({ liked: { ...x.liked, [s.handle + s.title]: !liked } })),
+      toggleSave: () => this.setState(x => ({ saved: { ...x.saved, [s.handle + s.title]: !saved } })),
+      toggleFollow: () => this.setState(x => ({ followed: { ...x.followed, [s.handle]: !following } })),
+      position: (idx + 1) + ' / ' + pool.length,
+      prev: () => this.move(-1), next: () => this.move(1),
+      prevOpacity: idx === 0 ? 0.35 : 1, nextOpacity: idx >= pool.length - 1 ? 0.35 : 1,
+      selectForYou: () => this.setState({ tab: 'forYou', i: 0 }), selectFollowing: () => this.setState({ tab: 'following', i: 0 }),
+      forYouColor: on('forYou') ? 'oklch(90% 0.008 160)' : 'oklch(56% 0.012 165)', forYouBorder: on('forYou') ? 'oklch(78% 0.06 160)' : 'transparent',
+      followingColor: on('following') ? 'oklch(90% 0.008 160)' : 'oklch(56% 0.012 165)', followingBorder: on('following') ? 'oklch(78% 0.06 160)' : 'transparent',
+    };
+  }
+}
+</script>
+</body>
+</html>

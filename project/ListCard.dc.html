@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="padding:14px 20px 8px;border-bottom:1px solid oklch(32% 0.012 165);cursor:pointer;" onClick="{{ card.onOpen }}">
+  <div onClick="{{ card.onOpenAuthor }}" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+    <div style="width:28px;height:28px;border-radius:50%;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-family:Inter,-apple-system,sans-serif;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ card.initials }}</div>
+    <div style="display:flex;align-items:baseline;gap:5px;min-width:0;flex:1;">
+      <span style="font-family:Inter,-apple-system,sans-serif;font-weight:600;font-size:13px;color:oklch(90% 0.008 160);white-space:nowrap;">{{ card.authorName }}</span>
+      <span style="font-family:Inter,-apple-system,sans-serif;font-size:12px;color:oklch(66% 0.012 165);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ card.authorHandle }}</span>
+      <span style="font-family:Inter,-apple-system,sans-serif;font-size:12px;color:oklch(56% 0.012 165);white-space:nowrap;flex-shrink:0;">· {{ card.timeAgo }}</span>
+    </div>
+    <sc-if value="{{ card.showFollow }}" hint-placeholder-val="{{ true }}">
+      <span onClick="{{ card.onToggleFollow }}" style="font-family:Inter,-apple-system,sans-serif;font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;cursor:pointer;flex-shrink:0;background:{{ card.followBg }};color:{{ card.followColor }};border:1px solid {{ card.followBorder }};">{{ card.followLabel }}</span>
+    </sc-if>
+  </div>
+  <div style="font-family:Inter,-apple-system,sans-serif;font-weight:400;font-size:13.5px;color:oklch(84% 0.008 160);margin-bottom:8px;line-height:1.3;text-wrap:pretty;">{{ card.title }}</div>
+  <sc-for list="{{ card.previewLines }}" as="pl" hint-placeholder-count="3">
+    <sc-if value="{{ pl.label }}" hint-placeholder-val="{{ false }}">
+      <div style="font-family:Inter,-apple-system,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(66% 0.012 165);margin:8px 0 3px;">{{ pl.label }}</div>
+    </sc-if>
+    <div style="display:flex;gap:8px;font-family:Inter,-apple-system,sans-serif;font-size:13.5px;color:oklch(84% 0.008 160);line-height:1.6;text-wrap:pretty;">
+      <span style="color:oklch(78% 0.06 160);font-weight:700;flex-shrink:0;font-variant-numeric:tabular-nums;">{{ pl.num }}</span><span style="flex:1;">{{ pl.text }}</span>
+      <sc-if value="{{ pl.hasLink }}" hint-placeholder-val="{{ false }}">
+        <span style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:6px;background:oklch(23% 0.012 165);border:2px solid oklch(78% 0.06 160);color:oklch(78% 0.06 160);font-size:12px;font-weight:700;flex-shrink:0;">↗</span>
+      </sc-if>
+    </div>
+  </sc-for>
+  <sc-if value="{{ card.hasMore }}" hint-placeholder-val="{{ false }}">
+    <div style="font-family:Inter,-apple-system,sans-serif;font-size:12px;font-weight:600;color:oklch(78% 0.06 160);margin-top:6px;">Show all {{ card.totalCount }} lines</div>
+  </sc-if>
+  <div style="display:flex;align-items:center;gap:2px;margin-top:6px;margin-left:-8px;">
+    <span onClick="{{ card.onToggleLike }}" style="display:flex;align-items:center;gap:6px;font-family:Inter,-apple-system,sans-serif;font-size:12.5px;font-weight:600;color:{{ card.likeColor }};cursor:pointer;padding:9px 8px;">
+      <span style="font-size:14px;line-height:1;">{{ card.likeGlyph }}</span>{{ card.likesLabel }}
+    </span>
+    <span style="display:flex;align-items:center;gap:6px;font-family:Inter,-apple-system,sans-serif;font-size:12.5px;font-weight:600;color:oklch(66% 0.012 165);padding:9px 8px;">
+      <span style="font-size:13px;line-height:1;">⑂</span>{{ card.forksLabel }}
+    </span>
+    <span style="flex:1;"></span>
+    <span onClick="{{ card.onToggleSave }}" style="display:flex;align-items:center;gap:6px;font-family:Inter,-apple-system,sans-serif;font-size:12.5px;font-weight:600;color:{{ card.saveColor }};cursor:pointer;padding:9px 8px;">
+      <span style="font-size:13px;line-height:1;">{{ card.saveGlyph }}</span>{{ card.savesLabel }}
+    </span>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:360},&quot;card&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;object&quot;}}"></script>
+</body>
+</html>

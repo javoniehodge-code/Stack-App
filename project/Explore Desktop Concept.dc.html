@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap">
+  <style>body{margin:0;background:oklch(78% 0.03 75);}*{box-sizing:border-box;}a{color:oklch(78% 0.06 160);}a:hover{color:oklch(86% 0.05 160);}</style>
+</helmet>
+<div style="min-height:100vh;padding:32px;font-family:Inter,sans-serif;background:oklch(78% 0.03 75);display:flex;flex-direction:column;align-items:center;gap:16px;overflow-x:auto;min-width:1344px;">
+  <span style="align-self:center;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;background:#20201c;color:#fff;padding:3px 8px;border-radius:5px;">Desktop concept · not in app</span>
+
+  <div style="width:1280px;flex-shrink:0;border-radius:14px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.3);border:1px solid #0d0d0d;background:oklch(23% 0.012 165);display:flex;flex-direction:column;">
+    <div style="height:38px;background:#161816;display:flex;align-items:center;gap:8px;padding:0 14px;flex-shrink:0;">
+      <span style="width:11px;height:11px;border-radius:50%;background:#ff5f57;"></span>
+      <span style="width:11px;height:11px;border-radius:50%;background:#febc2e;"></span>
+      <span style="width:11px;height:11px;border-radius:50%;background:#28c840;"></span>
+      <div style="flex:1;display:flex;justify-content:center;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:oklch(66% 0.012 165);background:oklch(20% 0.012 165);padding:4px 16px;border-radius:6px;">stack.app/explore</div>
+      </div>
+    </div>
+
+    <div style="display:flex;min-height:860px;">
+      <div style="width:232px;flex-shrink:0;border-right:1px solid oklch(32% 0.012 165);padding:26px 16px;display:flex;flex-direction:column;gap:4px;">
+        <div style="font-weight:800;font-size:22px;color:oklch(90% 0.008 160);letter-spacing:-0.3px;padding:0 12px 22px;">Stack</div>
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="4">
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:{{ n.bg }};cursor:pointer;">
+            <span style="width:7px;height:7px;border-radius:50%;background:{{ n.dot }};"></span>
+            <span style="font-size:14px;font-weight:600;color:{{ n.color }};">{{ n.label }}</span>
+          </div>
+        </sc-for>
+        <div style="margin-top:18px;display:flex;align-items:center;justify-content:center;gap:8px;height:42px;border-radius:12px;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-size:14px;font-weight:700;cursor:pointer;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(23% 0.012 165)" strokeWidth="3" strokeLinecap="round"><path d="M12 5.5v13"></path><path d="M5.5 12h13"></path></svg>Create a stack
+        </div>
+      </div>
+
+      <div style="flex:1;min-width:0;padding:34px 40px 48px;display:flex;flex-direction:column;gap:34px;">
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div style="font-weight:800;font-size:30px;color:oklch(90% 0.008 160);letter-spacing:-0.4px;">Explore</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:0 20px;height:56px;border-radius:16px;background:oklch(27% 0.012 165);border:1px solid oklch(34% 0.012 165);max-width:760px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>
+            <span style="flex:1;font-size:15.5px;color:oklch(60% 0.012 165);">Search bars, books, gear, people…</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(56% 0.012 165);border:1px solid oklch(36% 0.012 165);padding:3px 7px;border-radius:5px;">⌘K</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <sc-for list="{{ topics }}" as="t" hint-placeholder-count="6">
+              <span style="font-size:13px;font-weight:600;padding:8px 16px;border-radius:999px;border:1px solid oklch(36% 0.012 165);color:oklch(84% 0.008 160);cursor:pointer;">{{ t }}</span>
+            </sc-for>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;">
+            <span style="font-size:18px;font-weight:700;color:oklch(90% 0.008 160);">Trending this week</span>
+            <span style="font-size:13px;color:oklch(66% 0.012 165);cursor:pointer;">See all</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">
+            <sc-for list="{{ trending }}" as="c" hint-placeholder-count="4">
+              <div style="border-radius:16px;background:oklch(27% 0.012 165);border:1px solid oklch(32% 0.012 165);padding:18px;display:flex;flex-direction:column;cursor:pointer;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                  <div style="width:26px;height:26px;border-radius:50%;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-weight:700;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ c.initials }}</div>
+                  <span style="font-weight:600;font-size:12.5px;color:oklch(90% 0.008 160);white-space:nowrap;">{{ c.name }}</span>
+                  <span style="font-size:11.5px;color:oklch(56% 0.012 165);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ c.handle }}</span>
+                </div>
+                <div style="font-size:15px;color:oklch(84% 0.008 160);line-height:1.3;margin-bottom:12px;text-wrap:pretty;">{{ c.title }}</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:oklch(66% 0.012 165);line-height:1.95;flex:1;">
+                  <sc-for list="{{ c.lines }}" as="pl" hint-placeholder-count="4">
+                    <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(78% 0.06 160);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
+                  </sc-for>
+                </div>
+                <div style="font-size:12px;font-weight:600;color:oklch(78% 0.06 160);margin-top:6px;">{{ c.more }}</div>
+                <div style="display:flex;align-items:center;gap:16px;margin-top:12px;padding-top:12px;border-top:1px solid oklch(32% 0.012 165);font-size:12px;color:oklch(66% 0.012 165);">
+                  <span style="display:flex;align-items:center;gap:5px;"><span style="font-size:14px;line-height:1;">♡</span>{{ c.likes }}</span>
+                  <span style="display:flex;align-items:center;gap:5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ c.saves }}</span>
+                  <span style="display:flex;align-items:center;gap:5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.2"></circle><circle cx="18" cy="5" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle><path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2"></path><path d="M12 12v4.8"></path></svg>{{ c.forks }}</span>
+                  <span style="margin-left:auto;display:flex;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:32px;align-items:start;">
+          <div>
+            <div style="font-size:18px;font-weight:700;color:oklch(90% 0.008 160);margin-bottom:14px;">Categories</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+              <sc-for list="{{ categories }}" as="ec" hint-placeholder-count="6">
+                <div style="border-radius:14px;background:oklch(27% 0.012 165);border:1px solid oklch(32% 0.012 165);padding:16px;display:flex;flex-direction:column;gap:10px;min-height:120px;cursor:pointer;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span style="width:9px;height:9px;border-radius:50%;background:{{ ec.dot }};"></span>
+                      <span style="font-size:14.5px;font-weight:700;color:oklch(90% 0.008 160);">{{ ec.name }}</span>
+                    </div>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(56% 0.012 165);">{{ ec.count }}</span>
+                  </div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(62% 0.012 165);line-height:1.8;">
+                    <sc-for list="{{ ec.samples }}" as="smp" hint-placeholder-count="2">
+                      <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ smp }}</div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:18px;font-weight:700;color:oklch(90% 0.008 160);margin-bottom:6px;">Recently added</div>
+            <sc-for list="{{ recent }}" as="r" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid oklch(32% 0.012 165);cursor:pointer;">
+                <span style="width:8px;height:8px;border-radius:50%;background:{{ r.dot }};flex-shrink:0;"></span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:14px;color:oklch(90% 0.008 160);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.title }}</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(56% 0.012 165);margin-top:3px;">{{ r.meta }}</div>
+                </div>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(56% 0.012 165);flex-shrink:0;">{{ r.when }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  DOTS = {
+    'Food & Drink': 'oklch(76% 0.08 45)', 'Travel': 'oklch(76% 0.07 200)', 'Books': 'oklch(76% 0.07 285)',
+    'Home': 'oklch(78% 0.06 160)', 'Art & Design': 'oklch(76% 0.08 340)', 'Tech': 'oklch(75% 0.07 240)',
+  };
+  S = [
+    { title: 'Tokyo Ramen Worth the Line', name: 'Kenji Sato', handle: '@kenji.eats', initials: 'KS', cat: 'Food & Drink', total: 8, likes: '1.4K', saves: '520', forks: '131', when: '3d',
+      lines: ['Fuunji — tsukemen, thick and rich', 'Nakiryu — tantanmen, Michelin-starred', 'Rokurinsha — go right at open', 'Nagi — niboshi, open late'] },
+    { title: 'Books That Actually Changed How I Think', name: 'Marcus Webb', handle: '@marcus.reads', initials: 'MW', cat: 'Books', total: 7, likes: '1.2K', saves: '612', forks: '88', bullet: true, when: '5d',
+      lines: ['Meditations — Marcus Aurelius', 'Sapiens — Yuval Noah Harari', 'Thinking, Fast and Slow — Kahneman', 'The Almanack of Naval Ravikant'] },
+    { title: 'Mexico City Bars', name: 'Renata Díaz', handle: '@renata.diaz', initials: 'RD', cat: 'Food & Drink', total: 6, likes: '842', saves: '310', forks: '96', when: '2d',
+      lines: ['Licorería Limantour — no menu, trust them', 'Departamento — rooftop, go early', 'Baltra Bar — ring the bell twice', 'Hanky Panky — hidden, book ahead'] },
+    { title: 'Etsy Finds Worth the Shipping Wait', name: 'June Ostrander', handle: '@junehome', initials: 'JO', cat: 'Home', total: 5, likes: '674', saves: '401', forks: '52', bullet: true, when: '1w',
+      lines: ['Hand-thrown ceramic mug', 'Linen throw, oatmeal', 'Brass bookends', 'Beeswax taper candles'] },
+    { title: 'Apps I Actually Open Every Day', name: 'Dev Patel', handle: '@devbuilds', initials: 'DP', cat: 'Tech', total: 6, likes: '512', saves: '298', forks: '64', when: '12m',
+      lines: ['Things 3 — the only to-do list that stuck', 'Raycast — replaces Spotlight', 'Readwise — highlights, resurfaced', 'Arc — tabs that clean themselves'] },
+    { title: 'Free Museums in Paris', name: 'Léa Martin', handle: '@lea.walks', initials: 'LM', cat: 'Travel', total: 4, likes: '455', saves: '330', forks: '37', when: '1h',
+      lines: ['Petit Palais — gardens café', 'Musée Carnavalet — city history', 'Maison de Victor Hugo — Place des Vosges'] },
+    { title: 'Type Foundries Worth Following', name: 'Ana Ruiz', handle: '@ana.types', initials: 'AR', cat: 'Art & Design', total: 5, likes: '389', saves: '240', forks: '41', when: '3h',
+      lines: ['Klim Type Foundry — Wellington', 'Commercial Type — London / NYC', 'Grilli Type — Swiss, playful', 'Dinamo — Berlin, experimental'] },
+  ];
+  renderVals() {
+    const S = this.S;
+    const nav = ['Feed', 'Explore', 'Profile', 'Saved'].map(label => {
+      const on = label === 'Explore';
+      return { label, bg: on ? 'oklch(27% 0.012 165)' : 'transparent', color: on ? 'oklch(90% 0.008 160)' : 'oklch(66% 0.012 165)', dot: on ? 'oklch(78% 0.06 160)' : 'transparent' };
+    });
+    const topics = Object.keys(this.DOTS);
+    const trending = S.slice(0, 4).map(s => ({
+      ...s,
+      lines: s.lines.slice(0, 4).map((t, i) => ({ num: s.bullet ? '•' : String(i + 1).padStart(2, '0'), text: t })),
+      more: s.total > 4 ? '+ ' + (s.total - 4) + ' more lines' : '',
+    }));
+    const categories = topics.map(name => {
+      const inCat = S.filter(s => s.cat === name);
+      return { name, dot: this.DOTS[name], count: inCat.length + (inCat.length === 1 ? ' stack' : ' stacks'), samples: inCat.map(s => s.title).slice(0, 2) };
+    });
+    const order = { m: 1, h: 60, d: 1440, w: 10080 };
+    const age = w => (parseInt(w, 10) || 0) * (order[w.replace(/[0-9]/g, '')] || 1);
+    const recent = [...S].sort((a, b) => age(a.when) - age(b.when)).slice(0, 5).map(s => ({
+      title: s.title, meta: s.handle + ' · ' + s.total + ' lines', dot: this.DOTS[s.cat], when: s.when,
+    }));
+    return { nav, topics, trending, categories, recent };
+  }
+}
+</script>
+</body>
+</html>

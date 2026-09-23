@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; background: oklch(23% 0.012 165); }
+    * { box-sizing: border-box; }
+    input::placeholder { color: oklch(56% 0.012 165); }
+  </style>
+</helmet>
+<div style="min-height:100vh;width:100%;display:flex;align-items:center;justify-content:center;padding:40px;font-family:Inter,-apple-system,sans-serif;background:oklch(78% 0.03 75);">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="393,852">
+  <div style="height:100%;display:flex;flex-direction:column;background:oklch(23% 0.012 165);position:relative;">
+
+    <sc-if value="{{ isFeed }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:56px 20px 0;flex-shrink:0;border-bottom:1px solid oklch(32% 0.012 165);background:oklch(23% 0.012 165);">
+        <div style="display:flex;align-items:center;justify-content:space-between;height:38px;">
+          <div style="font-family:Inter,sans-serif;font-weight:800;font-size:19px;color:oklch(90% 0.008 160);letter-spacing:-0.3px;">Stack</div>
+          <div onClick="{{ goSearch }}" style="width:38px;height:38px;margin-right:-9px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="oklch(72% 0.012 165)" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>
+          </div>
+        </div>
+        <div style="display:flex;">
+          <div onClick="{{ selectFeedForYou }}" style="flex:1;text-align:center;padding:11px 0 9px;cursor:pointer;border-bottom:2px solid {{ forYouBorder }};font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:{{ forYouColor }};">For You</div>
+          <div onClick="{{ selectFeedFollowing }}" style="flex:1;text-align:center;padding:11px 0 9px;cursor:pointer;border-bottom:2px solid {{ followingBorder }};font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:{{ followingColor }};">Following</div>
+        </div>
+      </div>
+      <sc-if value="{{ followingEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 32px;">
+          <div style="font-family:Inter,sans-serif;font-weight:700;font-size:15px;color:oklch(90% 0.008 160);margin-bottom:6px;">Nothing here yet</div>
+          <div style="font-family:Inter,sans-serif;font-size:13px;color:oklch(66% 0.012 165);line-height:1.5;margin-bottom:18px;">Follow people whose taste you trust and their stacks land here.</div>
+          <span onClick="{{ goSearch }}" style="display:inline-block;font-family:Inter,sans-serif;font-size:13px;font-weight:700;padding:10px 18px;border-radius:999px;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);cursor:pointer;">Find people</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{ feedHasMore }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1;position:relative;overflow:hidden;">
+          <div ref="{{ railRef }}" style="height:100%;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;scroll-snap-type:y mandatory;">
+          <sc-for list="{{ visibleFeedCards }}" as="card" hint-placeholder-count="3">
+            <div style="width:100%;flex:0 0 100%;box-sizing:border-box;height:100%;padding:18px 20px;display:flex;flex-direction:column;gap:10px;scroll-snap-align:start;scroll-snap-stop:always;">
+              <div onClick="{{ card.onOpen }}" style="height:66%;border-radius:16px;background:oklch(27% 0.012 165);border:1px solid oklch(32% 0.012 165);display:flex;flex-direction:column;padding:18px;cursor:pointer;overflow:hidden;">
+                <div onClick="{{ card.onOpenAuthor }}" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;align-self:flex-start;max-width:100%;cursor:pointer;">
+                  <div style="width:26px;height:26px;border-radius:50%;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-family:Inter,sans-serif;font-weight:700;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ card.initials }}</div>
+                  <span style="font-family:Inter,sans-serif;font-weight:600;font-size:12px;color:oklch(90% 0.008 160);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ card.authorName }}</span>
+                  <span style="font-family:Inter,sans-serif;font-size:11px;color:oklch(56% 0.012 165);white-space:nowrap;flex-shrink:0;">{{ card.authorHandle }}</span>
+                </div>
+                <div style="font-family:Inter,sans-serif;font-weight:400;font-size:14px;color:oklch(84% 0.008 160);line-height:1.3;margin-bottom:12px;text-wrap:pretty;">{{ card.title }}</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(66% 0.012 165);line-height:1.9;flex:1;overflow:hidden;">
+                  <sc-for list="{{ card.previewLines }}" as="pl" hint-placeholder-count="3">
+                    <div><span style="color:oklch(78% 0.06 160);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
+                  </sc-for>
+                </div>
+                <div style="display:flex;align-items:center;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid oklch(32% 0.012 165);font-family:Inter,sans-serif;font-size:11px;color:oklch(56% 0.012 165);">
+                  <span onClick="{{ card.onToggleLike }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ card.likeColor }};"><span style="font-size:13px;line-height:1;">{{ card.likeGlyph }}</span>{{ card.likesLabel }}</span>
+                  <span onClick="{{ card.onToggleSave }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ card.saveColor }};"><svg width="13" height="13" viewBox="0 0 24 24" fill="{{ card.saveFill }}" stroke="{{ card.saveColor }}" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ card.savesLabel }}</span>
+                  <span onClick="{{ card.onFork }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:oklch(66% 0.012 165);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.2"></circle><circle cx="18" cy="5" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle><path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2"></path><path d="M12 12v4.8"></path></svg>{{ card.forksLabel }}</span>
+                  <span onClick="{{ card.onCopyLink }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;margin-left:auto;padding:2px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></span>
+                </div>
+              </div>
+              <sc-if value="{{ card.hasComments }}" hint-placeholder-val="{{ true }}">
+                <div style="flex:1;border-radius:12px;background:oklch(20% 0.012 165);border:1px dashed oklch(32% 0.012 165);padding:12px 14px;overflow-y:auto;">
+                  <div style="font-family:Inter,sans-serif;font-size:9.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(56% 0.012 165);margin-bottom:8px;">Comments</div>
+                  <sc-for list="{{ card.comments }}" as="cm" hint-placeholder-count="2">
+                    <div style="margin-bottom:10px;">
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:oklch(56% 0.012 165);margin-bottom:2px;">{{ cm.author }}</div>
+                      <div style="font-family:Inter,sans-serif;font-size:12px;color:oklch(84% 0.008 160);line-height:1.4;">{{ cm.text }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ card.noComments }}" hint-placeholder-val="{{ false }}">
+                <div onClick="{{ card.onOpen }}" style="flex:1;border-radius:12px;background:oklch(20% 0.012 165);border:1px dashed oklch(32% 0.012 165);padding:12px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;cursor:pointer;">
+                  <div style="font-family:Inter,sans-serif;font-size:12.5px;color:oklch(66% 0.012 165);line-height:1.4;">No comments yet. Be the first.</div>
+                  <span style="font-family:Inter,sans-serif;font-size:12px;font-weight:700;padding:8px 16px;border-radius:999px;border:1.5px solid oklch(78% 0.06 160);color:oklch(78% 0.06 160);">Add a comment</span>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+          </div>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <sc-if value="{{ isSearch }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:52px 20px 14px;flex-shrink:0;border-bottom:1px solid oklch(32% 0.012 165);">
+        <div style="font-family:Inter,sans-serif;font-weight:800;font-size:24px;color:oklch(90% 0.008 160);letter-spacing:-0.3px;margin-bottom:14px;">Explore</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="flex:1;display:flex;align-items:center;gap:10px;padding:0 16px;height:48px;border-radius:14px;background:oklch(27% 0.012 165);border:1px solid oklch(34% 0.012 165);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2.2" strokeLinecap="round" style="flex-shrink:0;"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>
+            <input value="{{ searchQuery }}" onChange="{{ onSearchChange }}" onKeyDown="{{ onSearchKeyDown }}" placeholder="Search bars, books, gear, people…" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14.5px;color:oklch(90% 0.008 160);" />
+          </div>
+          <sc-if value="{{ showSearchCancel }}" hint-placeholder-val="{{ false }}">
+            <span onClick="{{ clearSearch }}" style="font-family:Inter,sans-serif;font-size:13px;color:oklch(72% 0.012 165);cursor:pointer;flex-shrink:0;">Cancel</span>
+          </sc-if>
+        </div>
+      </div>
+      <sc-if value="{{ showSuggestions }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:24px;">
+          <div style="display:flex;gap:8px;overflow-x:auto;padding:14px 20px 4px;">
+            <sc-for list="{{ exploreTopics }}" as="t" hint-placeholder-count="6">
+              <span onClick="{{ t.onSelect }}" style="flex-shrink:0;font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:999px;border:1px solid oklch(36% 0.012 165);color:oklch(84% 0.008 160);white-space:nowrap;cursor:pointer;">{{ t.name }}</span>
+            </sc-for>
+          </div>
+          <sc-if value="{{ hasRecents }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:18px 20px 0;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                <span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(66% 0.012 165);">Recent searches</span>
+                <span onClick="{{ clearRecents }}" style="font-family:Inter,sans-serif;font-size:12px;color:oklch(78% 0.06 160);cursor:pointer;">Clear</span>
+              </div>
+              <sc-for list="{{ recents }}" as="r" hint-placeholder-count="2">
+                <div onClick="{{ r.onSelect }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;cursor:pointer;">
+                  <span style="font-family:Inter,sans-serif;font-size:13.5px;color:oklch(84% 0.008 160);">{{ r.term }}</span>
+                  <span onClick="{{ r.onRemove }}" style="font-family:Inter,sans-serif;font-size:15px;color:oklch(56% 0.012 165);cursor:pointer;padding:0 4px;">×</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <div style="padding:22px 0 0;">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;padding:0 20px 12px;">
+            <span style="font-family:Inter,sans-serif;font-size:15px;font-weight:700;color:oklch(90% 0.008 160);">Trending this week</span>
+          </div>
+            <div style="display:flex;gap:12px;overflow-x:auto;padding:0 20px;scroll-padding:0 20px;scroll-snap-type:x mandatory;">
+              <sc-for list="{{ exploreTrending }}" as="tc" hint-placeholder-count="3">
+                <div onClick="{{ tc.onOpen }}" style="width:270px;flex-shrink:0;scroll-snap-align:start;border-radius:16px;background:oklch(27% 0.012 165);border:1px solid oklch(32% 0.012 165);display:flex;flex-direction:column;padding:16px;cursor:pointer;">
+                  <div onClick="{{ tc.onOpenAuthor }}" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;align-self:flex-start;max-width:100%;">
+                    <div style="width:24px;height:24px;border-radius:50%;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-family:Inter,sans-serif;font-weight:700;font-size:9.5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ tc.initials }}</div>
+                    <span style="font-family:Inter,sans-serif;font-weight:600;font-size:12px;color:oklch(90% 0.008 160);white-space:nowrap;">{{ tc.authorName }}</span>
+                    <span style="font-family:Inter,sans-serif;font-size:11px;color:oklch(56% 0.012 165);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ tc.authorHandle }}</span>
+                  </div>
+                  <div style="font-family:Inter,sans-serif;font-size:14px;color:oklch(84% 0.008 160);line-height:1.3;margin-bottom:10px;text-wrap:pretty;">{{ tc.title }}</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(66% 0.012 165);line-height:1.9;">
+                    <sc-for list="{{ tc.lines3 }}" as="pl" hint-placeholder-count="3">
+                      <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(78% 0.06 160);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
+                    </sc-for>
+                  </div>
+                  <sc-if value="{{ tc.hasMore3 }}" hint-placeholder-val="{{ true }}">
+                    <div style="font-family:Inter,sans-serif;font-size:11.5px;font-weight:600;color:oklch(78% 0.06 160);margin-top:6px;">{{ tc.more3 }}</div>
+                  </sc-if>
+                  <div style="display:flex;align-items:center;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid oklch(32% 0.012 165);font-family:Inter,sans-serif;font-size:11px;color:oklch(66% 0.012 165);">
+                    <span onClick="{{ tc.onToggleLike }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ tc.likeColor }};"><span style="font-size:13px;line-height:1;">{{ tc.likeGlyph }}</span>{{ tc.likesLabel }}</span>
+                    <span onClick="{{ tc.onToggleSave }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ tc.saveColor }};"><svg width="13" height="13" viewBox="0 0 24 24" fill="{{ tc.saveFill }}" stroke="{{ tc.saveColor }}" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ tc.savesLabel }}</span>
+                    <span onClick="{{ tc.onFork }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.2"></circle><circle cx="18" cy="5" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle><path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2"></path><path d="M12 12v4.8"></path></svg>{{ tc.forksLabel }}</span>
+                    <span onClick="{{ tc.onCopyLink }}" style="margin-left:auto;display:flex;cursor:pointer;padding:2px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="padding:28px 20px 0;">
+            <div style="font-family:Inter,sans-serif;font-size:15px;font-weight:700;color:oklch(90% 0.008 160);margin-bottom:12px;">Categories</div>
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;">
+              <sc-for list="{{ exploreCategories }}" as="ec" hint-placeholder-count="6">
+                <div onClick="{{ ec.onSelect }}" style="border-radius:14px;background:oklch(27% 0.012 165);border:1px solid oklch(32% 0.012 165);padding:13px 14px;display:flex;flex-direction:column;gap:8px;min-height:104px;cursor:pointer;">
+                  <div style="display:flex;align-items:center;gap:7px;">
+                    <span style="width:8px;height:8px;border-radius:50%;background:{{ ec.dot }};flex-shrink:0;"></span>
+                    <span style="font-family:Inter,sans-serif;font-size:13.5px;font-weight:700;color:oklch(90% 0.008 160);">{{ ec.name }}</span>
+                  </div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(62% 0.012 165);line-height:1.7;">
+                    <sc-for list="{{ ec.samples }}" as="smp" hint-placeholder-count="2">
+                      <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ smp }}</div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="padding:28px 20px 0;">
+            <div style="font-family:Inter,sans-serif;font-size:15px;font-weight:700;color:oklch(90% 0.008 160);margin-bottom:6px;">Recently added</div>
+            <sc-for list="{{ exploreRecent }}" as="r" hint-placeholder-count="4">
+              <div onClick="{{ r.onOpen }}" style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid oklch(32% 0.012 165);cursor:pointer;">
+                <span style="width:8px;height:8px;border-radius:50%;background:{{ r.dot }};flex-shrink:0;"></span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-family:Inter,sans-serif;font-size:13.5px;color:oklch(90% 0.008 160);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.title }}</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(56% 0.012 165);margin-top:3px;">{{ r.meta }}</div>
+                </div>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(56% 0.012 165);flex-shrink:0;">{{ r.when }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+        </div>
+      </sc-if>
+      <sc-if value="{{ showSearchResults }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;overflow-y:auto;padding-bottom:12px;">
+          <div style="padding:12px 20px 10px;font-family:Inter,sans-serif;font-size:12px;color:oklch(66% 0.012 165);">{{ resultCountLabel }}</div>
+          <sc-for list="{{ searchResults }}" as="card" hint-placeholder-count="3">
+            <dc-import name="ListCard" card="{{ card }}" hint-size="100%,180px"></dc-import>
+          </sc-for>
+          <sc-if value="{{ searchEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:56px 32px;text-align:center;">
+              <div style="font-family:Inter,sans-serif;font-weight:700;font-size:15px;color:oklch(90% 0.008 160);margin-bottom:6px;">No results for “{{ submittedQuery }}”</div>
+              <div style="font-family:Inter,sans-serif;font-size:13px;color:oklch(66% 0.012 165);line-height:1.5;">Try a different word, or browse a topic instead.</div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:56px 20px 16px;border-bottom:1px solid oklch(32% 0.012 165);flex-shrink:0;">
+        <div onClick="{{ closeDetail }}" style="display:inline-flex;align-items:center;gap:6px;height:34px;margin-left:-4px;font-family:Inter,sans-serif;font-size:13px;color:oklch(72% 0.012 165);cursor:pointer;margin-bottom:10px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(72% 0.012 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>Back
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <div onClick="{{ activeCard.onOpenAuthor }}" style="flex:1;min-width:0;display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <div style="width:30px;height:30px;border-radius:50%;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-family:Inter,sans-serif;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ activeCard.initials }}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:Inter,sans-serif;font-weight:600;font-size:13px;color:oklch(90% 0.008 160);">{{ activeCard.authorName }}</div>
+            <div style="font-family:Inter,sans-serif;font-size:12px;color:oklch(66% 0.012 165);">{{ activeCard.authorHandle }} · {{ activeCard.timeAgo }}</div>
+          </div>
+          </div>
+          <sc-if value="{{ activeCard.showFollow }}" hint-placeholder-val="{{ true }}">
+            <span onClick="{{ activeCard.onToggleFollow }}" style="font-family:Inter,sans-serif;font-size:12px;font-weight:700;padding:7px 15px;border-radius:999px;cursor:pointer;flex-shrink:0;background:{{ activeCard.followBg }};color:{{ activeCard.followColor }};border:1px solid {{ activeCard.followBorder }};">{{ activeCard.followLabel }}</span>
+          </sc-if>
+        </div>
+        <div style="font-family:Inter,sans-serif;font-weight:800;font-size:21px;color:oklch(90% 0.008 160);line-height:1.25;text-wrap:pretty;">{{ activeCard.title }}</div>
+        <div style="font-family:Inter,sans-serif;font-size:12px;color:oklch(66% 0.012 165);margin-top:6px;">{{ activeLineCount }} lines</div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:16px 20px 8px;">
+        <sc-for list="{{ activeFlat }}" as="ln" hint-placeholder-count="5">
+          <sc-if value="{{ ln.label }}" hint-placeholder-val="{{ false }}">
+            <div style="font-family:Inter,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(66% 0.012 165);margin:16px 0 6px;">{{ ln.label }}</div>
+          </sc-if>
+          <div style="display:flex;gap:10px;font-family:Inter,sans-serif;font-size:14.5px;color:oklch(84% 0.008 160);line-height:1.7;text-wrap:pretty;">
+            <span style="color:oklch(78% 0.06 160);font-weight:700;flex-shrink:0;font-variant-numeric:tabular-nums;">{{ ln.num }}</span><span style="flex:1;">{{ ln.text }}</span>
+            <sc-if value="{{ ln.hasLink }}" hint-placeholder-val="{{ false }}">
+              <span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:oklch(23% 0.012 165);border:2px solid oklch(78% 0.06 160);color:oklch(78% 0.06 160);font-size:13px;font-weight:700;flex-shrink:0;">↗</span>
+            </sc-if>
+          </div>
+        </sc-for>
+        <sc-if value="{{ activeCard.hasComments }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:20px;padding-top:16px;border-top:1px solid oklch(32% 0.012 165);">
+            <div style="font-family:Inter,sans-serif;font-size:9.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(56% 0.012 165);margin-bottom:10px;">Comments</div>
+            <div style="border-radius:12px;background:oklch(20% 0.012 165);border:1px dashed oklch(32% 0.012 165);padding:14px 16px;">
+              <sc-for list="{{ activeCard.comments }}" as="cm" hint-placeholder-count="2">
+                <div style="margin-bottom:12px;">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(56% 0.012 165);margin-bottom:3px;">{{ cm.author }}</div>
+                  <div style="font-family:Inter,sans-serif;font-size:13px;color:oklch(84% 0.008 160);line-height:1.5;">{{ cm.text }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ activeCard.noComments }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:20px;padding-top:16px;border-top:1px solid oklch(32% 0.012 165);">
+            <div style="font-family:Inter,sans-serif;font-size:9.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(56% 0.012 165);margin-bottom:10px;">Comments</div>
+            <div style="border-radius:12px;background:oklch(20% 0.012 165);border:1px dashed oklch(32% 0.012 165);padding:22px 16px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;">
+              <div style="font-family:Inter,sans-serif;font-size:13px;color:oklch(66% 0.012 165);line-height:1.5;">No comments yet. Share a tip, a favorite, or what you'd add.</div>
+              <span style="font-family:Inter,sans-serif;font-size:12.5px;font-weight:700;padding:9px 18px;border-radius:999px;border:1.5px solid oklch(78% 0.06 160);color:oklch(78% 0.06 160);cursor:pointer;">Add a comment</span>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+      <div style="padding:8px 12px;border-top:1px solid oklch(32% 0.012 165);display:flex;align-items:center;gap:2px;flex-shrink:0;">
+        <span onClick="{{ activeCard.onToggleLike }}" style="display:flex;align-items:center;gap:6px;font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:{{ activeCard.likeColor }};cursor:pointer;padding:10px 9px;">
+          <span style="font-size:15px;line-height:1;">{{ activeCard.likeGlyph }}</span>{{ activeCard.likesLabel }}
+        </span>
+        <span onClick="{{ activeCard.onToggleSave }}" style="display:flex;align-items:center;gap:6px;font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:{{ activeCard.saveColor }};cursor:pointer;padding:10px 9px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="{{ activeCard.saveFill }}" stroke="{{ activeCard.saveColor }}" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ activeCard.savesLabel }}
+        </span>
+        <span onClick="{{ startFork }}" style="display:flex;align-items:center;gap:6px;font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:oklch(66% 0.012 165);cursor:pointer;padding:10px 9px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.2"></circle><circle cx="18" cy="5" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle><path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2"></path><path d="M12 12v4.8"></path></svg>{{ activeCard.forksLabel }}
+        </span>
+        <span style="flex:1;"></span>
+        <span onClick="{{ shareActive }}" style="display:flex;align-items:center;cursor:pointer;padding:10px 9px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg>
+        </span>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isUser }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:56px 20px 0;border-bottom:1px solid oklch(32% 0.012 165);flex-shrink:0;">
+        <div onClick="{{ goBack }}" style="display:inline-flex;align-items:center;gap:6px;height:34px;margin-left:-4px;font-family:Inter,sans-serif;font-size:13px;color:oklch(72% 0.012 165);cursor:pointer;margin-bottom:10px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(72% 0.012 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>Back
+        </div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+          <div style="width:56px;height:56px;border-radius:50%;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-family:Inter,sans-serif;font-weight:700;font-size:19px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;flex-shrink:0;">{{ viewedUser.initials }}</div>
+          <span onClick="{{ viewedUser.onToggleFollow }}" style="font-family:Inter,sans-serif;font-size:12.5px;font-weight:700;padding:8px 18px;border-radius:999px;cursor:pointer;background:{{ viewedUser.followBg }};color:{{ viewedUser.followColor }};border:1px solid {{ viewedUser.followBorder }};">{{ viewedUser.followLabel }}</span>
+        </div>
+        <div style="font-family:Inter,sans-serif;font-weight:800;font-size:18px;color:oklch(90% 0.008 160);">{{ viewedUser.name }}</div>
+        <div style="font-family:Inter,sans-serif;font-size:12.5px;color:oklch(66% 0.012 165);margin-top:2px;">{{ viewedUser.handle }}</div>
+        <div style="font-family:Inter,sans-serif;font-size:13px;color:oklch(84% 0.008 160);line-height:1.5;margin-top:10px;text-wrap:pretty;">{{ viewedUser.bio }}</div>
+        <div style="display:flex;gap:18px;margin:14px 0 16px;font-family:Inter,sans-serif;font-size:12.5px;color:oklch(72% 0.012 165);">
+          <span><strong style="color:oklch(90% 0.008 160);">{{ viewedUser.stackCount }}</strong> Stacks</span>
+          <span><strong style="color:oklch(90% 0.008 160);">{{ viewedUser.followersLabel }}</strong> Followers</span>
+          <span><strong style="color:oklch(90% 0.008 160);">{{ viewedUser.following }}</strong> Following</span>
+        </div>
+        <div style="display:flex;gap:22px;">
+          <span onClick="{{ selectUserStacks }}" style="padding-bottom:10px;font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:{{ userStacksColor }};border-bottom:2px solid {{ userStacksBorder }};cursor:pointer;">Stacks</span>
+          <span onClick="{{ selectUserReposts }}" style="padding-bottom:10px;font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:{{ userRepostsColor }};border-bottom:2px solid {{ userRepostsBorder }};cursor:pointer;">Reposts</span>
+        </div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:16px 20px 24px;display:flex;flex-direction:column;gap:14px;">
+        <sc-for list="{{ userCards }}" as="uc" hint-placeholder-count="2">
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <sc-if value="{{ uc.isRepost }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:6px;padding-left:4px;font-family:Inter,sans-serif;font-size:11.5px;font-weight:600;color:oklch(66% 0.012 165);">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 2l4 4-4 4"></path><path d="M3 11V9a3 3 0 0 1 3-3h15"></path><path d="M7 22l-4-4 4-4"></path><path d="M21 13v2a3 3 0 0 1-3 3H3"></path></svg>{{ uc.repostLabel }}
+              </div>
+            </sc-if>
+            <div onClick="{{ uc.card.onOpen }}" style="border-radius:16px;background:oklch(27% 0.012 165);border:1px solid oklch(32% 0.012 165);display:flex;flex-direction:column;padding:18px;cursor:pointer;">
+              <div onClick="{{ uc.card.onOpenAuthor }}" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;align-self:flex-start;max-width:100%;cursor:pointer;">
+                <div style="width:26px;height:26px;border-radius:50%;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-family:Inter,sans-serif;font-weight:700;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ uc.card.initials }}</div>
+                <span style="font-family:Inter,sans-serif;font-weight:600;font-size:12px;color:oklch(90% 0.008 160);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ uc.card.authorName }}</span>
+                <span style="font-family:Inter,sans-serif;font-size:11px;color:oklch(56% 0.012 165);white-space:nowrap;flex-shrink:0;">{{ uc.card.authorHandle }}</span>
+              </div>
+              <div style="font-family:Inter,sans-serif;font-weight:400;font-size:14px;color:oklch(84% 0.008 160);line-height:1.3;margin-bottom:12px;text-wrap:pretty;">{{ uc.card.title }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(66% 0.012 165);line-height:1.9;">
+                <sc-for list="{{ uc.card.shortLines }}" as="pl" hint-placeholder-count="4">
+                  <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(78% 0.06 160);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
+                </sc-for>
+              </div>
+              <sc-if value="{{ uc.card.hasMoreShort }}" hint-placeholder-val="{{ false }}">
+                <div style="font-family:Inter,sans-serif;font-size:11.5px;font-weight:600;color:oklch(78% 0.06 160);margin-top:6px;">{{ uc.card.moreShortLabel }}</div>
+              </sc-if>
+              <div style="display:flex;align-items:center;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid oklch(32% 0.012 165);font-family:Inter,sans-serif;font-size:11px;color:oklch(56% 0.012 165);">
+                  <span onClick="{{ uc.card.onToggleLike }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ uc.card.likeColor }};"><span style="font-size:13px;line-height:1;">{{ uc.card.likeGlyph }}</span>{{ uc.card.likesLabel }}</span>
+                  <span onClick="{{ uc.card.onToggleSave }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ uc.card.saveColor }};"><svg width="13" height="13" viewBox="0 0 24 24" fill="{{ uc.card.saveFill }}" stroke="{{ uc.card.saveColor }}" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ uc.card.savesLabel }}</span>
+                  <span onClick="{{ uc.card.onFork }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:oklch(66% 0.012 165);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.2"></circle><circle cx="18" cy="5" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle><path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2"></path><path d="M12 12v4.8"></path></svg>{{ uc.card.forksLabel }}</span>
+                  <span style="font-size:10.5px;">{{ uc.card.commentCountLabel }}</span>
+                  <span onClick="{{ uc.card.onCopyLink }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;margin-left:auto;padding:2px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></span>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ userCardsEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:40px 20px;text-align:center;font-family:Inter,sans-serif;font-size:13px;color:oklch(66% 0.012 165);">{{ userEmptyLabel }}</div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+    <sc-if value="{{ profileNeedsAuth }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 32px;">
+        <div style="font-family:Inter,sans-serif;font-weight:800;font-size:19px;color:oklch(90% 0.008 160);margin-bottom:8px;">Sign in to see your profile</div>
+        <div style="font-family:Inter,sans-serif;font-size:13px;color:oklch(66% 0.012 165);line-height:1.5;margin-bottom:20px;max-width:260px;">Create a free account to save your lists, follow people, and track your forks.</div>
+        <div onClick="{{ signIn }}" style="width:100%;max-width:220px;padding:13px;border-radius:10px;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-family:Inter,sans-serif;font-weight:700;font-size:14px;cursor:pointer;">Sign in / Create account</div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ profileSignedIn }}" hint-placeholder-val="{{ true }}">
+      <div style="padding:60px 20px 0;border-bottom:1px solid oklch(32% 0.012 165);flex-shrink:0;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+          <div style="width:56px;height:56px;border-radius:50%;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-family:Inter,sans-serif;font-weight:700;font-size:20px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;flex-shrink:0;">Y</div>
+          <span style="font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;padding:8px 15px;border-radius:999px;border:1px solid oklch(32% 0.012 165);color:oklch(84% 0.008 160);cursor:pointer;">Edit profile</span>
+        </div>
+        <div style="font-family:Inter,sans-serif;font-weight:800;font-size:18px;color:oklch(90% 0.008 160);">You</div>
+        <div style="font-family:Inter,sans-serif;font-size:12.5px;color:oklch(66% 0.012 165);margin-bottom:8px;">@you</div>
+        <div style="font-family:Inter,sans-serif;font-size:13px;color:oklch(72% 0.012 165);line-height:1.5;margin-bottom:14px;max-width:300px;">Collecting the small decisions so I don't have to remember them twice.</div>
+        <div style="display:flex;gap:18px;margin-bottom:16px;font-family:Inter,sans-serif;font-size:12.5px;color:oklch(72% 0.012 165);">
+          <span><strong style="color:oklch(90% 0.008 160);">{{ mineCount }}</strong> Stacks</span>
+          <span><strong style="color:oklch(90% 0.008 160);">128</strong> Followers</span>
+          <span><strong style="color:oklch(90% 0.008 160);">{{ followingCount }}</strong> Following</span>
+        </div>
+        <div style="display:flex;gap:22px;overflow-x:auto;">
+          <span onClick="{{ selectTabMine }}" style="flex-shrink:0;padding-bottom:10px;font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:{{ mineTabColor }};border-bottom:2px solid {{ mineTabBorder }};cursor:pointer;">Stacks</span>
+          <span onClick="{{ selectTabSaved }}" style="flex-shrink:0;padding-bottom:10px;font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:{{ savedTabColor }};border-bottom:2px solid {{ savedTabBorder }};cursor:pointer;">Saved</span>
+          <span onClick="{{ selectTabForked }}" style="flex-shrink:0;padding-bottom:10px;font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:{{ forkedTabColor }};border-bottom:2px solid {{ forkedTabBorder }};cursor:pointer;">Forked</span>
+          <span onClick="{{ selectTabDrafts }}" style="flex-shrink:0;padding-bottom:10px;font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:{{ draftsTabColor }};border-bottom:2px solid {{ draftsTabBorder }};cursor:pointer;">Drafts{{ draftsBadge }}</span>
+        </div>
+      </div>
+      <div style="flex:1;overflow-y:auto;">
+        <sc-if value="{{ isDraftsTab }}" hint-placeholder-val="{{ false }}">
+          <sc-for list="{{ draftRows }}" as="d" hint-placeholder-count="1">
+            <div style="padding:16px 20px;border-bottom:1px solid oklch(32% 0.012 165);display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;" onClick="{{ d.onEdit }}">
+              <div style="min-width:0;">
+                <div style="font-family:Inter,sans-serif;font-weight:700;font-size:14px;color:oklch(90% 0.008 160);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ d.title }}</div>
+                <div style="font-family:Inter,sans-serif;font-size:11.5px;color:oklch(66% 0.012 165);margin-top:2px;">Draft · {{ d.lineCount }} lines</div>
+              </div>
+              <span onClick="{{ d.onDelete }}" style="font-family:Inter,sans-serif;font-size:12px;color:oklch(66% 0.012 165);cursor:pointer;flex-shrink:0;">Delete</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ draftsEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:40px 20px;text-align:center;font-family:Inter,sans-serif;font-size:13px;color:oklch(66% 0.012 165);">No drafts yet.</div>
+          </sc-if>
+        </sc-if>
+        <sc-if value="{{ isSavedTab }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ hasSavedRows }}" hint-placeholder-val="{{ true }}">
+            <div style="padding:12px 20px 6px;">
+              <div style="display:flex;align-items:center;gap:8px;padding:0 12px;height:36px;border-radius:999px;background:oklch(27% 0.012 165);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(56% 0.012 165)" strokeWidth="2.2" strokeLinecap="round" style="flex-shrink:0;"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>
+                <input value="{{ savedFilter }}" onChange="{{ onSavedFilterChange }}" placeholder="Filter saved stacks" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:13px;color:oklch(90% 0.008 160);" />
+              </div>
+            </div>
+          </sc-if>
+          <sc-for list="{{ savedRows }}" as="r" hint-placeholder-count="6">
+            <div onClick="{{ r.onOpen }}" style="display:flex;align-items:center;gap:12px;padding:11px 20px;border-bottom:1px solid oklch(32% 0.012 165);cursor:pointer;">
+              <div style="flex:1;min-width:0;">
+                <div style="font-family:Inter,sans-serif;font-size:13.5px;color:oklch(90% 0.008 160);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.title }}</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(56% 0.012 165);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.meta }}</div>
+              </div>
+              <span onClick="{{ r.onUnsave }}" style="font-family:Inter,sans-serif;font-size:15px;color:oklch(78% 0.06 160);cursor:pointer;padding:8px;margin-right:-8px;flex-shrink:0;">◆</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ savedEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:40px 20px;text-align:center;font-family:Inter,sans-serif;font-size:13px;color:oklch(66% 0.012 165);">{{ savedEmptyLabel }}</div>
+          </sc-if>
+        </sc-if>
+        <sc-if value="{{ showProfileCards }}" hint-placeholder-val="{{ true }}">
+        <sc-for list="{{ profileCards }}" as="card" hint-placeholder-count="2">
+          <dc-import name="ListCard" card="{{ card }}" hint-size="100%,180px"></dc-import>
+        </sc-for>
+        <sc-if value="{{ profileEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:40px 20px;text-align:center;font-family:Inter,sans-serif;font-size:13px;color:oklch(66% 0.012 165);">Nothing here yet.</div>
+        </sc-if>
+        </sc-if>
+      </div>
+    </sc-if>
+    </sc-if>
+
+    <sc-if value="{{ isCreate }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:60px 20px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid oklch(32% 0.012 165);flex-shrink:0;">
+        <span onClick="{{ cancelDraft }}" style="font-family:Inter,sans-serif;font-size:13px;color:oklch(66% 0.012 165);cursor:pointer;">Cancel</span>
+        <span style="font-family:Inter,sans-serif;font-weight:700;font-size:14.5px;color:oklch(90% 0.008 160);">{{ createTitle }}</span>
+        <div style="display:flex;gap:14px;align-items:center;">
+          <span onClick="{{ saveDraft }}" style="font-family:Inter,sans-serif;font-size:13px;color:oklch(66% 0.012 165);cursor:pointer;">Save Draft</span>
+          <span onClick="{{ publishDraft }}" style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:{{ publishColor }};cursor:pointer;">Publish</span>
+        </div>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:20px;">
+        <input value="{{ draftTitle }}" onChange="{{ onDraftTitleChange }}" placeholder="Untitled stack" style="width:100%;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-weight:800;font-size:21px;color:oklch(90% 0.008 160);margin-bottom:22px;padding:0;" />
+        <sc-for list="{{ draftSections }}" as="sec" hint-placeholder-count="1">
+          <div style="margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+              <input value="{{ sec.label }}" onChange="{{ sec.onLabelChange }}" placeholder="Subsection (optional)" style="flex:1;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(66% 0.012 165);padding:0;" />
+              <sc-if value="{{ sec.showRemove }}" hint-placeholder-val="{{ false }}">
+                <span onClick="{{ sec.onRemoveSection }}" style="font-family:Inter,sans-serif;font-size:11px;color:oklch(66% 0.012 165);cursor:pointer;">Remove</span>
+              </sc-if>
+            </div>
+            <sc-for list="{{ sec.lines }}" as="ln" hint-placeholder-count="2">
+              <div style="margin-bottom:10px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-family:Inter,sans-serif;font-weight:700;font-size:12px;color:oklch(78% 0.06 160);width:18px;flex-shrink:0;">{{ ln.num }}</span>
+                  <input value="{{ ln.text }}" onChange="{{ ln.onChange }}" placeholder="Add a line…" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:13.5px;color:oklch(90% 0.008 160);border-bottom:1px solid oklch(32% 0.012 165);padding:6px 0;" />
+                  <span style="font-family:Inter,sans-serif;font-size:10px;color:oklch(56% 0.012 165);width:30px;text-align:right;flex-shrink:0;">{{ ln.remaining }}</span>
+                  <span onClick="{{ ln.onRemove }}" style="font-family:Inter,sans-serif;font-size:14px;color:oklch(56% 0.012 165);cursor:pointer;flex-shrink:0;">×</span>
+                </div>
+                <sc-if value="{{ ln.showLinkInput }}" hint-placeholder-val="{{ false }}">
+                  <input value="{{ ln.link }}" onChange="{{ ln.onLinkChange }}" placeholder="https://…" style="width:100%;margin:4px 0 0 26px;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:11.5px;color:oklch(78% 0.06 160);border-bottom:1px dashed oklch(32% 0.012 165);padding:4px 0;" />
+                </sc-if>
+                <sc-if value="{{ ln.showAddLinkBtn }}" hint-placeholder-val="{{ true }}">
+                  <span onClick="{{ ln.onToggleLinkInput }}" style="margin-left:26px;font-family:Inter,sans-serif;font-size:10.5px;color:oklch(78% 0.06 160);cursor:pointer;">+ link</span>
+                </sc-if>
+              </div>
+            </sc-for>
+            <div onClick="{{ sec.onAddLine }}" style="font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:oklch(78% 0.06 160);cursor:pointer;margin-top:4px;">+ Add line</div>
+          </div>
+        </sc-for>
+        <div onClick="{{ addSection }}" style="font-family:Inter,sans-serif;font-size:12.5px;color:oklch(66% 0.012 165);cursor:pointer;padding:12px 0;border-top:1px dashed oklch(32% 0.012 165);">+ Add subsection</div>
+        <div style="margin-top:14px;padding-top:18px;border-top:1px solid oklch(32% 0.012 165);">
+          <div style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(66% 0.012 165);margin-bottom:5px;">Tags</div>
+          <div style="font-family:Inter,sans-serif;font-size:12px;color:oklch(60% 0.012 165);line-height:1.5;margin-bottom:12px;">Tags help people find this stack in search. They stay private — nobody sees them on the published stack.</div>
+          <sc-if value="{{ hasDraftTags }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;">
+              <sc-for list="{{ draftTags }}" as="t" hint-placeholder-count="2">
+                <span style="display:flex;align-items:center;gap:7px;font-family:Inter,sans-serif;font-size:12px;font-weight:600;padding:7px 10px 7px 13px;border-radius:999px;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);">{{ t.name }}<span onClick="{{ t.onRemove }}" style="cursor:pointer;font-size:14px;line-height:1;opacity:0.7;">×</span></span>
+              </sc-for>
+            </div>
+          </sc-if>
+          <input value="{{ tagInput }}" onChange="{{ onTagInputChange }}" onKeyDown="{{ onTagKeyDown }}" placeholder="Type a tag and press Enter" style="width:100%;padding:10px 13px;border:1px solid oklch(32% 0.012 165);border-radius:999px;background:oklch(27% 0.012 165);font-family:Inter,sans-serif;font-size:13px;color:oklch(90% 0.008 160);outline:none;margin-bottom:14px;" />
+          <sc-if value="{{ hasTagSuggestions }}" hint-placeholder-val="{{ true }}">
+            <div style="font-family:Inter,sans-serif;font-size:11.5px;color:oklch(60% 0.012 165);margin-bottom:8px;">Suggestions</div>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;">
+              <sc-for list="{{ tagSuggestions }}" as="t" hint-placeholder-count="5">
+                <span onClick="{{ t.onAdd }}" style="font-family:Inter,sans-serif;font-size:12px;font-weight:600;padding:7px 13px;border-radius:999px;border:1px solid oklch(32% 0.012 165);background:transparent;color:oklch(84% 0.008 160);cursor:pointer;">+ {{ t.name }}</span>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showTabBar }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;align-items:stretch;padding:6px 4px 22px;border-top:1px solid oklch(32% 0.012 165);flex-shrink:0;background:oklch(27% 0.012 165);">
+        <div onClick="{{ goFeed }}" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:46px;cursor:pointer;">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="{{ tabFeedColor }}" strokeWidth="2" strokeLinecap="round"><path d="M4 6.5h16"></path><path d="M4 12h16"></path><path d="M4 17.5h10"></path></svg>
+          <span style="font-family:Inter,sans-serif;font-size:10px;font-weight:600;color:{{ tabFeedColor }};">Feed</span>
+        </div>
+        <div onClick="{{ goSearch }}" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:46px;cursor:pointer;">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="{{ tabSearchColor }}" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>
+          <span style="font-family:Inter,sans-serif;font-size:10px;font-weight:600;color:{{ tabSearchColor }};">Explore</span>
+        </div>
+        <div onClick="{{ goNew }}" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:46px;cursor:pointer;">
+          <div style="width:42px;height:25px;border-radius:8px;background:oklch(78% 0.06 160);display:flex;align-items:center;justify-content:center;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(23% 0.012 165)" strokeWidth="3" strokeLinecap="round"><path d="M12 5.5v13"></path><path d="M5.5 12h13"></path></svg>
+          </div>
+          <span style="font-family:Inter,sans-serif;font-size:10px;font-weight:600;color:{{ tabCreateColor }};">Create</span>
+        </div>
+        <div onClick="{{ goProfile }}" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:46px;cursor:pointer;">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="{{ tabProfileColor }}" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8.5" r="3.7"></circle><path d="M5 19.5c1.4-3.2 4-4.6 7-4.6s5.6 1.4 7 4.6"></path></svg>
+          <span style="font-family:Inter,sans-serif;font-size:10px;font-weight:600;color:{{ tabProfileColor }};">Profile</span>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ toastVisible }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:20px;right:20px;bottom:96px;padding:12px 16px;border-radius:10px;background:oklch(90% 0.008 160);color:oklch(23% 0.012 165);font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;text-align:center;z-index:30;">{{ toastMessage }}</div>
+    </sc-if>
+
+    <sc-if value="{{ showAuthModal }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ cancelAuth }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:flex-end;z-index:40;">
+        <div onClick="{{ stopClick }}" style="width:100%;background:oklch(27% 0.012 165);border-radius:20px 20px 0 0;padding:26px 24px 34px;box-sizing:border-box;">
+          <div style="width:36px;height:4px;border-radius:2px;background:oklch(42% 0.012 165);margin:0 auto 18px;"></div>
+          <div style="font-family:Inter,sans-serif;font-weight:800;font-size:18px;color:oklch(90% 0.008 160);margin-bottom:8px;">Sign in to continue</div>
+          <div style="font-family:Inter,sans-serif;font-size:13px;color:oklch(66% 0.012 165);line-height:1.5;margin-bottom:20px;">{{ authMessage }}</div>
+          <div onClick="{{ confirmAuth }}" style="padding:13px;border-radius:10px;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-family:Inter,sans-serif;font-weight:700;font-size:14px;cursor:pointer;text-align:center;margin-bottom:6px;">Sign in / Create account</div>
+          <div onClick="{{ cancelAuth }}" style="padding:13px;text-align:center;font-family:Inter,sans-serif;font-size:13px;color:oklch(66% 0.012 165);cursor:pointer;">Not now</div>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+</x-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    screen: 'feed',
+    signedIn: false,
+    feedTab: 'forYou',
+    followedHandles: ['@marcus.reads', '@kenji.eats'],
+    drafts: [],
+    recentSearches: [],
+    tagInput: '',
+    toast: null,
+    editingDraftId: null,
+    showAuthModal: false,
+    authAction: null,
+    authMessage: '',
+    returnScreen: 'feed',
+    searchQuery: '',
+    submittedQuery: '',
+    profileTab: 'mine',
+    viewedHandle: null,
+    userTab: 'stacks',
+    navStack: [],
+    activeListId: null,
+    draft: null,
+    linkInputOpen: {},
+    lists: [
+      {
+        id: 'l1', author: { name: 'Renata Díaz', handle: '@renata.diaz', initials: 'RD' }, timeAgo: '2d',
+        title: 'Mexico City Bars', tags: ['Travel', 'Food & Drink'],
+        sections: [
+          { label: 'Roma Norte', lines: [
+            { text: 'Licorería Limantour — no menu, just tell them what you like', link: 'https://limantour.com.mx' },
+            { text: 'Departamento — rooftop, arrive before 8pm or wait an hour', link: 'https://departamento.mx' },
+            { text: 'Baltra Bar — unmarked door, ring the bell twice' },
+          ]},
+          { label: 'Condesa', lines: [
+            { text: 'Bling Bling Bar — natural wine, seats six people max' },
+            { text: 'Mono — mezcal flights, go on a Tuesday' },
+          ]},
+          { label: 'Centro', lines: [
+            { text: 'Hanky Panky — speakeasy behind a taxidermy shop' },
+            { text: 'Salón Cielito Lindo — cheap micheladas, plastic chairs, perfect' },
+          ]},
+        ],
+        likes: 842, forks: 96, saves: 310, likedByUser: false, savedByUser: true, isMine: false, forkedFromId: null,
+        topComment: { author: '@marcus.reads', text: 'Baltra Bar is no joke, bring cash.' },
+        comments: [
+          { author: '@marcus.reads', text: 'Baltra Bar is no joke, bring cash.' },
+          { author: '@junehome', text: 'Went to Limantour off this list, worth the wait.' },
+          { author: '@kenji.eats', text: 'Adding Mono to my next trip because of this.' },
+        ],
+      },
+      {
+        id: 'l2', author: { name: 'Marcus Webb', handle: '@marcus.reads', initials: 'MW' }, timeAgo: '5d',
+        title: 'Books That Actually Changed How I Think', tags: ['Books'], style: 'bulleted',
+        sections: [
+          { label: null, lines: [
+            { text: 'Meditations — Marcus Aurelius', link: 'https://bookshop.org/meditations' },
+            { text: 'The Selfish Gene — Richard Dawkins' },
+            { text: "Man's Search for Meaning — Viktor Frankl" },
+            { text: 'Sapiens — Yuval Noah Harari', link: 'https://bookshop.org/sapiens' },
+            { text: 'Thinking, Fast and Slow — Daniel Kahneman' },
+            { text: 'Zen and the Art of Motorcycle Maintenance — Robert Pirsig' },
+          ]},
+        ],
+        likes: 1204, forks: 210, saves: 588, likedByUser: true, savedByUser: false, isMine: false, forkedFromId: null,
+        topComment: { author: '@junehome', text: 'Reread Meditations every winter now, thank you.' },
+        comments: [
+          { author: '@junehome', text: 'Reread Meditations every winter now, thank you.' },
+          { author: '@renata.diaz', text: 'Sapiens changed how I think about basically everything.' },
+        ],
+      },
+      {
+        id: 'l3', author: { name: 'June Ostrander', handle: '@junehome', initials: 'JO' }, timeAgo: '1w',
+        title: 'Etsy Finds Worth the Shipping Wait', tags: ['Shopping', 'Home'], style: 'bulleted',
+        sections: [
+          { label: 'For the kitchen', lines: [
+            { text: 'Hand-thrown mug from ClayAndKin — every one is slightly different', link: 'https://etsy.com/shop/clayandkin' },
+            { text: 'Linen napkins from FieldFolkCo — get the oat color, not white', link: 'https://etsy.com/shop/fieldfolkco' },
+          ]},
+          { label: 'For the desk', lines: [
+            { text: 'Brass paperweight from OrsoStudio — heavier than it looks, worth it', link: 'https://etsy.com/shop/orsostudio' },
+            { text: 'Letterpress notepad from PressAndPaper — refills are cheap' },
+          ]},
+        ],
+        likes: 356, forks: 44, saves: 190, likedByUser: false, savedByUser: false, isMine: false, forkedFromId: null,
+        topComment: { author: '@renata.diaz', text: 'The paperweight is heavier than I expected, love it.' },
+        comments: [
+          { author: '@renata.diaz', text: 'The paperweight is heavier than I expected, love it.' },
+        ],
+      },
+      {
+        id: 'l4', author: { name: 'Kenji Sato', handle: '@kenji.eats', initials: 'KS' }, timeAgo: '3d',
+        title: 'Tokyo Ramen Worth the Line', tags: ['Travel', 'Food & Drink'],
+        sections: [
+          { label: 'Shibuya', lines: [
+            { text: 'Fuunji — cold dipping noodles, go before 11am', link: 'https://fuunji.jp' },
+            { text: 'Nagi — spicy niboshi broth, expect a 40 min wait' },
+          ]},
+          { label: 'Shinjuku', lines: [
+            { text: 'Fuutou — thick tonkotsu, cash only' },
+          ]},
+        ],
+        likes: 675, forks: 71, saves: 240, likedByUser: false, savedByUser: false, isMine: false, forkedFromId: null,
+        topComment: { author: '@marcus.reads', text: 'Fuunji line moves fast if you go right at open.' },
+        comments: [
+          { author: '@marcus.reads', text: 'Fuunji line moves fast if you go right at open.' },
+          { author: '@junehome', text: 'Nagi wait was worth every minute.' },
+        ],
+      },
+      {
+        id: 'l5', author: { name: 'You', handle: '@you', initials: 'Y' }, timeAgo: 'just now',
+        title: 'Desk Setup Under $50', tags: ['Home', 'Tech'],
+        sections: [
+          { label: null, lines: [
+            { text: 'Cable clips — $6, stop the tangle under the desk' },
+            { text: 'Cheap monitor riser — $18, any wood block works honestly' },
+            { text: 'Desk mat — $22, felt not leather, easier to clean' },
+          ]},
+        ],
+        likes: 12, forks: 1, saves: 4, likedByUser: false, savedByUser: false, isMine: true, forkedFromId: null,
+      },
+    ],
+  };
+
+  railRef = React.createRef();
+  scrollRail(dir) {
+    const el = this.railRef.current;
+    if (el) el.scrollBy({ top: dir * el.clientHeight, behavior: 'smooth' });
+  }
+  _fmt(n) {
+    if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.0', '') + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'K';
+    return String(n);
+  }
+  _flatten(l) {
+    const out = [];
+    let n = 1;
+    const bulleted = l.style === 'bulleted';
+    l.sections.forEach(sec => {
+      sec.lines.forEach((ln, i) => {
+        out.push({ num: bulleted ? '•' : String(n).padStart(2, '0'), label: i === 0 ? sec.label : null, text: ln.text, hasLink: !!ln.link, link: ln.link || null });
+        n++;
+      });
+    });
+    return out;
+  }
+  _preview(l, max = 4) {
+    const flat = this._flatten(l);
+    return { lines: flat.slice(0, max), hasMore: flat.length > max, moreCount: flat.length - max };
+  }
+  _cardVM(l, screen) {
+    const p = this._preview(l, 999);
+    const following = this.state.followedHandles.includes(l.author.handle);
+    const total = this._flatten(l).length;
+    return {
+      id: l.id, initials: l.author.initials, authorName: l.author.name, authorHandle: l.author.handle,
+      timeAgo: l.timeAgo, title: l.title, previewLines: p.lines, hasMore: p.hasMore, moreCount: p.moreCount,
+      totalCount: total,
+      likes: l.likes, forks: l.forks, saves: l.saves, likedByUser: l.likedByUser, savedByUser: l.savedByUser,
+      likesLabel: this._fmt(l.likes), forksLabel: this._fmt(l.forks), savesLabel: this._fmt(l.saves),
+      likeGlyph: l.likedByUser ? '♥' : '♡',
+      saveGlyph: l.savedByUser ? '◆' : '◇',
+      saveFill: l.savedByUser ? 'oklch(78% 0.06 160)' : 'none',
+      onFork: (e) => { if (e) e.stopPropagation(); this.forkFrom(l.id); },
+      onCopyLink: (e) => { if (e) e.stopPropagation(); this.showToast('Link copied to clipboard'); },
+      likeColor: l.likedByUser ? 'oklch(78% 0.06 160)' : 'oklch(66% 0.012 165)',
+      saveLabel: l.savedByUser ? 'Saved' : 'Save',
+      saveColor: l.savedByUser ? 'oklch(78% 0.06 160)' : 'oklch(66% 0.012 165)',
+      showFollow: !l.isMine,
+      followLabel: following ? 'Following' : 'Follow',
+      followBg: following ? 'transparent' : 'oklch(78% 0.06 160)',
+      followColor: following ? 'oklch(84% 0.008 160)' : 'oklch(23% 0.012 165)',
+      followBorder: following ? 'oklch(40% 0.012 165)' : 'oklch(78% 0.06 160)',
+      onToggleFollow: (e) => { if (e) e.stopPropagation(); this.toggleFollow(l.author.handle); },
+      topComment: l.topComment || null, hasTopComment: !!l.topComment,
+      comments: (l.comments || []).map((c, i, arr) => i === arr.length - 1 ? { ...c, isLast: true } : c),
+      hasComments: !!(l.comments && l.comments.length),
+      noComments: !(l.comments && l.comments.length),
+      onOpen: () => this.openList(l.id, screen),
+      shortLines: p.lines.slice(0, 4),
+      hasMoreShort: p.lines.length > 4,
+      moreShortLabel: '+ ' + (p.lines.length - 4) + ' more \u00b7 tap to see all',
+      commentCountLabel: (l.comments && l.comments.length) ? l.comments.length + (l.comments.length === 1 ? ' comment' : ' comments') : 'No comments',
+      onOpenAuthor: (e) => { if (e) e.stopPropagation(); this.openUser(l.author.handle); },
+      onToggleLike: (e) => { e.stopPropagation(); this.toggleLike(l.id); },
+      onToggleSave: (e) => { e.stopPropagation(); this.toggleSave(l.id); },
+    };
+  }
+  toggleFollow(handle) {
+    this.requireAuth(() => this.setState(s => ({
+      followedHandles: s.followedHandles.includes(handle)
+        ? s.followedHandles.filter(h => h !== handle)
+        : [...s.followedHandles, handle],
+    })), 'Sign in to follow people and build your own feed.');
+  }
+  showToast(msg) {
+    this.setState({ toast: msg });
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(() => this.setState({ toast: null }), 1800);
+  }
+  componentWillUnmount() { clearTimeout(this._toastTimer); }
+  submitSearch(term) {
+    const t = (term || '').trim();
+    if (!t) return;
+    this.setState(s => ({
+      searchQuery: t, submittedQuery: t,
+      recentSearches: [t, ...s.recentSearches.filter(r => r.toLowerCase() !== t.toLowerCase())].slice(0, 5),
+    }));
+  }
+
+  USERS = {
+    '@renata.diaz': { bio: 'Bartender turned travel writer. Mostly Mexico City, sometimes Oaxaca.', followers: 2140, following: 188, reposts: ['l4', 'l2'] },
+    '@marcus.reads': { bio: 'Reading 50 books a year and ranking all of them.', followers: 5320, following: 402, reposts: ['l1'] },
+    '@junehome': { bio: 'Small apartment, good objects. Etsy archaeologist.', followers: 910, following: 233, reposts: ['l2', 'l5'] },
+    '@kenji.eats': { bio: 'Will wait in any line for noodles.', followers: 3870, following: 150, reposts: ['l1', 'l3'] },
+  };
+  _snapshot(s) { return { screen: s.screen, activeListId: s.activeListId, viewedHandle: s.viewedHandle, userTab: s.userTab }; }
+  openList(id, from) { this.setState(s => ({ navStack: [...s.navStack, this._snapshot(s)], activeListId: id, returnScreen: from, screen: 'detail' })); }
+  openUser(handle) {
+    if (handle === '@you') { this.setState({ screen: 'profile', navStack: [] }); return; }
+    this.setState(s => ({ navStack: [...s.navStack, this._snapshot(s)], viewedHandle: handle, userTab: 'stacks', screen: 'user' }));
+  }
+  goBack() {
+    this.setState(s => {
+      if (!s.navStack.length) return { screen: 'feed' };
+      const prev = s.navStack[s.navStack.length - 1];
+      return { ...prev, navStack: s.navStack.slice(0, -1) };
+    });
+  }
+  closeDetail() { this.goBack(); }
+  toggleLike(id) { this.requireAuth(() => this.setState(s => ({ lists: s.lists.map(l => l.id === id ? { ...l, likedByUser: !l.likedByUser, likes: l.likes + (l.likedByUser ? -1 : 1) } : l) })), 'Sign in to like stacks and keep track of what you love.'); }
+  toggleSave(id) { this.requireAuth(() => this.setState(s => ({ lists: s.lists.map(l => l.id === id ? { ...l, savedByUser: !l.savedByUser, saves: l.saves + (l.savedByUser ? -1 : 1) } : l) })), 'Sign in to save stacks to your profile.'); }
+
+  goFeed() { this.setState({ screen: 'feed', navStack: [] }); }
+  goSearch() { this.setState({ screen: 'search', navStack: [] }); }
+  goProfile() { this.setState({ screen: 'profile', navStack: [] }); }
+  goNew() { this.setState({ draft: { title: '', tags: [], sections: [{ label: '', lines: [{ text: '', link: '' }] }] }, linkInputOpen: {}, tagInput: '', editingDraftId: null, screen: 'create' }); }
+  signIn() { this.setState({ signedIn: true }); }
+  requireAuth(action, message) {
+    if (this.state.signedIn) { action(); return; }
+    this.setState({ showAuthModal: true, authAction: action, authMessage: message });
+  }
+  confirmAuth() {
+    const action = this.state.authAction;
+    this.setState({ signedIn: true, showAuthModal: false, authAction: null });
+    if (action) action();
+  }
+  openDraftForEdit(id) {
+    this.setState(s => {
+      const d = s.drafts.find(x => x.id === id);
+      if (!d) return null;
+      return { draft: { title: d.title, tags: d.tags || [], sections: d.sections, forkedFromId: d.forkedFromId || null }, editingDraftId: id, linkInputOpen: {}, tagInput: '', screen: 'create' };
+    });
+  }
+  deleteDraft(id, e) { if (e) e.stopPropagation(); this.setState(s => ({ drafts: s.drafts.filter(d => d.id !== id) })); }
+  saveDraft() {
+    this.requireAuth(() => this._doSaveDraft(), "Sign in to save this stack as a draft.");
+  }
+  _doSaveDraft() {
+    this.setState(s => {
+      if (!s.draft) return null;
+      const title = s.draft.title.trim() || 'Untitled draft';
+      const sections = s.draft.sections
+        .map(sec => ({ label: sec.label.trim() || null, lines: sec.lines.map(ln => ({ text: ln.text.trim(), link: (ln.link || '').trim() || undefined })).filter(ln => ln.text) }))
+        .filter(sec => sec.lines.length > 0);
+      const entry = { id: s.editingDraftId || ('d' + Date.now()), title, tags: s.draft.tags || [], sections, forkedFromId: s.draft.forkedFromId || null };
+      const drafts = s.editingDraftId ? s.drafts.map(d => d.id === s.editingDraftId ? entry : d) : [entry, ...s.drafts];
+      return { drafts, draft: null, editingDraftId: null, screen: 'profile', profileTab: 'drafts' };
+    });
+  }
+  cancelAuth() { this.setState({ showAuthModal: false, authAction: null }); }
+  selectFeedForYou() { this.setState({ feedTab: 'forYou' }); }
+  selectFeedFollowing() { this.setState({ feedTab: 'following' }); }
+
+  forkFrom(id) {
+    this.setState(s => ({ navStack: [...s.navStack, this._snapshot(s)], activeListId: id }), () => this.startFork());
+  }
+  startFork() {
+    this.setState(s => {
+      const src = s.lists.find(l => l.id === s.activeListId);
+      if (!src) return null;
+      const sections = src.sections.map(sec => ({ label: sec.label || '', lines: sec.lines.map(ln => ({ text: ln.text, link: ln.link || '' })) }));
+      return {
+        lists: s.lists.map(l => l.id === src.id ? { ...l, forks: l.forks + 1 } : l),
+        draft: { title: src.title + ' (remix)', tags: [...(src.tags || [])], sections, forkedFromId: src.id },
+        linkInputOpen: {}, tagInput: '',
+        screen: 'create',
+      };
+    });
+  }
+  addTag(name) {
+    const t = (name || '').trim().replace(/^#/, '');
+    if (!t) return;
+    this.setState(s => {
+      const tags = s.draft.tags || [];
+      if (tags.some(x => x.toLowerCase() === t.toLowerCase())) return { tagInput: '' };
+      return { draft: { ...s.draft, tags: [...tags, t] }, tagInput: '' };
+    });
+  }
+  removeTag(name) { this.setState(s => ({ draft: { ...s.draft, tags: (s.draft.tags || []).filter(t => t !== name) } })); }
+  updateDraftTitle(v) { this.setState(s => ({ draft: { ...s.draft, title: v } })); }
+  updateSectionLabel(sIdx, v) { this.setState(s => ({ draft: { ...s.draft, sections: s.draft.sections.map((sec, i) => i === sIdx ? { ...sec, label: v } : sec) } })); }
+  updateLine(sIdx, lIdx, v) { this.setState(s => ({ draft: { ...s.draft, sections: s.draft.sections.map((sec, i) => i !== sIdx ? sec : { ...sec, lines: sec.lines.map((ln, j) => j === lIdx ? { ...ln, text: v } : ln) }) } })); }
+  updateLineLink(sIdx, lIdx, v) { this.setState(s => ({ draft: { ...s.draft, sections: s.draft.sections.map((sec, i) => i !== sIdx ? sec : { ...sec, lines: sec.lines.map((ln, j) => j === lIdx ? { ...ln, link: v } : ln) }) } })); }
+  toggleLinkInput(sIdx, lIdx) { this.setState(s => { const k = sIdx + '-' + lIdx; return { linkInputOpen: { ...s.linkInputOpen, [k]: !s.linkInputOpen[k] } }; }); }
+  addLine(sIdx) { this.setState(s => ({ draft: { ...s.draft, sections: s.draft.sections.map((sec, i) => i === sIdx ? { ...sec, lines: [...sec.lines, { text: '', link: '' }] } : sec) } })); }
+  removeLine(sIdx, lIdx) { this.setState(s => ({ draft: { ...s.draft, sections: s.draft.sections.map((sec, i) => i !== sIdx ? sec : { ...sec, lines: sec.lines.filter((_, j) => j !== lIdx) }) } })); }
+  addSection() { this.setState(s => ({ draft: { ...s.draft, sections: [...s.draft.sections, { label: '', lines: [{ text: '', link: '' }] }] } })); }
+  removeSection(sIdx) { this.setState(s => ({ draft: { ...s.draft, sections: s.draft.sections.filter((_, i) => i !== sIdx) } })); }
+  cancelDraft() { this.setState({ draft: null, screen: 'feed' }); }
+  publishDraft() {
+    this.requireAuth(() => this._doPublish(), "Sign in to publish this stack and share it with others.");
+  }
+  _doPublish() {
+    this.setState(s => {
+      if (!s.draft) return null;
+      const title = s.draft.title.trim();
+      if (!title) return null;
+      const sections = s.draft.sections
+        .map(sec => ({
+          label: sec.label.trim() || null,
+          lines: sec.lines.map(ln => ({ text: ln.text.trim(), link: (ln.link || '').trim() || undefined })).filter(ln => ln.text),
+        }))
+        .filter(sec => sec.lines.length > 0);
+      if (sections.length === 0) return null;
+      const id = 'u' + Date.now();
+      const newList = {
+        id, author: { name: 'You', handle: '@you', initials: 'Y' }, timeAgo: 'just now', title, tags: s.draft.tags || [],
+        sections, likes: 0, forks: 0, saves: 0, likedByUser: false, savedByUser: false, isMine: true,
+        forkedFromId: s.draft.forkedFromId || null,
+      };
+      const drafts = s.editingDraftId ? s.drafts.filter(d => d.id !== s.editingDraftId) : s.drafts;
+      return { lists: [newList, ...s.lists], draft: null, editingDraftId: null, drafts, screen: 'profile', profileTab: 'mine' };
+    });
+  }
+  renderVals() {
+    const s = this.state;
+    const list = s.lists;
+    const cardVM = (l) => this._cardVM(l, s.screen);
+
+    const feedCards = list.map(cardVM);
+    const followingCards = list.filter(l => s.followedHandles.includes(l.author.handle)).map(cardVM);
+    const visibleFeedCards = s.feedTab === 'following' ? followingCards : feedCards;
+    const sq = s.submittedQuery.trim().toLowerCase();
+    const searchResults = sq === '' ? [] : list.filter(l =>
+      l.title.toLowerCase().includes(sq) || l.author.name.toLowerCase().includes(sq) ||
+      l.author.handle.toLowerCase().includes(sq) || l.tags.some(t => t.toLowerCase().includes(sq))
+    ).map(cardVM);
+
+    const CAT_NAMES = ['Food & Drink', 'Books', 'Travel', 'Home', 'Shopping', 'Tech'];
+    const categories = CAT_NAMES.map(name => ({
+      name, onSelect: () => this.submitSearch(name),
+    }));
+    const EXPLORE_DOTS = {
+      'Food & Drink': 'oklch(76% 0.08 45)', 'Travel': 'oklch(76% 0.07 200)', 'Books': 'oklch(76% 0.07 285)',
+      'Home': 'oklch(78% 0.06 160)', 'Art & Design': 'oklch(76% 0.08 340)', 'Tech': 'oklch(75% 0.07 240)', 'Shopping': 'oklch(76% 0.07 100)',
+    };
+    const EXPLORE_CATS = ['Food & Drink', 'Travel', 'Books', 'Home', 'Art & Design', 'Tech'];
+    const pub = list.filter(l => !l.isMine);
+    const lines3 = (l) => this._flatten(l).slice(0, 3).map(f => ({ num: f.num, text: f.text }));
+    const exVM = (l) => {
+      const total = this._flatten(l).length;
+      const cat = EXPLORE_CATS.find(c => l.tags.includes(c)) || l.tags[0] || 'Stack';
+      return { ...this._cardVM(l, 'search'), lines3: lines3(l), hasMore3: total > 3, more3: '+ ' + (total - 3) + ' more lines', category: cat, dot: EXPLORE_DOTS[cat] || 'oklch(78% 0.06 160)' };
+    };
+    const exploreTopics = EXPLORE_CATS.map(name => ({ name, onSelect: () => this.submitSearch(name) }));
+    const exploreTrending = [...pub].sort((a, b) => b.likes - a.likes).slice(0, 4).map(exVM);
+    const exploreCategories = EXPLORE_CATS.map(name => {
+      const inCat = list.filter(l => l.tags.includes(name)).map(l => l.title);
+      return { name, dot: EXPLORE_DOTS[name], samples: inCat.length ? inCat.slice(0, 2) : ['Nothing here yet', 'Be the first to add one'], onSelect: () => this.submitSearch(name) };
+    });
+    const pickPool = pub.length ? pub : list;
+    const explorePick = pickPool.length ? exVM(pickPool[(s.exploreIndex || 0) % pickPool.length]) : null;
+    const ageMin = (t) => { if (!t || t === 'just now') return 0; const n = parseInt(t, 10) || 0; const u = t.replace(/[0-9]/g, ''); return n * ({ m: 1, h: 60, d: 1440, w: 10080 }[u] || 1); };
+    const exploreRecent = [...list].sort((a, b) => ageMin(a.timeAgo) - ageMin(b.timeAgo)).slice(0, 4).map(l => {
+      const vm = exVM(l);
+      return { title: l.title, meta: l.author.handle + ' · ' + this._flatten(l).length + ' lines', dot: vm.dot, when: l.timeAgo, onOpen: () => this.openList(l.id, 'search') };
+    });
+    const featName = EXPLORE_CATS.slice().sort((a, b) => list.filter(l => l.tags.includes(b)).length - list.filter(l => l.tags.includes(a)).length)[0];
+    const exploreFeatured = { name: featName, dot: EXPLORE_DOTS[featName], onOpen: () => this.submitSearch(featName), cards: list.filter(l => l.tags.includes(featName)).map(exVM) };
+    const showSuggestions = sq === '';
+    const showSearchResults = sq !== '';
+    const recents = s.recentSearches.map(term => ({
+      term,
+      onSelect: () => this.submitSearch(term),
+      onRemove: (e) => { e.stopPropagation(); this.setState(s2 => ({ recentSearches: s2.recentSearches.filter(r => r !== term) })); },
+    }));
+    const peopleSeen = {};
+    const suggestedPeople = [];
+    list.forEach(l => {
+      if (l.isMine) return;
+      if (peopleSeen[l.author.handle]) {
+        const p = peopleSeen[l.author.handle];
+        p.listCount++;
+        p.listLabel = p.listCount + ' stacks';
+        return;
+      }
+      const following = s.followedHandles.includes(l.author.handle);
+      const entry = {
+        name: l.author.name, handle: l.author.handle, initials: l.author.initials, listCount: 1, listLabel: '1 stack',
+        followLabel: following ? 'Following' : 'Follow',
+        followBg: following ? 'transparent' : 'oklch(78% 0.06 160)',
+        followColor: following ? 'oklch(84% 0.008 160)' : 'oklch(23% 0.012 165)',
+        followBorder: following ? 'oklch(40% 0.012 165)' : 'oklch(78% 0.06 160)',
+        onToggleFollow: () => this.toggleFollow(l.author.handle),
+        onOpen: () => this.openUser(l.author.handle),
+      };
+      peopleSeen[l.author.handle] = entry;
+      suggestedPeople.push(entry);
+    });
+
+    let profileFiltered;
+    if (s.profileTab === 'saved') profileFiltered = list.filter(l => l.savedByUser);
+    else if (s.profileTab === 'forked') profileFiltered = list.filter(l => l.isMine && l.forkedFromId);
+    else profileFiltered = list.filter(l => l.isMine);
+    const profileCards = profileFiltered.map(cardVM);
+
+    const vh = s.viewedHandle;
+    const vAuthorList = vh ? list.find(l => l.author.handle === vh) : null;
+    const vMeta = (vh && this.USERS[vh]) || { bio: '', followers: 0, following: 0, reposts: [] };
+    const vFollowing = !!vh && s.followedHandles.includes(vh);
+    const vStacks = vh ? list.filter(l => l.author.handle === vh) : [];
+    const vName = vAuthorList ? vAuthorList.author.name : '';
+    const viewedUser = {
+      name: vName, handle: vh || '', initials: vAuthorList ? vAuthorList.author.initials : '',
+      bio: vMeta.bio, stackCount: vStacks.length, followersLabel: this._fmt(vMeta.followers + (vFollowing ? 1 : 0)), following: vMeta.following,
+      followLabel: vFollowing ? 'Following' : 'Follow',
+      followBg: vFollowing ? 'transparent' : 'oklch(78% 0.06 160)',
+      followColor: vFollowing ? 'oklch(84% 0.008 160)' : 'oklch(23% 0.012 165)',
+      followBorder: vFollowing ? 'oklch(40% 0.012 165)' : 'oklch(78% 0.06 160)',
+      onToggleFollow: () => vh && this.toggleFollow(vh),
+    };
+    const firstName = vName.split(' ')[0];
+    const userCards = s.userTab === 'reposts'
+      ? vMeta.reposts.map(id => list.find(l => l.id === id)).filter(Boolean).map(l => ({ isRepost: true, repostLabel: firstName + ' reposted', card: this._cardVM(l, 'user') }))
+      : vStacks.map(l => ({ isRepost: false, repostLabel: '', card: this._cardVM(l, 'user') }));
+    const allSaved = list.filter(l => l.savedByUser);
+    const sf = (s.savedFilter || '').trim().toLowerCase();
+    const savedRows = allSaved
+      .filter(l => !sf || l.title.toLowerCase().includes(sf) || l.author.handle.toLowerCase().includes(sf) || l.tags.some(t => t.toLowerCase().includes(sf)))
+      .map(l => ({
+        title: l.title,
+        meta: l.author.handle + ' \u00b7 ' + this._flatten(l).length + ' lines',
+        onOpen: () => this.openList(l.id, 'profile'),
+        onUnsave: (e) => { e.stopPropagation(); this.toggleSave(l.id); },
+      }));
+
+    const activeList = list.find(l => l.id === s.activeListId);
+    const activeFlat = activeList ? this._flatten(activeList) : [];
+    const activeCard = activeList ? cardVM(activeList) : {};
+
+    const draftTitle = s.draft ? s.draft.title : '';
+    const draftSections = (s.draft ? s.draft.sections : []).map((sec, sIdx) => ({
+      label: sec.label,
+      onLabelChange: (e) => this.updateSectionLabel(sIdx, e.target.value),
+      onRemoveSection: () => this.removeSection(sIdx),
+      showRemove: sIdx > 0,
+      onAddLine: () => this.addLine(sIdx),
+      lines: sec.lines.map((ln, lIdx) => {
+        const k = sIdx + '-' + lIdx;
+        const open = !!s.linkInputOpen[k] || !!ln.link;
+        return {
+          text: ln.text,
+          link: ln.link || '',
+          num: String(lIdx + 1).padStart(2, '0'),
+          remaining: 120 - ln.text.length,
+          onChange: (e) => this.updateLine(sIdx, lIdx, e.target.value.slice(0, 120)),
+          onLinkChange: (e) => this.updateLineLink(sIdx, lIdx, e.target.value),
+          onRemove: () => this.removeLine(sIdx, lIdx),
+          showLinkInput: open,
+          showAddLinkBtn: !open,
+          onToggleLinkInput: () => this.toggleLinkInput(sIdx, lIdx),
+        };
+      }),
+    }));
+    const publishEnabled = !!(s.draft && s.draft.title.trim().length > 0 &&
+      s.draft.sections.some(sec => sec.lines.some(l => l.text.trim().length > 0)));
+    const currentTags = (s.draft && s.draft.tags) || [];
+    const draftTags = currentTags.map(name => ({ name, onRemove: () => this.removeTag(name) }));
+    const tagSuggestions = CAT_NAMES
+      .filter(name => !currentTags.some(t => t.toLowerCase() === name.toLowerCase()))
+      .map(name => ({ name, onAdd: () => this.addTag(name) }));
+
+    return {
+      isFeed: s.screen === 'feed',
+      isSearch: s.screen === 'search',
+      isDetail: s.screen === 'detail',
+      isProfile: s.screen === 'profile',
+      isUser: s.screen === 'user',
+      isCreate: s.screen === 'create',
+      showTabBar: ['feed', 'search', 'detail', 'profile', 'user'].includes(s.screen),
+      goBack: () => this.goBack(),
+      viewedUser, userCards, userCardsEmpty: userCards.length === 0,
+      userEmptyLabel: s.userTab === 'reposts' ? 'No reposts yet.' : 'No stacks yet.',
+      selectUserStacks: () => this.setState({ userTab: 'stacks' }),
+      selectUserReposts: () => this.setState({ userTab: 'reposts' }),
+      userStacksColor: s.userTab === 'stacks' ? 'oklch(90% 0.008 160)' : 'oklch(56% 0.012 165)',
+      userStacksBorder: s.userTab === 'stacks' ? 'oklch(78% 0.06 160)' : 'transparent',
+      userRepostsColor: s.userTab === 'reposts' ? 'oklch(90% 0.008 160)' : 'oklch(56% 0.012 165)',
+      userRepostsBorder: s.userTab === 'reposts' ? 'oklch(78% 0.06 160)' : 'transparent',
+
+      visibleFeedCards, signIn: () => this.signIn(),
+      selectFeedForYou: () => this.selectFeedForYou(), selectFeedFollowing: () => this.selectFeedFollowing(),
+      followingEmpty: s.feedTab === 'following' && followingCards.length === 0,
+      feedHasMore: visibleFeedCards.length > 0,
+      railRef: this.railRef, scrollRailLeft: () => this.scrollRail(-1), scrollRailRight: () => this.scrollRail(1),
+      forYouColor: s.feedTab === 'forYou' ? 'oklch(90% 0.008 160)' : 'oklch(60% 0.012 165)',
+      forYouBorder: s.feedTab === 'forYou' ? 'oklch(78% 0.06 160)' : 'transparent',
+      followingColor: s.feedTab === 'following' ? 'oklch(90% 0.008 160)' : 'oklch(60% 0.012 165)',
+      followingBorder: s.feedTab === 'following' ? 'oklch(78% 0.06 160)' : 'transparent',
+      showAuthModal: s.showAuthModal, authMessage: s.authMessage, stopClick: (e) => e.stopPropagation(),
+      confirmAuth: () => this.confirmAuth(), cancelAuth: () => this.cancelAuth(),
+      profileSignedIn: s.signedIn, profileNeedsAuth: !s.signedIn,
+      goSearch: () => this.goSearch(), goNew: () => this.goNew(), goFeed: () => this.goFeed(), goProfile: () => this.goProfile(),
+
+      searchQuery: s.searchQuery,
+      onSearchChange: (e) => this.setState({ searchQuery: e.target.value, submittedQuery: '' }),
+      onSearchKeyDown: (e) => { if (e.key === 'Enter') { e.preventDefault(); this.submitSearch(this.state.searchQuery); } },
+      showSearchCancel: s.searchQuery.length > 0,
+      clearSearch: () => this.setState({ searchQuery: '', submittedQuery: '' }),
+      recents, hasRecents: recents.length > 0,
+      clearRecents: () => this.setState({ recentSearches: [] }),
+      suggestedPeople, submittedQuery: s.submittedQuery,
+      resultCountLabel: searchResults.length === 1 ? '1 stack' : searchResults.length + ' stacks',
+      exploreTopics, exploreTrending, exploreCategories, exploreRecent, exploreFeatured,
+      explorePick: explorePick || {}, hasExplorePick: !!explorePick,
+      shuffleExplore: () => this.setState(st => ({ exploreIndex: ((st.exploreIndex || 0) + 1 + Math.floor(Math.random() * Math.max(1, pickPool.length - 1))) % Math.max(1, pickPool.length) })),
+      categories, searchResults, searchEmpty: searchResults.length === 0, showSuggestions, showSearchResults,
+
+      activeCard, activeFlat, activeLineCount: activeFlat.length,
+      closeDetail: () => this.closeDetail(), startFork: () => this.startFork(),
+      shareActive: () => this.showToast('Link copied to clipboard'),
+      toastVisible: !!s.toast, toastMessage: s.toast || '',
+      followingCount: s.followedHandles.length,
+      draftsBadge: s.drafts.length > 0 ? ' · ' + s.drafts.length : '',
+
+      mineCount: list.filter(l => l.isMine).length,
+      selectTabMine: () => this.setState({ profileTab: 'mine' }),
+      selectTabSaved: () => this.setState({ profileTab: 'saved' }),
+      selectTabForked: () => this.setState({ profileTab: 'forked' }),
+      selectTabDrafts: () => this.setState({ profileTab: 'drafts' }),
+      draftsTabColor: s.profileTab === 'drafts' ? 'oklch(90% 0.008 160)' : 'oklch(56% 0.012 165)',
+      draftsTabBorder: s.profileTab === 'drafts' ? 'oklch(78% 0.06 160)' : 'transparent',
+      isDraftsTab: s.profileTab === 'drafts', showProfileCards: s.profileTab !== 'drafts' && s.profileTab !== 'saved',
+      isSavedTab: s.profileTab === 'saved',
+      savedRows, hasSavedRows: allSaved.length > 0, savedEmpty: savedRows.length === 0,
+      savedEmptyLabel: allSaved.length === 0 ? 'Nothing saved yet.' : 'No saved stacks match.',
+      savedFilter: s.savedFilter || '',
+      onSavedFilterChange: (e) => this.setState({ savedFilter: e.target.value }),
+      mineTabColor: s.profileTab === 'mine' ? 'oklch(90% 0.008 160)' : 'oklch(56% 0.012 165)',
+      mineTabBorder: s.profileTab === 'mine' ? 'oklch(78% 0.06 160)' : 'transparent',
+      savedTabColor: s.profileTab === 'saved' ? 'oklch(90% 0.008 160)' : 'oklch(56% 0.012 165)',
+      savedTabBorder: s.profileTab === 'saved' ? 'oklch(78% 0.06 160)' : 'transparent',
+      forkedTabColor: s.profileTab === 'forked' ? 'oklch(90% 0.008 160)' : 'oklch(56% 0.012 165)',
+      forkedTabBorder: s.profileTab === 'forked' ? 'oklch(78% 0.06 160)' : 'transparent',
+      profileCards, profileEmpty: profileCards.length === 0,
+      draftRows: s.drafts.map(d => ({
+        title: d.title, lineCount: d.sections.reduce((n, sec) => n + sec.lines.length, 0),
+        onEdit: () => this.openDraftForEdit(d.id), onDelete: (e) => this.deleteDraft(d.id, e),
+      })),
+      draftsEmpty: s.drafts.length === 0,
+
+      createTitle: s.editingDraftId ? 'Edit Draft' : 'New Stack',
+      saveDraft: () => this.saveDraft(),
+
+      draftTitle, onDraftTitleChange: (e) => this.updateDraftTitle(e.target.value),
+      draftSections, addSection: () => this.addSection(),
+      draftTags, hasDraftTags: draftTags.length > 0,
+      tagSuggestions, hasTagSuggestions: tagSuggestions.length > 0,
+      tagInput: s.tagInput,
+      onTagInputChange: (e) => this.setState({ tagInput: e.target.value }),
+      onTagKeyDown: (e) => {
+        if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); this.addTag(this.state.tagInput); }
+        else if (e.key === 'Backspace' && this.state.tagInput === '' && currentTags.length) { this.removeTag(currentTags[currentTags.length - 1]); }
+      },
+      cancelDraft: () => this.cancelDraft(), publishDraft: () => this.publishDraft(),
+      publishColor: publishEnabled ? 'oklch(78% 0.06 160)' : 'oklch(56% 0.012 165)',
+
+      tabFeedColor: s.screen === 'feed' ? 'oklch(90% 0.008 160)' : 'oklch(56% 0.012 165)',
+      tabSearchColor: s.screen === 'search' ? 'oklch(90% 0.008 160)' : 'oklch(56% 0.012 165)',
+      tabProfileColor: s.screen === 'profile' ? 'oklch(90% 0.008 160)' : 'oklch(56% 0.012 165)',
+      tabCreateColor: s.screen === 'create' ? 'oklch(90% 0.008 160)' : 'oklch(56% 0.012 165)',
+      dotFeed: s.screen === 'feed' ? 'oklch(78% 0.06 160)' : 'transparent',
+      dotSearch: s.screen === 'search' ? 'oklch(78% 0.06 160)' : 'transparent',
+      dotProfile: s.screen === 'profile' ? 'oklch(78% 0.06 160)' : 'transparent',
+      dotCreate: s.screen === 'create' ? 'oklch(78% 0.06 160)' : 'transparent',
+    };
+  }
+}
+
+</script>
+</body>
+</html>

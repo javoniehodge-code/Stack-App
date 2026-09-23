@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap">
+  <style>body{margin:0;background:oklch(78% 0.03 75);}*{box-sizing:border-box;}a{color:oklch(30% 0.03 160);}a:hover{color:oklch(20% 0.03 160);}</style>
+</helmet>
+<div style="min-height:100vh;width:100%;display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:48px;padding:48px 32px;font-family:Inter,sans-serif;background:oklch(78% 0.03 75);">
+
+  <div style="max-width:300px;display:flex;flex-direction:column;gap:14px;padding-top:20px;">
+    <span style="align-self:flex-start;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;background:#20201c;color:#fff;padding:3px 8px;border-radius:5px;">Concept · not in app</span>
+    <div style="font-weight:800;font-size:24px;color:oklch(22% 0.02 160);line-height:1.2;">Explore as a library</div>
+    <div style="font-size:13.5px;color:oklch(32% 0.02 160);line-height:1.6;text-wrap:pretty;">Same stacks, same cards, but arranged into categories you browse by choice, instead of a feed that just keeps going.</div>
+    <div style="display:flex;flex-direction:column;gap:10px;font-size:12.5px;color:oklch(32% 0.02 160);line-height:1.5;">
+      <div><strong>Search first.</strong> A big search bar sits at the top, above everything else.</div>
+      <div><strong>Loose topics.</strong> Six broad categories, no sub-categories.</div>
+      <div><strong>Always something new.</strong> Trending, Recently added, and a shuffle card keep it fresh even with few stacks.</div>
+      <div><strong>Two ways in.</strong> Pick a category on purpose, or hit Shuffle and see what comes up.</div>
+    </div>
+  </div>
+
+  <div style="width:390px;height:844px;border-radius:48px;background:oklch(23% 0.012 165);border:10px solid #0d0d0d;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,0.3);flex-shrink:0;">
+
+    <div style="padding:52px 20px 14px;flex-shrink:0;border-bottom:1px solid oklch(32% 0.012 165);">
+      <div style="font-weight:800;font-size:24px;color:oklch(90% 0.008 160);letter-spacing:-0.3px;margin-bottom:14px;">Explore</div>
+      <div style="display:flex;align-items:center;gap:10px;padding:0 16px;height:48px;border-radius:14px;background:oklch(27% 0.012 165);border:1px solid oklch(34% 0.012 165);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>
+        <span style="font-size:14.5px;color:oklch(60% 0.012 165);">Search bars, books, gear, people…</span>
+      </div>
+    </div>
+
+    <div style="flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:24px;">
+
+      <div style="display:flex;gap:8px;overflow-x:auto;padding:14px 20px 4px;">
+        <sc-for list="{{ topics }}" as="t" hint-placeholder-count="6">
+          <span style="flex-shrink:0;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:999px;background:{{ t.bg }};color:{{ t.color }};border:1px solid {{ t.border }};white-space:nowrap;">{{ t.name }}</span>
+        </sc-for>
+      </div>
+
+      <div style="padding:22px 0 0;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;padding:0 20px 12px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:15px;font-weight:700;color:oklch(90% 0.008 160);">Trending this week</span>
+          </div>
+          <span style="font-size:12px;color:oklch(66% 0.012 165);">See all</span>
+        </div>
+        <div style="display:flex;gap:12px;overflow-x:auto;padding:0 20px;scroll-padding:0 20px;scroll-snap-type:x mandatory;">
+          <sc-for list="{{ trending }}" as="card" hint-placeholder-count="3">
+            <div style="width:270px;flex-shrink:0;scroll-snap-align:start;border-radius:16px;background:oklch(27% 0.012 165);border:1px solid oklch(32% 0.012 165);display:flex;flex-direction:column;padding:16px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                <div style="width:24px;height:24px;border-radius:50%;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-weight:700;font-size:9.5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ card.initials }}</div>
+                <span style="font-weight:600;font-size:12px;color:oklch(90% 0.008 160);white-space:nowrap;">{{ card.name }}</span>
+                <span style="font-size:11px;color:oklch(56% 0.012 165);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ card.handle }}</span>
+              </div>
+              <div style="font-size:14px;color:oklch(84% 0.008 160);line-height:1.3;margin-bottom:10px;text-wrap:pretty;">{{ card.title }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(66% 0.012 165);line-height:1.9;">
+                <sc-for list="{{ card.lines }}" as="pl" hint-placeholder-count="3">
+                  <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(78% 0.06 160);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
+                </sc-for>
+              </div>
+              <div style="font-size:11.5px;font-weight:600;color:oklch(78% 0.06 160);margin-top:6px;">{{ card.more }}</div>
+              <div style="display:flex;align-items:center;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid oklch(32% 0.012 165);font-size:11px;color:oklch(66% 0.012 165);">
+                <span style="display:flex;align-items:center;gap:5px;"><span style="font-size:13px;line-height:1;">♡</span>{{ card.likes }}</span>
+                <span style="display:flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ card.saves }}</span>
+                <span style="display:flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.2"></circle><circle cx="18" cy="5" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle><path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2"></path><path d="M12 12v4.8"></path></svg>{{ card.forks }}</span>
+                <span style="margin-left:auto;display:flex;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="padding:28px 20px 0;">
+        <div style="font-size:15px;font-weight:700;color:oklch(90% 0.008 160);margin-bottom:12px;">Categories</div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;">
+          <sc-for list="{{ categories }}" as="sh" hint-placeholder-count="6">
+            <div style="border-radius:14px;background:oklch(27% 0.012 165);border:1px solid oklch(32% 0.012 165);padding:13px 14px;display:flex;flex-direction:column;gap:8px;min-height:104px;">
+              <div style="display:flex;align-items:center;gap:7px;">
+                <span style="width:8px;height:8px;border-radius:50%;background:{{ sh.dot }};flex-shrink:0;"></span>
+                <span style="font-size:13.5px;font-weight:700;color:oklch(90% 0.008 160);">{{ sh.name }}</span>
+              </div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(62% 0.012 165);line-height:1.7;">
+                <sc-for list="{{ sh.samples }}" as="smp" hint-placeholder-count="2">
+                  <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ smp }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="padding:28px 20px 0;">
+        <div style="border-radius:16px;background:oklch(20% 0.012 165);border:1px dashed oklch(40% 0.012 165);padding:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div>
+              <div style="font-size:15px;font-weight:700;color:oklch(90% 0.008 160);">Discover something new</div>
+              <div style="font-size:11.5px;color:oklch(60% 0.012 165);margin-top:2px;">A random stack from any category</div>
+            </div>
+            <span onClick="{{ shuffle }}" style="display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:9px 14px;border-radius:999px;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);cursor:pointer;flex-shrink:0;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(23% 0.012 165)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M16 3h5v5"></path><path d="M4 20L21 3"></path><path d="M21 16v5h-5"></path><path d="M15 15l6 6"></path><path d="M4 4l5 5"></path></svg>Shuffle
+            </span>
+          </div>
+          <div style="border-radius:12px;background:oklch(27% 0.012 165);border:1px solid oklch(32% 0.012 165);padding:14px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:{{ pick.dot }};">{{ pick.shelf }}</span>
+              <span style="font-size:11px;color:oklch(56% 0.012 165);">· {{ pick.handle }}</span>
+            </div>
+            <div style="font-size:14px;color:oklch(84% 0.008 160);line-height:1.3;margin-bottom:8px;">{{ pick.title }}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(66% 0.012 165);line-height:1.9;">
+              <sc-for list="{{ pick.lines }}" as="pl" hint-placeholder-count="3">
+                <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(78% 0.06 160);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:28px 20px 0;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:15px;font-weight:700;color:oklch(90% 0.008 160);">Recently added</span>
+          <span style="font-size:12px;color:oklch(66% 0.012 165);">See all</span>
+        </div>
+        <sc-for list="{{ recent }}" as="r" hint-placeholder-count="4">
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid oklch(32% 0.012 165);">
+            <span style="width:8px;height:8px;border-radius:50%;background:{{ r.dot }};flex-shrink:0;"></span>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:13.5px;color:oklch(90% 0.008 160);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.title }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(56% 0.012 165);margin-top:3px;">{{ r.meta }}</div>
+            </div>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(56% 0.012 165);flex-shrink:0;">{{ r.when }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="padding:28px 0 0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px 12px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:oklch(76% 0.08 45);"></span>
+            <span style="font-size:15px;font-weight:700;color:oklch(90% 0.008 160);">Food &amp; Drink</span>
+          </div>
+          <span style="font-size:12px;color:oklch(66% 0.012 165);">Open category</span>
+        </div>
+        <div style="display:flex;gap:12px;overflow-x:auto;padding:0 20px;">
+          <sc-for list="{{ foodRow }}" as="card" hint-placeholder-count="2">
+            <div style="width:200px;flex-shrink:0;border-radius:14px;background:oklch(27% 0.012 165);border:1px solid oklch(32% 0.012 165);padding:14px;">
+              <div style="font-size:13.5px;color:oklch(84% 0.008 160);line-height:1.3;margin-bottom:8px;">{{ card.title }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(66% 0.012 165);line-height:1.85;">
+                <sc-for list="{{ card.lines }}" as="pl" hint-placeholder-count="3">
+                  <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(78% 0.06 160);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
+                </sc-for>
+              </div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(56% 0.012 165);margin-top:8px;">{{ card.handle }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="display:flex;align-items:stretch;padding:6px 4px 26px;border-top:1px solid oklch(32% 0.012 165);flex-shrink:0;background:oklch(27% 0.012 165);">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:46px;">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="oklch(56% 0.012 165)" strokeWidth="2" strokeLinecap="round"><path d="M4 6.5h16"></path><path d="M4 12h16"></path><path d="M4 17.5h10"></path></svg>
+        <span style="font-size:10px;font-weight:600;color:oklch(56% 0.012 165);">Feed</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:46px;">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="oklch(90% 0.008 160)" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>
+        <span style="font-size:10px;font-weight:600;color:oklch(90% 0.008 160);">Explore</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:46px;">
+        <div style="width:42px;height:25px;border-radius:8px;background:oklch(78% 0.06 160);display:flex;align-items:center;justify-content:center;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(23% 0.012 165)" strokeWidth="3" strokeLinecap="round"><path d="M12 5.5v13"></path><path d="M5.5 12h13"></path></svg>
+        </div>
+        <span style="font-size:10px;font-weight:600;color:oklch(56% 0.012 165);">Create</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:46px;">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="oklch(56% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8.5" r="3.7"></circle><path d="M5 19.5c1.4-3.2 4-4.6 7-4.6s5.6 1.4 7 4.6"></path></svg>
+        <span style="font-size:10px;font-weight:600;color:oklch(56% 0.012 165);">Profile</span>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { pickIndex: 0 };
+  SHELF = {
+    'Food & Drink': 'oklch(76% 0.08 45)', 'Travel': 'oklch(76% 0.07 200)', 'Books': 'oklch(76% 0.07 285)',
+    'Home': 'oklch(78% 0.06 160)', 'Art & Design': 'oklch(76% 0.08 340)', 'Tech': 'oklch(75% 0.07 240)',
+  };
+  STACKS = [
+    { title: 'Mexico City Bars', name: 'Renata Díaz', handle: '@renata.diaz', initials: 'RD', shelf: 'Food & Drink', total: 6, likes: '842', saves: '310', forks: '96',
+      lines: ['Licorería Limantour — no menu, trust them', 'Departamento — rooftop, go early', 'Baltra Bar — ring the bell twice', 'Hanky Panky — hidden, book ahead'] },
+    { title: 'Tokyo Ramen Worth the Line', name: 'Kenji Sato', handle: '@kenji.eats', initials: 'KS', shelf: 'Food & Drink', total: 8, likes: '1.4K', saves: '520', forks: '131',
+      lines: ['Fuunji — tsukemen, thick and rich', 'Nakiryu — tantanmen, Michelin-starred', 'Rokurinsha — go right at open', 'Nagi — niboshi, open late'] },
+    { title: 'Books That Actually Changed How I Think', name: 'Marcus Webb', handle: '@marcus.reads', initials: 'MW', shelf: 'Books', total: 7, likes: '1.2K', saves: '612', forks: '88', bullet: true,
+      lines: ['Meditations — Marcus Aurelius', 'Sapiens — Yuval Noah Harari', 'Thinking, Fast and Slow — Kahneman', 'The Almanack of Naval Ravikant'] },
+    { title: 'Type Foundries Worth Following', name: 'Ana Ruiz', handle: '@ana.types', initials: 'AR', shelf: 'Art & Design', total: 5, likes: '389', saves: '240', forks: '41',
+      lines: ['Klim Type Foundry — Wellington', 'Commercial Type — London / NYC', 'Grilli Type — Swiss, playful', 'Dinamo — Berlin, experimental'] },
+    { title: 'Etsy Finds Worth the Shipping Wait', name: 'June Ostrander', handle: '@junehome', initials: 'JO', shelf: 'Home', total: 5, likes: '674', saves: '401', forks: '52', bullet: true,
+      lines: ['Hand-thrown ceramic mug', 'Linen throw, oatmeal', 'Brass bookends', 'Beeswax taper candles'] },
+    { title: 'Apps I Actually Open Every Day', name: 'Dev Patel', handle: '@devbuilds', initials: 'DP', shelf: 'Tech', total: 6, likes: '512', saves: '298', forks: '64',
+      lines: ['Things 3 — the only to-do list that stuck', 'Raycast — replaces Spotlight', 'Readwise — highlights, resurfaced', 'Arc — tabs that clean themselves'] },
+    { title: 'Free Museums in Paris', name: 'Léa Martin', handle: '@lea.walks', initials: 'LM', shelf: 'Travel', total: 4, likes: '455', saves: '330', forks: '37',
+      lines: ['Petit Palais — gardens café', 'Musée Carnavalet — city history', 'Maison de Victor Hugo — Place des Vosges'] },
+  ];
+  _lines(s, n) {
+    return s.lines.slice(0, n).map((t, i) => ({ num: s.bullet ? '•' : String(i + 1).padStart(2, '0'), text: t }));
+  }
+  renderVals() {
+    const S = this.STACKS;
+    const topics = ['For you', 'Food & Drink', 'Travel', 'Books', 'Home', 'Art & Design', 'Tech'].map((name, i) => ({
+      name,
+      bg: i === 0 ? 'oklch(78% 0.06 160)' : 'transparent',
+      color: i === 0 ? 'oklch(23% 0.012 165)' : 'oklch(84% 0.008 160)',
+      border: i === 0 ? 'oklch(78% 0.06 160)' : 'oklch(36% 0.012 165)',
+    }));
+    const trending = [S[1], S[2], S[0], S[3]].map(s => ({
+      ...s, lines: this._lines(s, 3),
+      more: s.total > 3 ? '+ ' + (s.total - 3) + ' more lines' : '',
+    }));
+    const EXTRA = { 'Food & Drink': 'Best Pho in LA', 'Travel': 'Lisbon in 48 hours', 'Books': 'Sci-Fi Starter Pack', 'Home': 'Plants that survive neglect', 'Art & Design': 'Posters under $40', 'Tech': 'Budget mechanical keyboards' };
+    const shelves = Object.keys(this.SHELF).map(name => {
+      const inShelf = S.filter(s => s.shelf === name).map(s => s.title);
+      return { name, dot: this.SHELF[name], samples: [...inShelf, EXTRA[name]].slice(0, 2) };
+    });
+    const p = S[(this.state.pickIndex + 3) % S.length];
+    const pick = { ...p, dot: this.SHELF[p.shelf], lines: this._lines(p, 3) };
+    const recent = [
+      { s: S[5], when: '12m' }, { s: S[6], when: '1h' }, { s: S[3], when: '3h' }, { s: S[4], when: '5h' },
+    ].map(({ s, when }) => ({ title: s.title, meta: s.handle + ' · ' + s.total + ' lines', dot: this.SHELF[s.shelf], when }));
+    const foodRow = [S[0], S[1]].map(s => ({ ...s, lines: this._lines(s, 3) }));
+    return {
+      topics, trending, categories: shelves, pick, recent, foodRow,
+      shuffle: () => this.setState(st => ({ pickIndex: (st.pickIndex + 1 + Math.floor(Math.random() * (S.length - 1))) % S.length })),
+    };
+  }
+}
+</script>
+</body>
+</html>

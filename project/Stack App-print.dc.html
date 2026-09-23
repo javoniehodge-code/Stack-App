@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; background: oklch(91% 0.006 75); }
+    * { box-sizing: border-box; }
+    input::placeholder { color: oklch(68% 0.01 75); }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    * { animation-delay: -99s !important; animation-duration: .001s !important;
+        animation-iteration-count: 1 !important; animation-fill-mode: both !important;
+        animation-play-state: running !important; transition-duration: 0s !important; }
+  </style>
+</helmet>
+<div style="min-height:100vh;width:100%;display:flex;align-items:center;justify-content:center;padding:40px;font-family:Inter,-apple-system,sans-serif;">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="393,852">
+  <div style="height:100%;display:flex;flex-direction:column;background:oklch(97% 0.01 80);">
+
+    <sc-if value="{{ isOnboarding }}" hint-placeholder-val="{{ true }}">
+      <div style="height:100%;display:flex;flex-direction:column;padding:0 28px;box-sizing:border-box;">
+        <div onClick="{{ skipOnboarding }}" style="align-self:flex-end;margin-top:60px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12.5px;color:oklch(68% 0.01 75);cursor:pointer;">Skip</div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:14px;">
+          <sc-if value="{{ isStep0 }}" hint-placeholder-val="{{ true }}">
+            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:600;font-size:36px;color:oklch(20% 0.01 75);letter-spacing:-0.5px;">Lines</div>
+            <div style="font-family:Inter,sans-serif;font-size:16px;color:oklch(48% 0.012 75);line-height:1.5;max-width:280px;">Everything worth remembering, fits on one line.</div>
+          </sc-if>
+          <sc-if value="{{ isStep1 }}" hint-placeholder-val="{{ false }}">
+            <div style="font-family:Inter,sans-serif;font-weight:700;font-size:24px;color:oklch(20% 0.01 75);">Any list, one format</div>
+            <div style="font-family:Inter,sans-serif;font-size:15px;color:oklch(48% 0.012 75);line-height:1.55;max-width:280px;">Bar recommendations. Favorite books. Etsy finds. A header, a few subsections, one line each — nothing more to write.</div>
+          </sc-if>
+          <sc-if value="{{ isStep2 }}" hint-placeholder-val="{{ false }}">
+            <div style="font-family:Inter,sans-serif;font-weight:700;font-size:24px;color:oklch(20% 0.01 75);">Make it yours</div>
+            <div style="font-family:Inter,sans-serif;font-size:15px;color:oklch(48% 0.012 75);line-height:1.55;max-width:280px;">Follow people whose taste you trust. Fork any list and edit it into your own.</div>
+          </sc-if>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:20px;padding-bottom:50px;">
+          <div style="display:flex;gap:8px;">
+            <sc-for list="{{ dots }}" as="dot" hint-placeholder-count="3">
+              <div style="width:6px;height:6px;border-radius:50%;background:{{ dot.color }};"></div>
+            </sc-for>
+          </div>
+          <div onClick="{{ nextOnboarding }}" style="width:100%;text-align:center;padding:14px;border-radius:10px;background:oklch(56% 0.16 38);color:#fff;font-family:Inter,sans-serif;font-weight:600;font-size:15px;cursor:pointer;">{{ nextLabel }}</div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isFeed }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:60px 20px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid oklch(88% 0.01 78);">
+        <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:600;font-size:19px;color:oklch(20% 0.01 75);letter-spacing:-0.3px;">Lines</div>
+        <div style="display:flex;gap:18px;align-items:center;">
+          <span onClick="{{ goSearch }}" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px;color:oklch(48% 0.012 75);cursor:pointer;">Search</span>
+          <span onClick="{{ goNew }}" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px;font-weight:600;color:oklch(56% 0.16 38);cursor:pointer;">+ New</span>
+        </div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding-bottom:12px;">
+        <sc-for list="{{ feedCards }}" as="card" hint-placeholder-count="3">
+          <dc-import name="ListCard" card="{{ card }}" hint-size="100%,180px"></dc-import>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isSearch }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:60px 20px 12px;flex-shrink:0;border-bottom:1px solid oklch(88% 0.01 78);">
+        <input value="{{ searchQuery }}" onChange="{{ onSearchChange }}" placeholder="Search lists, people, tags" style="width:100%;padding:10px 12px;border:1px solid oklch(88% 0.01 78);border-radius:8px;background:oklch(99% 0.005 80);font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13.5px;color:oklch(20% 0.01 75);outline:none;margin-bottom:12px;" />
+        <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;">
+          <sc-for list="{{ categories }}" as="cat" hint-placeholder-count="4">
+            <span onClick="{{ cat.onSelect }}" style="flex-shrink:0;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11.5px;padding:6px 12px;border-radius:999px;border:1px solid {{ cat.borderColor }};background:{{ cat.bgColor }};color:{{ cat.textColor }};cursor:pointer;white-space:nowrap;">{{ cat.name }}</span>
+          </sc-for>
+        </div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding-bottom:12px;">
+        <sc-for list="{{ searchResults }}" as="card" hint-placeholder-count="3">
+          <dc-import name="ListCard" card="{{ card }}" hint-size="100%,180px"></dc-import>
+        </sc-for>
+        <sc-if value="{{ searchEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:40px 20px;text-align:center;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px;color:oklch(68% 0.01 75);">No lists match.</div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:60px 20px 16px;border-bottom:1px solid oklch(88% 0.01 78);flex-shrink:0;">
+        <div onClick="{{ closeDetail }}" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px;color:oklch(48% 0.012 75);cursor:pointer;margin-bottom:14px;">‹ Back</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="width:26px;height:26px;border-radius:50%;background:oklch(93% 0.035 38);color:oklch(56% 0.16 38);font-family:Inter,sans-serif;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ activeCard.initials }}</div>
+          <span style="font-family:Inter,sans-serif;font-weight:600;font-size:13px;color:oklch(20% 0.01 75);">{{ activeCard.authorName }}</span>
+          <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;color:oklch(68% 0.01 75);">{{ activeCard.authorHandle }}</span>
+          <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;color:oklch(68% 0.01 75);">· {{ activeCard.timeAgo }}</span>
+        </div>
+        <div style="font-family:Inter,sans-serif;font-weight:700;font-size:21px;color:oklch(20% 0.01 75);line-height:1.25;">{{ activeCard.title }}</div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:16px 20px 8px;">
+        <sc-for list="{{ activeFlat }}" as="ln" hint-placeholder-count="5">
+          <sc-if value="{{ ln.label }}" hint-placeholder-val="{{ false }}">
+            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:oklch(68% 0.01 75);margin:14px 0 6px;">{{ ln.label }}</div>
+          </sc-if>
+          <div style="display:flex;gap:10px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14.5px;color:oklch(20% 0.01 75);line-height:1.7;">
+            <span style="color:oklch(68% 0.01 75);flex-shrink:0;">{{ ln.num }}</span><span>{{ ln.text }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="padding:14px 20px;border-top:1px solid oklch(88% 0.01 78);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div style="display:flex;gap:20px;">
+          <span onClick="{{ activeCard.onToggleLike }}" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px;color:{{ activeCard.likeColor }};cursor:pointer;">♥ {{ activeCard.likes }}</span>
+          <span onClick="{{ activeCard.onToggleSave }}" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px;color:{{ activeCard.saveColor }};cursor:pointer;">{{ activeCard.saveLabel }} · {{ activeCard.saves }}</span>
+        </div>
+        <div onClick="{{ startFork }}" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px;font-weight:600;color:#fff;background:oklch(56% 0.16 38);padding:9px 16px;border-radius:8px;cursor:pointer;">Fork · {{ activeCard.forks }}</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:60px 20px 0;border-bottom:1px solid oklch(88% 0.01 78);flex-shrink:0;">
+        <div style="width:52px;height:52px;border-radius:50%;background:oklch(93% 0.035 38);color:oklch(56% 0.16 38);font-family:Inter,sans-serif;font-weight:700;font-size:19px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;">Y</div>
+        <div style="font-family:Inter,sans-serif;font-weight:700;font-size:18px;color:oklch(20% 0.01 75);">You</div>
+        <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12.5px;color:oklch(68% 0.01 75);margin-bottom:8px;">@you</div>
+        <div style="font-family:Inter,sans-serif;font-size:13px;color:oklch(48% 0.012 75);line-height:1.5;margin-bottom:14px;max-width:300px;">Collecting the small decisions so I don't have to remember them twice.</div>
+        <div style="display:flex;gap:18px;margin-bottom:16px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;color:oklch(48% 0.012 75);">
+          <span><strong style="color:oklch(20% 0.01 75);">{{ mineCount }}</strong> Lists</span>
+          <span><strong style="color:oklch(20% 0.01 75);">128</strong> Followers</span>
+          <span><strong style="color:oklch(20% 0.01 75);">54</strong> Following</span>
+        </div>
+        <div style="display:flex;gap:22px;">
+          <span onClick="{{ selectTabMine }}" style="padding-bottom:10px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12.5px;font-weight:600;color:{{ mineTabColor }};border-bottom:2px solid {{ mineTabBorder }};cursor:pointer;">Lists</span>
+          <span onClick="{{ selectTabSaved }}" style="padding-bottom:10px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12.5px;font-weight:600;color:{{ savedTabColor }};border-bottom:2px solid {{ savedTabBorder }};cursor:pointer;">Saved</span>
+          <span onClick="{{ selectTabForked }}" style="padding-bottom:10px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12.5px;font-weight:600;color:{{ forkedTabColor }};border-bottom:2px solid {{ forkedTabBorder }};cursor:pointer;">Forked</span>
+        </div>
+      </div>
+      <div style="flex:1;overflow-y:auto;">
+        <sc-for list="{{ profileCards }}" as="card" hint-placeholder-count="2">
+          <dc-import name="ListCard" card="{{ card }}" hint-size="100%,180px"></dc-import>
+        </sc-for>
+        <sc-if value="{{ profileEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:40px 20px;text-align:center;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px;color:oklch(68% 0.01 75);">Nothing here yet.</div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isCreate }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:60px 20px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid oklch(88% 0.01 78);flex-shrink:0;">
+        <span onClick="{{ cancelDraft }}" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px;color:oklch(48% 0.012 75);cursor:pointer;">Cancel</span>
+        <span style="font-family:Inter,sans-serif;font-weight:600;font-size:14.5px;color:oklch(20% 0.01 75);">New List</span>
+        <span onClick="{{ publishDraft }}" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px;font-weight:600;color:{{ publishColor }};cursor:pointer;">Publish</span>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:20px;">
+        <input value="{{ draftTitle }}" onChange="{{ onDraftTitleChange }}" placeholder="Untitled list" style="width:100%;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-weight:700;font-size:21px;color:oklch(20% 0.01 75);margin-bottom:22px;padding:0;" />
+        <sc-for list="{{ draftSections }}" as="sec" hint-placeholder-count="1">
+          <div style="margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+              <input value="{{ sec.label }}" onChange="{{ sec.onLabelChange }}" placeholder="Subsection (optional)" style="flex:1;border:none;outline:none;background:transparent;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:oklch(48% 0.012 75);padding:0;" />
+              <sc-if value="{{ sec.showRemove }}" hint-placeholder-val="{{ false }}">
+                <span onClick="{{ sec.onRemoveSection }}" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:oklch(68% 0.01 75);cursor:pointer;">Remove</span>
+              </sc-if>
+            </div>
+            <sc-for list="{{ sec.lines }}" as="ln" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;color:oklch(68% 0.01 75);width:18px;flex-shrink:0;">{{ ln.num }}</span>
+                <input value="{{ ln.text }}" onChange="{{ ln.onChange }}" placeholder="Add a line…" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13.5px;color:oklch(20% 0.01 75);border-bottom:1px solid oklch(88% 0.01 78);padding:6px 0;" />
+                <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;color:oklch(68% 0.01 75);width:30px;text-align:right;flex-shrink:0;">{{ ln.remaining }}</span>
+                <span onClick="{{ ln.onRemove }}" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14px;color:oklch(68% 0.01 75);cursor:pointer;flex-shrink:0;">×</span>
+              </div>
+            </sc-for>
+            <div onClick="{{ sec.onAddLine }}" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12.5px;color:oklch(56% 0.16 38);cursor:pointer;margin-top:4px;">+ Add line</div>
+          </div>
+        </sc-for>
+        <div onClick="{{ addSection }}" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12.5px;color:oklch(48% 0.012 75);cursor:pointer;padding:12px 0;border-top:1px dashed oklch(88% 0.01 78);">+ Add subsection</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showTabBar }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;justify-content:space-around;align-items:center;padding:10px 0 26px;border-top:1px solid oklch(88% 0.01 78);flex-shrink:0;background:oklch(99% 0.005 80);">
+        <div onClick="{{ goFeed }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;">
+          <div style="width:4px;height:4px;border-radius:50%;background:{{ dotFeed }};"></div>
+          <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:{{ tabFeedColor }};">Feed</span>
+        </div>
+        <div onClick="{{ goSearch }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;">
+          <div style="width:4px;height:4px;border-radius:50%;background:{{ dotSearch }};"></div>
+          <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:{{ tabSearchColor }};">Search</span>
+        </div>
+        <div onClick="{{ goNew }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;">
+          <div style="width:4px;height:4px;border-radius:50%;background:transparent;"></div>
+          <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:oklch(56% 0.16 38);font-weight:600;">New</span>
+        </div>
+        <div onClick="{{ goProfile }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;">
+          <div style="width:4px;height:4px;border-radius:50%;background:{{ dotProfile }};"></div>
+          <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:{{ tabProfileColor }};">Profile</span>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+</x-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    screen: 'feed',
+    onboardingStep: 0,
+    returnScreen: 'feed',
+    searchQuery: '',
+    activeCategory: 'All',
+    profileTab: 'mine',
+    activeListId: null,
+    draft: null,
+    lists: [
+      {
+        id: 'l1', author: { name: 'Renata Díaz', handle: '@renata.diaz', initials: 'RD' }, timeAgo: '2d',
+        title: 'Mexico City Bars', tags: ['Travel', 'Food & Drink'],
+        sections: [
+          { label: 'Roma Norte', lines: [
+            'Licorería Limantour — no menu, just tell them what you like',
+            'Departamento — rooftop, arrive before 8pm or wait an hour',
+            'Baltra Bar — unmarked door, ring the bell twice',
+          ]},
+          { label: 'Condesa', lines: [
+            'Bling Bling Bar — natural wine, seats six people max',
+            'Mono — mezcal flights, go on a Tuesday',
+          ]},
+          { label: 'Centro', lines: [
+            'Hanky Panky — speakeasy behind a taxidermy shop',
+            'Salón Cielito Lindo — cheap micheladas, plastic chairs, perfect',
+          ]},
+        ],
+        likes: 842, forks: 96, saves: 310, likedByUser: false, savedByUser: true, isMine: false, forkedFromId: null,
+      },
+      {
+        id: 'l2', author: { name: 'Marcus Webb', handle: '@marcus.reads', initials: 'MW' }, timeAgo: '5d',
+        title: 'Books That Actually Changed How I Think', tags: ['Books'],
+        sections: [
+          { label: null, lines: [
+            'Meditations — Marcus Aurelius',
+            'The Selfish Gene — Richard Dawkins',
+            "Man's Search for Meaning — Viktor Frankl",
+            'Sapiens — Yuval Noah Harari',
+            'Thinking, Fast and Slow — Daniel Kahneman',
+            'Zen and the Art of Motorcycle Maintenance — Robert Pirsig',
+          ]},
+        ],
+        likes: 1204, forks: 210, saves: 588, likedByUser: true, savedByUser: false, isMine: false, forkedFromId: null,
+      },
+      {
+        id: 'l3', author: { name: 'June Ostrander', handle: '@junehome', initials: 'JO' }, timeAgo: '1w',
+        title: 'Etsy Finds Worth the Shipping Wait', tags: ['Shopping', 'Home'],
+        sections: [
+          { label: 'For the kitchen', lines: [
+            'Hand-thrown mug from ClayAndKin — every one is slightly different',
+            'Linen napkins from FieldFolkCo — get the oat color, not white',
+          ]},
+          { label: 'For the desk', lines: [
+            'Brass paperweight from OrsoStudio — heavier than it looks, worth it',
+            'Letterpress notepad from PressAndPaper — refills are cheap',
+          ]},
+        ],
+        likes: 356, forks: 44, saves: 190, likedByUser: false, savedByUser: false, isMine: false, forkedFromId: null,
+      },
+      {
+        id: 'l4', author: { name: 'Kenji Sato', handle: '@kenji.eats', initials: 'KS' }, timeAgo: '3d',
+        title: 'Tokyo Ramen Worth the Line', tags: ['Travel', 'Food & Drink'],
+        sections: [
+          { label: 'Shibuya', lines: [
+            'Fuunji — cold dipping noodles, go before 11am',
+            'Nagi — spicy niboshi broth, expect a 40 min wait',
+          ]},
+          { label: 'Shinjuku', lines: [
+            'Fuutou — thick tonkotsu, cash only',
+          ]},
+        ],
+        likes: 675, forks: 71, saves: 240, likedByUser: false, savedByUser: false, isMine: false, forkedFromId: null,
+      },
+      {
+        id: 'l5', author: { name: 'You', handle: '@you', initials: 'Y' }, timeAgo: 'just now',
+        title: 'Desk Setup Under $50', tags: ['Home', 'Tech'],
+        sections: [
+          { label: null, lines: [
+            'Cable clips — $6, stop the tangle under the desk',
+            'Cheap monitor riser — $18, any wood block works honestly',
+            'Desk mat — $22, felt not leather, easier to clean',
+          ]},
+        ],
+        likes: 12, forks: 1, saves: 4, likedByUser: false, savedByUser: false, isMine: true, forkedFromId: null,
+      },
+    ],
+  };
+
+  _flatten(l) {
+    const out = [];
+    let n = 1;
+    l.sections.forEach(sec => {
+      sec.lines.forEach((text, i) => {
+        out.push({ num: String(n).padStart(2, '0'), label: i === 0 ? sec.label : null, text });
+        n++;
+      });
+    });
+    return out;
+  }
+  _preview(l, max = 4) {
+    const flat = this._flatten(l);
+    return { lines: flat.slice(0, max), hasMore: flat.length > max, moreCount: flat.length - max };
+  }
+  _cardVM(l, screen) {
+    const p = this._preview(l);
+    return {
+      id: l.id, initials: l.author.initials, authorName: l.author.name, authorHandle: l.author.handle,
+      timeAgo: l.timeAgo, title: l.title, previewLines: p.lines, hasMore: p.hasMore, moreCount: p.moreCount,
+      likes: l.likes, forks: l.forks, saves: l.saves, likedByUser: l.likedByUser, savedByUser: l.savedByUser,
+      likeColor: l.likedByUser ? 'oklch(56% 0.16 38)' : 'oklch(48% 0.012 75)',
+      saveLabel: l.savedByUser ? 'Saved' : 'Save',
+      saveColor: l.savedByUser ? 'oklch(56% 0.16 38)' : 'oklch(48% 0.012 75)',
+      onOpen: () => this.openList(l.id, screen),
+      onToggleLike: (e) => { e.stopPropagation(); this.toggleLike(l.id); },
+      onToggleSave: (e) => { e.stopPropagation(); this.toggleSave(l.id); },
+    };
+  }
+
+  openList(id, from) { this.setState({ activeListId: id, returnScreen: from, screen: 'detail' }); }
+  closeDetail() { this.setState(s => ({ screen: s.returnScreen })); }
+  toggleLike(id) { this.setState(s => ({ lists: s.lists.map(l => l.id === id ? { ...l, likedByUser: !l.likedByUser, likes: l.likes + (l.likedByUser ? -1 : 1) } : l) })); }
+  toggleSave(id) { this.setState(s => ({ lists: s.lists.map(l => l.id === id ? { ...l, savedByUser: !l.savedByUser, saves: l.saves + (l.savedByUser ? -1 : 1) } : l) })); }
+
+  goFeed() { this.setState({ screen: 'feed' }); }
+  goSearch() { this.setState({ screen: 'search' }); }
+  goProfile() { this.setState({ screen: 'profile' }); }
+  goNew() { this.setState({ draft: { title: '', sections: [{ label: '', lines: [''] }] }, screen: 'create' }); }
+
+  startFork() {
+    this.setState(s => {
+      const src = s.lists.find(l => l.id === s.activeListId);
+      if (!src) return null;
+      const sections = src.sections.map(sec => ({ label: sec.label || '', lines: sec.lines.slice() }));
+      return {
+        lists: s.lists.map(l => l.id === src.id ? { ...l, forks: l.forks + 1 } : l),
+        draft: { title: src.title + ' (remix)', sections, forkedFromId: src.id },
+        screen: 'create',
+      };
+    });
+  }
+  updateDraftTitle(v) { this.setState(s => ({ draft: { ...s.draft, title: v } })); }
+  updateSectionLabel(sIdx, v) { this.setState(s => ({ draft: { ...s.draft, sections: s.draft.sections.map((sec, i) => i === sIdx ? { ...sec, label: v } : sec) } })); }
+  updateLine(sIdx, lIdx, v) { this.setState(s => ({ draft: { ...s.draft, sections: s.draft.sections.map((sec, i) => i !== sIdx ? sec : { ...sec, lines: sec.lines.map((t, j) => j === lIdx ? v : t) }) } })); }
+  addLine(sIdx) { this.setState(s => ({ draft: { ...s.draft, sections: s.draft.sections.map((sec, i) => i === sIdx ? { ...sec, lines: [...sec.lines, ''] } : sec) } })); }
+  removeLine(sIdx, lIdx) { this.setState(s => ({ draft: { ...s.draft, sections: s.draft.sections.map((sec, i) => i !== sIdx ? sec : { ...sec, lines: sec.lines.filter((_, j) => j !== lIdx) }) } })); }
+  addSection() { this.setState(s => ({ draft: { ...s.draft, sections: [...s.draft.sections, { label: '', lines: [''] }] } })); }
+  removeSection(sIdx) { this.setState(s => ({ draft: { ...s.draft, sections: s.draft.sections.filter((_, i) => i !== sIdx) } })); }
+  cancelDraft() { this.setState({ draft: null, screen: 'feed' }); }
+  publishDraft() {
+    this.setState(s => {
+      if (!s.draft) return null;
+      const title = s.draft.title.trim();
+      if (!title) return null;
+      const sections = s.draft.sections
+        .map(sec => ({ label: sec.label.trim() || null, lines: sec.lines.map(l => l.trim()).filter(Boolean) }))
+        .filter(sec => sec.lines.length > 0);
+      if (sections.length === 0) return null;
+      const id = 'u' + Date.now();
+      const newList = {
+        id, author: { name: 'You', handle: '@you', initials: 'Y' }, timeAgo: 'just now', title, tags: [],
+        sections, likes: 0, forks: 0, saves: 0, likedByUser: false, savedByUser: false, isMine: true,
+        forkedFromId: s.draft.forkedFromId || null,
+      };
+      return { lists: [newList, ...s.lists], draft: null, screen: 'profile', profileTab: 'mine' };
+    });
+  }
+  nextOnboarding() { this.setState(s => s.onboardingStep < 2 ? { onboardingStep: s.onboardingStep + 1 } : { screen: 'feed' }); }
+  skipOnboarding() { this.setState({ screen: 'feed' }); }
+
+  renderVals() {
+    const s = this.state;
+    const list = s.lists;
+    const cardVM = (l) => this._cardVM(l, s.screen);
+
+    const feedCards = list.map(cardVM);
+
+    const q = s.searchQuery.trim().toLowerCase();
+    const cat = s.activeCategory;
+    const searchResults = list.filter(l =>
+      (cat === 'All' || l.tags.includes(cat)) &&
+      (q === '' || l.title.toLowerCase().includes(q) || l.author.name.toLowerCase().includes(q) ||
+        l.author.handle.toLowerCase().includes(q) || l.tags.some(t => t.toLowerCase().includes(q)))
+    ).map(cardVM);
+
+    const CAT_NAMES = ['All', 'Food & Drink', 'Books', 'Travel', 'Home', 'Shopping', 'Tech'];
+    const categories = CAT_NAMES.map(name => {
+      const active = name === cat;
+      return {
+        name, onSelect: () => this.setState({ activeCategory: name }),
+        borderColor: active ? 'oklch(56% 0.16 38)' : 'oklch(88% 0.01 78)',
+        bgColor: active ? 'oklch(93% 0.035 38)' : 'oklch(99% 0.005 80)',
+        textColor: active ? 'oklch(56% 0.16 38)' : 'oklch(48% 0.012 75)',
+      };
+    });
+
+    let profileFiltered;
+    if (s.profileTab === 'saved') profileFiltered = list.filter(l => l.savedByUser);
+    else if (s.profileTab === 'forked') profileFiltered = list.filter(l => l.isMine && l.forkedFromId);
+    else profileFiltered = list.filter(l => l.isMine);
+    const profileCards = profileFiltered.map(cardVM);
+
+    const activeList = list.find(l => l.id === s.activeListId) || list[0];
+    const activeFlat = activeList ? this._flatten(activeList) : [];
+    const activeCard = activeList ? cardVM(activeList) : {};
+
+    const draftTitle = s.draft ? s.draft.title : '';
+    const draftSections = (s.draft ? s.draft.sections : []).map((sec, sIdx) => ({
+      label: sec.label,
+      onLabelChange: (e) => this.updateSectionLabel(sIdx, e.target.value),
+      onRemoveSection: () => this.removeSection(sIdx),
+      showRemove: sIdx > 0,
+      onAddLine: () => this.addLine(sIdx),
+      lines: sec.lines.map((txt, lIdx) => ({
+        text: txt,
+        num: String(lIdx + 1).padStart(2, '0'),
+        remaining: 120 - txt.length,
+        onChange: (e) => this.updateLine(sIdx, lIdx, e.target.value.slice(0, 120)),
+        onRemove: () => this.removeLine(sIdx, lIdx),
+      })),
+    }));
+    const publishEnabled = !!(s.draft && s.draft.title.trim().length > 0 &&
+      s.draft.sections.some(sec => sec.lines.some(l => l.trim().length > 0)));
+
+    const dots = [0, 1, 2].map(i => ({ color: i === s.onboardingStep ? 'oklch(56% 0.16 38)' : 'oklch(88% 0.01 78)' }));
+
+    return {
+      isOnboarding: s.screen === 'onboarding',
+      isFeed: s.screen === 'feed',
+      isSearch: s.screen === 'search',
+      isDetail: s.screen === 'detail',
+      isProfile: s.screen === 'profile',
+      isCreate: s.screen === 'create',
+      showTabBar: ['feed', 'search', 'detail', 'profile'].includes(s.screen),
+
+      isStep0: s.onboardingStep === 0, isStep1: s.onboardingStep === 1, isStep2: s.onboardingStep === 2,
+      dots, nextLabel: s.onboardingStep < 2 ? 'Next' : 'Get Started',
+      nextOnboarding: () => this.nextOnboarding(), skipOnboarding: () => this.skipOnboarding(),
+
+      feedCards,
+      goSearch: () => this.goSearch(), goNew: () => this.goNew(), goFeed: () => this.goFeed(), goProfile: () => this.goProfile(),
+
+      searchQuery: s.searchQuery,
+      onSearchChange: (e) => this.setState({ searchQuery: e.target.value }),
+      categories, searchResults, searchEmpty: searchResults.length === 0,
+
+      activeCard, activeFlat, closeDetail: () => this.closeDetail(), startFork: () => this.startFork(),
+
+      mineCount: list.filter(l => l.isMine).length,
+      selectTabMine: () => this.setState({ profileTab: 'mine' }),
+      selectTabSaved: () => this.setState({ profileTab: 'saved' }),
+      selectTabForked: () => this.setState({ profileTab: 'forked' }),
+      mineTabColor: s.profileTab === 'mine' ? 'oklch(20% 0.01 75)' : 'oklch(68% 0.01 75)',
+      mineTabBorder: s.profileTab === 'mine' ? 'oklch(56% 0.16 38)' : 'transparent',
+      savedTabColor: s.profileTab === 'saved' ? 'oklch(20% 0.01 75)' : 'oklch(68% 0.01 75)',
+      savedTabBorder: s.profileTab === 'saved' ? 'oklch(56% 0.16 38)' : 'transparent',
+      forkedTabColor: s.profileTab === 'forked' ? 'oklch(20% 0.01 75)' : 'oklch(68% 0.01 75)',
+      forkedTabBorder: s.profileTab === 'forked' ? 'oklch(56% 0.16 38)' : 'transparent',
+      profileCards, profileEmpty: profileCards.length === 0,
+
+      draftTitle, onDraftTitleChange: (e) => this.updateDraftTitle(e.target.value),
+      draftSections, addSection: () => this.addSection(),
+      cancelDraft: () => this.cancelDraft(), publishDraft: () => this.publishDraft(),
+      publishColor: publishEnabled ? 'oklch(56% 0.16 38)' : 'oklch(68% 0.01 75)',
+
+      tabFeedColor: s.screen === 'feed' ? 'oklch(20% 0.01 75)' : 'oklch(68% 0.01 75)',
+      tabSearchColor: s.screen === 'search' ? 'oklch(20% 0.01 75)' : 'oklch(68% 0.01 75)',
+      tabProfileColor: s.screen === 'profile' ? 'oklch(20% 0.01 75)' : 'oklch(68% 0.01 75)',
+      dotFeed: s.screen === 'feed' ? 'oklch(56% 0.16 38)' : 'transparent',
+      dotSearch: s.screen === 'search' ? 'oklch(56% 0.16 38)' : 'transparent',
+      dotProfile: s.screen === 'profile' ? 'oklch(56% 0.16 38)' : 'transparent',
+    };
+  }
+}
+
+</script>
+</body>
+</html>
