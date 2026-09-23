@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth, useToast } from "@/components/AppProviders";
 import { SearchIcon } from "@/components/icons";
-import { ListCard } from "@/components/StackCards";
+import { GridCard, ListCard } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
 import cards from "@/components/Cards.module.css";
 import { fmtCount, initials } from "@/lib/format";
@@ -88,7 +88,14 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
       <div className={p.body}>
         {tab === "drafts" && <Drafts drafts={data.drafts} />}
         {tab === "saved" && <Saved saved={data.saved} />}
-        {(tab === "mine" || tab === "forked") && (
+        {tab === "mine" && data.mine.length > 0 && (
+          <div className={cards.grid}>
+            {data.mine.map((st) => (
+              <GridCard key={st.id} stack={st} />
+            ))}
+          </div>
+        )}
+        {(tab === "forked" || (tab === "mine" && data.mine.length === 0)) && (
           <>
             {cardsFor.map((st) => (
               <ListCard key={st.id} stack={st} />

@@ -10,6 +10,8 @@
   --handle: oklch(42% 0.012 165);
   --text: oklch(90% 0.008 160);
   --text-2: oklch(84% 0.008 160);
+  --text-bright: oklch(95% 0.005 160);
+  --text-comment: oklch(86% 0.008 160);
   --muted-72: oklch(72% 0.012 165);
   --muted-66: oklch(66% 0.012 165);
   --muted-62: oklch(62% 0.012 165);

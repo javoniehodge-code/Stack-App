@@ -9,17 +9,17 @@ export function SearchIcon({ size = 20, color = "var(--muted-72)", width = 2 }: 
   );
 }
 
-export function BookmarkIcon({ size = 13, color, filled }: P & { filled: boolean }) {
+export function BookmarkIcon({ size = 13, color, filled, width = 2 }: P & { filled: boolean; width?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? "var(--accent)" : "none"} stroke={color} strokeWidth="2" strokeLinejoin="round" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? "var(--accent)" : "none"} stroke={color} strokeWidth={width} strokeLinejoin="round" aria-hidden>
       <path d="M6.5 3.5h11v17l-5.5-4-5.5 4z" />
     </svg>
   );
 }
 
-export function ForkIcon({ size = 13, color = "var(--muted-66)" }: P) {
+export function ForkIcon({ size = 13, color = "var(--muted-66)", width = 2 }: P & { width?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={width} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <circle cx="6" cy="5" r="2.2" />
       <circle cx="18" cy="5" r="2.2" />
       <circle cx="12" cy="19" r="2.2" />

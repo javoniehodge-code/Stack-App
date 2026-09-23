@@ -104,7 +104,7 @@
   display: flex;
   gap: 10px;
   font-size: 14.5px;
-  color: var(--text-2);
+  color: var(--text-bright);
   line-height: 1.7;
   text-wrap: pretty;
 }
