@@ -43,41 +43,41 @@
         <div style="flex:1;position:relative;overflow:hidden;">
           <div ref="{{ railRef }}" style="height:100%;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;scroll-snap-type:y mandatory;">
           <sc-for list="{{ visibleFeedCards }}" as="card" hint-placeholder-count="3">
-            <div style="width:100%;flex:0 0 100%;box-sizing:border-box;height:100%;padding:18px 20px;display:flex;flex-direction:column;gap:10px;scroll-snap-align:start;scroll-snap-stop:always;">
+            <div style="width:100%;flex:0 0 100%;box-sizing:border-box;height:100%;padding:16px 16px;display:flex;flex-direction:column;gap:10px;scroll-snap-align:start;scroll-snap-stop:always;">
               <div onClick="{{ card.onOpen }}" style="height:66%;border-radius:16px;background:oklch(27% 0.012 165);border:1px solid oklch(32% 0.012 165);display:flex;flex-direction:column;padding:18px;cursor:pointer;overflow:hidden;">
                 <div onClick="{{ card.onOpenAuthor }}" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;align-self:flex-start;max-width:100%;cursor:pointer;">
-                  <div style="width:26px;height:26px;border-radius:50%;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-family:Inter,sans-serif;font-weight:700;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ card.initials }}</div>
-                  <span style="font-family:Inter,sans-serif;font-weight:600;font-size:12px;color:oklch(90% 0.008 160);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ card.authorName }}</span>
-                  <span style="font-family:Inter,sans-serif;font-size:11px;color:oklch(56% 0.012 165);white-space:nowrap;flex-shrink:0;">{{ card.authorHandle }}</span>
+                  <div style="width:30px;height:30px;border-radius:50%;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-family:Inter,sans-serif;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ card.initials }}</div>
+                  <span style="font-family:Inter,sans-serif;font-weight:600;font-size:14px;color:oklch(90% 0.008 160);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ card.authorName }}</span>
+                  <span style="font-family:Inter,sans-serif;font-size:13px;color:oklch(60% 0.012 165);white-space:nowrap;flex-shrink:0;">{{ card.authorHandle }}</span>
                 </div>
-                <div style="font-family:Inter,sans-serif;font-weight:400;font-size:14px;color:oklch(84% 0.008 160);line-height:1.3;margin-bottom:12px;text-wrap:pretty;">{{ card.title }}</div>
-                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(66% 0.012 165);line-height:1.9;flex:1;overflow:hidden;">
+                <div style="font-family:Inter,sans-serif;font-weight:400;font-size:17px;color:oklch(95% 0.005 160);line-height:1.3;margin-bottom:14px;text-wrap:pretty;">{{ card.title }}</div>
+                <div style="font-family:Inter,sans-serif;font-size:14.5px;color:oklch(95% 0.005 160);line-height:1.7;flex:1;overflow:hidden;">
                   <sc-for list="{{ card.previewLines }}" as="pl" hint-placeholder-count="3">
-                    <div><span style="color:oklch(78% 0.06 160);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
+                    <div style="display:flex;gap:10px;"><span style="color:oklch(78% 0.06 160);font-weight:700;flex-shrink:0;font-variant-numeric:tabular-nums;">{{ pl.num }}</span><span style="flex:1;min-width:0;">{{ pl.text }}</span></div>
                   </sc-for>
                 </div>
-                <div style="display:flex;align-items:center;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid oklch(32% 0.012 165);font-family:Inter,sans-serif;font-size:11px;color:oklch(56% 0.012 165);">
-                  <span onClick="{{ card.onToggleLike }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ card.likeColor }};"><span style="font-size:13px;line-height:1;">{{ card.likeGlyph }}</span>{{ card.likesLabel }}</span>
-                  <span onClick="{{ card.onToggleSave }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ card.saveColor }};"><svg width="13" height="13" viewBox="0 0 24 24" fill="{{ card.saveFill }}" stroke="{{ card.saveColor }}" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ card.savesLabel }}</span>
-                  <span onClick="{{ card.onFork }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:oklch(66% 0.012 165);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.2"></circle><circle cx="18" cy="5" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle><path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2"></path><path d="M12 12v4.8"></path></svg>{{ card.forksLabel }}</span>
-                  <span onClick="{{ card.onCopyLink }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;margin-left:auto;padding:2px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></span>
+                <div style="display:flex;align-items:center;gap:18px;margin-top:12px;padding-top:12px;border-top:1px solid oklch(32% 0.012 165);font-family:Inter,sans-serif;font-size:13px;color:oklch(56% 0.012 165);">
+                  <span onClick="{{ card.onToggleLike }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ card.likeColor }};"><span style="font-size:16px;line-height:1;">{{ card.likeGlyph }}</span>{{ card.likesLabel }}</span>
+                  <span onClick="{{ card.onToggleSave }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ card.saveColor }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="{{ card.saveFill }}" stroke="{{ card.saveColor }}" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ card.savesLabel }}</span>
+                  <span onClick="{{ card.onFork }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:oklch(66% 0.012 165);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.2"></circle><circle cx="18" cy="5" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle><path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2"></path><path d="M12 12v4.8"></path></svg>{{ card.forksLabel }}</span>
+                  <span onClick="{{ card.onCopyLink }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;margin-left:auto;padding:2px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></span>
                 </div>
               </div>
               <sc-if value="{{ card.hasComments }}" hint-placeholder-val="{{ true }}">
-                <div style="flex:1;border-radius:12px;background:oklch(20% 0.012 165);border:1px dashed oklch(32% 0.012 165);padding:12px 14px;overflow-y:auto;">
-                  <div style="font-family:Inter,sans-serif;font-size:9.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(56% 0.012 165);margin-bottom:8px;">Comments</div>
+                <div style="flex:1;border-radius:12px;background:oklch(20% 0.012 165);border:1px dashed oklch(32% 0.012 165);padding:14px 16px;overflow-y:auto;">
+                  <div style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(60% 0.012 165);margin-bottom:10px;">Comments</div>
                   <sc-for list="{{ card.comments }}" as="cm" hint-placeholder-count="2">
-                    <div style="margin-bottom:10px;">
-                      <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:oklch(56% 0.012 165);margin-bottom:2px;">{{ cm.author }}</div>
-                      <div style="font-family:Inter,sans-serif;font-size:12px;color:oklch(84% 0.008 160);line-height:1.4;">{{ cm.text }}</div>
+                    <div style="margin-bottom:12px;">
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:oklch(62% 0.012 165);margin-bottom:3px;">{{ cm.author }}</div>
+                      <div style="font-family:Inter,sans-serif;font-size:14.5px;color:oklch(86% 0.008 160);line-height:1.45;">{{ cm.text }}</div>
                     </div>
                   </sc-for>
                 </div>
               </sc-if>
               <sc-if value="{{ card.noComments }}" hint-placeholder-val="{{ false }}">
                 <div onClick="{{ card.onOpen }}" style="flex:1;border-radius:12px;background:oklch(20% 0.012 165);border:1px dashed oklch(32% 0.012 165);padding:12px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;cursor:pointer;">
-                  <div style="font-family:Inter,sans-serif;font-size:12.5px;color:oklch(66% 0.012 165);line-height:1.4;">No comments yet. Be the first.</div>
-                  <span style="font-family:Inter,sans-serif;font-size:12px;font-weight:700;padding:8px 16px;border-radius:999px;border:1.5px solid oklch(78% 0.06 160);color:oklch(78% 0.06 160);">Add a comment</span>
+                  <div style="font-family:Inter,sans-serif;font-size:14px;color:oklch(68% 0.012 165);line-height:1.4;">No comments yet. Be the first.</div>
+                  <span style="font-family:Inter,sans-serif;font-size:13.5px;font-weight:700;padding:10px 18px;border-radius:999px;border:1.5px solid oklch(78% 0.06 160);color:oklch(78% 0.06 160);">Add a comment</span>
                 </div>
               </sc-if>
             </div>
@@ -230,7 +230,7 @@
           <sc-if value="{{ ln.label }}" hint-placeholder-val="{{ false }}">
             <div style="font-family:Inter,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(66% 0.012 165);margin:16px 0 6px;">{{ ln.label }}</div>
           </sc-if>
-          <div style="display:flex;gap:10px;font-family:Inter,sans-serif;font-size:14.5px;color:oklch(84% 0.008 160);line-height:1.7;text-wrap:pretty;">
+          <div style="display:flex;gap:10px;font-family:Inter,sans-serif;font-size:14.5px;color:oklch(95% 0.005 160);line-height:1.7;text-wrap:pretty;">
             <span style="color:oklch(78% 0.06 160);font-weight:700;flex-shrink:0;font-variant-numeric:tabular-nums;">{{ ln.num }}</span><span style="flex:1;">{{ ln.text }}</span>
             <sc-if value="{{ ln.hasLink }}" hint-placeholder-val="{{ false }}">
               <span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:oklch(23% 0.012 165);border:2px solid oklch(78% 0.06 160);color:oklch(78% 0.06 160);font-size:13px;font-weight:700;flex-shrink:0;">↗</span>
@@ -403,6 +403,28 @@
           <sc-if value="{{ savedEmpty }}" hint-placeholder-val="{{ false }}">
             <div style="padding:40px 20px;text-align:center;font-family:Inter,sans-serif;font-size:13px;color:oklch(66% 0.012 165);">{{ savedEmptyLabel }}</div>
           </sc-if>
+        </sc-if>
+        <sc-if value="{{ isMineTab }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;padding:14px 16px 20px;">
+            <sc-for list="{{ mineGrid }}" as="g" hint-placeholder-count="4">
+              <div onClick="{{ g.onOpen }}" style="height:212px;border-radius:14px;background:oklch(27% 0.012 165);border:1px solid oklch(32% 0.012 165);display:flex;flex-direction:column;padding:12px;cursor:pointer;overflow:hidden;">
+                <div style="font-family:Inter,sans-serif;font-size:13.5px;font-weight:600;color:oklch(95% 0.005 160);line-height:1.3;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ g.title }}</div>
+                <div style="flex:1;min-height:0;overflow:hidden;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(72% 0.01 165);line-height:1.85;">
+                  <sc-for list="{{ g.lines }}" as="pl" hint-placeholder-count="4">
+                    <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(78% 0.06 160);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
+                  </sc-for>
+                </div>
+                <sc-if value="{{ g.hasMore }}" hint-placeholder-val="{{ true }}">
+                  <div style="font-family:Inter,sans-serif;font-size:10.5px;font-weight:600;color:oklch(78% 0.06 160);margin-top:4px;">{{ g.more }}</div>
+                </sc-if>
+                <div style="display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid oklch(32% 0.012 165);font-family:Inter,sans-serif;font-size:10.5px;color:oklch(66% 0.012 165);">
+                  <span style="display:flex;align-items:center;gap:4px;"><span style="font-size:12px;line-height:1;">♡</span>{{ g.likes }}</span>
+                  <span style="display:flex;align-items:center;gap:4px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2.2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ g.saves }}</span>
+                  <span style="display:flex;align-items:center;gap:4px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.2"></circle><circle cx="18" cy="5" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle><path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2"></path><path d="M12 12v4.8"></path></svg>{{ g.forks }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
         </sc-if>
         <sc-if value="{{ showProfileCards }}" hint-placeholder-val="{{ true }}">
         <sc-for list="{{ profileCards }}" as="card" hint-placeholder-count="2">
@@ -940,6 +962,15 @@ class Component extends DCLogic {
     else if (s.profileTab === 'forked') profileFiltered = list.filter(l => l.isMine && l.forkedFromId);
     else profileFiltered = list.filter(l => l.isMine);
     const profileCards = profileFiltered.map(cardVM);
+    const mineGrid = s.profileTab === 'mine' ? profileFiltered.map(l => {
+      const flat = this._flatten(l);
+      return {
+        title: l.title, lines: flat.slice(0, 5).map(f => ({ num: f.num, text: f.text })),
+        hasMore: flat.length > 5, more: '+ ' + (flat.length - 5) + ' more',
+        likes: this._fmt(l.likes), saves: this._fmt(l.saves), forks: this._fmt(l.forks),
+        onOpen: () => this.openList(l.id, 'profile'),
+      };
+    }) : [];
 
     const vh = s.viewedHandle;
     const vAuthorList = vh ? list.find(l => l.author.handle === vh) : null;
@@ -1067,7 +1098,8 @@ class Component extends DCLogic {
       selectTabDrafts: () => this.setState({ profileTab: 'drafts' }),
       draftsTabColor: s.profileTab === 'drafts' ? 'oklch(90% 0.008 160)' : 'oklch(56% 0.012 165)',
       draftsTabBorder: s.profileTab === 'drafts' ? 'oklch(78% 0.06 160)' : 'transparent',
-      isDraftsTab: s.profileTab === 'drafts', showProfileCards: s.profileTab !== 'drafts' && s.profileTab !== 'saved',
+      isDraftsTab: s.profileTab === 'drafts', showProfileCards: s.profileTab === 'forked' || (s.profileTab === 'mine' && profileCards.length === 0),
+      isMineTab: s.profileTab === 'mine', mineGrid,
       isSavedTab: s.profileTab === 'saved',
       savedRows, hasSavedRows: allSaved.length > 0, savedEmpty: savedRows.length === 0,
       savedEmptyLabel: allSaved.length === 0 ? 'Nothing saved yet.' : 'No saved stacks match.',

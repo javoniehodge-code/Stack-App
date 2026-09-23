@@ -37,8 +37,8 @@ function AuthorRow({ stack }: { stack: Stack }) {
   );
 }
 
-/** Like · save · fork · [extra] · copy link. */
-export function ActionRow({ stack, extra }: { stack: Stack; extra?: React.ReactNode }) {
+/** Like · save · fork · [extra] · copy link. `large` is the feed slide's size. */
+export function ActionRow({ stack, extra, large }: { stack: Stack; extra?: React.ReactNode; large?: boolean }) {
   const e = useEngagement(stack);
   const a = useStackActions();
   const likeColor = e.liked ? "var(--accent)" : "var(--muted-66)";
@@ -50,16 +50,16 @@ export function ActionRow({ stack, extra }: { stack: Stack; extra?: React.ReactN
         {fmtCount(e.likes)}
       </button>
       <button className={s.action} style={{ color: saveColor }} onClick={() => a.toggleSave(stack.id, e)} aria-pressed={e.saved} aria-label={e.saved ? "Unsave" : "Save"}>
-        <BookmarkIcon color={saveColor} filled={e.saved} />
+        <BookmarkIcon size={large ? 16 : 13} color={saveColor} filled={e.saved} />
         {fmtCount(e.saves)}
       </button>
       <button className={s.action} style={{ color: "var(--muted-66)" }} onClick={() => a.fork(stack.id)} aria-label="Fork">
-        <ForkIcon />
+        <ForkIcon size={large ? 16 : 13} />
         {fmtCount(stack.forks_count)}
       </button>
       {extra}
       <button className={s.copy} onClick={() => a.copyLink(stack.id)} aria-label="Copy link">
-        <LinkIcon />
+        <LinkIcon size={large ? 17 : 14} />
       </button>
     </div>
   );
@@ -87,12 +87,13 @@ export function FeedSlide({ stack }: { stack: Stack }) {
         <div className={s.title}>{stack.title}</div>
         <div className={`${s.lines} ${s.slideLines}`}>
           {lines.map((l, i) => (
-            <div key={i}>
-              <span className={s.num}>{l.num}</span> {l.text}
+            <div key={i} className={s.slideLine}>
+              <span className={s.num}>{l.num}</span>
+              <span className={s.slideLineText}>{l.text}</span>
             </div>
           ))}
         </div>
-        <ActionRow stack={stack} />
+        <ActionRow stack={stack} large />
       </div>
       {comments.length > 0 ? (
         <div className={s.comments}>
@@ -215,6 +216,40 @@ export function ListCard({ stack, following = false }: { stack: Stack; following
           <span style={{ fontSize: 13, lineHeight: 1 }}>{e.saved ? "◆" : "◇"}</span>
           {fmtCount(e.saves)}
         </button>
+      </div>
+    </div>
+  );
+}
+
+/** Your own profile's two-column grid tile: title, first 5 lines, counts. */
+export function GridCard({ stack }: { stack: Stack }) {
+  const open = useOpen(stack.id);
+  const e = useEngagement(stack);
+  const lines = flatten(stack);
+  return (
+    <div className={s.gridCard} {...open}>
+      <div className={s.gridTitle}>{stack.title}</div>
+      <div className={s.gridLines}>
+        {lines.slice(0, 5).map((l, i) => (
+          <div key={i} className={s.lineClip}>
+            <span className={s.num}>{l.num}</span> {l.text}
+          </div>
+        ))}
+      </div>
+      {lines.length > 5 && <div className={s.gridMore}>+ {lines.length - 5} more</div>}
+      <div className={s.gridStats}>
+        <span className={s.gridStat}>
+          <span style={{ fontSize: 12, lineHeight: 1 }}>♡</span>
+          {fmtCount(e.likes)}
+        </span>
+        <span className={s.gridStat}>
+          <BookmarkIcon size={11} color="var(--muted-66)" filled={false} width={2.2} />
+          {fmtCount(e.saves)}
+        </span>
+        <span className={s.gridStat}>
+          <ForkIcon size={11} width={2.2} />
+          {fmtCount(stack.forks_count)}
+        </span>
       </div>
     </div>
   );
