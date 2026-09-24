@@ -70,6 +70,21 @@
   flex-shrink: 0;
 }
 
+.deleteButton {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 15px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  border: 1px solid var(--line-4);
+  color: oklch(74% 0.1 30);
+}
+
+.danger {
+  background: oklch(62% 0.14 28);
+  color: #fff;
+}
+
 .title {
   margin: 0;
   font-weight: 800;
