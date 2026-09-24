@@ -11,6 +11,7 @@ import { useEngagement, useIsFollowing } from "@/lib/store";
 import { createClient } from "@/lib/supabase/client";
 import type { Comment, Stack } from "@/lib/types";
 import { useStackActions } from "@/lib/useStackActions";
+import DeleteStackSheet from "./DeleteStackSheet";
 import s from "./Detail.module.css";
 
 export default function DetailScreen({ stack, following, openComposer }: { stack: Stack; following: boolean; openComposer: boolean }) {
@@ -25,6 +26,8 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
   const [composing, setComposing] = useState(openComposer && !!viewer);
   const [draft, setDraft] = useState("");
   const [posting, setPosting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const mine = viewer?.id === stack.author.id;
 
   const likeColor = e.liked ? "var(--accent)" : "var(--muted-66)";
   const saveColor = e.saved ? "var(--accent)" : "var(--muted-66)";
@@ -91,7 +94,11 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
               </span>
             </span>
           </Link>
-          {viewer?.id !== stack.author.id && (
+          {mine ? (
+            <button className={s.deleteButton} onClick={() => setDeleting(true)}>
+              Delete
+            </button>
+          ) : (
             <FollowButton className={s.follow} following={isFollowing} onClick={() => a.toggleFollow(stack.author, isFollowing)} />
           )}
         </div>
@@ -164,6 +171,7 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
           <LinkIcon size={16} />
         </button>
       </div>
+      {deleting && <DeleteStackSheet stackId={stack.id} title={stack.title} onClose={() => setDeleting(false)} />}
     </main>
   );
 }
