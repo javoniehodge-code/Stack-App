@@ -221,14 +221,24 @@ export function ListCard({ stack, following = false }: { stack: Stack; following
   );
 }
 
-/** Your own profile's two-column grid tile: title, first 5 lines, counts. */
-export function GridCard({ stack }: { stack: Stack }) {
+/** Your own profile's two-column grid tile: title, first 5 lines, counts, and a pin badge when featured. */
+export function GridCard({ stack, pinned = false }: { stack: Stack; pinned?: boolean }) {
   const open = useOpen(stack.id);
   const e = useEngagement(stack);
   const lines = flatten(stack);
   return (
-    <div className={s.gridCard} {...open}>
-      <div className={s.gridTitle}>{stack.title}</div>
+    <div className={`${s.gridCard} ${pinned ? s.gridCardPinned : ""}`} {...open}>
+      {pinned && (
+        <span className={s.gridPin} title="Featured" aria-label="Featured">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="var(--accent)" stroke="var(--accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M12 17v5" />
+            <path d="M9 10.8V4h6v6.8l3 3.2H6z" />
+          </svg>
+        </span>
+      )}
+      <div className={s.gridTitle} style={pinned ? { paddingRight: 24 } : undefined}>
+        {stack.title}
+      </div>
       <div className={s.gridLines}>
         {lines.slice(0, 5).map((l, i) => (
           <div key={i} className={s.lineClip}>

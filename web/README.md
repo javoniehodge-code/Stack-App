@@ -48,10 +48,11 @@ Confirmation and password-reset emails are caught locally by Mailpit at http://1
 Everything is in `supabase/migrations/`:
 
 - **profiles**: one per auth user, created by a trigger. It uses the username chosen at sign-up, or generates one from the email if that is missing or taken. Users can change it in Edit profile.
+  Profiles also hold optional social links (`socials`), a pinned stack with a short caption (`pinned_stack_id`, `pin_note`), and one featured link button (`featured_link_label`, `featured_link_url`). A trigger cleans up the social links and only allows pinning your own published stacks.
 - **stacks**: title, `sections` (JSON: labelled groups of `{ text, link }` lines), `numbered` or `bulleted` style, `draft` or `published`, and the stack it was forked from. A trigger validates and normalizes lines (at most 120 characters, http(s) links only) and keeps `line_count` up to date.
 - **stack_tags**: private search tags. Row-level security lets only the author read them. Search (`search_stacks`) and Explore categories (`explore_categories`, `stack_categories`) run as security-definer functions, so tags affect results but are never exposed.
 - **likes, saves, follows, reposts, comments**: with row-level security. Counts are kept on `stacks` by triggers. A fork counts toward the source's fork total once it is published.
-- Clients can't write `stacks` directly. `save_stack()` creates and updates the caller's own drafts, publishes them, and replaces their tags in one transaction.
+- Clients can't write `stacks` directly. `save_stack()` creates and updates the caller's own drafts, publishes them, and replaces their tags in one transaction. `set_stack_order()` saves the order of the caller's stacks on their profile (`stacks.profile_position`).
 
 ## Differences from the prototype
 

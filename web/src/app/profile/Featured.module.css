@@ -1,0 +1,101 @@
+.sectionLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-62);
+  margin-bottom: 12px;
+}
+
+.card {
+  border-radius: 18px;
+  background: oklch(32% 0.02 160);
+  padding: 18px 20px;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.kicker {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: oklch(84% 0.02 160);
+}
+
+.change {
+  font-size: 12px;
+  font-weight: 600;
+  color: oklch(86% 0.05 160);
+  padding: 4px 10px;
+  margin: -4px -8px -4px 0;
+  border-radius: 999px;
+  background: oklch(26% 0.015 160);
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--text-bright);
+  margin-top: 10px;
+  line-height: 1.3;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.note {
+  font-size: 13px;
+  color: oklch(84% 0.015 160);
+  margin-top: 7px;
+}
+
+.linkRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  align-items: stretch;
+}
+
+.linkButton {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1.5px solid oklch(42% 0.012 165);
+  font-size: 14px;
+  font-weight: 500;
+  color: oklch(92% 0.005 160);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.addLink {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  border-radius: 14px;
+  border: 1.5px dashed var(--line-4);
+  font-size: 13.5px;
+  color: var(--muted-60);
+}
+
+.editLink {
+  width: 52px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  border: 1px solid var(--line-2);
+}

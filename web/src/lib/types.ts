@@ -26,7 +26,20 @@ export type StackRow = {
 /** A stack plus whether the current viewer has liked/saved it. */
 export type Stack = StackRow & { liked: boolean; saved: boolean };
 
-export type Profile = { id: string; handle: string; name: string; bio: string };
+export type SocialKey = "x" | "instagram" | "tiktok" | "facebook" | "email" | "newsletter" | "booking" | "shop";
+export type Socials = Partial<Record<SocialKey, string>>;
+
+export type Profile = {
+  id: string;
+  handle: string;
+  name: string;
+  bio: string;
+  socials: Socials;
+  pinned_stack_id: string | null;
+  pin_note: string;
+  featured_link_label: string | null;
+  featured_link_url: string | null;
+};
 
 /** A draft being edited in the create screen. */
 export type DraftLine = { text: string; link: string; linkOpen?: boolean };

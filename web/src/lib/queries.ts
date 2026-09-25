@@ -9,6 +9,21 @@ const COMMENTS = "comments(id,body,created_at,author:profiles!author_id(handle))
 export const STACK_SELECT = STACK_COLUMNS;
 export const STACK_WITH_COMMENTS = `${STACK_COLUMNS},${COMMENTS}`;
 
+export const PROFILE_SELECT = "id,handle,name,bio,socials,pinned_stack_id,pin_note,featured_link_label,featured_link_url";
+const PROFILE_BASICS = "id,handle,name,bio";
+const PROFILE_DEFAULTS = { socials: {}, pinned_stack_id: null, pin_note: "", featured_link_label: null, featured_link_url: null };
+
+/**
+ * One profile by id or handle. Falls back to the basic columns when the
+ * profile_featured migration hasn't been applied yet, so sign-in keeps working.
+ */
+export async function fetchProfile(sb: SupabaseClient, column: "id" | "handle", value: string) {
+  const full = await sb.from("profiles").select(PROFILE_SELECT).eq(column, value).maybeSingle();
+  if (!full.error) return full.data as Profile | null;
+  const basic = await sb.from("profiles").select(PROFILE_BASICS).eq(column, value).maybeSingle();
+  return basic.data ? ({ ...PROFILE_DEFAULTS, ...basic.data } as Profile) : null;
+}
+
 export const PAGE_SIZE = 12;
 
 function orderComments(rows: StackRow[]) {
@@ -60,8 +75,7 @@ export async function fetchFollowing(sb: SupabaseClient, viewerId: string | null
 }
 
 export async function fetchProfileByHandle(sb: SupabaseClient, handle: string) {
-  const { data } = await sb.from("profiles").select("id,handle,name,bio").eq("handle", handle.toLowerCase()).maybeSingle();
-  return data as Profile | null;
+  return fetchProfile(sb, "handle", handle.toLowerCase());
 }
 
 export async function fetchFollowCounts(sb: SupabaseClient, userId: string) {
@@ -73,12 +87,12 @@ export async function fetchFollowCounts(sb: SupabaseClient, userId: string) {
 }
 
 export async function fetchAuthorStacks(sb: SupabaseClient, viewerId: string | null, authorId: string) {
-  const { data } = await sb
-    .from("stacks")
-    .select(STACK_SELECT)
-    .eq("author_id", authorId)
-    .eq("status", "published")
+  const query = () => sb.from("stacks").select(STACK_SELECT).eq("author_id", authorId).eq("status", "published");
+  const ordered = await query()
+    .order("profile_position", { ascending: true, nullsFirst: true })
     .order("published_at", { ascending: false });
+  // Before the profile_featured migration there is no profile_position column.
+  const { data } = ordered.error ? await query().order("published_at", { ascending: false }) : ordered;
   return withViewerState(sb, viewerId, (data ?? []) as unknown as StackRow[]);
 }
 
