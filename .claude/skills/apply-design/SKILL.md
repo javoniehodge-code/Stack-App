@@ -52,6 +52,10 @@ a different link, use the id from that link.
   test it against a local Postgres before pushing. The migration is **not** applied by
   deploying; the user has to run `npx supabase db push` before the preview works. Say so
   in the pull request and in your reply.
+- Code that reads new columns must still work before the migration runs (fall back to
+  the old columns), especially anything on the sign-in path: `fetchProfile()` in
+  `web/src/lib/queries.ts` shows the pattern. A missing migration must never lock
+  people out.
 
 ## 5. Apply to web/
 

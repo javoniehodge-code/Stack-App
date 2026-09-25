@@ -3,7 +3,7 @@ import { IBM_Plex_Mono, Inter } from "next/font/google";
 import AppProviders from "@/components/AppProviders";
 import TabBar from "@/components/TabBar";
 import styles from "@/components/AppShell.module.css";
-import { PROFILE_SELECT } from "@/lib/queries";
+import { fetchProfile } from "@/lib/queries";
 import { createClient, getViewerId } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
 import "./globals.css";
@@ -29,8 +29,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const viewerId = await getViewerId(sb);
   let viewer: Profile | null = null;
   if (viewerId) {
-    const { data } = await sb.from("profiles").select(PROFILE_SELECT).eq("id", viewerId).maybeSingle();
-    viewer = (data as Profile | null) ?? null;
+    viewer = await fetchProfile(sb, "id", viewerId);
   }
   return (
     <html lang="en" className={`${inter.variable} ${plexMono.variable}`}>

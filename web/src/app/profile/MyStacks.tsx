@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useAuth, useToast } from "@/components/AppProviders";
 import sheet from "@/components/Sheet.module.css";
 import { plural, timeAgo } from "@/lib/format";
-import { PROFILE_SELECT } from "@/lib/queries";
+import { fetchProfile } from "@/lib/queries";
 import { toUrl } from "@/lib/socials";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile, Stack } from "@/lib/types";
@@ -48,7 +48,9 @@ export default function MyStacks({ profile, stacks }: { profile: Profile; stacks
 
   async function updateProfile(fields: Partial<Profile>) {
     setBusy(true);
-    const { data, error } = await createClient().from("profiles").update(fields).eq("id", profile.id).select(PROFILE_SELECT).single();
+    const sb = createClient();
+    const { error } = await sb.from("profiles").update(fields).eq("id", profile.id);
+    const data = error ? null : await fetchProfile(sb, "id", profile.id);
     setBusy(false);
     if (error || !data) {
       toast("Couldn't save that. Try again.");

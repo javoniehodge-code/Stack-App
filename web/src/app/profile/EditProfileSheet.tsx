@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useAuth } from "@/components/AppProviders";
 import sheet from "@/components/Sheet.module.css";
 import { SocialIcon } from "@/components/SocialLinks";
-import { PROFILE_SELECT } from "@/lib/queries";
+import { fetchProfile } from "@/lib/queries";
 import { SOCIAL_FIELDS } from "@/lib/socials";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile, Socials } from "@/lib/types";
@@ -35,18 +35,18 @@ export default function EditProfileSheet({ onClose }: { onClose: () => void }) {
     }
     setBusy(true);
     setError(null);
-    const { data, error } = await createClient()
-      .from("profiles")
-      .update({ name: name.trim(), handle: h, bio: bio.trim(), socials })
-      .eq("id", viewer!.id)
-      .select(PROFILE_SELECT)
-      .single();
+    const sb = createClient();
+    const changes: Partial<Profile> = { name: name.trim(), handle: h, bio: bio.trim() };
+    // Only send socials when they changed, so the rest still saves before the profile_featured migration.
+    if (JSON.stringify(socials) !== JSON.stringify(viewer!.socials)) changes.socials = socials;
+    const { error } = await sb.from("profiles").update(changes).eq("id", viewer!.id);
+    const data = error ? null : await fetchProfile(sb, "id", viewer!.id);
     setBusy(false);
     if (error) {
       setError(error.code === "23505" ? "That handle is taken." : error.message);
       return;
     }
-    setViewer(data as Profile);
+    if (data) setViewer(data);
     router.refresh();
     onClose();
   }
