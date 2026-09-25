@@ -289,6 +289,18 @@
         <div style="font-family:Inter,sans-serif;font-weight:800;font-size:18px;color:oklch(90% 0.008 160);">{{ viewedUser.name }}</div>
         <div style="font-family:Inter,sans-serif;font-size:12.5px;color:oklch(66% 0.012 165);margin-top:2px;">{{ viewedUser.handle }}</div>
         <div style="font-family:Inter,sans-serif;font-size:13px;color:oklch(84% 0.008 160);line-height:1.5;margin-top:10px;text-wrap:pretty;">{{ viewedUser.bio }}</div>
+        <sc-if value="{{ viewedUser.hasSocials }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:8px;margin-top:12px;">
+            <sc-if value="{{ viewedUser.socials.x }}" hint-placeholder-val="{{ false }}"><a href="{{ viewedUser.socials.xUrl }}" target="_blank" title="X" style="width:32px;height:32px;border-radius:9px;border:1px solid oklch(36% 0.012 165);background:oklch(27% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4l16 16"></path><path d="M20 4L4 20"></path></svg></a></sc-if>
+            <sc-if value="{{ viewedUser.socials.instagram }}" hint-placeholder-val="{{ false }}"><a href="{{ viewedUser.socials.instagramUrl }}" target="_blank" title="Instagram" style="width:32px;height:32px;border-radius:9px;border:1px solid oklch(36% 0.012 165);background:oklch(27% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"></rect><circle cx="12" cy="12" r="3.8"></circle><circle cx="17.2" cy="6.8" r="0.6" fill="oklch(80% 0.01 165)"></circle></svg></a></sc-if>
+            <sc-if value="{{ viewedUser.socials.tiktok }}" hint-placeholder-val="{{ false }}"><a href="{{ viewedUser.socials.tiktokUrl }}" target="_blank" title="TikTok" style="width:32px;height:32px;border-radius:9px;border:1px solid oklch(36% 0.012 165);background:oklch(27% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3.5v11.2a3.8 3.8 0 1 1-3.8-3.8"></path><path d="M14 3.5c.4 2.6 2.2 4.4 5 4.6"></path></svg></a></sc-if>
+            <sc-if value="{{ viewedUser.socials.facebook }}" hint-placeholder-val="{{ false }}"><a href="{{ viewedUser.socials.facebookUrl }}" target="_blank" title="Facebook" style="width:32px;height:32px;border-radius:9px;border:1px solid oklch(36% 0.012 165);background:oklch(27% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M14 21v-7.5h2.6l.4-3H14V8.6c0-.9.3-1.5 1.6-1.5H17V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.3H8.3v3h2.6V21"></path></svg></a></sc-if>
+            <sc-if value="{{ viewedUser.socials.email }}" hint-placeholder-val="{{ false }}"><a href="{{ viewedUser.socials.emailUrl }}" title="Email" style="width:32px;height:32px;border-radius:9px;border:1px solid oklch(36% 0.012 165);background:oklch(27% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5"></rect><path d="M4.5 7.5l7.5 5.5 7.5-5.5"></path></svg></a></sc-if>
+            <sc-if value="{{ viewedUser.socials.newsletter }}" hint-placeholder-val="{{ false }}"><a href="{{ viewedUser.socials.newsletterUrl }}" target="_blank" title="Newsletter" style="width:32px;height:32px;border-radius:9px;border:1px solid oklch(36% 0.012 165);background:oklch(27% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4.5h11.5a2 2 0 0 1 2 2V18a1.5 1.5 0 0 0 1.5 1.5H6.5A2.5 2.5 0 0 1 4 17V5.5a1 1 0 0 1 1-1z"></path><path d="M8 9h7"></path><path d="M8 12.5h7"></path><path d="M8 16h4"></path></svg></a></sc-if>
+            <sc-if value="{{ viewedUser.socials.booking }}" hint-placeholder-val="{{ false }}"><a href="{{ viewedUser.socials.bookingUrl }}" target="_blank" title="Booking" style="width:32px;height:32px;border-radius:9px;border:1px solid oklch(36% 0.012 165);background:oklch(27% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"></rect><path d="M3.5 10h17"></path><path d="M8 3v4"></path><path d="M16 3v4"></path><path d="M9 14.5l2 2 4-4"></path></svg></a></sc-if>
+            <sc-if value="{{ viewedUser.socials.shop }}" hint-placeholder-val="{{ false }}"><a href="{{ viewedUser.socials.shopUrl }}" target="_blank" title="Shop" style="width:32px;height:32px;border-radius:9px;border:1px solid oklch(36% 0.012 165);background:oklch(27% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M5.5 8.5h13l-1 11h-11z"></path><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5"></path></svg></a></sc-if>
+          </div>
+        </sc-if>
         <div style="display:flex;gap:18px;margin:14px 0 16px;font-family:Inter,sans-serif;font-size:12.5px;color:oklch(72% 0.012 165);">
           <span><strong style="color:oklch(90% 0.008 160);">{{ viewedUser.stackCount }}</strong> Stacks</span>
           <span><strong style="color:oklch(90% 0.008 160);">{{ viewedUser.followersLabel }}</strong> Followers</span>
@@ -350,11 +362,24 @@
       <div style="padding:60px 20px 0;border-bottom:1px solid oklch(32% 0.012 165);flex-shrink:0;">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
           <div style="width:56px;height:56px;border-radius:50%;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-family:Inter,sans-serif;font-weight:700;font-size:20px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;flex-shrink:0;">Y</div>
-          <span style="font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;padding:8px 15px;border-radius:999px;border:1px solid oklch(32% 0.012 165);color:oklch(84% 0.008 160);cursor:pointer;">Edit profile</span>
+          <span onClick="{{ openEditProfile }}" style="font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;padding:8px 15px;border-radius:999px;border:1px solid oklch(32% 0.012 165);color:oklch(84% 0.008 160);cursor:pointer;">Edit profile</span>
         </div>
         <div style="font-family:Inter,sans-serif;font-weight:800;font-size:18px;color:oklch(90% 0.008 160);">You</div>
         <div style="font-family:Inter,sans-serif;font-size:12.5px;color:oklch(66% 0.012 165);margin-bottom:8px;">@you</div>
-        <div style="font-family:Inter,sans-serif;font-size:13px;color:oklch(72% 0.012 165);line-height:1.5;margin-bottom:14px;max-width:300px;">Collecting the small decisions so I don't have to remember them twice.</div>
+        <div style="font-family:Inter,sans-serif;font-size:13px;color:oklch(72% 0.012 165);line-height:1.5;max-width:300px;white-space:pre-wrap;">{{ myBio }}</div>
+        <sc-if value="{{ me.hasSocials }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:8px;margin-top:12px;">
+            <sc-if value="{{ me.socials.x }}" hint-placeholder-val="{{ false }}"><a href="{{ me.socials.xUrl }}" target="_blank" title="X" style="width:32px;height:32px;border-radius:9px;border:1px solid oklch(36% 0.012 165);background:oklch(27% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4l16 16"></path><path d="M20 4L4 20"></path></svg></a></sc-if>
+            <sc-if value="{{ me.socials.instagram }}" hint-placeholder-val="{{ false }}"><a href="{{ me.socials.instagramUrl }}" target="_blank" title="Instagram" style="width:32px;height:32px;border-radius:9px;border:1px solid oklch(36% 0.012 165);background:oklch(27% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"></rect><circle cx="12" cy="12" r="3.8"></circle><circle cx="17.2" cy="6.8" r="0.6" fill="oklch(80% 0.01 165)"></circle></svg></a></sc-if>
+            <sc-if value="{{ me.socials.tiktok }}" hint-placeholder-val="{{ false }}"><a href="{{ me.socials.tiktokUrl }}" target="_blank" title="TikTok" style="width:32px;height:32px;border-radius:9px;border:1px solid oklch(36% 0.012 165);background:oklch(27% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3.5v11.2a3.8 3.8 0 1 1-3.8-3.8"></path><path d="M14 3.5c.4 2.6 2.2 4.4 5 4.6"></path></svg></a></sc-if>
+            <sc-if value="{{ me.socials.facebook }}" hint-placeholder-val="{{ false }}"><a href="{{ me.socials.facebookUrl }}" target="_blank" title="Facebook" style="width:32px;height:32px;border-radius:9px;border:1px solid oklch(36% 0.012 165);background:oklch(27% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M14 21v-7.5h2.6l.4-3H14V8.6c0-.9.3-1.5 1.6-1.5H17V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.3H8.3v3h2.6V21"></path></svg></a></sc-if>
+            <sc-if value="{{ me.socials.email }}" hint-placeholder-val="{{ false }}"><a href="{{ me.socials.emailUrl }}" title="Email" style="width:32px;height:32px;border-radius:9px;border:1px solid oklch(36% 0.012 165);background:oklch(27% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5"></rect><path d="M4.5 7.5l7.5 5.5 7.5-5.5"></path></svg></a></sc-if>
+            <sc-if value="{{ me.socials.newsletter }}" hint-placeholder-val="{{ false }}"><a href="{{ me.socials.newsletterUrl }}" target="_blank" title="Newsletter" style="width:32px;height:32px;border-radius:9px;border:1px solid oklch(36% 0.012 165);background:oklch(27% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4.5h11.5a2 2 0 0 1 2 2V18a1.5 1.5 0 0 0 1.5 1.5H6.5A2.5 2.5 0 0 1 4 17V5.5a1 1 0 0 1 1-1z"></path><path d="M8 9h7"></path><path d="M8 12.5h7"></path><path d="M8 16h4"></path></svg></a></sc-if>
+            <sc-if value="{{ me.socials.booking }}" hint-placeholder-val="{{ false }}"><a href="{{ me.socials.bookingUrl }}" target="_blank" title="Booking" style="width:32px;height:32px;border-radius:9px;border:1px solid oklch(36% 0.012 165);background:oklch(27% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"></rect><path d="M3.5 10h17"></path><path d="M8 3v4"></path><path d="M16 3v4"></path><path d="M9 14.5l2 2 4-4"></path></svg></a></sc-if>
+            <sc-if value="{{ me.socials.shop }}" hint-placeholder-val="{{ false }}"><a href="{{ me.socials.shopUrl }}" target="_blank" title="Shop" style="width:32px;height:32px;border-radius:9px;border:1px solid oklch(36% 0.012 165);background:oklch(27% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M5.5 8.5h13l-1 11h-11z"></path><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5"></path></svg></a></sc-if>
+          </div>
+        </sc-if>
+        <div style="height:14px;"></div>
         <div style="display:flex;gap:18px;margin-bottom:16px;font-family:Inter,sans-serif;font-size:12.5px;color:oklch(72% 0.012 165);">
           <span><strong style="color:oklch(90% 0.008 160);">{{ mineCount }}</strong> Stacks</span>
           <span><strong style="color:oklch(90% 0.008 160);">128</strong> Followers</span>
@@ -405,25 +430,60 @@
           </sc-if>
         </sc-if>
         <sc-if value="{{ isMineTab }}" hint-placeholder-val="{{ true }}">
-          <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;padding:14px 16px 20px;">
-            <sc-for list="{{ mineGrid }}" as="g" hint-placeholder-count="4">
-              <div onClick="{{ g.onOpen }}" style="height:212px;border-radius:14px;background:oklch(27% 0.012 165);border:1px solid oklch(32% 0.012 165);display:flex;flex-direction:column;padding:12px;cursor:pointer;overflow:hidden;">
-                <div style="font-family:Inter,sans-serif;font-size:13.5px;font-weight:600;color:oklch(95% 0.005 160);line-height:1.3;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ g.title }}</div>
-                <div style="flex:1;min-height:0;overflow:hidden;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(72% 0.01 165);line-height:1.85;">
-                  <sc-for list="{{ g.lines }}" as="pl" hint-placeholder-count="4">
-                    <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(78% 0.06 160);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
-                  </sc-for>
+          <div style="padding:20px 20px 28px;font-family:Inter,sans-serif;">
+            <sc-if value="{{ hasFeatured }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:oklch(62% 0.012 165);margin-bottom:12px;">Featured</div>
+              <div onClick="{{ featured.onOpen }}" style="border-radius:18px;background:oklch(32% 0.02 160);padding:18px 20px;cursor:pointer;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                  <span style="font-size:10.5px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:oklch(84% 0.02 160);">Featured stack · {{ featured.count }}</span>
+                  <span onClick="{{ openPinPicker }}" style="font-size:12px;font-weight:600;color:oklch(86% 0.05 160);cursor:pointer;padding:4px 10px;margin:-4px -8px -4px 0;border-radius:999px;background:oklch(26% 0.015 160);">Change</span>
                 </div>
-                <sc-if value="{{ g.hasMore }}" hint-placeholder-val="{{ true }}">
-                  <div style="font-family:Inter,sans-serif;font-size:10.5px;font-weight:600;color:oklch(78% 0.06 160);margin-top:4px;">{{ g.more }}</div>
+                <div style="font-size:17px;font-weight:500;color:oklch(95% 0.005 160);margin-top:10px;line-height:1.3;text-wrap:pretty;">{{ featured.title }} ↗</div>
+                <sc-if value="{{ featured.hasNote }}" hint-placeholder-val="{{ true }}">
+                  <div style="font-size:13px;color:oklch(84% 0.015 160);margin-top:7px;">{{ featured.note }}</div>
                 </sc-if>
-                <div style="display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid oklch(32% 0.012 165);font-family:Inter,sans-serif;font-size:10.5px;color:oklch(66% 0.012 165);">
-                  <span style="display:flex;align-items:center;gap:4px;"><span style="font-size:12px;line-height:1;">♡</span>{{ g.likes }}</span>
-                  <span style="display:flex;align-items:center;gap:4px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2.2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ g.saves }}</span>
-                  <span style="display:flex;align-items:center;gap:4px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.2"></circle><circle cx="18" cy="5" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle><path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2"></path><path d="M12 12v4.8"></path></svg>{{ g.forks }}</span>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:12px;align-items:stretch;">
+                <sc-if value="{{ hasFeaturedLink }}" hint-placeholder-val="{{ true }}">
+                  <a href="{{ featuredLink.url }}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;min-height:52px;padding:0 16px;border-radius:14px;border:1.5px solid oklch(42% 0.012 165);font-size:14px;font-weight:500;color:oklch(92% 0.005 160);text-align:center;text-decoration:none;">{{ featuredLink.label }} ↗</a>
+                </sc-if>
+                <sc-if value="{{ noFeaturedLink }}" hint-placeholder-val="{{ false }}">
+                  <span onClick="{{ openLinkEditor }}" style="flex:1;display:flex;align-items:center;justify-content:center;min-height:52px;border-radius:14px;border:1.5px dashed oklch(40% 0.012 165);font-size:13.5px;color:oklch(60% 0.012 165);cursor:pointer;">+ Add a featured link</span>
+                </sc-if>
+                <span onClick="{{ openLinkEditor }}" title="Edit featured link" style="width:52px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:14px;border:1px solid oklch(34% 0.012 165);cursor:pointer;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(72% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"></path><path d="M13.5 6.5l4 4"></path></svg>
+                </span>
+              </div>
+            </sc-if>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:30px;margin-bottom:4px;">
+              <span style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:oklch(62% 0.012 165);">All stacks</span>
+              <span onClick="{{ toggleReorder }}" style="font-size:12.5px;font-weight:600;color:{{ reorderColor }};cursor:pointer;padding:4px 0;">{{ reorderLabel }}</span>
+            </div>
+            <sc-for list="{{ myRows }}" as="r" hint-placeholder-count="4">
+              <div onClick="{{ r.onOpen }}" style="display:flex;align-items:center;gap:10px;padding:15px 0;border-top:1px solid oklch(32% 0.012 165);cursor:{{ r.cursor }};">
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:14.5px;color:oklch(92% 0.005 160);line-height:1.3;text-wrap:pretty;">{{ r.title }}{{ r.arrow }}</div>
+                  <div style="font-size:12.5px;color:oklch(60% 0.012 165);margin-top:5px;">{{ r.meta }}</div>
                 </div>
+                <sc-if value="{{ r.showPinnedTag }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.04em;color:oklch(78% 0.06 160);border:1px solid oklch(40% 0.03 160);padding:3px 7px;border-radius:5px;flex-shrink:0;">PINNED</span>
+                </sc-if>
+                <sc-if value="{{ r.editing }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;gap:6px;flex-shrink:0;">
+                    <span onClick="{{ r.onPin }}" title="{{ r.pinTitle }}" style="width:30px;height:30px;border-radius:8px;border:1px solid {{ r.pinBorder }};background:{{ r.pinBg }};display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="{{ r.pinFill }}" stroke="{{ r.pinStroke }}" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 17v5"></path><path d="M9 10.8V4h6v6.8l3 3.2H6z"></path></svg></span>
+                    <span onClick="{{ r.onUp }}" title="Move up" style="width:30px;height:30px;border-radius:8px;border:1px solid oklch(34% 0.012 165);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;opacity:{{ r.upOpacity }};"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 14l6-6 6 6"></path></svg></span>
+                    <span onClick="{{ r.onDown }}" title="Move down" style="width:30px;height:30px;border-radius:8px;border:1px solid oklch(34% 0.012 165);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;opacity:{{ r.downOpacity }};"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 10l6 6 6-6"></path></svg></span>
+                  </div>
+                </sc-if>
               </div>
             </sc-for>
+            <sc-if value="{{ reordering }}" hint-placeholder-val="{{ false }}">
+              <div style="border-top:1px solid oklch(32% 0.012 165);padding-top:12px;font-size:12px;color:oklch(60% 0.012 165);line-height:1.45;">Use the arrows to set the order visitors see. Tap the pin to feature a stack.</div>
+            </sc-if>
+            <sc-if value="{{ myRowsEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:30px 0;text-align:center;font-size:13px;color:oklch(66% 0.012 165);border-top:1px solid oklch(32% 0.012 165);">No stacks yet.</div>
+            </sc-if>
           </div>
         </sc-if>
         <sc-if value="{{ showProfileCards }}" hint-placeholder-val="{{ true }}">
@@ -528,6 +588,130 @@
       <div style="position:absolute;left:20px;right:20px;bottom:96px;padding:12px 16px;border-radius:10px;background:oklch(90% 0.008 160);color:oklch(23% 0.012 165);font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;text-align:center;z-index:30;">{{ toastMessage }}</div>
     </sc-if>
 
+    <sc-if value="{{ showPinSheet }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeProfileSheet }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:flex-end;z-index:40;">
+        <div onClick="{{ stopClick }}" style="width:100%;max-height:82%;overflow-y:auto;background:oklch(27% 0.012 165);border-radius:20px 20px 0 0;padding:14px 20px 32px;box-sizing:border-box;font-family:Inter,sans-serif;">
+          <div style="width:36px;height:4px;border-radius:2px;background:oklch(42% 0.012 165);margin:0 auto 16px;"></div>
+          <div style="font-size:16px;font-weight:700;color:oklch(92% 0.005 160);">Pin a stack</div>
+          <div style="font-size:13px;color:oklch(62% 0.012 165);margin:4px 0 14px;">Shows at the top of your profile. Change it anytime.</div>
+          <sc-for list="{{ pinChoices }}" as="p" hint-placeholder-count="4">
+            <div onClick="{{ p.onPick }}" style="display:flex;align-items:center;gap:12px;padding:12px;margin:0 -12px;border-radius:12px;background:{{ p.bg }};cursor:pointer;">
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:14.5px;color:oklch(92% 0.005 160);">{{ p.title }}</div>
+                <div style="font-size:12.5px;color:oklch(60% 0.012 165);margin-top:3px;">{{ p.meta }}</div>
+              </div>
+              <span style="width:20px;height:20px;border-radius:50%;border:2px solid {{ p.ring }};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="width:9px;height:9px;border-radius:50%;background:{{ p.dot }};"></span></span>
+            </div>
+          </sc-for>
+          <div style="font-size:12px;font-weight:600;color:oklch(60% 0.012 165);margin:16px 0 6px;">Caption</div>
+          <input value="{{ pinNoteDraft }}" onChange="{{ onPinNote }}" placeholder="One line on why this one" style="width:100%;padding:12px;border-radius:12px;background:oklch(23% 0.012 165);border:1px solid oklch(34% 0.012 165);outline:none;font-family:Inter,sans-serif;font-size:14px;color:oklch(92% 0.005 160);" />
+          <div onClick="{{ savePin }}" style="margin-top:16px;height:48px;border-radius:12px;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-size:14.5px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;">Save</div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showLinkSheet }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeProfileSheet }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:flex-end;z-index:40;">
+        <div onClick="{{ stopClick }}" style="width:100%;max-height:82%;overflow-y:auto;background:oklch(27% 0.012 165);border-radius:20px 20px 0 0;padding:14px 20px 32px;box-sizing:border-box;font-family:Inter,sans-serif;">
+          <div style="width:36px;height:4px;border-radius:2px;background:oklch(42% 0.012 165);margin:0 auto 16px;"></div>
+          <div style="font-size:16px;font-weight:700;color:oklch(92% 0.005 160);">Featured link</div>
+          <div style="font-size:13px;color:oklch(62% 0.012 165);margin:4px 0 14px;">One button under your featured stack.</div>
+          <div style="font-size:12px;font-weight:600;color:oklch(60% 0.012 165);margin-bottom:6px;">Button text</div>
+          <input value="{{ linkDraft.label }}" onChange="{{ onLinkLabel }}" placeholder="Subscribe to my newsletter" style="width:100%;padding:12px;border-radius:12px;background:oklch(23% 0.012 165);border:1px solid oklch(34% 0.012 165);outline:none;font-family:Inter,sans-serif;font-size:14px;color:oklch(92% 0.005 160);margin-bottom:12px;" />
+          <div style="font-size:12px;font-weight:600;color:oklch(60% 0.012 165);margin-bottom:6px;">URL</div>
+          <input value="{{ linkDraft.url }}" onChange="{{ onLinkUrl }}" placeholder="yournewsletter.com" style="width:100%;padding:12px;border-radius:12px;background:oklch(23% 0.012 165);border:1px solid oklch(34% 0.012 165);outline:none;font-family:Inter,sans-serif;font-size:14px;color:oklch(92% 0.005 160);" />
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;">
+            <sc-for list="{{ linkPresets }}" as="p" hint-placeholder-count="4">
+              <span onClick="{{ p.onUse }}" style="font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;border:1px solid oklch(36% 0.012 165);color:oklch(84% 0.008 160);cursor:pointer;">{{ p.label }}</span>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:18px;">
+            <div onClick="{{ removeLink }}" style="flex:0 0 auto;padding:0 18px;height:48px;border-radius:12px;border:1px solid oklch(36% 0.012 165);color:oklch(72% 0.012 165);font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer;">Remove</div>
+            <div onClick="{{ saveLink }}" style="flex:1;height:48px;border-radius:12px;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-size:14.5px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;">Save</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showEditProfile }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeEditProfile }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:flex-end;z-index:40;">
+        <div onClick="{{ stopClick }}" style="width:100%;background:oklch(27% 0.012 165);border-radius:20px 20px 0 0;padding:14px 20px 32px;box-sizing:border-box;max-height:88%;overflow-y:auto;">
+          <div style="width:36px;height:4px;border-radius:2px;background:oklch(42% 0.012 165);margin:0 auto 16px;"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <span onClick="{{ closeEditProfile }}" style="font-family:Inter,sans-serif;font-size:13.5px;color:oklch(66% 0.012 165);cursor:pointer;">Cancel</span>
+            <span style="font-family:Inter,sans-serif;font-weight:700;font-size:15px;color:oklch(90% 0.008 160);">Edit profile</span>
+            <span onClick="{{ saveEditProfile }}" style="font-family:Inter,sans-serif;font-size:13.5px;font-weight:700;color:oklch(78% 0.06 160);cursor:pointer;">Save</span>
+          </div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin:18px 0 6px;">
+            <span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(60% 0.012 165);">Bio</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:{{ bioCountColor }};">{{ bioCount }}</span>
+          </div>
+          <textarea value="{{ bioDraft }}" onChange="{{ onBioChange }}" placeholder="A line about what you collect" rows="3" style="width:100%;resize:none;padding:12px;border-radius:12px;background:oklch(23% 0.012 165);border:1px solid oklch(34% 0.012 165);outline:none;font-family:Inter,sans-serif;font-size:14px;line-height:1.45;color:oklch(90% 0.008 160);"></textarea>
+          <div style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(60% 0.012 165);margin:16px 0 6px;">Social links</div>
+          <div style="font-family:Inter,sans-serif;font-size:12.5px;color:oklch(62% 0.012 165);line-height:1.45;margin-bottom:14px;">Only filled-in links show on your profile.</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:oklch(23% 0.012 165);border:1px solid oklch(34% 0.012 165);">
+              <div style="width:30px;height:30px;border-radius:8px;border:1px solid oklch(36% 0.012 165);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4l16 16"></path><path d="M20 4L4 20"></path></svg></div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-family:Inter,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:oklch(56% 0.012 165);margin-bottom:2px;">X</div>
+                <input value="{{ socialDraft.x }}" onChange="{{ onSocial_x }}" placeholder="@handle" style="width:100%;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14px;color:oklch(90% 0.008 160);padding:0;" />
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:oklch(23% 0.012 165);border:1px solid oklch(34% 0.012 165);">
+              <div style="width:30px;height:30px;border-radius:8px;border:1px solid oklch(36% 0.012 165);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"></rect><circle cx="12" cy="12" r="3.8"></circle><circle cx="17.2" cy="6.8" r="0.6" fill="oklch(80% 0.01 165)"></circle></svg></div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-family:Inter,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:oklch(56% 0.012 165);margin-bottom:2px;">Instagram</div>
+                <input value="{{ socialDraft.instagram }}" onChange="{{ onSocial_instagram }}" placeholder="@handle" style="width:100%;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14px;color:oklch(90% 0.008 160);padding:0;" />
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:oklch(23% 0.012 165);border:1px solid oklch(34% 0.012 165);">
+              <div style="width:30px;height:30px;border-radius:8px;border:1px solid oklch(36% 0.012 165);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3.5v11.2a3.8 3.8 0 1 1-3.8-3.8"></path><path d="M14 3.5c.4 2.6 2.2 4.4 5 4.6"></path></svg></div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-family:Inter,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:oklch(56% 0.012 165);margin-bottom:2px;">TikTok</div>
+                <input value="{{ socialDraft.tiktok }}" onChange="{{ onSocial_tiktok }}" placeholder="@handle" style="width:100%;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14px;color:oklch(90% 0.008 160);padding:0;" />
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:oklch(23% 0.012 165);border:1px solid oklch(34% 0.012 165);">
+              <div style="width:30px;height:30px;border-radius:8px;border:1px solid oklch(36% 0.012 165);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M14 21v-7.5h2.6l.4-3H14V8.6c0-.9.3-1.5 1.6-1.5H17V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.3H8.3v3h2.6V21"></path></svg></div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-family:Inter,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:oklch(56% 0.012 165);margin-bottom:2px;">Facebook</div>
+                <input value="{{ socialDraft.facebook }}" onChange="{{ onSocial_facebook }}" placeholder="username" style="width:100%;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14px;color:oklch(90% 0.008 160);padding:0;" />
+              </div>
+            </div>
+            <div style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(60% 0.012 165);margin:8px 0 0;">Other links</div>
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:oklch(23% 0.012 165);border:1px solid oklch(34% 0.012 165);">
+              <div style="width:30px;height:30px;border-radius:8px;border:1px solid oklch(36% 0.012 165);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5"></rect><path d="M4.5 7.5l7.5 5.5 7.5-5.5"></path></svg></div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-family:Inter,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:oklch(56% 0.012 165);margin-bottom:2px;">Email</div>
+                <input value="{{ socialDraft.email }}" onChange="{{ onSocial_email }}" placeholder="you@example.com" style="width:100%;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14px;color:oklch(90% 0.008 160);padding:0;" />
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:oklch(23% 0.012 165);border:1px solid oklch(34% 0.012 165);">
+              <div style="width:30px;height:30px;border-radius:8px;border:1px solid oklch(36% 0.012 165);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4.5h11.5a2 2 0 0 1 2 2V18a1.5 1.5 0 0 0 1.5 1.5H6.5A2.5 2.5 0 0 1 4 17V5.5a1 1 0 0 1 1-1z"></path><path d="M8 9h7"></path><path d="M8 12.5h7"></path><path d="M8 16h4"></path></svg></div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-family:Inter,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:oklch(56% 0.012 165);margin-bottom:2px;">Newsletter</div>
+                <input value="{{ socialDraft.newsletter }}" onChange="{{ onSocial_newsletter }}" placeholder="substack.com/you" style="width:100%;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14px;color:oklch(90% 0.008 160);padding:0;" />
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:oklch(23% 0.012 165);border:1px solid oklch(34% 0.012 165);">
+              <div style="width:30px;height:30px;border-radius:8px;border:1px solid oklch(36% 0.012 165);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"></rect><path d="M3.5 10h17"></path><path d="M8 3v4"></path><path d="M16 3v4"></path><path d="M9 14.5l2 2 4-4"></path></svg></div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-family:Inter,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:oklch(56% 0.012 165);margin-bottom:2px;">Booking</div>
+                <input value="{{ socialDraft.booking }}" onChange="{{ onSocial_booking }}" placeholder="calendly.com/you" style="width:100%;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14px;color:oklch(90% 0.008 160);padding:0;" />
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:oklch(23% 0.012 165);border:1px solid oklch(34% 0.012 165);">
+              <div style="width:30px;height:30px;border-radius:8px;border:1px solid oklch(36% 0.012 165);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M5.5 8.5h13l-1 11h-11z"></path><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5"></path></svg></div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-family:Inter,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:oklch(56% 0.012 165);margin-bottom:2px;">Shop</div>
+                <input value="{{ socialDraft.shop }}" onChange="{{ onSocial_shop }}" placeholder="yourshop.com" style="width:100%;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14px;color:oklch(90% 0.008 160);padding:0;" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
     <sc-if value="{{ showAuthModal }}" hint-placeholder-val="{{ false }}">
       <div onClick="{{ cancelAuth }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:flex-end;z-index:40;">
         <div onClick="{{ stopClick }}" style="width:100%;background:oklch(27% 0.012 165);border-radius:20px 20px 0 0;padding:26px 24px 34px;box-sizing:border-box;">
@@ -557,6 +741,16 @@ class Component extends DCLogic {
     tagInput: '',
     toast: null,
     editingDraftId: null,
+    showEditProfile: false,
+    myOrder: ['m2', 'm3', 'l5', 'm4'],
+    pinnedId: 'm2', pinNote: 'Start with my favorite reads', pinDraft: null, pinNoteDraft: '',
+    featuredLink: { label: 'Subscribe to my newsletter', url: 'https://you.substack.com' },
+    linkDraft: { label: '', url: '' },
+    profileSheet: null, reordering: false,
+    myBio: "Collecting the small decisions so I don't have to remember them twice.",
+    bioDraft: '',
+    mySocials: { x: '', instagram: '', tiktok: '', facebook: '', email: '', newsletter: '', booking: '', shop: '' },
+    socialDraft: { x: '', instagram: '', tiktok: '', facebook: '', email: '', newsletter: '', booking: '', shop: '' },
     showAuthModal: false,
     authAction: null,
     authMessage: '',
@@ -667,6 +861,33 @@ class Component extends DCLogic {
         ],
         likes: 12, forks: 1, saves: 4, likedByUser: false, savedByUser: false, isMine: true, forkedFromId: null,
       },
+      {
+        id: 'm2', author: { name: 'You', handle: '@you', initials: 'Y' }, timeAgo: '2d', title: 'Books that changed how I think', tags: ['Books'],
+        sections: [{ label: null, lines: [
+          { text: 'Meditations — read one page a morning', link: 'https://example.com' },
+          { text: 'Thinking, Fast and Slow — the chapters on anchoring' },
+          { text: 'The Almanack of Naval Ravikant — free online', link: 'https://example.com' },
+          { text: 'Four Thousand Weeks — for when the to-do list wins' },
+        ]}],
+        likes: 48, forks: 6, saves: 21, likedByUser: false, savedByUser: false, isMine: true, forkedFromId: null,
+      },
+      {
+        id: 'm3', author: { name: 'You', handle: '@you', initials: 'Y' }, timeAgo: '1w', title: 'My favorite spots in Mexico City', tags: ['Travel', 'Food & Drink'],
+        sections: [{ label: null, lines: [
+          { text: 'Panadería Rosetta — guava roll, go before 10' },
+          { text: 'Museo Tamayo — then walk Chapultepec' },
+          { text: 'Contramar — tuna tostadas, book ahead', link: 'https://example.com' },
+        ]}],
+        likes: 31, forks: 3, saves: 14, likedByUser: false, savedByUser: false, isMine: true, forkedFromId: null,
+      },
+      {
+        id: 'm4', author: { name: 'You', handle: '@you', initials: 'Y' }, timeAgo: '3w', title: 'Podcasts for long drives', tags: ['Tech'],
+        sections: [{ label: null, lines: [
+          { text: 'Hardcore History — pick any series' },
+          { text: 'Search Engine — one question per episode' },
+        ]}],
+        likes: 9, forks: 0, saves: 3, likedByUser: false, savedByUser: false, isMine: true, forkedFromId: null,
+      },
     ],
   };
 
@@ -757,7 +978,7 @@ class Component extends DCLogic {
   }
 
   USERS = {
-    '@renata.diaz': { bio: 'Bartender turned travel writer. Mostly Mexico City, sometimes Oaxaca.', followers: 2140, following: 188, reposts: ['l4', 'l2'] },
+    '@renata.diaz': { bio: 'Bartender turned travel writer. Mostly Mexico City, sometimes Oaxaca.', followers: 2140, following: 188, reposts: ['l4', 'l2'], socials: { instagram: 'renata.diaz', tiktok: 'renatadrinks', newsletter: 'renatadiaz.substack.com', booking: 'calendly.com/renata-diaz' } },
     '@marcus.reads': { bio: 'Reading 50 books a year and ranking all of them.', followers: 5320, following: 402, reposts: ['l1'] },
     '@junehome': { bio: 'Small apartment, good objects. Etsy archaeologist.', followers: 910, following: 233, reposts: ['l2', 'l5'] },
     '@kenji.eats': { bio: 'Will wait in any line for noodles.', followers: 3870, following: 150, reposts: ['l1', 'l3'] },
@@ -817,6 +1038,18 @@ class Component extends DCLogic {
     });
   }
   cancelAuth() { this.setState({ showAuthModal: false, authAction: null }); }
+  _socialVM(src) {
+    const clean = (v) => (v || '').trim().replace(/^@/, '').replace(/^https?:\/\/[^/]+\//, '');
+    const o = {}; const s = src || {};
+    const base = { x: 'https://x.com/', instagram: 'https://instagram.com/', tiktok: 'https://tiktok.com/@', facebook: 'https://facebook.com/' };
+    let any = false;
+    Object.keys(base).forEach(k => { const v = clean(s[k]); o[k] = !!v; o[k + 'Url'] = v ? base[k] + v : ''; if (v) any = true; });
+    const url = (v) => { v = (v || '').trim(); return !v ? '' : /^https?:\/\//.test(v) ? v : 'https://' + v; };
+    const em = (s.email || '').trim();
+    o.email = !!em; o.emailUrl = em ? 'mailto:' + em : ''; if (em) any = true;
+    ['newsletter', 'booking', 'shop'].forEach(k => { const u = url(s[k]); o[k] = !!u; o[k + 'Url'] = u; if (u) any = true; });
+    return { socials: o, hasSocials: any };
+  }
   selectFeedForYou() { this.setState({ feedTab: 'forYou' }); }
   selectFeedFollowing() { this.setState({ feedTab: 'following' }); }
 
@@ -962,6 +1195,45 @@ class Component extends DCLogic {
     else if (s.profileTab === 'forked') profileFiltered = list.filter(l => l.isMine && l.forkedFromId);
     else profileFiltered = list.filter(l => l.isMine);
     const profileCards = profileFiltered.map(cardVM);
+    const mineAll = list.filter(l => l.isMine);
+    const orderIdx = (id) => { const i = s.myOrder.indexOf(id); return i < 0 ? -1 : i; };
+    const mineOrdered = [...mineAll].sort((a, b) => orderIdx(a.id) - orderIdx(b.id));
+    const unitFor = (l) => { const t = l.tags || []; return t.includes('Travel') || t.includes('Food & Drink') ? 'places' : t.includes('Books') ? 'books' : 'lines'; };
+    const metaFor = (l) => this._flatten(l).length + ' ' + unitFor(l) + ' · ' + (l.timeAgo === 'just now' ? 'Updated just now' : 'Updated ' + l.timeAgo + ' ago');
+    const pinnedList = mineAll.find(l => l.id === s.pinnedId) || null;
+    const moveMine = (id, dir) => this.setState(st => {
+      const ids = [...mineOrdered.map(l => l.id)];
+      const i = ids.indexOf(id), j = i + dir;
+      if (i < 0 || j < 0 || j >= ids.length) return null;
+      [ids[i], ids[j]] = [ids[j], ids[i]];
+      return { myOrder: ids };
+    });
+    const myRows = mineOrdered.map((l, i) => {
+      const pinned = l.id === s.pinnedId;
+      return {
+        title: l.title, arrow: s.reordering ? '' : ' ↗', meta: metaFor(l),
+        editing: s.reordering, showPinnedTag: pinned && !s.reordering,
+        cursor: s.reordering ? 'default' : 'pointer',
+        onOpen: () => { if (!this.state.reordering) this.openList(l.id, 'profile'); },
+        onUp: (e) => { e.stopPropagation(); moveMine(l.id, -1); },
+        onDown: (e) => { e.stopPropagation(); moveMine(l.id, 1); },
+        upOpacity: i === 0 ? 0.3 : 1, downOpacity: i === mineOrdered.length - 1 ? 0.3 : 1,
+        onPin: (e) => { e.stopPropagation(); this.setState({ pinnedId: pinned ? null : l.id }); },
+        pinTitle: pinned ? 'Unpin' : 'Pin to featured',
+        pinBg: pinned ? 'oklch(32% 0.02 160)' : 'transparent',
+        pinBorder: pinned ? 'oklch(50% 0.04 160)' : 'oklch(34% 0.012 165)',
+        pinFill: pinned ? 'oklch(78% 0.06 160)' : 'none',
+        pinStroke: pinned ? 'oklch(78% 0.06 160)' : 'oklch(80% 0.01 165)',
+      };
+    });
+    const pinDraftId = s.pinDraft || s.pinnedId;
+    const pinChoices = mineOrdered.map(l => {
+      const on = l.id === pinDraftId;
+      return { title: l.title, meta: metaFor(l), onPick: () => this.setState({ pinDraft: l.id }),
+        bg: on ? 'oklch(32% 0.02 160)' : 'transparent', ring: on ? 'oklch(78% 0.06 160)' : 'oklch(42% 0.012 165)', dot: on ? 'oklch(78% 0.06 160)' : 'transparent' };
+    });
+    const linkPresets = [['Subscribe to my newsletter', 'you.substack.com'], ['Book a call', 'calendly.com/you'], ['Shop my picks', 'yourshop.com'], ['Email me', 'mailto:you@example.com']]
+      .map(([label, url]) => ({ label, onUse: () => this.setState({ linkDraft: { label, url } }) }));
     const mineGrid = s.profileTab === 'mine' ? profileFiltered.map(l => {
       const flat = this._flatten(l);
       return {
@@ -986,6 +1258,7 @@ class Component extends DCLogic {
       followColor: vFollowing ? 'oklch(84% 0.008 160)' : 'oklch(23% 0.012 165)',
       followBorder: vFollowing ? 'oklch(40% 0.012 165)' : 'oklch(78% 0.06 160)',
       onToggleFollow: () => vh && this.toggleFollow(vh),
+      ...this._socialVM(vMeta.socials),
     };
     const firstName = vName.split(' ')[0];
     const userCards = s.userTab === 'reposts'
@@ -1047,6 +1320,23 @@ class Component extends DCLogic {
       isCreate: s.screen === 'create',
       showTabBar: ['feed', 'search', 'detail', 'profile', 'user'].includes(s.screen),
       goBack: () => this.goBack(),
+      me: this._socialVM(s.mySocials),
+      showEditProfile: s.showEditProfile, socialDraft: s.socialDraft,
+      openEditProfile: () => this.setState(st => ({ showEditProfile: true, socialDraft: { ...st.mySocials }, bioDraft: st.myBio })),
+      myBio: s.myBio, bioDraft: s.bioDraft,
+      bioCount: s.bioDraft.length + ' / 160',
+      bioCountColor: s.bioDraft.length >= 150 ? 'oklch(76% 0.08 45)' : 'oklch(56% 0.012 165)',
+      onBioChange: (e) => { const v = e.target.value.slice(0, 160); this.setState({ bioDraft: v }); },
+      closeEditProfile: () => this.setState({ showEditProfile: false }),
+      saveEditProfile: () => { this.setState(st => ({ mySocials: { ...st.socialDraft }, myBio: st.bioDraft.trim(), showEditProfile: false })); this.showToast('Profile updated'); },
+      onSocial_x: (e) => { const v = e.target.value; this.setState(st => ({ socialDraft: { ...st.socialDraft, x: v } })); },
+      onSocial_instagram: (e) => { const v = e.target.value; this.setState(st => ({ socialDraft: { ...st.socialDraft, instagram: v } })); },
+      onSocial_tiktok: (e) => { const v = e.target.value; this.setState(st => ({ socialDraft: { ...st.socialDraft, tiktok: v } })); },
+      onSocial_facebook: (e) => { const v = e.target.value; this.setState(st => ({ socialDraft: { ...st.socialDraft, facebook: v } })); },
+      onSocial_email: (e) => { const v = e.target.value; this.setState(st => ({ socialDraft: { ...st.socialDraft, email: v } })); },
+      onSocial_newsletter: (e) => { const v = e.target.value; this.setState(st => ({ socialDraft: { ...st.socialDraft, newsletter: v } })); },
+      onSocial_booking: (e) => { const v = e.target.value; this.setState(st => ({ socialDraft: { ...st.socialDraft, booking: v } })); },
+      onSocial_shop: (e) => { const v = e.target.value; this.setState(st => ({ socialDraft: { ...st.socialDraft, shop: v } })); },
       viewedUser, userCards, userCardsEmpty: userCards.length === 0,
       userEmptyLabel: s.userTab === 'reposts' ? 'No reposts yet.' : 'No stacks yet.',
       selectUserStacks: () => this.setState({ userTab: 'stacks' }),
@@ -1100,6 +1390,32 @@ class Component extends DCLogic {
       draftsTabBorder: s.profileTab === 'drafts' ? 'oklch(78% 0.06 160)' : 'transparent',
       isDraftsTab: s.profileTab === 'drafts', showProfileCards: s.profileTab === 'forked' || (s.profileTab === 'mine' && profileCards.length === 0),
       isMineTab: s.profileTab === 'mine', mineGrid,
+      myRows, myRowsEmpty: myRows.length === 0, reordering: s.reordering,
+      toggleReorder: () => this.setState(st => ({ reordering: !st.reordering })),
+      reorderLabel: s.reordering ? 'Done' : 'Reorder',
+      reorderColor: s.reordering ? 'oklch(78% 0.06 160)' : 'oklch(66% 0.012 165)',
+      hasFeatured: !!pinnedList || !!s.featuredLink,
+      featured: pinnedList ? { title: pinnedList.title, count: this._flatten(pinnedList).length + ' ' + unitFor(pinnedList), note: s.pinNote, hasNote: !!s.pinNote, onOpen: () => this.openList(pinnedList.id, 'profile') }
+        : { title: 'Pick a stack to feature', count: 'none', note: 'Tap Change to choose one.', hasNote: true, onOpen: () => {} },
+      featuredLink: s.featuredLink || { label: '', url: '' },
+      hasFeaturedLink: !!s.featuredLink, noFeaturedLink: !s.featuredLink,
+      showPinSheet: s.profileSheet === 'pin', showLinkSheet: s.profileSheet === 'link',
+      closeProfileSheet: () => this.setState({ profileSheet: null }),
+      openPinPicker: (e) => { if (e) e.stopPropagation(); this.setState(st => ({ profileSheet: 'pin', pinDraft: st.pinnedId, pinNoteDraft: st.pinNote })); },
+      pinChoices, pinNoteDraft: s.pinNoteDraft,
+      onPinNote: (e) => this.setState({ pinNoteDraft: e.target.value.slice(0, 60) }),
+      savePin: () => this.setState(st => ({ pinnedId: st.pinDraft || st.pinnedId, pinNote: st.pinNoteDraft.trim(), profileSheet: null })),
+      openLinkEditor: () => this.setState(st => ({ profileSheet: 'link', linkDraft: st.featuredLink ? { label: st.featuredLink.label, url: st.featuredLink.url.replace(/^https?:\/\//, '') } : { label: '', url: '' } })),
+      linkDraft: s.linkDraft, linkPresets,
+      onLinkLabel: (e) => { const v = e.target.value.slice(0, 40); this.setState(st => ({ linkDraft: { ...st.linkDraft, label: v } })); },
+      onLinkUrl: (e) => { const v = e.target.value; this.setState(st => ({ linkDraft: { ...st.linkDraft, url: v } })); },
+      saveLink: () => this.setState(st => {
+        const u = st.linkDraft.url.trim();
+        if (!u) return { featuredLink: null, profileSheet: null };
+        const url = /^(https?:|mailto:)/.test(u) ? u : 'https://' + u;
+        return { featuredLink: { label: st.linkDraft.label.trim() || 'Visit my link', url }, profileSheet: null };
+      }),
+      removeLink: () => this.setState({ featuredLink: null, profileSheet: null }),
       isSavedTab: s.profileTab === 'saved',
       savedRows, hasSavedRows: allSaved.length > 0, savedEmpty: savedRows.length === 0,
       savedEmptyLabel: allSaved.length === 0 ? 'Nothing saved yet.' : 'No saved stacks match.',
