@@ -33,7 +33,8 @@ export default function Featured({
   const owner = !!onChange;
   const pinned = stacks.find((s) => s.id === profile.pinned_stack_id) ?? null;
   const hasLink = !!(profile.featured_link_label && profile.featured_link_url);
-  if (!pinned && !hasLink) return null;
+  // Owners always see the section so they can find it; visitors only when something is set.
+  if (!owner && !pinned && !hasLink) return null;
 
   const open = () => pinned && router.push(`/s/${pinned.id}`);
   return (
