@@ -221,40 +221,6 @@ export function ListCard({ stack, following = false }: { stack: Stack; following
   );
 }
 
-/** Your own profile's two-column grid tile: title, first 5 lines, counts. */
-export function GridCard({ stack }: { stack: Stack }) {
-  const open = useOpen(stack.id);
-  const e = useEngagement(stack);
-  const lines = flatten(stack);
-  return (
-    <div className={s.gridCard} {...open}>
-      <div className={s.gridTitle}>{stack.title}</div>
-      <div className={s.gridLines}>
-        {lines.slice(0, 5).map((l, i) => (
-          <div key={i} className={s.lineClip}>
-            <span className={s.num}>{l.num}</span> {l.text}
-          </div>
-        ))}
-      </div>
-      {lines.length > 5 && <div className={s.gridMore}>+ {lines.length - 5} more</div>}
-      <div className={s.gridStats}>
-        <span className={s.gridStat}>
-          <span style={{ fontSize: 12, lineHeight: 1 }}>♡</span>
-          {fmtCount(e.likes)}
-        </span>
-        <span className={s.gridStat}>
-          <BookmarkIcon size={11} color="var(--muted-66)" filled={false} width={2.2} />
-          {fmtCount(e.saves)}
-        </span>
-        <span className={s.gridStat}>
-          <ForkIcon size={11} width={2.2} />
-          {fmtCount(stack.forks_count)}
-        </span>
-      </div>
-    </div>
-  );
-}
-
 export function FollowButton({ following, onClick, small, className, style }: { following: boolean; onClick: () => void; small?: boolean; className?: string; style?: React.CSSProperties }) {
   return (
     <button

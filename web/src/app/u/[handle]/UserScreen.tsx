@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useBack } from "@/components/AppProviders";
 import { BackIcon } from "@/components/icons";
+import SocialLinks from "@/components/SocialLinks";
 import { CompactCard, FollowButton } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
 import cards from "@/components/Cards.module.css";
@@ -10,6 +11,7 @@ import { fmtCount, initials } from "@/lib/format";
 import { useIsFollowing } from "@/lib/store";
 import type { Profile, Stack } from "@/lib/types";
 import { useStackActions } from "@/lib/useStackActions";
+import Featured from "@/app/profile/Featured";
 import p from "@/app/profile/Profile.module.css";
 
 export default function UserScreen({
@@ -59,6 +61,7 @@ export default function UserScreen({
             {profile.bio}
           </div>
         )}
+        <SocialLinks socials={profile.socials} />
         <div className={p.stats} style={{ margin: "14px 0 16px" }}>
           <span>
             <strong>{stacks.length}</strong> Stacks
@@ -80,6 +83,7 @@ export default function UserScreen({
         </div>
       </header>
       <div className={cards.userList}>
+        {tab === "stacks" && <Featured profile={profile} stacks={stacks} />}
         {list.map((st) => (
           <CompactCard key={st.id} stack={st} repostedBy={tab === "reposts" ? firstName : undefined} />
         ))}

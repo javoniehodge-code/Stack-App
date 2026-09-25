@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth, useToast } from "@/components/AppProviders";
 import { SearchIcon } from "@/components/icons";
-import { GridCard, ListCard } from "@/components/StackCards";
+import SocialLinks from "@/components/SocialLinks";
+import { ListCard } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
 import cards from "@/components/Cards.module.css";
 import { fmtCount, initials } from "@/lib/format";
@@ -13,6 +14,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Stack, StackRow } from "@/lib/types";
 import { useStackActions } from "@/lib/useStackActions";
 import EditProfileSheet from "./EditProfileSheet";
+import MyStacks from "./MyStacks";
 import p from "./Profile.module.css";
 
 export type ProfileTab = "mine" | "saved" | "forked" | "drafts";
@@ -45,7 +47,6 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
     borderBottomColor: tab === t ? "var(--accent)" : "transparent",
   });
   const forked = data.mine.filter((x) => x.forked_from_id);
-  const cardsFor = tab === "forked" ? forked : data.mine;
 
   return (
     <main className={shell.screen}>
@@ -59,6 +60,8 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
         <h1 className={p.name}>{viewer.name}</h1>
         <div className={p.handle}>@{viewer.handle}</div>
         {viewer.bio && <div className={p.bio}>{viewer.bio}</div>}
+        <SocialLinks socials={viewer.socials} />
+        <div style={{ height: 14 }} />
         <div className={p.stats}>
           <span>
             <strong>{data.mine.length}</strong> Stacks
@@ -88,19 +91,13 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
       <div className={p.body}>
         {tab === "drafts" && <Drafts drafts={data.drafts} />}
         {tab === "saved" && <Saved saved={data.saved} />}
-        {tab === "mine" && data.mine.length > 0 && (
-          <div className={cards.grid}>
-            {data.mine.map((st) => (
-              <GridCard key={st.id} stack={st} />
-            ))}
-          </div>
-        )}
-        {(tab === "forked" || (tab === "mine" && data.mine.length === 0)) && (
+        {tab === "mine" && <MyStacks profile={viewer} stacks={data.mine} />}
+        {tab === "forked" && (
           <>
-            {cardsFor.map((st) => (
+            {forked.map((st) => (
               <ListCard key={st.id} stack={st} />
             ))}
-            {cardsFor.length === 0 && <div className={cards.empty}>Nothing here yet.</div>}
+            {forked.length === 0 && <div className={cards.empty}>Nothing here yet.</div>}
           </>
         )}
       </div>

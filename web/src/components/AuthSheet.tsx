@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PROFILE_SELECT } from "@/lib/queries";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/types";
 import styles from "./Sheet.module.css";
@@ -49,7 +50,7 @@ export default function AuthSheet({
       setError("Signed in, but the session couldn't be loaded. Try again.");
       return;
     }
-    const { data: profile } = await sb.from("profiles").select("id,handle,name,bio").eq("id", data.user.id).single();
+    const { data: profile } = await sb.from("profiles").select(PROFILE_SELECT).eq("id", data.user.id).single();
     if (profile) onSignedIn(profile as Profile);
     else setError("Signed in, but your profile couldn't be loaded.");
   }

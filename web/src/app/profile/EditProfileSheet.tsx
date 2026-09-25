@@ -4,8 +4,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "@/components/AppProviders";
 import sheet from "@/components/Sheet.module.css";
+import { SocialIcon } from "@/components/SocialLinks";
+import { PROFILE_SELECT } from "@/lib/queries";
+import { SOCIAL_FIELDS } from "@/lib/socials";
 import { createClient } from "@/lib/supabase/client";
-import type { Profile } from "@/lib/types";
+import type { Profile, Socials } from "@/lib/types";
 import p from "./Profile.module.css";
 
 export default function EditProfileSheet({ onClose }: { onClose: () => void }) {
@@ -14,6 +17,7 @@ export default function EditProfileSheet({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState(viewer?.name ?? "");
   const [handle, setHandle] = useState(viewer?.handle ?? "");
   const [bio, setBio] = useState(viewer?.bio ?? "");
+  const [socials, setSocials] = useState<Socials>(viewer?.socials ?? {});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   if (!viewer) return null;
@@ -33,9 +37,9 @@ export default function EditProfileSheet({ onClose }: { onClose: () => void }) {
     setError(null);
     const { data, error } = await createClient()
       .from("profiles")
-      .update({ name: name.trim(), handle: h, bio: bio.trim() })
+      .update({ name: name.trim(), handle: h, bio: bio.trim(), socials })
       .eq("id", viewer!.id)
-      .select("id,handle,name,bio")
+      .select(PROFILE_SELECT)
       .single();
     setBusy(false);
     if (error) {
@@ -69,10 +73,43 @@ export default function EditProfileSheet({ onClose }: { onClose: () => void }) {
           Handle
         </label>
         <input id="ep-handle" className={sheet.input} value={handle} maxLength={31} autoCapitalize="none" autoCorrect="off" onChange={(e) => setHandle(e.target.value)} />
-        <label className={sheet.label} htmlFor="ep-bio">
-          Bio
-        </label>
-        <textarea id="ep-bio" className={sheet.input} rows={3} value={bio} maxLength={160} onChange={(e) => setBio(e.target.value)} />
+        <div className={p.bioLabelRow}>
+          <label className={sheet.label} htmlFor="ep-bio">
+            Bio
+          </label>
+          <span className={p.bioCount} style={{ color: bio.length >= 150 ? "oklch(76% 0.08 45)" : undefined }}>
+            {bio.length} / 160
+          </span>
+        </div>
+        <textarea id="ep-bio" className={sheet.input} rows={3} value={bio} maxLength={160} onChange={(e) => setBio(e.target.value)} placeholder="A line about what you collect" />
+        <div className={sheet.label} style={{ marginTop: 16 }}>
+          Social links
+        </div>
+        <div className={p.socialHint}>Only filled-in links show on your profile.</div>
+        <div className={p.socialFields}>
+          {SOCIAL_FIELDS.map((f, i) => (
+            <div key={f.key}>
+              {f.group === "other" && SOCIAL_FIELDS[i - 1]?.group === "social" && <div className={sheet.label} style={{ margin: "8px 0 10px" }}>Other links</div>}
+              <label className={p.socialField}>
+                <span className={p.socialIcon}>
+                  <SocialIcon name={f.key} />
+                </span>
+                <span className={p.socialBody}>
+                  <span className={p.socialName}>{f.label}</span>
+                  <input
+                    value={socials[f.key] ?? ""}
+                    maxLength={200}
+                    onChange={(e) => setSocials((s) => ({ ...s, [f.key]: e.target.value }))}
+                    placeholder={f.placeholder}
+                    type={f.key === "email" ? "email" : "text"}
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                  />
+                </span>
+              </label>
+            </div>
+          ))}
+        </div>
         {error && <div className={sheet.error}>{error}</div>}
         <button type="submit" className={sheet.primary} disabled={busy}>
           {busy ? "Saving…" : "Save"}

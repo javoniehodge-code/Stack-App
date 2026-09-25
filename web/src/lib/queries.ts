@@ -9,6 +9,8 @@ const COMMENTS = "comments(id,body,created_at,author:profiles!author_id(handle))
 export const STACK_SELECT = STACK_COLUMNS;
 export const STACK_WITH_COMMENTS = `${STACK_COLUMNS},${COMMENTS}`;
 
+export const PROFILE_SELECT = "id,handle,name,bio,socials,pinned_stack_id,pin_note,featured_link_label,featured_link_url";
+
 export const PAGE_SIZE = 12;
 
 function orderComments(rows: StackRow[]) {
@@ -60,7 +62,7 @@ export async function fetchFollowing(sb: SupabaseClient, viewerId: string | null
 }
 
 export async function fetchProfileByHandle(sb: SupabaseClient, handle: string) {
-  const { data } = await sb.from("profiles").select("id,handle,name,bio").eq("handle", handle.toLowerCase()).maybeSingle();
+  const { data } = await sb.from("profiles").select(PROFILE_SELECT).eq("handle", handle.toLowerCase()).maybeSingle();
   return data as Profile | null;
 }
 
@@ -78,6 +80,7 @@ export async function fetchAuthorStacks(sb: SupabaseClient, viewerId: string | n
     .select(STACK_SELECT)
     .eq("author_id", authorId)
     .eq("status", "published")
+    .order("profile_position", { ascending: true, nullsFirst: true })
     .order("published_at", { ascending: false });
   return withViewerState(sb, viewerId, (data ?? []) as unknown as StackRow[]);
 }
