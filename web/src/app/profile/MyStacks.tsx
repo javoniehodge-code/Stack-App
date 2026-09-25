@@ -1,9 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth, useToast } from "@/components/AppProviders";
 import sheet from "@/components/Sheet.module.css";
+import { GridCard } from "@/components/StackCards";
 import { plural, timeAgo } from "@/lib/format";
 import { fetchProfile } from "@/lib/queries";
 import { toUrl } from "@/lib/socials";
@@ -25,9 +25,8 @@ const meta = (st: Stack) => {
   return `${plural(st.line_count, "line")} · Updated ${when === "just now" ? when : `${when} ago`}`;
 };
 
-/** Your own Stacks tab: featured stack and link, then all stacks with reordering and pinning. */
+/** Your own Stacks tab: featured stack and link, then all stacks as a grid (a list with controls while reordering). */
 export default function MyStacks({ profile, stacks }: { profile: Profile; stacks: Stack[] }) {
-  const router = useRouter();
   const toast = useToast();
   const { setViewer } = useAuth();
   const [order, setOrder] = useState(() => stacks.map((s) => s.id));
@@ -108,28 +107,22 @@ export default function MyStacks({ profile, stacks }: { profile: Profile; stacks
           </button>
         )}
       </div>
-      {rows.map((st, i) => {
-        const pinned = st.id === profile.pinned_stack_id;
-        const open = () => !reordering && router.push(`/s/${st.id}`);
-        return (
-          <div
-            key={st.id}
-            className={m.row}
-            role={reordering ? undefined : "link"}
-            tabIndex={reordering ? undefined : 0}
-            onClick={open}
-            onKeyDown={(e) => e.target === e.currentTarget && e.key === "Enter" && open()}
-            style={{ cursor: reordering ? "default" : "pointer" }}
-          >
-            <div className={m.rowMain}>
-              <div className={m.rowTitle}>
-                {st.title}
-                {!reordering && " ↗"}
+      {!reordering && rows.length > 0 && (
+        <div className={m.grid}>
+          {rows.map((st) => (
+            <GridCard key={st.id} stack={st} pinned={st.id === profile.pinned_stack_id} />
+          ))}
+        </div>
+      )}
+      {reordering &&
+        rows.map((st, i) => {
+          const pinned = st.id === profile.pinned_stack_id;
+          return (
+            <div key={st.id} className={m.row}>
+              <div className={m.rowMain}>
+                <div className={m.rowTitle}>{st.title}</div>
+                <div className={m.rowMeta}>{meta(st)}</div>
               </div>
-              <div className={m.rowMeta}>{meta(st)}</div>
-            </div>
-            {pinned && !reordering && <span className={m.pinnedTag}>PINNED</span>}
-            {reordering && (
               <div className={m.controls}>
                 <button
                   className={m.control}
@@ -156,10 +149,9 @@ export default function MyStacks({ profile, stacks }: { profile: Profile; stacks
                   </svg>
                 </button>
               </div>
-            )}
-          </div>
-        );
-      })}
+            </div>
+          );
+        })}
       {reordering && <div className={m.hint}>Use the arrows to set the order visitors see. Tap the pin to feature a stack.</div>}
       {rows.length === 0 && <div className={m.empty}>No stacks yet.</div>}
 
