@@ -103,6 +103,7 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
           )}
         </div>
         <h1 className={s.title}>{stack.title}</h1>
+        {stack.description && <p className={s.description}>{stack.description}</p>}
         <div className={s.count}>{lines.length} lines</div>
       </header>
 

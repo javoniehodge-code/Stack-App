@@ -8,6 +8,7 @@ export const metadata: Metadata = { title: "New Stack" };
 const blank = (): Draft => ({
   id: null,
   title: "",
+  description: "",
   sections: [{ label: "", lines: [{ text: "", link: "" }] }],
   tags: [],
   style: "numbered",
@@ -24,15 +25,15 @@ export default async function CreatePage({ searchParams }: PageProps<"/create">)
 
   if (typeof fork === "string") {
     const { data } = await sb.rpc("fork_template", { p_id: fork });
-    const t = data as { id: string; title: string; sections: Section[]; tags: string[]; style: Draft["style"] } | null;
+    const t = data as { id: string; title: string; description?: string; sections: Section[]; tags: string[]; style: Draft["style"] } | null;
     if (t) {
-      initial = { id: null, title: `${t.title} (remix)`.slice(0, 120), sections: toDraftSections(t.sections), tags: t.tags, style: t.style, forkedFromId: t.id };
+      initial = { id: null, title: `${t.title} (remix)`.slice(0, 120), description: t.description ?? "", sections: toDraftSections(t.sections), tags: t.tags, style: t.style, forkedFromId: t.id };
     }
   } else if (typeof draft === "string") {
     const viewerId = await getViewerId(sb);
     if (viewerId) {
       const [{ data: d }, { data: tags }] = await Promise.all([
-        sb.from("stacks").select("id,title,sections,style,forked_from_id").eq("id", draft).eq("author_id", viewerId).eq("status", "draft").maybeSingle(),
+        sb.from("stacks").select("*").eq("id", draft).eq("author_id", viewerId).eq("status", "draft").maybeSingle(),
         sb.from("stack_tags").select("tag").eq("stack_id", draft),
       ]);
       if (d) {
@@ -40,6 +41,7 @@ export default async function CreatePage({ searchParams }: PageProps<"/create">)
         initial = {
           id: d.id,
           title: d.title,
+          description: d.description ?? "",
           sections: sections.length ? sections : blank().sections,
           tags: (tags ?? []).map((t) => t.tag as string),
           style: d.style,

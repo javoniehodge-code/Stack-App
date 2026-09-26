@@ -105,6 +105,7 @@ export function FeedCard({ stack }: { stack: Stack }) {
       <AuthorRow stack={stack} />
       <div {...open} className={s.feedOpen}>
         <div className={s.title}>{stack.title}</div>
+        {stack.description && <div className={s.feedDescription}>{stack.description}</div>}
         <div className={s.feedLines}>
           {lines.slice(0, more ? 5 : 4).map((l, i) => (
             <div key={i} className={s.feedLine}>

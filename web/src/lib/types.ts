@@ -8,6 +8,8 @@ export type Comment = { id: string; body: string; created_at: string; author: { 
 export type StackRow = {
   id: string;
   title: string;
+  /** Missing until the stack_description migration has run. */
+  description?: string;
   sections: Section[];
   style: "numbered" | "bulleted";
   status: "draft" | "published";
@@ -47,6 +49,7 @@ export type DraftSection = { label: string; lines: DraftLine[] };
 export type Draft = {
   id: string | null;
   title: string;
+  description: string;
   sections: DraftSection[];
   tags: string[];
   style: "numbered" | "bulleted";
