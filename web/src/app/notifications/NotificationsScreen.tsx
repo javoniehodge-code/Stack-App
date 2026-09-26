@@ -8,6 +8,7 @@ import { initials, timeAgo } from "@/lib/format";
 import {
   NOTIFICATIONS_PAGE,
   type Notification,
+  type NotificationFilter,
   type NotificationType,
   fetchNotifications,
   fetchUnreadCount,
@@ -18,14 +19,22 @@ import { createClient } from "@/lib/supabase/client";
 import p from "../profile/Profile.module.css";
 import s from "./Notifications.module.css";
 
-const FILTERS: [NotificationType | null, string, string][] = [
+const FILTERS: [NotificationFilter | null, string, string][] = [
   [null, "All", ""],
   ["comment", "Comments", "comments"],
   ["like", "Likes", "likes"],
   ["fork", "Forks", "forks"],
   ["save", "Saves", "saves"],
 ];
-const VERB: Record<NotificationType, string> = { like: "liked", comment: "commented on", fork: "forked", save: "saved" };
+const VERB: Record<NotificationType, string> = {
+  like: "liked",
+  comment: "commented on",
+  reply: "replied to your comment on",
+  mention: "mentioned you on",
+  fork: "forked",
+  save: "saved",
+};
+const hasComment = (t: NotificationType) => t === "comment" || t === "reply" || t === "mention";
 
 type ListState = { items: Notification[]; done: boolean; loading: boolean; error: boolean };
 const EMPTY: ListState = { items: [], done: false, loading: true, error: false };
@@ -38,7 +47,14 @@ function TypeIcon({ type }: { type: NotificationType }) {
         <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" />
       </svg>
     );
-  if (type === "comment")
+  if (type === "mention")
+    return (
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={ink} strokeWidth="3" strokeLinecap="round" aria-hidden>
+        <circle cx="12" cy="12" r="3.5" />
+        <path d="M15.5 12v1.5a2.5 2.5 0 0 0 5 0V12a8.5 8.5 0 1 0-3.3 6.7" />
+      </svg>
+    );
+  if (type === "comment" || type === "reply")
     return (
       <svg width="10" height="10" viewBox="0 0 24 24" fill={ink} aria-hidden>
         <path d="M4 5h16v11H9l-5 4z" />
@@ -66,7 +82,7 @@ export default function NotificationsScreen() {
   const { viewer, requireAuth } = useAuth();
   const router = useRouter();
   const toast = useToast();
-  const [filter, setFilter] = useState<NotificationType | null>(null);
+  const [filter, setFilter] = useState<NotificationFilter | null>(null);
   const [list, setList] = useState<ListState>(EMPTY);
   const [unread, setUnread] = useState(0);
   const [gone, setGone] = useState<Set<string>>(new Set());
@@ -210,7 +226,7 @@ export default function NotificationsScreen() {
                     <span className={s.text}>
                       <span className={s.actor}>{actor}</span> {VERB[n.type]} <span className={s.stackTitle}>{title}</span>
                     </span>
-                    {n.type === "comment" &&
+                    {hasComment(n.type) &&
                       (n.comment ? <span className={s.snippet}>“{n.comment.body}”</span> : <span className={s.snippetGone}>This comment was deleted.</span>)}
                     {gone.has(n.id) && <span className={s.goneNote}>This content is no longer available.</span>}
                     <span className={s.time}>{timeAgo(n.created_at)}</span>

@@ -6,7 +6,8 @@ import type { Profile, Stack, StackRow } from "./types";
 // `*` so newer columns (e.g. description) come through once their migration
 // runs, without breaking reads before it does.
 const STACK_COLUMNS = "*,author:profiles!author_id(id,handle,name)";
-const COMMENTS = "comments(id,body,created_at,author:profiles!author_id(handle))";
+// `*` picks up parent_id once the comment_replies migration has run.
+const COMMENTS = "comments(*,author:profiles!author_id(handle))";
 export const STACK_SELECT = STACK_COLUMNS;
 export const STACK_WITH_COMMENTS = `${STACK_COLUMNS},${COMMENTS}`;
 

@@ -1,6 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type NotificationType = "comment" | "like" | "save" | "fork";
+export type NotificationType = "comment" | "reply" | "mention" | "like" | "save" | "fork";
+
+/** Filter chips; "comment" also covers replies and mentions. */
+export type NotificationFilter = "comment" | "like" | "save" | "fork";
 
 export type Notification = {
   id: string;
@@ -33,9 +36,10 @@ const SELECT =
 const missingTable = (code?: string) => code === "42P01" || code === "PGRST205";
 
 /** One page, newest first. `before` is the last row of the previous page. */
-export async function fetchNotifications(sb: SupabaseClient, opts: { type: NotificationType | null; before: Cursor | null }) {
+export async function fetchNotifications(sb: SupabaseClient, opts: { type: NotificationFilter | null; before: Cursor | null }) {
   let q = sb.from("notifications").select(SELECT);
-  if (opts.type) q = q.eq("type", opts.type);
+  if (opts.type === "comment") q = q.in("type", ["comment", "reply", "mention"]);
+  else if (opts.type) q = q.eq("type", opts.type);
   if (opts.before) {
     const at = `"${opts.before.created_at}"`;
     q = q.or(`created_at.lt.${at},and(created_at.eq.${at},id.lt.${opts.before.id})`);
@@ -74,6 +78,6 @@ export const onNotificationsChanged = (fn: () => void) => {
 export function notificationHref(n: Notification) {
   if (n.type === "fork") return n.fork ? `/s/${n.fork.id}` : null;
   if (!n.stack) return null;
-  if (n.type === "comment") return `/s/${n.stack.id}#comment-${n.comment?.id ?? "deleted"}`;
+  if (n.type === "comment" || n.type === "reply" || n.type === "mention") return `/s/${n.stack.id}#comment-${n.comment?.id ?? "deleted"}`;
   return `/s/${n.stack.id}`;
 }

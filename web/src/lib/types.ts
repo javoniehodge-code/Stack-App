@@ -3,7 +3,14 @@ export type Section = { label: string | null; lines: Line[] };
 
 export type Author = { id: string; handle: string; name: string };
 
-export type Comment = { id: string; body: string; created_at: string; author: { handle: string } | null };
+export type Comment = {
+  id: string;
+  body: string;
+  created_at: string;
+  /** The comment this replies to. Missing until the comment_replies migration has run. */
+  parent_id?: string | null;
+  author: { handle: string } | null;
+};
 
 export type StackRow = {
   id: string;
