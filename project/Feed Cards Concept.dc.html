@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; background: oklch(78% 0.03 75); }
+    a { color: oklch(78% 0.06 160); } a:hover { color: oklch(86% 0.06 160); }
+  </style>
+</helmet>
+<div style="min-height:100vh;width:100%;display:flex;align-items:center;justify-content:center;padding:40px;box-sizing:border-box;font-family:Inter,-apple-system,sans-serif;background:oklch(78% 0.03 75);">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="393,852">
+  <div style="height:100%;display:flex;flex-direction:column;background:oklch(23% 0.012 165);position:relative;overflow:hidden;">
+    <div style="padding:56px 20px 0;flex-shrink:0;border-bottom:1px solid oklch(32% 0.012 165);">
+      <div style="display:flex;align-items:center;justify-content:space-between;height:38px;">
+        <div style="font-weight:800;font-size:19px;color:oklch(90% 0.008 160);letter-spacing:-0.3px;">Stack</div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="oklch(72% 0.012 165)" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>
+      </div>
+      <div style="display:flex;">
+        <div style="flex:1;text-align:center;padding:11px 0 9px;border-bottom:2px solid oklch(78% 0.06 160);font-size:13px;font-weight:700;color:oklch(90% 0.008 160);">For You</div>
+        <div style="flex:1;text-align:center;padding:11px 0 9px;border-bottom:2px solid transparent;font-size:13px;font-weight:600;color:oklch(60% 0.012 165);">Following</div>
+      </div>
+    </div>
+
+    <div style="flex:1;overflow-y:auto;padding:14px 16px 24px;display:flex;flex-direction:column;gap:14px;">
+      <sc-for list="{{ cards }}" as="c" hint-placeholder-count="2">
+        <div style="border-radius:18px;background:oklch(27% 0.012 165);border:1px solid oklch(33% 0.012 165);padding:18px 18px 14px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+            <div style="width:32px;height:32px;border-radius:50%;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ c.initial }}</div>
+            <span style="font-weight:600;font-size:14px;color:oklch(90% 0.008 160);">{{ c.author }}</span>
+            <span style="font-size:13px;color:oklch(60% 0.012 165);">{{ c.handle }}</span>
+          </div>
+          <div style="font-size:19px;font-weight:500;color:oklch(95% 0.005 160);line-height:1.3;margin-bottom:12px;text-wrap:pretty;letter-spacing:-0.2px;">{{ c.title }}</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+            <sc-for list="{{ c.lines }}" as="l" hint-placeholder-count="4">
+              <div style="display:flex;gap:12px;font-size:14.5px;line-height:1.5;">
+                <span style="color:oklch(78% 0.06 160);font-weight:600;font-variant-numeric:tabular-nums;flex-shrink:0;">{{ l.num }}</span>
+                <span style="color:oklch(86% 0.008 160);text-wrap:pretty;">{{ l.text }} <span style="color:oklch(78% 0.06 160);">↗</span></span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="height:44px;border-radius:12px;background:oklch(30% 0.018 162);border:1px solid oklch(36% 0.02 162);color:oklch(88% 0.02 160);display:flex;align-items:center;justify-content:center;gap:4px;padding:0 16px;font-size:14px;font-weight:600;cursor:pointer;" style-hover="background:oklch(33% 0.022 162);"><span>View full stack ·</span><span>{{ c.total }}</span><span>lines →</span></div>
+          <div style="display:flex;align-items:center;gap:18px;margin-top:14px;padding-top:12px;border-top:1px solid oklch(33% 0.012 165);font-size:13px;color:oklch(68% 0.012 165);">
+            <span onClick="{{ c.onLike }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ c.likeColor }};min-height:32px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="{{ c.likeFill }}" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>{{ c.likes }}
+            </span>
+            <span onClick="{{ c.onSave }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ c.saveColor }};min-height:32px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="{{ c.saveFill }}" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"><path d="M6 4h12v16l-6-4-6 4z"></path></svg>{{ c.saves }}
+            </span>
+            <span style="display:flex;align-items:center;gap:5px;min-height:32px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="6" cy="5" r="2"></circle><circle cx="18" cy="5" r="2"></circle><circle cx="12" cy="19" r="2"></circle><path d="M6 7v2a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7M12 12v5"></path></svg>{{ c.forks }}
+            </span>
+            <span style="margin-left:auto;display:flex;align-items:center;min-height:32px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg>
+            </span>
+          </div>
+          <div onClick="{{ c.onComments }}" style="display:flex;align-items:center;gap:10px;margin-top:6px;min-height:44px;cursor:pointer;">
+            <span style="font-size:13.5px;font-weight:600;color:oklch(78% 0.06 160);">{{ c.commentLabel }}</span>
+            <span style="flex:1;min-width:0;font-size:13px;color:oklch(60% 0.012 165);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ c.preview }}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(78% 0.06 160)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="transform:rotate({{ c.arrowRot }});transition:transform 200ms ease;"><path d="M12 5v14M6 13l6 6 6-6"></path></svg>
+          </div>
+          <sc-if value="{{ c.expanded }}" hint-placeholder-val="{{ false }}">
+            <div style="border-top:1px solid oklch(33% 0.012 165);padding-top:4px;">
+              <sc-for list="{{ c.comments }}" as="cm" hint-placeholder-count="2">
+                <div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid oklch(31% 0.012 165);">
+                  <div style="width:28px;height:28px;border-radius:50%;background:oklch(34% 0.02 160);color:oklch(86% 0.03 160);font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ cm.initial }}</div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;gap:8px;align-items:baseline;margin-bottom:3px;">
+                      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(72% 0.012 165);">{{ cm.author }}</span>
+                      <span style="font-size:11.5px;color:oklch(52% 0.012 165);">{{ cm.time }}</span>
+                    </div>
+                    <div style="font-size:14px;color:oklch(88% 0.008 160);line-height:1.45;text-wrap:pretty;">{{ cm.text }}</div>
+                  </div>
+                </div>
+              </sc-for>
+              <div style="display:flex;gap:8px;align-items:center;padding-top:12px;">
+                <input value="{{ c.draft }}" onChange="{{ c.onDraft }}" onKeyDown="{{ c.onDraftKey }}" placeholder="Add a comment…" style="flex:1;min-width:0;height:44px;padding:0 16px;border-radius:999px;border:1px solid oklch(36% 0.012 165);background:oklch(23% 0.012 165);color:oklch(92% 0.008 160);font-family:Inter,sans-serif;font-size:14px;outline:none;">
+                <div onClick="{{ c.onSubmit }}" style="height:44px;padding:0 16px;border-radius:999px;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-size:14px;font-weight:700;display:flex;align-items:center;cursor:pointer;opacity:{{ c.postOpacity }};">Post</div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display:flex;align-items:stretch;padding:6px 4px 22px;border-top:1px solid oklch(32% 0.012 165);flex-shrink:0;background:oklch(27% 0.012 165);">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:46px;cursor:pointer;">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="oklch(78% 0.06 160)" strokeWidth="2" strokeLinecap="round"><path d="M4 6.5h16"></path><path d="M4 12h16"></path><path d="M4 17.5h10"></path></svg>
+        <span style="font-family:Inter,sans-serif;font-size:10px;font-weight:600;color:oklch(78% 0.06 160);">Feed</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:46px;cursor:pointer;">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="oklch(62% 0.012 165)" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>
+        <span style="font-family:Inter,sans-serif;font-size:10px;font-weight:600;color:oklch(62% 0.012 165);">Explore</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:46px;cursor:pointer;">
+        <div style="width:42px;height:25px;border-radius:8px;background:oklch(78% 0.06 160);display:flex;align-items:center;justify-content:center;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(23% 0.012 165)" strokeWidth="3" strokeLinecap="round"><path d="M12 5.5v13"></path><path d="M5.5 12h13"></path></svg>
+        </div>
+        <span style="font-family:Inter,sans-serif;font-size:10px;font-weight:600;color:oklch(62% 0.012 165);">Create</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:46px;cursor:pointer;">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="oklch(62% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8.5" r="3.7"></circle><path d="M5 19.5c1.4-3.2 4-4.6 7-4.6s5.6 1.4 7 4.6"></path></svg>
+        <span style="font-family:Inter,sans-serif;font-size:10px;font-weight:600;color:oklch(62% 0.012 165);">Profile</span>
+      </div>
+    </div>
+
+  </div>
+</x-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    expanded: {}, drafts: {}, liked: {}, saved: {},
+    stacks: [
+      { id: 1, initial: 'S', author: 'Stack', handle: '@stack', title: "Where I'd Get My Next Coffee Table Book", total: 12, likes: 18, saves: 7, forks: 3,
+        lines: ["François Halard — Artist's personal website", "L'Artierre Edizioni — Independent publishing house in Italy", 'Skinnerboox — Avant-garde photo books', 'Twelve Books — Art, design, fashion and film'],
+        comments: [['maya.r', '2h', 'Skinnerboox is dangerous for my wallet.'], ['jules', '5h', 'Adding Dashwood Books to this immediately.'], ['tom_k', '1d', 'Halard’s site alone is worth the click.']] },
+      { id: 2, initial: 'N', author: 'Nadia Osei', handle: '@nadia', title: 'Natural wine bars in Lisbon worth the walk', total: 8, likes: 42, saves: 19, forks: 5,
+        lines: ['Black Sheep — Tiny, loud, great pours', 'Lupita — Pizza and orange wine', 'Vino Vero — Bottle shop with a counter', 'Holy Wine — Late nights in Anjos'],
+        comments: [['pedro', '3h', 'Vino Vero is the one. Ask for the Jura.'], ['lea.m', '1d', 'Saved for my trip in March!']] },
+      { id: 3, initial: 'R', author: 'Ravi Mehta', handle: '@ravi', title: 'Carry gear I actually kept after 3 years', total: 6, likes: 9, saves: 4, forks: 1,
+        lines: ['Aer City Pack — Fits a 14" and nothing else', 'Bellroy Tech Kit — Cables stop migrating', 'Muji aluminum pen', 'Anker Nano charger'],
+        comments: [] }
+    ]
+  };
+  toggle(key, id) { this.setState(s => ({ [key]: { ...s[key], [id]: !s[key][id] } })); }
+  submit = (id) => {
+    const t = (this.state.drafts[id] || '').trim(); if (!t) return;
+    this.setState(s => ({ drafts: { ...s.drafts, [id]: '' }, stacks: s.stacks.map(x => x.id === id ? { ...x, comments: [...x.comments, ['you', 'now', t]] } : x) }));
+  };
+  renderVals() {
+    const { stacks, liked, saved, expanded, drafts } = this.state;
+    const sage = 'oklch(78% 0.06 160)', mute = 'oklch(68% 0.012 165)';
+    const cards = stacks.map(s => {
+      const n = s.comments.length, ex = !!expanded[s.id], d = drafts[s.id] || '';
+      return {
+        initial: s.initial, author: s.author, handle: s.handle, title: s.title, total: s.total,
+        lines: s.lines.map((t, i) => ({ num: String(i + 1).padStart(2, '0'), text: t })),
+        likes: s.likes + (liked[s.id] ? 1 : 0), saves: s.saves + (saved[s.id] ? 1 : 0), forks: s.forks,
+        likeColor: liked[s.id] ? sage : mute, likeFill: liked[s.id] ? sage : 'none',
+        saveColor: saved[s.id] ? sage : mute, saveFill: saved[s.id] ? sage : 'none',
+        onLike: () => this.toggle('liked', s.id), onSave: () => this.toggle('saved', s.id),
+        commentLabel: ex ? 'Hide comments' : n ? `View ${n} comment${n > 1 ? 's' : ''}` : 'Add a comment',
+        preview: !ex && n ? `${s.comments[0][0]}: ${s.comments[0][2]}` : '',
+        arrowRot: ex ? '180deg' : '0deg',
+        onComments: () => this.toggle('expanded', s.id),
+        expanded: ex,
+        comments: s.comments.map(([author, time, text]) => ({ author, time, text, initial: author[0].toUpperCase() })),
+        draft: d, postOpacity: d.trim() ? 1 : 0.4,
+        onDraft: e => { const v = e.target.value; this.setState(st => ({ drafts: { ...st.drafts, [s.id]: v } })); },
+        onDraftKey: e => { if (e.key === 'Enter') this.submit(s.id); },
+        onSubmit: () => this.submit(s.id)
+      };
+    });
+    return { cards };
+  }
+}
+</script>
+</body>
+</html>

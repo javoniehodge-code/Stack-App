@@ -40,56 +40,58 @@
         </div>
       </sc-if>
       <sc-if value="{{ feedHasMore }}" hint-placeholder-val="{{ true }}">
-        <div ref="{{ railRef }}" style="flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:14px 16px 24px;display:flex;flex-direction:column;gap:14px;">
-          <sc-for list="{{ visibleFeedCards }}" as="card" hint-placeholder-count="2">
-            <div style="flex-shrink:0;border-radius:18px;background:oklch(27% 0.012 165);border:1px solid oklch(33% 0.012 165);padding:18px 18px 14px;">
-              <div onClick="{{ card.onOpenAuthor }}" style="display:flex;align-items:center;gap:10px;margin-bottom:14px;cursor:pointer;max-width:100%;">
-                <div style="width:32px;height:32px;border-radius:50%;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-family:Inter,sans-serif;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ card.initials }}</div>
-                <span style="font-family:Inter,sans-serif;font-weight:600;font-size:14px;color:oklch(90% 0.008 160);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ card.authorName }}</span>
-                <span style="font-family:Inter,sans-serif;font-size:13px;color:oklch(60% 0.012 165);white-space:nowrap;flex-shrink:0;">{{ card.authorHandle }}</span>
+        <div style="flex:1;position:relative;overflow:hidden;">
+          <div ref="{{ railRef }}" style="height:100%;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;scroll-snap-type:y mandatory;">
+          <sc-for list="{{ visibleFeedCards }}" as="card" hint-placeholder-count="3">
+            <div style="width:100%;flex:0 0 100%;box-sizing:border-box;height:100%;padding:16px 16px;display:flex;flex-direction:column;gap:10px;scroll-snap-align:start;scroll-snap-stop:always;">
+              <div onClick="{{ card.onOpen }}" style="height:66%;border-radius:16px;background:oklch(27% 0.012 165);border:1px solid oklch(32% 0.012 165);display:flex;flex-direction:column;padding:18px;cursor:pointer;overflow:hidden;">
+                <div onClick="{{ card.onOpenAuthor }}" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;align-self:flex-start;max-width:100%;cursor:pointer;">
+                  <div style="width:30px;height:30px;border-radius:50%;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-family:Inter,sans-serif;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ card.initials }}</div>
+                  <span style="font-family:Inter,sans-serif;font-weight:600;font-size:14px;color:oklch(90% 0.008 160);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ card.authorName }}</span>
+                  <span style="font-family:Inter,sans-serif;font-size:13px;color:oklch(60% 0.012 165);white-space:nowrap;flex-shrink:0;">{{ card.authorHandle }}</span>
+                </div>
+                <div style="font-family:Inter,sans-serif;font-weight:400;font-size:17px;color:oklch(95% 0.005 160);line-height:1.3;margin-bottom:14px;text-wrap:pretty;">{{ card.title }}</div>
+                <div style="font-family:Inter,sans-serif;font-size:14.5px;color:oklch(95% 0.005 160);line-height:1.7;flex:1;min-height:0;overflow:hidden;position:relative;">
+                  <sc-for list="{{ card.feedLines }}" as="pl" hint-placeholder-count="3">
+                    <div style="display:flex;gap:10px;"><span style="color:oklch(78% 0.06 160);font-weight:700;flex-shrink:0;font-variant-numeric:tabular-nums;">{{ pl.num }}</span><span style="flex:1;min-width:0;">{{ pl.text }}</span></div>
+                  </sc-for>
+                  <sc-if value="{{ card.feedHasMore }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;left:0;right:0;bottom:0;height:48px;background:linear-gradient(to bottom, transparent, oklch(27% 0.012 165));pointer-events:none;"></div>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ card.feedHasMore }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding:10px 14px;border-radius:12px;background:oklch(32% 0.02 160);cursor:pointer;">
+                    <span style="font-family:Inter,sans-serif;font-size:13.5px;font-weight:600;color:oklch(92% 0.02 160);">See full stack</span>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:oklch(78% 0.06 160);">+{{ card.feedMoreCount }} more lines →</span>
+                  </div>
+                </sc-if>
+                <div style="display:flex;align-items:center;gap:18px;margin-top:12px;padding-top:12px;border-top:1px solid oklch(32% 0.012 165);font-family:Inter,sans-serif;font-size:13px;color:oklch(56% 0.012 165);">
+                  <span onClick="{{ card.onToggleLike }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ card.likeColor }};"><span style="font-size:16px;line-height:1;">{{ card.likeGlyph }}</span>{{ card.likesLabel }}</span>
+                  <span onClick="{{ card.onToggleSave }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ card.saveColor }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="{{ card.saveFill }}" stroke="{{ card.saveColor }}" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ card.savesLabel }}</span>
+                  <span onClick="{{ card.onFork }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:oklch(66% 0.012 165);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.2"></circle><circle cx="18" cy="5" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle><path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2"></path><path d="M12 12v4.8"></path></svg>{{ card.forksLabel }}</span>
+                  <span onClick="{{ card.onCopyLink }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;margin-left:auto;padding:2px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></span>
+                </div>
               </div>
-              <div onClick="{{ card.onOpen }}" style="cursor:pointer;">
-                <div style="font-family:Inter,sans-serif;font-size:19px;font-weight:500;color:oklch(95% 0.005 160);line-height:1.3;margin-bottom:12px;text-wrap:pretty;letter-spacing:-0.2px;">{{ card.title }}</div>
-                <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-                  <sc-for list="{{ card.shortLines }}" as="pl" hint-placeholder-count="4">
-                    <div style="display:flex;gap:12px;font-family:Inter,sans-serif;font-size:14.5px;line-height:1.5;">
-                      <span style="color:oklch(78% 0.06 160);font-weight:600;font-variant-numeric:tabular-nums;flex-shrink:0;">{{ pl.num }}</span>
-                      <span style="color:oklch(86% 0.008 160);text-wrap:pretty;">{{ pl.text }} <sc-if value="{{ pl.hasLink }}" hint-placeholder-val="{{ false }}"><span style="color:oklch(78% 0.06 160);">↗</span></sc-if></span>
+              <sc-if value="{{ card.hasComments }}" hint-placeholder-val="{{ true }}">
+                <div style="flex:1;border-radius:12px;background:oklch(20% 0.012 165);border:1px dashed oklch(32% 0.012 165);padding:14px 16px;overflow-y:auto;">
+                  <div style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(60% 0.012 165);margin-bottom:10px;">Comments</div>
+                  <sc-for list="{{ card.comments }}" as="cm" hint-placeholder-count="2">
+                    <div style="margin-bottom:12px;">
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:oklch(62% 0.012 165);margin-bottom:3px;">{{ cm.author }}</div>
+                      <div style="font-family:Inter,sans-serif;font-size:14.5px;color:oklch(86% 0.008 160);line-height:1.45;">{{ cm.text }}</div>
                     </div>
                   </sc-for>
                 </div>
-                <div style="height:44px;border-radius:12px;background:oklch(30% 0.018 162);border:1px solid oklch(36% 0.02 162);color:oklch(88% 0.02 160);display:flex;align-items:center;justify-content:center;gap:4px;padding:0 16px;font-family:Inter,sans-serif;font-size:14px;font-weight:600;" style-hover="background:oklch(33% 0.022 162);"><span>View full stack ·</span><span>{{ card.totalCount }}</span><span>lines →</span></div>
-              </div>
-              <div style="display:flex;align-items:center;gap:18px;margin-top:14px;padding-top:12px;border-top:1px solid oklch(33% 0.012 165);font-family:Inter,sans-serif;font-size:13px;color:oklch(66% 0.012 165);">
-                <span onClick="{{ card.onToggleLike }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;min-height:32px;color:{{ card.likeColor }};"><span style="font-size:16px;line-height:1;">{{ card.likeGlyph }}</span>{{ card.likesLabel }}</span>
-                <span onClick="{{ card.onToggleSave }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;min-height:32px;color:{{ card.saveColor }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="{{ card.saveFill }}" stroke="{{ card.saveColor }}" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ card.savesLabel }}</span>
-                <span onClick="{{ card.onFork }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;min-height:32px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.2"></circle><circle cx="18" cy="5" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle><path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2"></path><path d="M12 12v4.8"></path></svg>{{ card.forksLabel }}</span>
-                <span onClick="{{ card.onCopyLink }}" style="display:flex;align-items:center;cursor:pointer;margin-left:auto;min-height:32px;padding:0 2px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></span>
-              </div>
-              <div onClick="{{ card.onToggleComments }}" style="display:flex;align-items:center;gap:10px;margin-top:6px;min-height:44px;cursor:pointer;">
-                <span style="font-family:Inter,sans-serif;font-size:13.5px;font-weight:600;color:oklch(78% 0.06 160);flex-shrink:0;">{{ card.commentToggleLabel }}</span>
-                <span style="flex:1;min-width:0;font-family:Inter,sans-serif;font-size:13px;color:oklch(60% 0.012 165);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ card.commentPreview }}</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(78% 0.06 160)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex-shrink:0;transform:rotate({{ card.commentArrowRot }});transition:transform 200ms ease;"><path d="M12 5v14M6 13l6 6 6-6"></path></svg>
-              </div>
-              <sc-if value="{{ card.commentsOpen }}" hint-placeholder-val="{{ false }}">
-                <div style="border-top:1px solid oklch(33% 0.012 165);padding-top:4px;">
-                  <sc-for list="{{ card.comments }}" as="cm" hint-placeholder-count="2">
-                    <div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid oklch(31% 0.012 165);">
-                      <div style="width:28px;height:28px;border-radius:50%;background:oklch(34% 0.02 160);color:oklch(86% 0.03 160);font-family:Inter,sans-serif;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ cm.initial }}</div>
-                      <div style="flex:1;min-width:0;">
-                        <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(72% 0.012 165);margin-bottom:3px;">{{ cm.author }}</div>
-                        <div style="font-family:Inter,sans-serif;font-size:14px;color:oklch(88% 0.008 160);line-height:1.45;text-wrap:pretty;">{{ cm.text }}</div>
-                      </div>
-                    </div>
-                  </sc-for>
-                  <div style="display:flex;gap:8px;align-items:center;padding-top:12px;">
-                    <input value="{{ card.commentDraft }}" onChange="{{ card.onCommentDraft }}" onKeyDown="{{ card.onCommentKey }}" placeholder="Add a comment…" style="flex:1;min-width:0;height:44px;padding:0 16px;border-radius:999px;border:1px solid oklch(36% 0.012 165);background:oklch(23% 0.012 165);color:oklch(92% 0.008 160);font-family:Inter,sans-serif;font-size:14px;outline:none;">
-                    <div onClick="{{ card.onPostComment }}" style="height:44px;padding:0 16px;border-radius:999px;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-family:Inter,sans-serif;font-size:14px;font-weight:700;display:flex;align-items:center;cursor:pointer;opacity:{{ card.postOpacity }};">Post</div>
-                  </div>
+              </sc-if>
+              <sc-if value="{{ card.noComments }}" hint-placeholder-val="{{ false }}">
+                <div onClick="{{ card.onOpen }}" style="flex:1;border-radius:12px;background:oklch(20% 0.012 165);border:1px dashed oklch(32% 0.012 165);padding:12px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;cursor:pointer;">
+                  <div style="font-family:Inter,sans-serif;font-size:14px;color:oklch(68% 0.012 165);line-height:1.4;">No comments yet. Be the first.</div>
+                  <span style="font-family:Inter,sans-serif;font-size:13.5px;font-weight:700;padding:10px 18px;border-radius:999px;border:1.5px solid oklch(78% 0.06 160);color:oklch(78% 0.06 160);">Add a comment</span>
                 </div>
               </sc-if>
             </div>
           </sc-for>
+          </div>
         </div>
       </sc-if>
     </sc-if>
@@ -813,8 +815,6 @@ class Component extends DCLogic {
     activeListId: null,
     draft: null,
     linkInputOpen: {},
-    feedCommentsOpen: {},
-    feedCommentDrafts: {},
     lists: [
       {
         id: 'l1', author: { name: 'Renata Díaz', handle: '@renata.diaz', initials: 'RD' }, timeAgo: '2d',
@@ -995,7 +995,7 @@ class Component extends DCLogic {
       followBorder: following ? 'oklch(40% 0.012 165)' : 'oklch(78% 0.06 160)',
       onToggleFollow: (e) => { if (e) e.stopPropagation(); this.toggleFollow(l.author.handle); },
       topComment: l.topComment || null, hasTopComment: !!l.topComment,
-      comments: (l.comments || []).map((c, i, arr) => ({ ...c, initial: (c.author || '?').replace('@', '').charAt(0).toUpperCase(), isLast: i === arr.length - 1 })),
+      comments: (l.comments || []).map((c, i, arr) => i === arr.length - 1 ? { ...c, isLast: true } : c),
       hasComments: !!(l.comments && l.comments.length),
       noComments: !(l.comments && l.comments.length),
       onOpen: () => this.openList(l.id, screen),
@@ -1007,7 +1007,6 @@ class Component extends DCLogic {
       onOpenAuthor: (e) => { if (e) e.stopPropagation(); this.openUser(l.author.handle); },
       onToggleLike: (e) => { e.stopPropagation(); this.toggleLike(l.id); },
       onToggleSave: (e) => { e.stopPropagation(); this.toggleSave(l.id); },
-      ...this._feedCommentVM(l),
     };
   }
   toggleFollow(handle) {
@@ -1052,30 +1051,6 @@ class Component extends DCLogic {
     });
   }
   closeDetail() { this.goBack(); }
-  _feedCommentVM(l) {
-    const cs = l.comments || [], n = cs.length;
-    const open = !!this.state.feedCommentsOpen[l.id];
-    const d = this.state.feedCommentDrafts[l.id] || '';
-    return {
-      commentsOpen: open,
-      commentToggleLabel: open ? 'Hide comments' : n ? 'View ' + n + (n === 1 ? ' comment' : ' comments') : 'Add a comment',
-      commentPreview: !open && n ? cs[0].author + ': ' + cs[0].text : '',
-      commentArrowRot: open ? '180deg' : '0deg',
-      onToggleComments: () => this.setState(s => ({ feedCommentsOpen: { ...s.feedCommentsOpen, [l.id]: !s.feedCommentsOpen[l.id] } })),
-      commentDraft: d, postOpacity: d.trim() ? 1 : 0.4,
-      onCommentDraft: (e) => { const v = e.target.value; this.setState(s => ({ feedCommentDrafts: { ...s.feedCommentDrafts, [l.id]: v } })); },
-      onCommentKey: (e) => { if (e.key === 'Enter') this.postFeedComment(l.id); },
-      onPostComment: () => this.postFeedComment(l.id),
-    };
-  }
-  postFeedComment(id) {
-    const t = (this.state.feedCommentDrafts[id] || '').trim();
-    if (!t) return;
-    this.requireAuth(() => this.setState(s => ({
-      feedCommentDrafts: { ...s.feedCommentDrafts, [id]: '' },
-      lists: s.lists.map(l => l.id === id ? { ...l, comments: [...(l.comments || []), { author: '@you', text: t }] } : l)
-    })), 'Sign in to comment');
-  }
   toggleLike(id) { this.requireAuth(() => this.setState(s => ({ lists: s.lists.map(l => l.id === id ? { ...l, likedByUser: !l.likedByUser, likes: l.likes + (l.likedByUser ? -1 : 1) } : l) })), 'Sign in to like stacks and keep track of what you love.'); }
   toggleSave(id) { this.requireAuth(() => this.setState(s => ({ lists: s.lists.map(l => l.id === id ? { ...l, savedByUser: !l.savedByUser, saves: l.saves + (l.savedByUser ? -1 : 1) } : l) })), 'Sign in to save stacks to your profile.'); }
 
