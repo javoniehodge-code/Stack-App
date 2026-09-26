@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type NotificationType = "comment" | "reply" | "mention" | "like" | "save" | "fork";
+export type NotificationType = "comment" | "reply" | "mention" | "like" | "save" | "fork" | "follow";
 
 /** Filter chips; "comment" also covers replies and mentions. */
 export type NotificationFilter = "comment" | "like" | "save" | "fork";
@@ -76,6 +76,7 @@ export const onNotificationsChanged = (fn: () => void) => {
 
 /** Where tapping a notification goes, or null when that content is gone. */
 export function notificationHref(n: Notification) {
+  if (n.type === "follow") return n.actor ? `/u/${n.actor.handle}` : null;
   if (n.type === "fork") return n.fork ? `/s/${n.fork.id}` : null;
   if (!n.stack) return null;
   if (n.type === "comment" || n.type === "reply" || n.type === "mention") return `/s/${n.stack.id}#comment-${n.comment?.id ?? "deleted"}`;

@@ -87,6 +87,14 @@
   color: var(--text);
 }
 
+.statLink {
+  color: inherit;
+}
+
+.statLink:hover strong {
+  text-decoration: underline;
+}
+
 .tabs {
   display: flex;
   gap: 22px;
