@@ -50,15 +50,20 @@
               </div>
               <div onClick="{{ card.onOpen }}" style="cursor:pointer;">
                 <div style="font-family:Inter,sans-serif;font-size:19px;font-weight:500;color:oklch(95% 0.005 160);line-height:1.3;margin-bottom:12px;text-wrap:pretty;letter-spacing:-0.2px;">{{ card.title }}</div>
-                <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+                <div style="position:relative;display:flex;flex-direction:column;gap:8px;">
                   <sc-for list="{{ card.shortLines }}" as="pl" hint-placeholder-count="4">
                     <div style="display:flex;gap:12px;font-family:Inter,sans-serif;font-size:14.5px;line-height:1.5;">
                       <span style="color:oklch(78% 0.06 160);font-weight:600;font-variant-numeric:tabular-nums;flex-shrink:0;">{{ pl.num }}</span>
                       <span style="color:oklch(86% 0.008 160);text-wrap:pretty;">{{ pl.text }} <sc-if value="{{ pl.hasLink }}" hint-placeholder-val="{{ false }}"><span style="color:oklch(78% 0.06 160);">↗</span></sc-if></span>
                     </div>
                   </sc-for>
+                  <sc-if value="{{ card.hasMoreShort }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;left:0;right:0;bottom:0;height:64px;background:linear-gradient(to bottom, oklch(27% 0.012 165 / 0), oklch(27% 0.012 165) 92%);pointer-events:none;"></div>
+                  </sc-if>
                 </div>
-                <div style="height:44px;border-radius:12px;background:oklch(30% 0.018 162);border:1px solid oklch(36% 0.02 162);color:oklch(88% 0.02 160);display:flex;align-items:center;justify-content:center;gap:4px;padding:0 16px;font-family:Inter,sans-serif;font-size:14px;font-weight:600;" style-hover="background:oklch(33% 0.022 162);"><span>View full stack ·</span><span>{{ card.totalCount }}</span><span>lines →</span></div>
+                <sc-if value="{{ card.hasMoreShort }}" hint-placeholder-val="{{ false }}">
+                  <div style="height:44px;margin-top:12px;border-radius:12px;background:oklch(30% 0.018 162);border:1px solid oklch(36% 0.02 162);color:oklch(88% 0.02 160);display:flex;align-items:center;justify-content:center;gap:4px;padding:0 16px;font-family:Inter,sans-serif;font-size:14px;font-weight:600;" style-hover="background:oklch(33% 0.022 162);"><span>See more ·</span><span>{{ card.totalCount }}</span><span>lines →</span></div>
+                </sc-if>
               </div>
               <div style="display:flex;align-items:center;gap:18px;margin-top:14px;padding-top:12px;border-top:1px solid oklch(33% 0.012 165);font-family:Inter,sans-serif;font-size:13px;color:oklch(66% 0.012 165);">
                 <span onClick="{{ card.onToggleLike }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;min-height:32px;color:{{ card.likeColor }};"><span style="font-size:16px;line-height:1;">{{ card.likeGlyph }}</span>{{ card.likesLabel }}</span>
@@ -1000,7 +1005,7 @@ class Component extends DCLogic {
       noComments: !(l.comments && l.comments.length),
       onOpen: () => this.openList(l.id, screen),
       feedLines, feedHasMore: p.lines.length > FEED_MAX, feedMoreCount: p.lines.length - FEED_MAX,
-      shortLines: p.lines.slice(0, 4),
+      shortLines: p.lines.slice(0, p.lines.length > 4 ? 5 : 4),
       hasMoreShort: p.lines.length > 4,
       moreShortLabel: '+ ' + (p.lines.length - 4) + ' more \u00b7 tap to see all',
       commentCountLabel: (l.comments && l.comments.length) ? l.comments.length + (l.comments.length === 1 ? ' comment' : ' comments') : 'No comments',
