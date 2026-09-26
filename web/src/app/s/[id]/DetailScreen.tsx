@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth, useBack, useToast } from "@/components/AppProviders";
 import { BackIcon, BookmarkIcon, ForkIcon, LinkIcon } from "@/components/icons";
 import { FollowButton } from "@/components/StackCards";
@@ -28,6 +28,21 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
   const [posting, setPosting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const mine = viewer?.id === stack.author.id;
+
+  // Arriving from a comment notification (#comment-<id>): scroll to it and highlight it briefly.
+  useEffect(() => {
+    const m = /^#comment-(.+)$/.exec(window.location.hash);
+    if (!m) return;
+    const el = document.getElementById(`comment-${m[1]}`);
+    if (!el) {
+      toast("This comment is no longer available.");
+      return;
+    }
+    el.scrollIntoView({ block: "center" });
+    el.classList.add(s.commentHighlight);
+    const t = setTimeout(() => el.classList.remove(s.commentHighlight), 2000);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   const likeColor = e.liked ? "var(--accent)" : "var(--muted-66)";
   const saveColor = e.saved ? "var(--accent)" : "var(--muted-66)";
@@ -128,7 +143,7 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
           {comments.length > 0 ? (
             <div className={s.commentsBox}>
               {comments.map((c) => (
-                <div key={c.id} className={s.comment}>
+                <div key={c.id} id={`comment-${c.id}`} className={s.comment}>
                   <div className={s.commentAuthor}>@{c.author?.handle ?? "deleted"}</div>
                   <div className={s.commentText}>{c.body}</div>
                 </div>

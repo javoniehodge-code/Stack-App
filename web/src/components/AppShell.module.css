@@ -61,6 +61,32 @@
   font-weight: 600;
 }
 
+.bellWrap {
+  position: relative;
+  width: 21px;
+  height: 21px;
+}
+
+.badge {
+  position: absolute;
+  top: -4px;
+  left: 13px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: oklch(76% 0.1 45);
+  color: oklch(20% 0.012 165);
+  border: 1.5px solid var(--surface);
+  font-size: 9.5px;
+  font-weight: 800;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
 .createPill {
   width: 42px;
   height: 25px;
