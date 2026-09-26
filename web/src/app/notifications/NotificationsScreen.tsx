@@ -54,24 +54,25 @@ function TypeIcon({ type }: { type: NotificationType }) {
         <path d="M15.5 12v1.5a2.5 2.5 0 0 0 5 0V12a8.5 8.5 0 1 0-3.3 6.7" />
       </svg>
     );
-  if (type === "comment" || type === "reply")
-    return (
-      <svg width="10" height="10" viewBox="0 0 24 24" fill={ink} aria-hidden>
-        <path d="M4 5h16v11H9l-5 4z" />
-      </svg>
-    );
   if (type === "save")
     return (
       <svg width="10" height="10" viewBox="0 0 24 24" fill={ink} aria-hidden>
         <path d="M6.5 3.5h11v17l-5.5-4-5.5 4z" />
       </svg>
     );
+  if (type === "fork")
+    return (
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={ink} strokeWidth="3.2" strokeLinecap="round" aria-hidden>
+        <circle cx="6" cy="5" r="1.6" />
+        <circle cx="18" cy="5" r="1.6" />
+        <circle cx="12" cy="19" r="1.6" />
+        <path d="M6 7v2a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7M12 12v5" />
+      </svg>
+    );
+  // comment, reply, and anything newer this screen doesn't know yet
   return (
-    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={ink} strokeWidth="3.2" strokeLinecap="round" aria-hidden>
-      <circle cx="6" cy="5" r="1.6" />
-      <circle cx="18" cy="5" r="1.6" />
-      <circle cx="12" cy="19" r="1.6" />
-      <path d="M6 7v2a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7M12 12v5" />
+    <svg width="10" height="10" viewBox="0 0 24 24" fill={ink} aria-hidden>
+      <path d="M4 5h16v11H9l-5 4z" />
     </svg>
   );
 }
@@ -224,9 +225,9 @@ export default function NotificationsScreen() {
                   </span>
                   <span className={s.body}>
                     <span className={s.text}>
-                      <span className={s.actor}>{actor}</span> {VERB[n.type]} <span className={s.stackTitle}>{title}</span>
+                      <span className={s.actor}>{actor}</span> {VERB[n.type] ?? "commented on"} <span className={s.stackTitle}>{title}</span>
                     </span>
-                    {hasComment(n.type) &&
+                    {(hasComment(n.type) || n.comment_id) &&
                       (n.comment ? <span className={s.snippet}>“{n.comment.body}”</span> : <span className={s.snippetGone}>This comment was deleted.</span>)}
                     {gone.has(n.id) && <span className={s.goneNote}>This content is no longer available.</span>}
                     <span className={s.time}>{timeAgo(n.created_at)}</span>
