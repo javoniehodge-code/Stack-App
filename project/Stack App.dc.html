@@ -49,7 +49,11 @@
                 <span style="font-family:Inter,sans-serif;font-size:13px;color:oklch(60% 0.012 165);white-space:nowrap;flex-shrink:0;">{{ card.authorHandle }}</span>
               </div>
               <div onClick="{{ card.onOpen }}" style="cursor:pointer;">
-                <div style="font-family:Inter,sans-serif;font-size:19px;font-weight:500;color:oklch(95% 0.005 160);line-height:1.3;margin-bottom:12px;text-wrap:pretty;letter-spacing:-0.2px;">{{ card.title }}</div>
+                <div style="font-family:Inter,sans-serif;font-size:19px;font-weight:500;color:oklch(95% 0.005 160);line-height:1.3;margin-bottom:6px;text-wrap:pretty;letter-spacing:-0.2px;">{{ card.title }}</div>
+                <sc-if value="{{ card.description }}" hint-placeholder-val="{{ true }}">
+                  <div style="font-family:Inter,sans-serif;font-size:14px;color:oklch(68% 0.012 165);line-height:1.45;text-wrap:pretty;">{{ card.description }}</div>
+                </sc-if>
+                <div style="height:14px;"></div>
                 <div style="position:relative;display:flex;flex-direction:column;gap:8px;">
                   <sc-for list="{{ card.shortLines }}" as="pl" hint-placeholder-count="4">
                     <div style="display:flex;gap:12px;font-family:Inter,sans-serif;font-size:14.5px;line-height:1.5;">
@@ -235,6 +239,9 @@
           </sc-if>
         </div>
         <div style="font-family:Inter,sans-serif;font-weight:800;font-size:21px;color:oklch(90% 0.008 160);line-height:1.25;text-wrap:pretty;">{{ activeCard.title }}</div>
+        <sc-if value="{{ activeCard.description }}" hint-placeholder-val="{{ false }}">
+          <div style="font-family:Inter,sans-serif;font-size:14.5px;color:oklch(72% 0.012 165);line-height:1.5;margin-top:8px;text-wrap:pretty;">{{ activeCard.description }}</div>
+        </sc-if>
         <div style="font-family:Inter,sans-serif;font-size:12px;color:oklch(66% 0.012 165);margin-top:6px;">{{ activeLineCount }} lines</div>
       </div>
       <div style="flex:1;overflow-y:auto;padding:16px 20px 8px;">
@@ -549,6 +556,10 @@
 
       <div style="flex:1;overflow-y:auto;padding:20px;">
         <input value="{{ draftTitle }}" onChange="{{ onDraftTitleChange }}" placeholder="Untitled stack" style="width:100%;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-weight:800;font-size:21px;color:oklch(90% 0.008 160);margin-bottom:22px;padding:0;" />
+        <div style="margin:4px 0 22px;">
+          <textarea value="{{ draftDescription }}" onChange="{{ onDraftDescriptionChange }}" placeholder="Add a description (optional)" rows="2" style="width:100%;box-sizing:border-box;field-sizing:content;min-height:44px;resize:none;border:none;border-bottom:1px solid oklch(32% 0.012 165);outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14px;line-height:1.45;color:oklch(80% 0.01 160);padding:6px 0;"></textarea>
+          <div style="font-family:Inter,sans-serif;font-size:10.5px;color:{{ draftDescCountColor }};text-align:right;margin-top:4px;">{{ draftDescCount }}</div>
+        </div>
         <sc-for list="{{ draftSections }}" as="sec" hint-placeholder-count="1">
           <div style="margin-bottom:20px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
@@ -561,7 +572,7 @@
               <div style="margin-bottom:10px;">
                 <div style="display:flex;align-items:center;gap:8px;">
                   <span style="font-family:Inter,sans-serif;font-weight:700;font-size:12px;color:oklch(78% 0.06 160);width:18px;flex-shrink:0;">{{ ln.num }}</span>
-                  <input value="{{ ln.text }}" onChange="{{ ln.onChange }}" placeholder="Add a line…" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:13.5px;color:oklch(90% 0.008 160);border-bottom:1px solid oklch(32% 0.012 165);padding:6px 0;" />
+                  <textarea value="{{ ln.text }}" onChange="{{ ln.onChange }}" placeholder="Add a line…" rows="1" style="flex:1;min-width:0;field-sizing:content;resize:none;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:13.5px;line-height:1.45;color:oklch(90% 0.008 160);border-bottom:1px solid oklch(32% 0.012 165);padding:6px 0;"></textarea>
                   <span style="font-family:Inter,sans-serif;font-size:10px;color:oklch(56% 0.012 165);width:30px;text-align:right;flex-shrink:0;">{{ ln.remaining }}</span>
                   <span onClick="{{ ln.onRemove }}" style="font-family:Inter,sans-serif;font-size:14px;color:oklch(56% 0.012 165);cursor:pointer;flex-shrink:0;">×</span>
                 </div>
@@ -823,7 +834,7 @@ class Component extends DCLogic {
     lists: [
       {
         id: 'l1', author: { name: 'Renata Díaz', handle: '@renata.diaz', initials: 'RD' }, timeAgo: '2d',
-        title: 'Mexico City Bars', tags: ['Travel', 'Food & Drink'],
+        title: 'Mexico City Bars', description: "Where I actually drink after three trips — mezcal dens, rooftop spots, and one very loud cantina.", tags: ['Travel', 'Food & Drink'],
         sections: [
           { label: 'Roma Norte', lines: [
             { text: 'Licorería Limantour — no menu, just tell them what you like', link: 'https://limantour.com.mx' },
@@ -849,7 +860,7 @@ class Component extends DCLogic {
       },
       {
         id: 'l2', author: { name: 'Marcus Webb', handle: '@marcus.reads', initials: 'MW' }, timeAgo: '5d',
-        title: 'Books That Actually Changed How I Think', tags: ['Books'], style: 'bulleted',
+        title: 'Books That Actually Changed How I Think', description: "Not the usual self-help list. These rewired how I make decisions.", tags: ['Books'], style: 'bulleted',
         sections: [
           { label: null, lines: [
             { text: 'Meditations — Marcus Aurelius', link: 'https://bookshop.org/meditations' },
@@ -869,7 +880,7 @@ class Component extends DCLogic {
       },
       {
         id: 'l3', author: { name: 'June Ostrander', handle: '@junehome', initials: 'JO' }, timeAgo: '1w',
-        title: 'Etsy Finds Worth the Shipping Wait', tags: ['Shopping', 'Home'], style: 'bulleted',
+        title: 'Etsy Finds Worth the Shipping Wait', description: "Small makers, slow shipping, zero regrets.", tags: ['Shopping', 'Home'], style: 'bulleted',
         sections: [
           { label: 'For the kitchen', lines: [
             { text: 'Hand-thrown mug from ClayAndKin — every one is slightly different', link: 'https://etsy.com/shop/clayandkin' },
@@ -888,7 +899,7 @@ class Component extends DCLogic {
       },
       {
         id: 'l4', author: { name: 'Kenji Sato', handle: '@kenji.eats', initials: 'KS' }, timeAgo: '3d',
-        title: 'Tokyo Ramen Worth the Line', tags: ['Travel', 'Food & Drink'],
+        title: 'Tokyo Ramen Worth the Line', description: "Ranked by how long I'd wait again. Go early.", tags: ['Travel', 'Food & Drink'],
         sections: [
           { label: 'Shibuya', lines: [
             { text: 'Fuunji — cold dipping noodles, go before 11am', link: 'https://fuunji.jp' },
@@ -907,7 +918,7 @@ class Component extends DCLogic {
       },
       {
         id: 'l5', author: { name: 'You', handle: '@you', initials: 'Y' }, timeAgo: 'just now',
-        title: 'Desk Setup Under $50', tags: ['Home', 'Tech'],
+        title: 'Desk Setup Under $50', description: "Everything on my desk that cost less than a tank of gas.", tags: ['Home', 'Tech'],
         sections: [
           { label: null, lines: [
             { text: 'Cable clips — $6, stop the tangle under the desk' },
@@ -1013,6 +1024,7 @@ class Component extends DCLogic {
       onToggleLike: (e) => { e.stopPropagation(); this.toggleLike(l.id); },
       onToggleSave: (e) => { e.stopPropagation(); this.toggleSave(l.id); },
       ...this._feedCommentVM(l),
+      description: l.description || '',
     };
   }
   toggleFollow(handle) {
@@ -1087,7 +1099,7 @@ class Component extends DCLogic {
   goFeed() { this.setState({ screen: 'feed', navStack: [] }); }
   goSearch() { this.setState({ screen: 'search', navStack: [] }); }
   goProfile() { this.setState({ screen: 'profile', navStack: [] }); }
-  goNew() { this.setState({ draft: { title: '', tags: [], sections: [{ label: '', lines: [{ text: '', link: '' }] }] }, linkInputOpen: {}, tagInput: '', editingDraftId: null, screen: 'create' }); }
+  goNew() { this.setState({ draft: { title: '', description: '', tags: [], sections: [{ label: '', lines: [{ text: '', link: '' }] }] }, linkInputOpen: {}, tagInput: '', editingDraftId: null, screen: 'create' }); }
   signIn() { this.setState({ signedIn: true }); }
   requireAuth(action, message) {
     if (this.state.signedIn) { action(); return; }
@@ -1102,7 +1114,7 @@ class Component extends DCLogic {
     this.setState(s => {
       const d = s.drafts.find(x => x.id === id);
       if (!d) return null;
-      return { draft: { title: d.title, tags: d.tags || [], sections: d.sections, forkedFromId: d.forkedFromId || null }, editingDraftId: id, linkInputOpen: {}, tagInput: '', screen: 'create' };
+      return { draft: { title: d.title, description: d.description || '', tags: d.tags || [], sections: d.sections, forkedFromId: d.forkedFromId || null }, editingDraftId: id, linkInputOpen: {}, tagInput: '', screen: 'create' };
     });
   }
   deleteDraft(id, e) { if (e) e.stopPropagation(); this.setState(s => ({ drafts: s.drafts.filter(d => d.id !== id) })); }
@@ -1116,7 +1128,7 @@ class Component extends DCLogic {
       const sections = s.draft.sections
         .map(sec => ({ label: sec.label.trim() || null, lines: sec.lines.map(ln => ({ text: ln.text.trim(), link: (ln.link || '').trim() || undefined })).filter(ln => ln.text) }))
         .filter(sec => sec.lines.length > 0);
-      const entry = { id: s.editingDraftId || ('d' + Date.now()), title, tags: s.draft.tags || [], sections, forkedFromId: s.draft.forkedFromId || null };
+      const entry = { id: s.editingDraftId || ('d' + Date.now()), title, description: (s.draft.description || '').trim(), tags: s.draft.tags || [], sections, forkedFromId: s.draft.forkedFromId || null };
       const drafts = s.editingDraftId ? s.drafts.map(d => d.id === s.editingDraftId ? entry : d) : [entry, ...s.drafts];
       return { drafts, draft: null, editingDraftId: null, screen: 'profile', profileTab: 'drafts' };
     });
@@ -1147,7 +1159,7 @@ class Component extends DCLogic {
       const sections = src.sections.map(sec => ({ label: sec.label || '', lines: sec.lines.map(ln => ({ text: ln.text, link: ln.link || '' })) }));
       return {
         lists: s.lists.map(l => l.id === src.id ? { ...l, forks: l.forks + 1 } : l),
-        draft: { title: src.title + ' (remix)', tags: [...(src.tags || [])], sections, forkedFromId: src.id },
+        draft: { title: src.title + ' (remix)', description: src.description || '', tags: [...(src.tags || [])], sections, forkedFromId: src.id },
         linkInputOpen: {}, tagInput: '',
         screen: 'create',
       };
@@ -1163,6 +1175,7 @@ class Component extends DCLogic {
     });
   }
   removeTag(name) { this.setState(s => ({ draft: { ...s.draft, tags: (s.draft.tags || []).filter(t => t !== name) } })); }
+  updateDraftDescription(v) { this.setState(s => ({ draft: { ...s.draft, description: v.slice(0, 500) } })); }
   updateDraftTitle(v) { this.setState(s => ({ draft: { ...s.draft, title: v } })); }
   updateSectionLabel(sIdx, v) { this.setState(s => ({ draft: { ...s.draft, sections: s.draft.sections.map((sec, i) => i === sIdx ? { ...sec, label: v } : sec) } })); }
   updateLine(sIdx, lIdx, v) { this.setState(s => ({ draft: { ...s.draft, sections: s.draft.sections.map((sec, i) => i !== sIdx ? sec : { ...sec, lines: sec.lines.map((ln, j) => j === lIdx ? { ...ln, text: v } : ln) }) } })); }
@@ -1190,7 +1203,7 @@ class Component extends DCLogic {
       if (sections.length === 0) return null;
       const id = 'u' + Date.now();
       const newList = {
-        id, author: { name: 'You', handle: '@you', initials: 'Y' }, timeAgo: 'just now', title, tags: s.draft.tags || [],
+        id, author: { name: 'You', handle: '@you', initials: 'Y' }, timeAgo: 'just now', title, description: (s.draft.description || '').trim(), tags: s.draft.tags || [],
         sections, likes: 0, forks: 0, saves: 0, likedByUser: false, savedByUser: false, isMine: true,
         forkedFromId: s.draft.forkedFromId || null,
       };
@@ -1379,8 +1392,8 @@ class Component extends DCLogic {
           text: ln.text,
           link: ln.link || '',
           num: String(lIdx + 1).padStart(2, '0'),
-          remaining: 120 - ln.text.length,
-          onChange: (e) => this.updateLine(sIdx, lIdx, e.target.value.slice(0, 120)),
+          remaining: 500 - ln.text.length,
+          onChange: (e) => this.updateLine(sIdx, lIdx, e.target.value.slice(0, 500)),
           onLinkChange: (e) => this.updateLineLink(sIdx, lIdx, e.target.value),
           onRemove: () => this.removeLine(sIdx, lIdx),
           showLinkInput: editing,
@@ -1536,6 +1549,10 @@ class Component extends DCLogic {
       saveDraft: () => this.saveDraft(),
 
       draftTitle, onDraftTitleChange: (e) => this.updateDraftTitle(e.target.value),
+      draftDescription: s.draft ? (s.draft.description || '') : '',
+      onDraftDescriptionChange: (e) => this.updateDraftDescription(e.target.value),
+      draftDescCount: (s.draft ? (s.draft.description || '').length : 0) + ' / 500',
+      draftDescCountColor: s.draft && (s.draft.description || '').length >= 470 ? 'oklch(76% 0.08 45)' : 'oklch(56% 0.012 165)',
       draftSections, addSection: () => this.addSection(),
       draftTags, hasDraftTags: draftTags.length > 0,
       tagSuggestions, hasTagSuggestions: tagSuggestions.length > 0,
