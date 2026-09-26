@@ -33,6 +33,7 @@ const VERB: Record<NotificationType, string> = {
   mention: "mentioned you on",
   fork: "forked",
   save: "saved",
+  follow: "started following you",
 };
 const hasComment = (t: NotificationType) => t === "comment" || t === "reply" || t === "mention";
 
@@ -52,6 +53,13 @@ function TypeIcon({ type }: { type: NotificationType }) {
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={ink} strokeWidth="3" strokeLinecap="round" aria-hidden>
         <circle cx="12" cy="12" r="3.5" />
         <path d="M15.5 12v1.5a2.5 2.5 0 0 0 5 0V12a8.5 8.5 0 1 0-3.3 6.7" />
+      </svg>
+    );
+  if (type === "follow")
+    return (
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={ink} strokeWidth="3" strokeLinecap="round" aria-hidden>
+        <circle cx="10" cy="8" r="3.5" />
+        <path d="M3.5 20c1.2-3.4 3.6-5 6.5-5s5.3 1.6 6.5 5M19 8v6M16 11h6" />
       </svg>
     );
   if (type === "save")
@@ -225,7 +233,13 @@ export default function NotificationsScreen() {
                   </span>
                   <span className={s.body}>
                     <span className={s.text}>
-                      <span className={s.actor}>{actor}</span> {VERB[n.type] ?? "commented on"} <span className={s.stackTitle}>{title}</span>
+                      <span className={s.actor}>{actor}</span> {VERB[n.type] ?? "commented on"}
+                      {n.type !== "follow" && (
+                        <>
+                          {" "}
+                          <span className={s.stackTitle}>{title}</span>
+                        </>
+                      )}
                     </span>
                     {(hasComment(n.type) || n.comment_id) &&
                       (n.comment ? <span className={s.snippet}>“{n.comment.body}”</span> : <span className={s.snippetGone}>This comment was deleted.</span>)}

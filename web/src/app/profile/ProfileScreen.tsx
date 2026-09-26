@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth, useToast } from "@/components/AppProviders";
@@ -66,12 +67,12 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
           <span>
             <strong>{data.mine.length}</strong> Stacks
           </span>
-          <span>
+          <Link href={`/u/${viewer.handle}/followers`} className={p.statLink}>
             <strong>{fmtCount(data.counts.followers)}</strong> Followers
-          </span>
-          <span>
+          </Link>
+          <Link href={`/u/${viewer.handle}/following`} className={p.statLink}>
             <strong>{fmtCount(data.counts.following)}</strong> Following
-          </span>
+          </Link>
         </div>
         <div className={p.tabs} role="tablist">
           {(

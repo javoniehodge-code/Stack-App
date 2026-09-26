@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useBack } from "@/components/AppProviders";
 import { BackIcon } from "@/components/icons";
@@ -66,12 +67,12 @@ export default function UserScreen({
           <span>
             <strong>{stacks.length}</strong> Stacks
           </span>
-          <span>
+          <Link href={`/u/${profile.handle}/followers`} className={p.statLink}>
             <strong>{fmtCount(followers)}</strong> Followers
-          </span>
-          <span>
+          </Link>
+          <Link href={`/u/${profile.handle}/following`} className={p.statLink}>
             <strong>{fmtCount(counts.following)}</strong> Following
-          </span>
+          </Link>
         </div>
         <div className={p.tabs} role="tablist">
           <button role="tab" aria-selected={tab === "stacks"} className={p.tab} style={tabStyle("stacks")} onClick={() => setTab("stacks")}>

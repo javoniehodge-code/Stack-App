@@ -88,6 +88,21 @@ export async function fetchFollowCounts(sb: SupabaseClient, userId: string) {
   return { followers: followers.count ?? 0, following: following.count ?? 0 };
 }
 
+export type FollowPerson = { id: string; handle: string; name: string; bio: string };
+
+/** Who follows `userId` ("followers") or whom they follow ("following"), newest first. */
+export async function fetchFollowList(sb: SupabaseClient, userId: string, kind: "followers" | "following") {
+  const [match, person] =
+    kind === "followers" ? ["followee_id", "profiles!follows_follower_id_fkey"] : ["follower_id", "profiles!follows_followee_id_fkey"];
+  const { data } = await sb
+    .from("follows")
+    .select(`created_at, person:${person}(id,handle,name,bio)`)
+    .eq(match, userId)
+    .order("created_at", { ascending: false })
+    .limit(500);
+  return ((data ?? []) as unknown as { person: FollowPerson | null }[]).map((r) => r.person).filter((x): x is FollowPerson => !!x);
+}
+
 export async function fetchAuthorStacks(sb: SupabaseClient, viewerId: string | null, authorId: string) {
   const query = () => sb.from("stacks").select(STACK_SELECT).eq("author_id", authorId).eq("status", "published");
   const ordered = await query()
