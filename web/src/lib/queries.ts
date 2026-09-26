@@ -3,8 +3,9 @@ import type { Profile, Stack, StackRow } from "./types";
 
 // Shared by server pages and client components; pass whichever client applies.
 
-const STACK_COLUMNS =
-  "id,title,sections,style,status,forked_from_id,line_count,likes_count,saves_count,forks_count,comments_count,created_at,published_at,author:profiles!author_id(id,handle,name)";
+// `*` so newer columns (e.g. description) come through once their migration
+// runs, without breaking reads before it does.
+const STACK_COLUMNS = "*,author:profiles!author_id(id,handle,name)";
 const COMMENTS = "comments(id,body,created_at,author:profiles!author_id(handle))";
 export const STACK_SELECT = STACK_COLUMNS;
 export const STACK_WITH_COMMENTS = `${STACK_COLUMNS},${COMMENTS}`;

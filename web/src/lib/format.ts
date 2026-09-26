@@ -60,4 +60,6 @@ export const CATEGORY_DOTS: Record<string, string> = {
 };
 export const DEFAULT_DOT = "oklch(78% 0.06 160)";
 
-export const MAX_LINE = 120;
+export const MAX_LINE = 500;
+export const MAX_TITLE = 120;
+export const MAX_DESCRIPTION = 500;

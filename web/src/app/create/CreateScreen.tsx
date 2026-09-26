@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth, useToast } from "@/components/AppProviders";
 import shell from "@/components/AppShell.module.css";
-import { MAX_LINE, TAG_SUGGESTIONS } from "@/lib/format";
+import { MAX_DESCRIPTION, MAX_LINE, MAX_TITLE, TAG_SUGGESTIONS } from "@/lib/format";
 import { createClient } from "@/lib/supabase/client";
 import type { Draft, DraftLine, DraftSection } from "@/lib/types";
 import s from "./Create.module.css";
@@ -44,7 +44,7 @@ export default function CreateScreen({ initial }: { initial: Draft }) {
   async function save(status: "draft" | "published") {
     if (saving) return;
     setSaving(true);
-    const { error } = await createClient().rpc("save_stack", {
+    const args = {
       p_id: draft.id,
       p_title: status === "draft" && !draft.title.trim() ? "Untitled draft" : draft.title,
       p_sections: draft.sections.map((sec) => ({ label: sec.label, lines: sec.lines.map((l) => ({ text: l.text, link: l.link || null })) })),
@@ -52,7 +52,11 @@ export default function CreateScreen({ initial }: { initial: Draft }) {
       p_status: status,
       p_forked_from: draft.forkedFromId,
       p_style: draft.style,
-    });
+    };
+    const sb = createClient();
+    let { error } = await sb.rpc("save_stack", { ...args, p_description: draft.description.trim() });
+    // Before the stack_description migration runs, save_stack has no p_description.
+    if (error?.code === "PGRST202") ({ error } = await sb.rpc("save_stack", args));
     setSaving(false);
     if (error) {
       toast(error.message.includes("sign in") ? "Sign in to continue." : `Couldn't save: ${error.message}`);
@@ -106,11 +110,25 @@ export default function CreateScreen({ initial }: { initial: Draft }) {
         <input
           className={s.titleInput}
           value={draft.title}
-          maxLength={MAX_LINE}
+          maxLength={MAX_TITLE}
           onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
           placeholder="Untitled stack"
           aria-label="Title"
         />
+        <div className={s.descWrap}>
+          <textarea
+            className={s.descInput}
+            value={draft.description}
+            rows={2}
+            maxLength={MAX_DESCRIPTION}
+            onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value.slice(0, MAX_DESCRIPTION) }))}
+            placeholder="Add a description (optional)"
+            aria-label="Description"
+          />
+          <div className={s.descCount} style={{ color: draft.description.length >= MAX_DESCRIPTION - 30 ? "oklch(76% 0.08 45)" : "var(--muted-56)" }} aria-live="polite">
+            {draft.description.length} / {MAX_DESCRIPTION}
+          </div>
+        </div>
 
         {draft.sections.map((sec, si) => (
           <div key={si} className={s.section}>
@@ -134,11 +152,13 @@ export default function CreateScreen({ initial }: { initial: Draft }) {
                 <div key={li} className={s.lineWrap}>
                   <div className={s.lineRow}>
                     <span className={s.num}>{String(li + 1).padStart(2, "0")}</span>
-                    <input
+                    <textarea
                       className={s.lineInput}
                       value={ln.text}
+                      rows={1}
                       maxLength={MAX_LINE}
-                      onChange={(e) => setLine(si, li, { text: e.target.value.slice(0, MAX_LINE) })}
+                      // Lines are single-line: pasted line breaks become spaces; Enter adds the next line.
+                      onChange={(e) => setLine(si, li, { text: e.target.value.replace(/\s*\n\s*/g, " ").slice(0, MAX_LINE) })}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.preventDefault();
