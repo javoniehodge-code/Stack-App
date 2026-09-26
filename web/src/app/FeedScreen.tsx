@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/AppProviders";
 import { SearchIcon } from "@/components/icons";
-import { FeedSlide } from "@/components/StackCards";
+import { FeedCard } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
 import cards from "@/components/Cards.module.css";
 import { PAGE_SIZE, fetchFeed } from "@/lib/queries";
@@ -56,7 +56,7 @@ export default function FeedScreen({ initial }: { initial: Stack[] }) {
     if (feeds[t] === null) load(t, 0);
   }
 
-  // Load the next page when the last slide comes into view.
+  // Load the next page when the last card comes into view.
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el || !feed || feed.done) return;
@@ -104,16 +104,14 @@ export default function FeedScreen({ initial }: { initial: Stack[] }) {
           </Link>
         </div>
       ) : (
-        <div className={cards.rail}>
-          <div ref={railRef} className={cards.railScroll}>
-            {feed?.stacks.map((st) => <FeedSlide key={st.id} stack={st} />)}
-            {feed && !feed.done && (
-              <div ref={sentinelRef} className={`${cards.slide} ${cards.loadingSlide}`}>
-                Loading…
-              </div>
-            )}
-            {!feed && <div className={`${cards.slide} ${cards.loadingSlide}`}>Loading…</div>}
-          </div>
+        <div ref={railRef} className={cards.feedScroll}>
+          {feed?.stacks.map((st) => <FeedCard key={st.id} stack={st} />)}
+          {feed && !feed.done && (
+            <div ref={sentinelRef} className={cards.feedLoading}>
+              Loading…
+            </div>
+          )}
+          {!feed && <div className={cards.feedLoading}>Loading…</div>}
         </div>
       )}
     </main>

@@ -125,22 +125,91 @@
   flex-shrink: 0;
 }
 
+.linkArea {
+  margin: 8px 0 0 26px;
+}
+
+.linkField {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1.5px solid oklch(46% 0.03 160);
+  background: var(--sunken);
+}
+
+.linkArrow {
+  flex-shrink: 0;
+  font-size: 14px;
+  color: var(--accent);
+}
+
 .linkInput {
-  display: block;
-  width: calc(100% - 26px);
-  margin: 4px 0 0 26px;
+  flex: 1;
+  min-width: 0;
   border: none;
   outline: none;
   background: transparent;
-  font-size: 11.5px;
-  color: var(--accent);
-  border-bottom: 1px dashed var(--line);
+  font-size: 14px;
+  color: oklch(92% 0.005 160);
+}
+
+.linkButtons {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.linkDone {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.linkRemove {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid oklch(38% 0.012 165);
+  color: var(--muted-72);
+}
+
+.linkChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
   padding: 4px 0;
+  font-size: 14px;
+  color: var(--accent);
+}
+
+.linkDomain {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.linkHint {
+  font-size: 11.5px;
+  color: var(--muted-56);
+  margin-top: 4px;
 }
 
 .addLink {
-  margin-left: 26px;
-  font-size: 10.5px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 18px;
+  border-radius: 14px;
+  border: 1.5px solid oklch(46% 0.03 160);
   color: var(--accent);
 }
 

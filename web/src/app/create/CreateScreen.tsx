@@ -9,6 +9,8 @@ import { createClient } from "@/lib/supabase/client";
 import type { Draft, DraftLine, DraftSection } from "@/lib/types";
 import s from "./Create.module.css";
 
+const linkDomain = (url: string) => url.replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, "");
+
 export default function CreateScreen({ initial }: { initial: Draft }) {
   const router = useRouter();
   const { requireAuth } = useAuth();
@@ -20,6 +22,12 @@ export default function CreateScreen({ initial }: { initial: Draft }) {
   const setSections = (fn: (secs: DraftSection[]) => DraftSection[]) => setDraft((d) => ({ ...d, sections: fn(d.sections) }));
   const setLine = (si: number, li: number, patch: Partial<DraftLine>) =>
     setSections((secs) => secs.map((sec, i) => (i !== si ? sec : { ...sec, lines: sec.lines.map((ln, j) => (j === li ? { ...ln, ...patch } : ln)) })));
+
+  // Done closes the link field and adds https:// when it was left off.
+  function finishLink(si: number, li: number, raw: string) {
+    const v = raw.trim();
+    setLine(si, li, { link: !v || /^https?:\/\//i.test(v) ? v : `https://${v}`, linkOpen: false });
+  }
 
   function addTag(raw: string) {
     const t = raw.trim().replace(/^#/, "").slice(0, 40);
@@ -122,7 +130,6 @@ export default function CreateScreen({ initial }: { initial: Draft }) {
               )}
             </div>
             {sec.lines.map((ln, li) => {
-              const linkOpen = !!ln.linkOpen || !!ln.link;
               return (
                 <div key={li} className={s.lineWrap}>
                   <div className={s.lineRow}>
@@ -148,22 +155,53 @@ export default function CreateScreen({ initial }: { initial: Draft }) {
                       ×
                     </button>
                   </div>
-                  {linkOpen ? (
-                    <input
-                      className={s.linkInput}
-                      type="url"
-                      inputMode="url"
-                      value={ln.link}
-                      onChange={(e) => setLine(si, li, { link: e.target.value })}
-                      placeholder="https://…"
-                      aria-label={`Link for line ${li + 1}`}
-                      autoFocus={!!ln.linkOpen && !ln.link}
-                    />
-                  ) : (
-                    <button className={s.addLink} onClick={() => setLine(si, li, { linkOpen: true })}>
-                      + link
-                    </button>
-                  )}
+                  <div className={s.linkArea}>
+                    {ln.linkOpen ? (
+                      <>
+                        <div className={s.linkField}>
+                          <span className={s.linkArrow}>↗</span>
+                          <input
+                            className={s.linkInput}
+                            type="url"
+                            inputMode="url"
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                            value={ln.link}
+                            onChange={(e) => setLine(si, li, { link: e.target.value })}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                finishLink(si, li, ln.link);
+                              }
+                            }}
+                            placeholder="Paste a link"
+                            aria-label={`Link for line ${li + 1}`}
+                            autoFocus
+                          />
+                        </div>
+                        <div className={s.linkButtons}>
+                          <button className={s.linkDone} onClick={() => finishLink(si, li, ln.link)}>
+                            Done
+                          </button>
+                          <button className={s.linkRemove} onClick={() => setLine(si, li, { link: "", linkOpen: false })}>
+                            {ln.link ? "Remove" : "Cancel"}
+                          </button>
+                        </div>
+                      </>
+                    ) : ln.link ? (
+                      <>
+                        <button className={s.linkChip} onClick={() => setLine(si, li, { linkOpen: true })} aria-label={`Edit link for line ${li + 1}`}>
+                          <span className={s.linkArrow}>↗</span>
+                          <span className={s.linkDomain}>{linkDomain(ln.link)}</span>
+                        </button>
+                        <div className={s.linkHint}>Tap the link to edit or remove it</div>
+                      </>
+                    ) : (
+                      <button className={s.addLink} onClick={() => setLine(si, li, { linkOpen: true })}>
+                        + Add link
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             })}
