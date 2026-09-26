@@ -76,6 +76,8 @@ a different link, use the id from that link.
 - The comment box on stack pages
 - Edit profile (sheet with name, handle, bio, sign out)
 - Deleting your own stack (Delete button + confirmation sheet on your stack's page)
+- Comment replies (Reply button, threaded one level) and @mentions with autocomplete, on the
+  stack page and feed cards; both create notifications
 
 Add new app-only features to this list as they ship.
 

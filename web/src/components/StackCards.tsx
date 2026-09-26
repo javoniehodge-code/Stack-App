@@ -2,14 +2,17 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { postComment, thread, threadRoot } from "@/lib/comments";
 import { flatten, fmtCount, initials, plural, timeAgo } from "@/lib/format";
 import { useEngagement, useIsFollowing } from "@/lib/store";
 import type { Comment, Stack } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 import { useStackActions } from "@/lib/useStackActions";
 import { useAuth, useToast } from "./AppProviders";
+import CommentBody from "./CommentBody";
 import { BookmarkIcon, ForkIcon, LinkIcon, RepostIcon } from "./icons";
+import { MentionList, useMentions } from "./Mentions";
 import s from "./Cards.module.css";
 
 const stop = (e: React.SyntheticEvent) => e.stopPropagation();
@@ -78,7 +81,10 @@ export function FeedCard({ stack }: { stack: Stack }) {
   const [comments, setComments] = useState<Comment[]>(stack.comments ?? []);
   const [showComments, setShowComments] = useState(false);
   const [draft, setDraft] = useState("");
+  const [replyTo, setReplyTo] = useState<{ id: string; handle: string } | null>(null);
   const [posting, setPosting] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const mentions = useMentions(draft, setDraft);
   const n = comments.length;
   const toggleLabel = showComments ? "Hide comments" : n ? `View ${plural(n, "comment")}` : "Add a comment";
   const first = comments[0];
@@ -90,15 +96,25 @@ export function FeedCard({ stack }: { stack: Stack }) {
     // Signed-out viewers get the sign-in sheet; the draft stays so they can post after.
     if (!viewer) return requireAuth(null, "Sign in to join the conversation.");
     setPosting(true);
-    const { data, error } = await createClient().from("comments").insert({ stack_id: stack.id, body }).select("id,body,created_at").single();
+    const data = await postComment(createClient(), stack.id, body, replyTo?.id ?? null);
     setPosting(false);
-    if (error || !data) {
+    if (!data) {
       toast("Couldn't post your comment. Try again.");
       return;
     }
-    setComments((c) => [...c, { ...(data as Omit<Comment, "author">), author: { handle: viewer.handle } }]);
+    setComments((c) => [...c, { ...data, author: { handle: viewer.handle } }]);
     setDraft("");
+    setReplyTo(null);
   }
+
+  // Replies attach to the top-level comment and start with the person's @handle, so they're notified.
+  const startReply = (c: Comment) =>
+    requireAuth(() => {
+      const handle = c.author?.handle;
+      setReplyTo({ id: threadRoot(c), handle: handle ?? "deleted" });
+      if (handle && handle !== viewer?.handle && !draft.includes(`@${handle}`)) setDraft((d) => `@${handle} ${d}`.slice(0, 500));
+      inputRef.current?.focus();
+    }, "Sign in to reply.");
 
   return (
     <article className={s.feedCard}>
@@ -130,17 +146,44 @@ export function FeedCard({ stack }: { stack: Stack }) {
       </button>
       {showComments && (
         <div className={s.feedComments}>
-          {comments.map((c) => (
-            <div key={c.id} className={s.feedComment}>
+          {thread(comments).map(({ comment: c, isReply }) => (
+            <div key={c.id} className={`${s.feedComment} ${isReply ? s.feedReply : ""}`}>
               <div className={s.commentInitial}>{(c.author?.handle ?? "?").charAt(0).toUpperCase()}</div>
               <div className={s.feedCommentBody}>
                 <div className={s.commentAuthor}>@{c.author?.handle ?? "deleted"}</div>
-                <div className={s.commentText}>{c.body}</div>
+                <div className={s.commentText}>
+                  <CommentBody text={c.body} linkClass={s.mention} />
+                </div>
+                <button className={s.replyButton} onClick={() => startReply(c)}>
+                  Reply
+                </button>
               </div>
             </div>
           ))}
+          {replyTo && (
+            <div className={s.replyingTo}>
+              Replying to <span className={s.mention}>@{replyTo.handle}</span>
+              <button className={s.replyingClear} onClick={() => setReplyTo(null)} aria-label="Cancel reply">
+                ×
+              </button>
+            </div>
+          )}
           <form className={s.commentForm} onSubmit={post}>
-            <input className={s.commentInput} value={draft} maxLength={500} onChange={(e) => setDraft(e.target.value)} placeholder="Add a comment…" aria-label={`Comment on ${stack.title}`} />
+            <MentionList {...mentions} />
+            <input
+              ref={inputRef}
+              className={s.commentInput}
+              value={draft}
+              maxLength={500}
+              onChange={(e) => {
+                setDraft(e.target.value);
+                mentions.track(e.target);
+              }}
+              onKeyDown={(e) => mentions.onKeyDown(e)}
+              onBlur={mentions.close}
+              placeholder={replyTo ? "Write a reply…" : "Add a comment… (@ to tag)"}
+              aria-label={replyTo ? `Reply to @${replyTo.handle}` : `Comment on ${stack.title}`}
+            />
             <button type="submit" className={s.postButton} disabled={posting} style={{ opacity: draft.trim() && !posting ? 1 : 0.4 }}>
               Post
             </button>
