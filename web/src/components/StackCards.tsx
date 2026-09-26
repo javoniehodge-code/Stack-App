@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { flatten, fmtCount, initials, plural, timeAgo } from "@/lib/format";
 import { useEngagement, useIsFollowing } from "@/lib/store";
 import type { Comment, Stack } from "@/lib/types";
+import { createClient } from "@/lib/supabase/client";
 import { useStackActions } from "@/lib/useStackActions";
-import { useAuth } from "./AppProviders";
+import { useAuth, useToast } from "./AppProviders";
 import { BookmarkIcon, ForkIcon, LinkIcon, RepostIcon } from "./icons";
 import s from "./Cards.module.css";
 
@@ -65,48 +67,86 @@ export function ActionRow({ stack, extra, large }: { stack: Stack; extra?: React
   );
 }
 
-export function CommentList({ comments }: { comments: Comment[] }) {
-  return comments.map((c) => (
-    <div key={c.id} className={s.comment}>
-      <div className={s.commentAuthor}>@{c.author?.handle ?? "deleted"}</div>
-      <div className={s.commentText}>{c.body}</div>
-    </div>
-  ));
-}
-
-/** A full-height feed slide: the stack card, then its comments. */
-export function FeedSlide({ stack }: { stack: Stack }) {
+/** A feed card: up to 4 lines (5 faded plus See more when longer), then comments that open inline. */
+export function FeedCard({ stack }: { stack: Stack }) {
   const open = useOpen(stack.id);
-  const router = useRouter();
+  const { viewer, requireAuth } = useAuth();
+  const toast = useToast();
   const lines = flatten(stack);
-  const comments = stack.comments ?? [];
+  // Longer stacks show a 5th line under a fade, then See more.
+  const more = lines.length > 4;
+  const [comments, setComments] = useState<Comment[]>(stack.comments ?? []);
+  const [showComments, setShowComments] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [posting, setPosting] = useState(false);
+  const n = comments.length;
+  const toggleLabel = showComments ? "Hide comments" : n ? `View ${plural(n, "comment")}` : "Add a comment";
+  const first = comments[0];
+
+  async function post(ev: React.FormEvent) {
+    ev.preventDefault();
+    const body = draft.trim();
+    if (!body || posting) return;
+    // Signed-out viewers get the sign-in sheet; the draft stays so they can post after.
+    if (!viewer) return requireAuth(null, "Sign in to join the conversation.");
+    setPosting(true);
+    const { data, error } = await createClient().from("comments").insert({ stack_id: stack.id, body }).select("id,body,created_at").single();
+    setPosting(false);
+    if (error || !data) {
+      toast("Couldn't post your comment. Try again.");
+      return;
+    }
+    setComments((c) => [...c, { ...(data as Omit<Comment, "author">), author: { handle: viewer.handle } }]);
+    setDraft("");
+  }
+
   return (
-    <div className={s.slide}>
-      <div className={`${s.card} ${s.slideCard}`} {...open}>
-        <AuthorRow stack={stack} />
+    <article className={s.feedCard}>
+      <AuthorRow stack={stack} />
+      <div {...open} className={s.feedOpen}>
         <div className={s.title}>{stack.title}</div>
-        <div className={`${s.lines} ${s.slideLines}`}>
-          {lines.map((l, i) => (
-            <div key={i} className={s.slideLine}>
+        <div className={s.feedLines}>
+          {lines.slice(0, more ? 5 : 4).map((l, i) => (
+            <div key={i} className={s.feedLine}>
               <span className={s.num}>{l.num}</span>
-              <span className={s.slideLineText}>{l.text}</span>
+              <span className={s.feedLineText}>
+                {l.text}
+                {l.link && <span className={s.feedLink}> ↗</span>}
+              </span>
             </div>
           ))}
+          {more && <div className={s.feedFade} aria-hidden />}
         </div>
-        <ActionRow stack={stack} large />
+        {more && <div className={s.viewFull}>See more · {plural(lines.length, "line")} →</div>}
       </div>
-      {comments.length > 0 ? (
-        <div className={s.comments}>
-          <div className={s.commentsLabel}>Comments</div>
-          <CommentList comments={comments} />
+      <ActionRow stack={stack} large />
+      <button className={s.commentToggle} onClick={() => setShowComments((v) => !v)} aria-expanded={showComments}>
+        <span className={s.commentToggleLabel}>{toggleLabel}</span>
+        <span className={s.commentPreview}>{!showComments && first ? `@${first.author?.handle ?? "deleted"}: ${first.body}` : ""}</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={{ transform: showComments ? "rotate(180deg)" : undefined }}>
+          <path d="M12 5v14M6 13l6 6 6-6" />
+        </svg>
+      </button>
+      {showComments && (
+        <div className={s.feedComments}>
+          {comments.map((c) => (
+            <div key={c.id} className={s.feedComment}>
+              <div className={s.commentInitial}>{(c.author?.handle ?? "?").charAt(0).toUpperCase()}</div>
+              <div className={s.feedCommentBody}>
+                <div className={s.commentAuthor}>@{c.author?.handle ?? "deleted"}</div>
+                <div className={s.commentText}>{c.body}</div>
+              </div>
+            </div>
+          ))}
+          <form className={s.commentForm} onSubmit={post}>
+            <input className={s.commentInput} value={draft} maxLength={500} onChange={(e) => setDraft(e.target.value)} placeholder="Add a comment…" aria-label={`Comment on ${stack.title}`} />
+            <button type="submit" className={s.postButton} disabled={posting} style={{ opacity: draft.trim() && !posting ? 1 : 0.4 }}>
+              Post
+            </button>
+          </form>
         </div>
-      ) : (
-        <button className={s.noComments} onClick={() => router.push(`/s/${stack.id}?comment=1`)}>
-          <span className={s.noCommentsText}>No comments yet. Be the first.</span>
-          <span className={s.outlinePill}>Add a comment</span>
-        </button>
       )}
-    </div>
+    </article>
   );
 }
 

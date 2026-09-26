@@ -113,172 +113,259 @@
   padding: 2px;
 }
 
-/* ── Feed: one stack per screen, comments beneath ── */
-.rail {
+/* ── Feed: scrolling cards, comments open inline ── */
+.feedScroll {
   flex: 1;
   min-height: 0;
-  position: relative;
-  overflow: hidden;
-}
-
-.railScroll {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
-  scroll-snap-type: y mandatory;
   overscroll-behavior: contain;
-}
-
-.slide {
-  width: 100%;
-  flex: 0 0 100%;
-  height: 100%;
-  padding: 16px;
+  padding: 14px 16px 24px;
   display: flex;
   flex-direction: column;
+  gap: 14px;
+}
+
+.feedCard {
+  flex-shrink: 0;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid oklch(33% 0.012 165);
+  padding: 18px 18px 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.feedCard .author {
   gap: 10px;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-}
-
-.slideCard {
-  height: 66%;
-  overflow: hidden;
-}
-
-.slideCard .avatar {
-  width: 30px;
-  height: 30px;
-  font-size: 11px;
-}
-
-.slideCard .authorName {
-  font-size: 14px;
-}
-
-.slideCard .authorHandle {
-  font-size: 13px;
-}
-
-.slideCard .title {
-  font-size: 17px;
   margin-bottom: 14px;
 }
 
-.slideLines {
-  flex: 1;
-  overflow: hidden;
-  font-family: var(--sans);
-  font-size: 14.5px;
-  color: var(--muted-66);
-  line-height: 1.7;
+.feedCard .avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 11px;
 }
 
-.slideLine {
-  display: flex;
-  gap: 10px;
+.feedCard .authorName {
+  font-size: 14px;
 }
 
-.slideLine .num {
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
+.feedCard .authorHandle {
+  font-size: 13px;
 }
 
-.slideLineText {
-  flex: 1;
-  min-width: 0;
+.feedOpen {
+  cursor: pointer;
+}
+
+.feedCard .title {
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  margin-bottom: 12px;
   overflow-wrap: anywhere;
 }
 
-.slideCard .actions {
-  gap: 18px;
+.feedLines {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--muted-66);
+}
+
+.feedLine {
+  display: flex;
+  gap: 12px;
+}
+
+.feedLine .num {
+  flex-shrink: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.feedLineText {
+  flex: 1;
+  min-width: 0;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.feedLink {
+  color: var(--accent);
+}
+
+.feedFade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 64px;
+  background: linear-gradient(to bottom, oklch(27% 0.012 165 / 0), var(--surface) 92%);
+  pointer-events: none;
+}
+
+.viewFull {
+  min-height: 44px;
   margin-top: 12px;
+  border-radius: 12px;
+  background: oklch(30% 0.018 162);
+  border: 1px solid oklch(36% 0.02 162);
+  color: oklch(88% 0.02 160);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.feedOpen:hover .viewFull {
+  background: oklch(33% 0.022 162);
+}
+
+.feedCard .actions {
+  gap: 18px;
+  margin-top: 14px;
   padding-top: 12px;
+  border-top-color: oklch(33% 0.012 165);
   font-size: 13px;
 }
 
-.slideCard .action {
+.feedCard .action {
+  min-height: 32px;
   font-size: 13px;
 }
 
-.slideCard .heart {
+.feedCard .heart {
   font-size: 16px;
 }
 
-.comments {
+.feedCard .copy {
+  min-height: 32px;
+}
+
+.commentToggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  min-height: 44px;
+  width: 100%;
+  text-align: left;
+}
+
+.commentToggleLabel {
+  flex-shrink: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.commentPreview {
   flex: 1;
-  min-height: 0;
-  border-radius: 12px;
-  background: var(--sunken);
-  border: 1px dashed var(--line);
-  padding: 14px 16px;
-  overflow-y: auto;
-}
-
-.commentsLabel {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  min-width: 0;
+  font-size: 13px;
   color: var(--muted-56);
-  margin-bottom: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.comment {
-  margin-bottom: 12px;
+.commentToggle svg {
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+.feedComments {
+  border-top: 1px solid oklch(33% 0.012 165);
+  padding-top: 4px;
+}
+
+.feedComment {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid oklch(31% 0.012 165);
+}
+
+.commentInitial {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: oklch(34% 0.02 160);
+  color: oklch(86% 0.03 160);
+  font-weight: 700;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.feedCommentBody {
+  flex: 1;
+  min-width: 0;
 }
 
 .commentAuthor {
   font-family: var(--mono);
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--muted-56);
   margin-bottom: 3px;
 }
 
 .commentText {
-  font-size: 14.5px;
+  font-size: 14px;
   color: var(--text-2);
   line-height: 1.45;
+  text-wrap: pretty;
   overflow-wrap: anywhere;
 }
 
-.noComments {
+.commentForm {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding-top: 12px;
+}
+
+.commentInput {
   flex: 1;
-  border-radius: 12px;
-  background: var(--sunken);
-  border: 1px dashed var(--line);
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  text-align: center;
-  cursor: pointer;
-  width: 100%;
-}
-
-.noCommentsText {
-  font-size: 14px;
-  color: var(--muted-66);
-  line-height: 1.4;
-}
-
-.outlinePill {
-  font-size: 13.5px;
-  font-weight: 700;
-  padding: 10px 18px;
+  min-width: 0;
+  height: 44px;
+  padding: 0 16px;
   border-radius: 999px;
-  border: 1.5px solid var(--accent);
-  color: var(--accent);
+  border: 1px solid var(--line-3);
+  background: var(--bg);
+  color: oklch(92% 0.008 160);
+  font-size: 14px;
+  outline: none;
 }
 
-.loadingSlide {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.commentInput:focus {
+  border-color: var(--accent);
+}
+
+.postButton {
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.feedLoading {
+  flex-shrink: 0;
+  padding: 24px 0;
+  text-align: center;
   font-size: 12px;
   color: var(--muted-56);
 }
