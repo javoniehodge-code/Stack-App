@@ -168,10 +168,10 @@
 }
 
 .feedLines {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-bottom: 16px;
   font-size: 14.5px;
   line-height: 1.5;
   color: var(--muted-66);
@@ -199,8 +199,19 @@
   color: var(--accent);
 }
 
+.feedFade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 64px;
+  background: linear-gradient(to bottom, oklch(27% 0.012 165 / 0), var(--surface) 92%);
+  pointer-events: none;
+}
+
 .viewFull {
   min-height: 44px;
+  margin-top: 12px;
   border-radius: 12px;
   background: oklch(30% 0.018 162);
   border: 1px solid oklch(36% 0.02 162);

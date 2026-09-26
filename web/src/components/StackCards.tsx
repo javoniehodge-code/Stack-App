@@ -67,12 +67,14 @@ export function ActionRow({ stack, extra, large }: { stack: Stack; extra?: React
   );
 }
 
-/** A feed card: first 4 lines, a button to the full stack, then comments that open inline. */
+/** A feed card: up to 4 lines (5 faded plus See more when longer), then comments that open inline. */
 export function FeedCard({ stack }: { stack: Stack }) {
   const open = useOpen(stack.id);
   const { viewer, requireAuth } = useAuth();
   const toast = useToast();
   const lines = flatten(stack);
+  // Longer stacks show a 5th line under a fade, then See more.
+  const more = lines.length > 4;
   const [comments, setComments] = useState<Comment[]>(stack.comments ?? []);
   const [showComments, setShowComments] = useState(false);
   const [draft, setDraft] = useState("");
@@ -104,7 +106,7 @@ export function FeedCard({ stack }: { stack: Stack }) {
       <div {...open} className={s.feedOpen}>
         <div className={s.title}>{stack.title}</div>
         <div className={s.feedLines}>
-          {lines.slice(0, 4).map((l, i) => (
+          {lines.slice(0, more ? 5 : 4).map((l, i) => (
             <div key={i} className={s.feedLine}>
               <span className={s.num}>{l.num}</span>
               <span className={s.feedLineText}>
@@ -113,8 +115,9 @@ export function FeedCard({ stack }: { stack: Stack }) {
               </span>
             </div>
           ))}
+          {more && <div className={s.feedFade} aria-hidden />}
         </div>
-        <div className={s.viewFull}>View full stack · {plural(lines.length, "line")} →</div>
+        {more && <div className={s.viewFull}>See more · {plural(lines.length, "line")} →</div>}
       </div>
       <ActionRow stack={stack} large />
       <button className={s.commentToggle} onClick={() => setShowComments((v) => !v)} aria-expanded={showComments}>
