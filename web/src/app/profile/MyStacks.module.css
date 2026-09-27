@@ -94,7 +94,7 @@
   border-top: 1px solid var(--line);
 }
 
-/* Pin and link sheets */
+/* Pin sheet */
 .sheetTitle {
   font-size: 16px;
   font-weight: 700;
@@ -167,37 +167,4 @@
 
 .field:focus {
   border-color: var(--accent);
-}
-
-.presets {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 12px;
-}
-
-.preset {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--line-3);
-  color: var(--text-2);
-}
-
-.sheetButtons {
-  display: flex;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.remove {
-  flex: 0 0 auto;
-  padding: 0 18px;
-  height: 48px;
-  border-radius: 12px;
-  border: 1px solid var(--line-3);
-  color: var(--muted-72);
-  font-size: 14px;
-  font-weight: 600;
 }

@@ -6,26 +6,18 @@ import sheet from "@/components/Sheet.module.css";
 import { GridCard } from "@/components/StackCards";
 import { plural, timeAgo } from "@/lib/format";
 import { fetchProfile } from "@/lib/queries";
-import { toUrl } from "@/lib/socials";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile, Stack } from "@/lib/types";
 import Featured from "./Featured";
 import f from "./Featured.module.css";
 import m from "./MyStacks.module.css";
 
-const LINK_PRESETS: [string, string][] = [
-  ["Subscribe to my newsletter", "you.substack.com"],
-  ["Book a call", "calendly.com/you"],
-  ["Shop my picks", "yourshop.com"],
-  ["Email me", "mailto:you@example.com"],
-];
-
 const meta = (st: Stack) => {
   const when = timeAgo(st.published_at);
   return `${plural(st.line_count, "line")} · Updated ${when === "just now" ? when : `${when} ago`}`;
 };
 
-/** Your own Stacks tab: featured stack and link, then all stacks as a grid (a list with controls while reordering). */
+/** Your own Stacks tab: featured stack, then all stacks as a grid (a list with controls while reordering). */
 export default function MyStacks({ profile, stacks }: { profile: Profile; stacks: Stack[] }) {
   const toast = useToast();
   const { setViewer } = useAuth();
@@ -39,10 +31,9 @@ export default function MyStacks({ profile, stacks }: { profile: Profile; stacks
   const rows = order.map((id) => byId.get(id)).filter((s): s is Stack => !!s);
 
   const [reordering, setReordering] = useState(false);
-  const [sheetOpen, setSheetOpen] = useState<null | "pin" | "link">(null);
+  const [sheetOpen, setSheetOpen] = useState<null | "pin">(null);
   const [pinDraft, setPinDraft] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
-  const [linkDraft, setLinkDraft] = useState({ label: "", url: "" });
   const [busy, setBusy] = useState(false);
 
   async function updateProfile(fields: Partial<Profile>) {
@@ -80,22 +71,9 @@ export default function MyStacks({ profile, stacks }: { profile: Profile; stacks
     setSheetOpen("pin");
   }
 
-  function openLink() {
-    setLinkDraft({ label: profile.featured_link_label ?? "", url: (profile.featured_link_url ?? "").replace(/^https?:\/\//, "") });
-    setSheetOpen("link");
-  }
-
-  async function saveLink(remove = false) {
-    const url = remove ? "" : toUrl(linkDraft.url);
-    const ok = await updateProfile(
-      url ? { featured_link_label: linkDraft.label.trim() || "Visit my link", featured_link_url: url } : { featured_link_label: null, featured_link_url: null },
-    );
-    if (ok) setSheetOpen(null);
-  }
-
   return (
     <div className={m.wrap}>
-      <Featured profile={profile} stacks={stacks} onChange={openPin} onEditLink={openLink} />
+      <Featured profile={profile} stacks={stacks} onChange={openPin} />
 
       <div className={m.listHead}>
         <span className={f.sectionLabel} style={{ margin: 0 }}>
@@ -193,68 +171,6 @@ export default function MyStacks({ profile, stacks }: { profile: Profile; stacks
               Save
             </button>
           </div>
-        </div>
-      )}
-
-      {sheetOpen === "link" && (
-        <div className={sheet.scrim} onClick={() => setSheetOpen(null)}>
-          <form
-            className={sheet.sheet}
-            onClick={(e) => e.stopPropagation()}
-            onSubmit={(e) => {
-              e.preventDefault();
-              saveLink();
-            }}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="link-title"
-          >
-            <div className={sheet.grabber} />
-            <div id="link-title" className={m.sheetTitle}>
-              Featured link
-            </div>
-            <div className={m.sheetText}>One button under your featured stack.</div>
-            <label className={m.fieldLabel} htmlFor="link-label">
-              Button text
-            </label>
-            <input
-              id="link-label"
-              className={m.field}
-              style={{ marginBottom: 12 }}
-              value={linkDraft.label}
-              maxLength={40}
-              onChange={(e) => setLinkDraft((d) => ({ ...d, label: e.target.value }))}
-              placeholder="Subscribe to my newsletter"
-            />
-            <label className={m.fieldLabel} htmlFor="link-url">
-              URL
-            </label>
-            <input
-              id="link-url"
-              className={m.field}
-              value={linkDraft.url}
-              inputMode="url"
-              autoCapitalize="none"
-              autoCorrect="off"
-              onChange={(e) => setLinkDraft((d) => ({ ...d, url: e.target.value }))}
-              placeholder="yournewsletter.com"
-            />
-            <div className={m.presets}>
-              {LINK_PRESETS.map(([label, url]) => (
-                <button key={label} type="button" className={m.preset} onClick={() => setLinkDraft({ label, url })}>
-                  {label}
-                </button>
-              ))}
-            </div>
-            <div className={m.sheetButtons}>
-              <button type="button" className={m.remove} disabled={busy} onClick={() => saveLink(true)}>
-                Remove
-              </button>
-              <button type="submit" className={sheet.primary} style={{ flex: 1, margin: 0 }} disabled={busy}>
-                Save
-              </button>
-            </div>
-          </form>
         </div>
       )}
     </div>

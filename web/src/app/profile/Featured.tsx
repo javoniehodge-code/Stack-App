@@ -15,76 +15,48 @@ export function EditIcon() {
 }
 
 /**
- * The pinned stack and featured link at the top of a profile. Owners get the
- * Change / edit-link controls; visitors see only what has been set.
+ * The pinned stack at the top of your own Stacks tab, with a Change button.
+ * Visitors see FeaturedStack in ProfileHead instead.
  */
 export default function Featured({
   profile,
   stacks,
   onChange,
-  onEditLink,
 }: {
   profile: Profile;
   stacks: Stack[];
-  onChange?: () => void;
-  onEditLink?: () => void;
+  onChange: () => void;
 }) {
   const router = useRouter();
-  const owner = !!onChange;
   const pinned = stacks.find((s) => s.id === profile.pinned_stack_id) ?? null;
-  const hasLink = !!(profile.featured_link_label && profile.featured_link_url);
-  // Owners always see the section so they can find it; visitors only when something is set.
-  if (!owner && !pinned && !hasLink) return null;
 
   const open = () => pinned && router.push(`/s/${pinned.id}`);
   return (
     <section>
       <div className={f.sectionLabel}>Featured</div>
-      {(pinned || owner) && (
-        <div
-          className={f.card}
-          role={pinned ? "link" : undefined}
-          tabIndex={pinned ? 0 : undefined}
-          onClick={open}
-          onKeyDown={(e) => e.target === e.currentTarget && e.key === "Enter" && open()}
-          style={{ cursor: pinned ? "pointer" : "default" }}
-        >
-          <div className={f.cardTop}>
-            <span className={f.kicker}>Featured stack · {pinned ? plural(pinned.line_count, "line") : "none"}</span>
-            {owner && (
-              <button
-                className={f.change}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onChange();
-                }}
-              >
-                Change
-              </button>
-            )}
-          </div>
-          <div className={f.title}>{pinned ? `${pinned.title} ↗` : "Pick a stack to feature"}</div>
-          {pinned ? profile.pin_note && <div className={f.note}>{profile.pin_note}</div> : <div className={f.note}>Tap Change to choose one.</div>}
+      <div
+        className={f.card}
+        role={pinned ? "link" : undefined}
+        tabIndex={pinned ? 0 : undefined}
+        onClick={open}
+        onKeyDown={(e) => e.target === e.currentTarget && e.key === "Enter" && open()}
+        style={{ cursor: pinned ? "pointer" : "default" }}
+      >
+        <div className={f.cardTop}>
+          <span className={f.kicker}>Featured stack · {pinned ? plural(pinned.line_count, "line") : "none"}</span>
+          <button
+            className={f.change}
+            onClick={(e) => {
+              e.stopPropagation();
+              onChange();
+            }}
+          >
+            Change
+          </button>
         </div>
-      )}
-      {(hasLink || owner) && (
-        <div className={f.linkRow}>
-          {hasLink ? (
-            <a className={f.linkButton} href={profile.featured_link_url!} target="_blank" rel="noopener noreferrer nofollow">
-              {profile.featured_link_label} ↗
-            </a>
-          ) : (
-            <button className={f.addLink} onClick={onEditLink}>
-              + Add a featured link
-            </button>
-          )}
-          {owner && (
-            <button className={f.editLink} onClick={onEditLink} title="Edit featured link" aria-label="Edit featured link">
-              <EditIcon />
-            </button>
-          )}
-        </div>
-      )}
+        <div className={f.title}>{pinned ? `${pinned.title} ↗` : "Pick a stack to feature"}</div>
+        {pinned ? profile.pin_note && <div className={f.note}>{profile.pin_note}</div> : <div className={f.note}>Tap Change to choose one.</div>}
+      </div>
     </section>
   );
 }

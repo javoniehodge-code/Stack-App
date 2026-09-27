@@ -1,21 +1,19 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth, useToast } from "@/components/AppProviders";
 import { SearchIcon } from "@/components/icons";
-import SocialLinks from "@/components/SocialLinks";
 import { ListCard } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
 import cards from "@/components/Cards.module.css";
-import { fmtCount, initials } from "@/lib/format";
 import { useEngagement } from "@/lib/store";
 import { createClient } from "@/lib/supabase/client";
 import type { Stack, StackRow } from "@/lib/types";
 import { useStackActions } from "@/lib/useStackActions";
 import EditProfileSheet from "./EditProfileSheet";
 import MyStacks from "./MyStacks";
+import { ProfileBar, ProfileFooter, ProfileHero } from "./ProfileHead";
 import p from "./Profile.module.css";
 
 export type ProfileTab = "mine" | "saved" | "forked" | "drafts";
@@ -48,59 +46,61 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
     borderBottomColor: tab === t ? "var(--accent)" : "transparent",
   });
   const forked = data.mine.filter((x) => x.forked_from_id);
+  const hasContact = !!(viewer.featured_link_label && viewer.featured_link_url);
 
   return (
     <main className={shell.screen}>
-      <header className={p.header}>
-        <div className={p.topRow}>
-          <div className={p.avatar}>{initials(viewer.name)}</div>
-          <button className={p.editButton} onClick={() => setEditing(true)}>
+      <ProfileBar handle={viewer.handle}>
+        <span className={p.wordmark}>Stack</span>
+      </ProfileBar>
+      <div className={p.scroll}>
+        <ProfileHero profile={viewer} stackCount={data.mine.length} followers={data.counts.followers} following={data.counts.following}>
+          <button className={`${p.actionButton} ${p.editProfile}`} style={{ maxWidth: "none" }} onClick={() => setEditing(true)}>
             Edit profile
           </button>
-        </div>
-        <h1 className={p.name}>{viewer.name}</h1>
-        <div className={p.handle}>@{viewer.handle}</div>
-        {viewer.bio && <div className={p.bio}>{viewer.bio}</div>}
-        <SocialLinks socials={viewer.socials} />
-        <div style={{ height: 14 }} />
-        <div className={p.stats}>
-          <span>
-            <strong>{data.mine.length}</strong> Stacks
-          </span>
-          <Link href={`/u/${viewer.handle}/followers`} className={p.statLink}>
-            <strong>{fmtCount(data.counts.followers)}</strong> Followers
-          </Link>
-          <Link href={`/u/${viewer.handle}/following`} className={p.statLink}>
-            <strong>{fmtCount(data.counts.following)}</strong> Following
-          </Link>
-        </div>
-        <div className={p.tabs} role="tablist">
-          {(
-            [
-              ["mine", "Stacks"],
-              ["saved", "Saved"],
-              ["forked", "Forked"],
-              ["drafts", "Drafts" + (data.drafts.length ? ` · ${data.drafts.length}` : "")],
-            ] as const
-          ).map(([t, label]) => (
-            <button key={t} role="tab" aria-selected={tab === t} className={p.tab} style={tabStyle(t)} onClick={() => setTab(t)}>
-              {label}
+          {hasContact ? (
+            <button className={p.contactMine} onClick={() => setEditing(true)} title="Edit custom link">
+              <span>{viewer.featured_link_label} ↗</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(30% 0.02 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }} aria-hidden>
+                <path d="M4 20h4L19 9l-4-4L4 16z" />
+              </svg>
             </button>
-          ))}
-        </div>
-      </header>
-      <div className={p.body}>
-        {tab === "drafts" && <Drafts drafts={data.drafts} />}
-        {tab === "saved" && <Saved saved={data.saved} />}
-        {tab === "mine" && <MyStacks profile={viewer} stacks={data.mine} />}
-        {tab === "forked" && (
-          <>
-            {forked.map((st) => (
-              <ListCard key={st.id} stack={st} />
+          ) : (
+            <button className={p.addContact} onClick={() => setEditing(true)}>
+              + Add custom link
+            </button>
+          )}
+        </ProfileHero>
+        <div className={p.tabBar}>
+          <div className={p.tabs} role="tablist">
+            {(
+              [
+                ["mine", "Stacks"],
+                ["saved", "Saved"],
+                ["forked", "Forked"],
+                ["drafts", "Drafts" + (data.drafts.length ? ` · ${data.drafts.length}` : "")],
+              ] as const
+            ).map(([t, label]) => (
+              <button key={t} role="tab" aria-selected={tab === t} className={p.tab} style={tabStyle(t)} onClick={() => setTab(t)}>
+                {label}
+              </button>
             ))}
-            {forked.length === 0 && <div className={cards.empty}>Nothing here yet.</div>}
-          </>
-        )}
+          </div>
+        </div>
+        <div>
+          {tab === "drafts" && <Drafts drafts={data.drafts} />}
+          {tab === "saved" && <Saved saved={data.saved} />}
+          {tab === "mine" && <MyStacks profile={viewer} stacks={data.mine} />}
+          {tab === "forked" && (
+            <>
+              {forked.map((st) => (
+                <ListCard key={st.id} stack={st} />
+              ))}
+              {forked.length === 0 && <div className={cards.empty}>Nothing here yet.</div>}
+            </>
+          )}
+        </div>
+        <ProfileFooter />
       </div>
       {editing && <EditProfileSheet onClose={() => setEditing(false)} />}
     </main>

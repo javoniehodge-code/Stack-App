@@ -6,7 +6,7 @@ import { useAuth } from "@/components/AppProviders";
 import sheet from "@/components/Sheet.module.css";
 import { SocialIcon } from "@/components/SocialLinks";
 import { fetchProfile } from "@/lib/queries";
-import { SOCIAL_FIELDS } from "@/lib/socials";
+import { CONTACT_TYPES, SOCIAL_FIELDS, toUrl } from "@/lib/socials";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile, Socials } from "@/lib/types";
 import p from "./Profile.module.css";
@@ -18,6 +18,9 @@ export default function EditProfileSheet({ onClose }: { onClose: () => void }) {
   const [handle, setHandle] = useState(viewer?.handle ?? "");
   const [bio, setBio] = useState(viewer?.bio ?? "");
   const [socials, setSocials] = useState<Socials>(viewer?.socials ?? {});
+  // An older free-text button label is kept until a type is picked.
+  const [contactLabel, setContactLabel] = useState(viewer?.featured_link_label ?? "");
+  const [contactUrl, setContactUrl] = useState((viewer?.featured_link_url ?? "").replace(/^https?:\/\//, ""));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   if (!viewer) return null;
@@ -39,6 +42,12 @@ export default function EditProfileSheet({ onClose }: { onClose: () => void }) {
     const changes: Partial<Profile> = { name: name.trim(), handle: h, bio: bio.trim() };
     // Only send socials when they changed, so the rest still saves before the profile_featured migration.
     if (JSON.stringify(socials) !== JSON.stringify(viewer!.socials)) changes.socials = socials;
+    const url = toUrl(contactUrl);
+    const label = url ? contactLabel.trim() || "Website" : null;
+    if (label !== viewer!.featured_link_label || (url || null) !== viewer!.featured_link_url) {
+      changes.featured_link_label = label;
+      changes.featured_link_url = url || null;
+    }
     const { error } = await sb.from("profiles").update(changes).eq("id", viewer!.id);
     const data = error ? null : await fetchProfile(sb, "id", viewer!.id);
     setBusy(false);
@@ -110,6 +119,31 @@ export default function EditProfileSheet({ onClose }: { onClose: () => void }) {
             </div>
           ))}
         </div>
+        <div className={sheet.label} style={{ marginTop: 6 }}>
+          Custom link
+        </div>
+        <div className={p.socialHint} style={{ marginBottom: 10 }}>
+          Shows as the button next to Follow on your profile.
+        </div>
+        <div className={p.typeChips}>
+          {CONTACT_TYPES.map((t) => (
+            <button key={t} type="button" className={`${p.typeChip} ${contactLabel === t ? p.typeChipOn : ""}`} aria-pressed={contactLabel === t} onClick={() => setContactLabel(t)}>
+              {t}
+            </button>
+          ))}
+        </div>
+        <label className={p.socialField} style={{ marginBottom: 20 }}>
+          <span className={p.socialIcon}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2" />
+              <path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2" />
+            </svg>
+          </span>
+          <span className={p.socialBody}>
+            <span className={p.socialName}>{CONTACT_TYPES.includes(contactLabel) ? contactLabel : "Link"} URL</span>
+            <input value={contactUrl} maxLength={300} inputMode="url" autoCapitalize="none" autoCorrect="off" onChange={(e) => setContactUrl(e.target.value)} placeholder="yoursite.com" />
+          </span>
+        </label>
         {error && <div className={sheet.error}>{error}</div>}
         <button type="submit" className={sheet.primary} disabled={busy}>
           {busy ? "Saving…" : "Save"}
