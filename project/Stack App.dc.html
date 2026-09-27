@@ -254,7 +254,10 @@
         <sc-if value="{{ activeCard.description }}" hint-placeholder-val="{{ false }}">
           <div style="font-family:Inter,sans-serif;font-size:14.5px;color:oklch(72% 0.012 165);line-height:1.5;margin-top:8px;text-wrap:pretty;">{{ activeCard.description }}</div>
         </sc-if>
-        <div style="font-family:Inter,sans-serif;font-size:12px;color:oklch(66% 0.012 165);margin-top:6px;">{{ activeLineCount }} lines</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px;min-height:30px;">
+          <span style="font-family:Inter,sans-serif;font-size:12px;color:oklch(66% 0.012 165);">{{ activeLineCount }} lines</span>
+          <sc-if value="{{ activeIsMine }}" hint-placeholder-val="{{ false }}"><span onClick="{{ openActiveVis }}" style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;border:1px solid oklch(38% 0.012 165);font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:oklch(86% 0.008 160);cursor:pointer;flex-shrink:0;"><sc-if value="{{ activeVis.is_public }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(78% 0.06 160)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M3.5 12h17"></path><ellipse cx="12" cy="12" rx="3.8" ry="8.5"></ellipse></svg></sc-if><sc-if value="{{ activeVis.is_unlisted }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(78% 0.06 160)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></sc-if><sc-if value="{{ activeVis.is_private }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(78% 0.06 160)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg></sc-if>{{ activeVis.label }}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span></sc-if>
+        </div>
       </div>
       <div style="flex:1;overflow-y:auto;padding:16px 20px 8px;">
         <sc-for list="{{ activeFlat }}" as="ln" hint-placeholder-count="5">
@@ -405,6 +408,38 @@
       </div>
     </sc-if>
 
+    <sc-if value="{{ isManage }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:56px 16px 0;flex-shrink:0;border-bottom:1px solid oklch(32% 0.012 165);font-family:Inter,sans-serif;">
+        <div style="display:grid;grid-template-columns:40px 1fr 40px;align-items:center;height:44px;"><div onClick="{{ goBack }}" style="width:40px;height:44px;display:flex;align-items:center;cursor:pointer;margin-left:-4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(84% 0.008 160)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg></div><span style="font-weight:700;font-size:16px;color:oklch(92% 0.008 160);text-align:center;">Manage stacks</span><span></span></div>
+        <div style="display:flex;gap:8px;overflow-x:auto;padding:10px 0 14px;">
+          <sc-for list="{{ manageTabs }}" as="t" hint-placeholder-count="5">
+            <span onClick="{{ t.onSelect }}" style="flex-shrink:0;display:flex;align-items:center;gap:6px;height:32px;padding:0 13px;border-radius:999px;background:{{ t.bg }};border:1px solid {{ t.border }};color:{{ t.color }};font-size:12.5px;font-weight:600;cursor:pointer;">{{ t.label }}<span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;opacity:0.75;">{{ t.count }}</span></span>
+          </sc-for>
+        </div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:0 16px 30px;font-family:Inter,sans-serif;">
+        <div style="font-size:12.5px;color:oklch(66% 0.012 165);line-height:1.5;padding:14px 4px 6px;text-wrap:pretty;">{{ manageHint }}</div>
+        <sc-for list="{{ manageRows }}" as="m" hint-placeholder-count="4">
+          <div onClick="{{ m.onOpen }}" style="display:flex;align-items:center;gap:12px;padding:14px 4px;border-bottom:1px solid oklch(30% 0.012 165);cursor:pointer;">
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:14.5px;font-weight:600;color:oklch(92% 0.008 160);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ m.title }}</div>
+              <div style="font-size:12px;color:oklch(62% 0.012 165);margin-top:3px;">{{ m.meta }}</div>
+            </div>
+            <sc-if value="{{ m.isDraft }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.04em;color:oklch(76% 0.02 160);border:1px solid oklch(38% 0.012 165);padding:3px 7px;border-radius:5px;">DRAFT</span>
+                <span onClick="{{ m.onDelete }}" style="font-size:12px;color:oklch(66% 0.012 165);cursor:pointer;">Delete</span>
+              </div>
+            </sc-if>
+            <sc-if value="{{ m.isStack }}" hint-placeholder-val="{{ true }}"><span onClick="{{ m.onVis }}" style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;border:1px solid oklch(38% 0.012 165);font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:oklch(86% 0.008 160);cursor:pointer;flex-shrink:0;"><sc-if value="{{ m.vis.is_public }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(78% 0.06 160)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M3.5 12h17"></path><ellipse cx="12" cy="12" rx="3.8" ry="8.5"></ellipse></svg></sc-if><sc-if value="{{ m.vis.is_unlisted }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(78% 0.06 160)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></sc-if><sc-if value="{{ m.vis.is_private }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(78% 0.06 160)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg></sc-if>{{ m.vis.label }}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span></sc-if>
+          </div>
+        </sc-for>
+        <sc-if value="{{ manageEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:50px 20px;text-align:center;font-size:13.5px;color:oklch(66% 0.012 165);">{{ manageEmptyLabel }}</div>
+        </sc-if>
+      </div>
+    </sc-if>
+
     <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
       <div style="padding:56px 16px 0;flex-shrink:0;border-bottom:1px solid oklch(32% 0.012 165);"><div style="display:grid;grid-template-columns:40px 1fr 40px;align-items:center;height:44px;"><div onClick="{{ goBack }}" style="width:40px;height:44px;display:flex;align-items:center;cursor:pointer;margin-left:-4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(84% 0.008 160)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg></div><span style="font-family:Inter,sans-serif;font-weight:700;font-size:16px;color:oklch(92% 0.008 160);text-align:center;">Settings and privacy</span><span></span></div></div>
       <div style="flex:1;overflow-y:auto;padding:0 16px 30px;font-family:Inter,sans-serif;">
@@ -419,6 +454,8 @@
               <span style="flex:1;font-size:14.5px;color:oklch(92% 0.008 160);">Private account<div style="font-size:12px;color:oklch(64% 0.012 165);margin-top:2px;line-height:1.4;">Only followers you approve can see your stacks</div></span><span style="width:44px;height:26px;border-radius:13px;background:{{ privateToggle.track }};position:relative;flex-shrink:0;"><span style="position:absolute;top:3px;left:{{ privateToggle.knob }};width:20px;height:20px;border-radius:50%;background:oklch(96% 0.005 160);"></span></span>
             </div><div style="height:1px;background:oklch(33% 0.012 165);margin-left:14px;"></div><div onClick="{{ toggleAllowForks }}" style="display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;cursor:pointer;">
               <span style="flex:1;font-size:14.5px;color:oklch(92% 0.008 160);">Allow others to fork your stacks</span><span style="width:44px;height:26px;border-radius:13px;background:{{ forksToggle.track }};position:relative;flex-shrink:0;"><span style="position:absolute;top:3px;left:{{ forksToggle.knob }};width:20px;height:20px;border-radius:50%;background:oklch(96% 0.005 160);"></span></span>
+            </div><div style="height:1px;background:oklch(33% 0.012 165);margin-left:14px;"></div><div onClick="{{ openManage }}" style="display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;cursor:pointer;">
+              <span style="flex:1;font-size:14.5px;color:oklch(92% 0.008 160);">Manage stack visibility</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(56% 0.012 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"></path></svg>
             </div><div style="height:1px;background:oklch(33% 0.012 165);margin-left:14px;"></div><div onClick="{{ openBlocked }}" style="display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;cursor:pointer;">
               <span style="flex:1;font-size:14.5px;color:oklch(92% 0.008 160);">Blocked accounts</span><span style="font-size:13px;color:oklch(64% 0.012 165);">{{ blockedCount }}</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(56% 0.012 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"></path></svg>
             </div></div>
@@ -579,7 +616,7 @@
 
             <div style="display:flex;align-items:center;justify-content:space-between;margin-top:30px;margin-bottom:4px;">
               <span style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:oklch(62% 0.012 165);">All stacks</span>
-              <span onClick="{{ toggleReorder }}" style="font-size:12.5px;font-weight:600;color:{{ reorderColor }};cursor:pointer;padding:4px 0;">{{ reorderLabel }}</span>
+              <div style="display:flex;align-items:center;gap:16px;"><span onClick="{{ openManage }}" style="font-size:12.5px;font-weight:600;color:oklch(78% 0.06 160);cursor:pointer;padding:4px 0;">Manage</span><span onClick="{{ toggleReorder }}" style="font-size:12.5px;font-weight:600;color:{{ reorderColor }};cursor:pointer;padding:4px 0;">{{ reorderLabel }}</span></div>
             </div>
             <sc-if value="{{ showMyGrid }}" hint-placeholder-val="{{ false }}">
               <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;padding-top:12px;border-top:1px solid oklch(32% 0.012 165);">
@@ -601,6 +638,7 @@
                       <span style="display:flex;align-items:center;gap:4px;"><span style="font-size:12px;line-height:1;">♡</span>{{ g.likes }}</span>
                       <span style="display:flex;align-items:center;gap:4px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2.2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ g.saves }}</span>
                       <span style="display:flex;align-items:center;gap:4px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.2"></circle><circle cx="18" cy="5" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle><path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2"></path><path d="M12 12v4.8"></path></svg>{{ g.forks }}</span>
+                      <sc-if value="{{ g.vis.notPublic }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;display:flex;align-items:center;gap:4px;color:oklch(76% 0.13 55);"><sc-if value="{{ g.vis.is_public }}" hint-placeholder-val="{{ false }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(76% 0.13 55)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M3.5 12h17"></path><ellipse cx="12" cy="12" rx="3.8" ry="8.5"></ellipse></svg></sc-if><sc-if value="{{ g.vis.is_unlisted }}" hint-placeholder-val="{{ false }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(76% 0.13 55)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></sc-if><sc-if value="{{ g.vis.is_private }}" hint-placeholder-val="{{ false }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(76% 0.13 55)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg></sc-if>{{ g.vis.label }}</span></sc-if>
                     </div>
                   </div>
                 </sc-for>
@@ -611,7 +649,7 @@
               <div onClick="{{ r.onOpen }}" style="display:flex;align-items:center;gap:10px;padding:15px 0;border-top:1px solid oklch(32% 0.012 165);cursor:{{ r.cursor }};">
                 <div style="flex:1;min-width:0;">
                   <div style="font-size:14.5px;color:oklch(92% 0.005 160);line-height:1.3;text-wrap:pretty;">{{ r.title }}{{ r.arrow }}</div>
-                  <div style="font-size:12.5px;color:oklch(60% 0.012 165);margin-top:5px;">{{ r.meta }}</div>
+                  <div style="font-size:12.5px;color:oklch(60% 0.012 165);margin-top:5px;">{{ r.meta }}<span style="color:oklch(76% 0.13 55);font-weight:600;">{{ r.visSuffix }}</span></div>
                 </div>
                 <sc-if value="{{ r.showPinnedTag }}" hint-placeholder-val="{{ false }}">
                   <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.04em;color:oklch(78% 0.06 160);border:1px solid oklch(40% 0.03 160);padding:3px 7px;border-radius:5px;flex-shrink:0;">PINNED</span>
@@ -663,6 +701,11 @@
         <div style="margin:4px 0 22px;">
           <textarea value="{{ draftDescription }}" onChange="{{ onDraftDescriptionChange }}" placeholder="Add a description (optional)" rows="2" style="width:100%;box-sizing:border-box;field-sizing:content;min-height:44px;resize:none;border:none;border-bottom:1px solid oklch(32% 0.012 165);outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14px;line-height:1.45;color:oklch(80% 0.01 160);padding:6px 0;"></textarea>
           <div style="font-family:Inter,sans-serif;font-size:10.5px;color:{{ draftDescCountColor }};text-align:right;margin-top:4px;">{{ draftDescCount }}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin:-8px 0 24px;">
+          <span style="font-family:Inter,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(60% 0.012 165);">Visibility</span>
+          <span onClick="{{ openDraftVis }}" style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;border:1px solid oklch(38% 0.012 165);font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:oklch(86% 0.008 160);cursor:pointer;flex-shrink:0;"><sc-if value="{{ draftVis.is_public }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(78% 0.06 160)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M3.5 12h17"></path><ellipse cx="12" cy="12" rx="3.8" ry="8.5"></ellipse></svg></sc-if><sc-if value="{{ draftVis.is_unlisted }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(78% 0.06 160)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></sc-if><sc-if value="{{ draftVis.is_private }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(78% 0.06 160)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg></sc-if>{{ draftVis.label }}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span>
+          <span style="flex:1;min-width:0;font-family:Inter,sans-serif;font-size:11.5px;color:oklch(60% 0.012 165);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ draftVis.short }}</span>
         </div>
         <sc-for list="{{ draftSections }}" as="sec" hint-placeholder-count="1">
           <div style="margin-bottom:20px;">
@@ -860,6 +903,38 @@
       </div>
     </sc-if>
 
+    <sc-if value="{{ showVisSheet }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeVis }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:flex-end;z-index:46;">
+        <div onClick="{{ stopClick }}" style="width:100%;background:oklch(27% 0.012 165);border-radius:22px 22px 0 0;padding:14px 16px 32px;box-sizing:border-box;font-family:Inter,sans-serif;display:flex;flex-direction:column;gap:10px;">
+          <div style="width:36px;height:4px;border-radius:2px;background:oklch(42% 0.012 165);margin:0 auto 4px;"></div>
+          <div style="font-size:15px;font-weight:700;color:oklch(92% 0.008 160);padding:0 4px;">Who can see this stack?</div>
+          <sc-if value="{{ visSheet.note }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:oklch(80% 0.05 160);padding:0 4px;line-height:1.45;">{{ visSheet.note }}</div></sc-if>
+          <div style="font-size:12.5px;color:oklch(62% 0.012 165);padding:0 4px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ visSheet.title }}</div>
+          <div onClick="{{ visPick_public }}" style="display:flex;align-items:center;gap:14px;padding:13px 14px;border-radius:14px;border:1px solid {{ visSheet.publicBorder }};background:{{ visSheet.publicBg }};cursor:pointer;">
+            <div style="width:40px;height:40px;border-radius:12px;background:oklch(32% 0.02 160);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(86% 0.05 160)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M3.5 12h17"></path><ellipse cx="12" cy="12" rx="3.8" ry="8.5"></ellipse></svg></div>
+            <div style="flex:1;min-width:0;"><div style="font-size:15px;font-weight:600;color:oklch(92% 0.008 160);">Public</div><div style="font-size:12.5px;color:oklch(64% 0.012 165);margin-top:2px;line-height:1.4;">On your profile, in search, and anyone with the link</div></div>
+            <span style="width:20px;height:20px;border-radius:50%;border:2px solid {{ visSheet.publicRing }};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-sizing:border-box;"><span style="width:10px;height:10px;border-radius:50%;background:{{ visSheet.publicDot }};"></span></span>
+          </div>
+          <div onClick="{{ visPick_unlisted }}" style="display:flex;align-items:center;gap:14px;padding:13px 14px;border-radius:14px;border:1px solid {{ visSheet.unlistedBorder }};background:{{ visSheet.unlistedBg }};cursor:pointer;">
+            <div style="width:40px;height:40px;border-radius:12px;background:oklch(32% 0.02 160);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(86% 0.05 160)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></div>
+            <div style="flex:1;min-width:0;"><div style="font-size:15px;font-weight:600;color:oklch(92% 0.008 160);">Unlisted</div><div style="font-size:12.5px;color:oklch(64% 0.012 165);margin-top:2px;line-height:1.4;">Only people with the link. Hidden from your profile and search</div></div>
+            <span style="width:20px;height:20px;border-radius:50%;border:2px solid {{ visSheet.unlistedRing }};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-sizing:border-box;"><span style="width:10px;height:10px;border-radius:50%;background:{{ visSheet.unlistedDot }};"></span></span>
+          </div>
+          <div onClick="{{ visPick_private }}" style="display:flex;align-items:center;gap:14px;padding:13px 14px;border-radius:14px;border:1px solid {{ visSheet.privateBorder }};background:{{ visSheet.privateBg }};cursor:pointer;">
+            <div style="width:40px;height:40px;border-radius:12px;background:oklch(32% 0.02 160);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(86% 0.05 160)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg></div>
+            <div style="flex:1;min-width:0;"><div style="font-size:15px;font-weight:600;color:oklch(92% 0.008 160);">Private</div><div style="font-size:12.5px;color:oklch(64% 0.012 165);margin-top:2px;line-height:1.4;">Only you. Great for personal notes and collecting ideas</div></div>
+            <span style="width:20px;height:20px;border-radius:50%;border:2px solid {{ visSheet.privateRing }};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-sizing:border-box;"><span style="width:10px;height:10px;border-radius:50%;background:{{ visSheet.privateDot }};"></span></span>
+          </div>
+          <sc-if value="{{ visSheet.canDelete }}" hint-placeholder-val="{{ false }}">
+            <div style="height:1px;background:oklch(34% 0.012 165);margin:6px 4px 2px;"></div>
+            <div onClick="{{ visDelete }}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:12px;background:{{ visSheet.delBg }};color:oklch(72% 0.15 25);font-size:14.5px;font-weight:700;cursor:pointer;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(72% 0.15 25)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 6.5h15"></path><path d="M9.5 6.5V4.5h5v2"></path><path d="M6.5 6.5l1 13h9l1-13"></path></svg>{{ visSheet.delLabel }}
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
     <sc-if value="{{ showProfileShare }}" hint-placeholder-val="{{ false }}">
       <div onClick="{{ closeProfileSheet }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;flex-direction:column;justify-content:flex-end;z-index:40;">
         <div onClick="{{ stopClick }}" style="padding:0 40px 18px;">
@@ -968,6 +1043,7 @@
         </div>
         <div onClick="{{ stopClick }}" style="width:100%;background:oklch(27% 0.012 165);border-radius:22px 22px 0 0;padding:14px 20px 34px;box-sizing:border-box;font-family:Inter,sans-serif;">
           <div style="width:36px;height:4px;border-radius:2px;background:oklch(42% 0.012 165);margin:0 auto 14px;"></div>
+          <sc-if value="{{ shareCard.unlisted }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:oklch(80% 0.05 160);margin:-2px 2px 12px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.05 160)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg>Unlisted · only people with this link can view</div></sc-if>
           <div onClick="{{ copyShareLink }}" style="display:flex;align-items:center;gap:10px;height:48px;padding:0 14px;border-radius:12px;border:1px solid oklch(34% 0.012 165);cursor:pointer;">
             <span style="flex:1;min-width:0;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:oklch(84% 0.008 160);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ shareCard.url }}</span>
             <span style="font-size:13px;font-weight:700;color:oklch(78% 0.06 160);flex-shrink:0;">Copy</span>
@@ -1132,6 +1208,7 @@ class Component extends DCLogic {
     submittedQuery: '',
     profileTab: 'mine',
     viewedHandle: null,
+    visTarget: null, visNote: '', manageFilter: 'all',
     blockedHandles: [], privateAccount: false, allowForks: true, profileSheet: null,
     userTab: 'stacks',
     navStack: [],
@@ -1267,7 +1344,7 @@ class Component extends DCLogic {
           { text: 'Museo Tamayo — then walk Chapultepec' },
           { text: 'Contramar — tuna tostadas, book ahead', link: 'https://example.com' },
         ]}],
-        likes: 31, forks: 3, saves: 14, likedByUser: false, savedByUser: false, isMine: true, forkedFromId: null,
+        likes: 31, forks: 3, saves: 14, likedByUser: false, savedByUser: false, isMine: true, forkedFromId: null, visibility: 'unlisted',
       },
       {
         id: 'm4', author: { name: 'You', handle: '@you', initials: 'Y' }, timeAgo: '3w', title: 'Podcasts for long drives', tags: ['Tech'],
@@ -1275,7 +1352,7 @@ class Component extends DCLogic {
           { text: 'Hardcore History — pick any series' },
           { text: 'Search Engine — one question per episode' },
         ]}],
-        likes: 9, forks: 0, saves: 3, likedByUser: false, savedByUser: false, isMine: true, forkedFromId: null,
+        likes: 9, forks: 0, saves: 3, likedByUser: false, savedByUser: false, isMine: true, forkedFromId: null, visibility: 'private',
       },
     ],
   };
@@ -1363,7 +1440,7 @@ class Component extends DCLogic {
       saveGlyph: l.savedByUser ? '◆' : '◇',
       saveFill: l.savedByUser ? 'oklch(78% 0.06 160)' : 'none',
       onFork: (e) => { if (e) e.stopPropagation(); this.forkFrom(l.id); },
-      onCopyLink: (e) => { if (e) e.stopPropagation(); this.setState({ shareListId: l.id }); },
+      onCopyLink: (e) => { if (e) e.stopPropagation(); this._shareOrWarn(l); },
       ...this._repostVM(l),
       likeColor: l.likedByUser ? 'oklch(78% 0.06 160)' : 'oklch(66% 0.012 165)',
       saveLabel: l.savedByUser ? 'Saved' : 'Save',
@@ -1430,6 +1507,20 @@ class Component extends DCLogic {
   blockUser(handle) {
     this.setState(s => ({ blockedHandles: [...s.blockedHandles.filter(x => x !== handle), handle], followedHandles: s.followedHandles.filter(x => x !== handle), profileSheet: null }));
     this.goBack(); this.showToast(handle + ' blocked');
+  }
+  VIS = { public: { label: 'Public', short: 'Profile, search and link' }, unlisted: { label: 'Unlisted', short: 'Anyone with the link' }, private: { label: 'Private', short: 'Only you' } };
+  _visVM(v) { v = v || 'public'; return { key: v, label: this.VIS[v].label, short: this.VIS[v].short, is_public: v === 'public', is_unlisted: v === 'unlisted', is_private: v === 'private', notPublic: v !== 'public' }; }
+  openVis(target, note) { this.setState({ visTarget: target, visNote: note || '', visDelArmed: false }); }
+  setVis(v) {
+    const t = this.state.visTarget; if (!t) return;
+    this.setState({ visDelArmed: false });
+    if (t === 'draft') this.setState(s => ({ draft: { ...s.draft, visibility: v }, visTarget: null }));
+    else this.setState(s => ({ lists: s.lists.map(l => l.id === t ? { ...l, visibility: v } : l), visTarget: null }));
+    if (t !== 'draft') this.showToast({ public: 'Now public', unlisted: 'Now unlisted · link only', private: 'Now private · only you' }[v]);
+  }
+  _shareOrWarn(l) {
+    if ((l.visibility || 'public') === 'private') { this.openVis(l.id, 'This stack is private. Make it public or unlisted to share it.'); return; }
+    this.setState({ shareListId: l.id });
   }
   logOut() { this.setState({ signedIn: false, profileSheet: null, screen: 'feed', navStack: [] }); this.showToast('Logged out'); }
   goBack() {
@@ -1522,7 +1613,7 @@ class Component extends DCLogic {
     this.setState(s => {
       const d = s.drafts.find(x => x.id === id);
       if (!d) return null;
-      return { draft: { title: d.title, description: d.description || '', tags: d.tags || [], sections: d.sections, forkedFromId: d.forkedFromId || null }, editingDraftId: id, linkInputOpen: {}, tagInput: '', screen: 'create' };
+      return { draft: { title: d.title, description: d.description || '', tags: d.tags || [], sections: d.sections, forkedFromId: d.forkedFromId || null, visibility: d.visibility || 'public' }, editingDraftId: id, linkInputOpen: {}, tagInput: '', screen: 'create' };
     });
   }
   deleteDraft(id, e) { if (e) e.stopPropagation(); this.setState(s => ({ drafts: s.drafts.filter(d => d.id !== id) })); }
@@ -1536,7 +1627,7 @@ class Component extends DCLogic {
       const sections = s.draft.sections
         .map(sec => ({ label: sec.label.trim() || null, lines: sec.lines.map(ln => ({ text: ln.text.trim(), link: (ln.link || '').trim() || undefined })).filter(ln => ln.text) }))
         .filter(sec => sec.lines.length > 0);
-      const entry = { id: s.editingDraftId || ('d' + Date.now()), title, description: (s.draft.description || '').trim(), tags: s.draft.tags || [], sections, forkedFromId: s.draft.forkedFromId || null };
+      const entry = { id: s.editingDraftId || ('d' + Date.now()), title, description: (s.draft.description || '').trim(), tags: s.draft.tags || [], sections, visibility: s.draft.visibility || 'public', forkedFromId: s.draft.forkedFromId || null };
       const drafts = s.editingDraftId ? s.drafts.map(d => d.id === s.editingDraftId ? entry : d) : [entry, ...s.drafts];
       return { drafts, draft: null, editingDraftId: null, screen: 'profile', profileTab: 'drafts' };
     });
@@ -1613,7 +1704,7 @@ class Component extends DCLogic {
       const id = 'u' + Date.now();
       const newList = {
         id, author: { name: 'You', handle: '@you', initials: 'Y' }, timeAgo: 'just now', title, description: (s.draft.description || '').trim(), tags: s.draft.tags || [],
-        sections, likes: 0, forks: 0, saves: 0, likedByUser: false, savedByUser: false, isMine: true,
+        sections, likes: 0, forks: 0, saves: 0, likedByUser: false, savedByUser: false, isMine: true, visibility: s.draft.visibility || 'public',
         forkedFromId: s.draft.forkedFromId || null,
       };
       const drafts = s.editingDraftId ? s.drafts.filter(d => d.id !== s.editingDraftId) : s.drafts;
@@ -1625,7 +1716,8 @@ class Component extends DCLogic {
     const list = s.lists.filter(l => !s.blockedHandles.includes(l.author.handle));
     const cardVM = (l) => this._cardVM(l, s.screen);
 
-    const feedCards = list.map(cardVM);
+    const isPub = (l) => (l.visibility || 'public') === 'public';
+    const feedCards = list.filter(isPub).map(cardVM);
     const followingCards = list.filter(l => s.followedHandles.includes(l.author.handle)).map(cardVM);
     s.followedHandles.forEach(hd => {
       const u = this.USERS[hd]; if (!u || !u.reposts) return;
@@ -1638,7 +1730,7 @@ class Component extends DCLogic {
     });
     const visibleFeedCards = s.feedTab === 'following' ? followingCards : feedCards;
     const sq = s.submittedQuery.trim().toLowerCase();
-    const searchResults = sq === '' ? [] : list.filter(l =>
+    const searchResults = sq === '' ? [] : list.filter(isPub).filter(l =>
       l.title.toLowerCase().includes(sq) || l.author.name.toLowerCase().includes(sq) ||
       l.author.handle.toLowerCase().includes(sq) || l.tags.some(t => t.toLowerCase().includes(sq))
     ).map(cardVM);
@@ -1726,6 +1818,7 @@ class Component extends DCLogic {
     const myRows = mineOrdered.map((l, i) => {
       const pinned = l.id === s.pinnedId;
       return {
+        visSuffix: (l.visibility || 'public') === 'public' ? '' : ' · ' + this.VIS[l.visibility].label,
         title: l.title, arrow: s.reordering ? '' : ' ↗', meta: metaFor(l),
         editing: s.reordering, showPinnedTag: pinned && !s.reordering,
         cursor: s.reordering ? 'default' : 'pointer',
@@ -1756,7 +1849,7 @@ class Component extends DCLogic {
         hasMore: flat.length > 5, more: '+ ' + (flat.length - 5) + ' more',
         likes: this._fmt(l.likes), saves: this._fmt(l.saves), forks: this._fmt(l.forks),
         onOpen: () => this.openList(l.id, 'profile'),
-        isPinned: l.id === s.pinnedId, titlePad: l.id === s.pinnedId ? '24px' : '0',
+        vis: this._visVM(l.visibility), isPinned: l.id === s.pinnedId, titlePad: l.id === s.pinnedId ? '24px' : '0',
         border: l.id === s.pinnedId ? 'oklch(42% 0.03 160)' : 'oklch(32% 0.012 165)',
       };
     }) : [];
@@ -1882,6 +1975,49 @@ class Component extends DCLogic {
       openBlocked: () => this.openScreen('blocked'),
       openEditProfileFromSettings: () => this.setState(st => ({ showEditProfile: true, socialDraft: { ...st.mySocials }, bioDraft: st.myBio })),
       noop: () => {},
+      isManage: s.screen === 'manage',
+      openManage: () => this.openScreen('manage'),
+      ...(() => {
+        const mine = s.lists.filter(l => l.isMine);
+        const by = (v) => mine.filter(l => (l.visibility || 'public') === v);
+        const counts = { all: mine.length + s.drafts.length, public: by('public').length, unlisted: by('unlisted').length, private: by('private').length, drafts: s.drafts.length };
+        const f = s.manageFilter;
+        const tabs = [['all', 'All'], ['public', 'Public'], ['unlisted', 'Unlisted'], ['private', 'Private'], ['drafts', 'Drafts']].map(([key, label]) => ({
+          label, count: String(counts[key]), onSelect: () => this.setState({ manageFilter: key }),
+          bg: f === key ? 'oklch(90% 0.008 160)' : 'transparent', color: f === key ? 'oklch(23% 0.012 165)' : 'oklch(84% 0.008 160)', border: f === key ? 'oklch(90% 0.008 160)' : 'oklch(38% 0.012 165)' }));
+        const stackRow = (l) => ({ isStack: true, isDraft: false, title: l.title, meta: this._flatten(l).length + ' lines · ' + this._fmt(l.likes) + ' likes',
+          vis: this._visVM(l.visibility), onVis: (e) => { if (e) e.stopPropagation(); this.openVis(l.id); }, onOpen: () => this.openList(l.id, 'manage'), onDelete: () => {} });
+        const draftRow = (d) => ({ isStack: false, isDraft: true, title: d.title || 'Untitled stack', meta: d.sections.reduce((n, sec) => n + sec.lines.length, 0) + ' lines · publishes as ' + this.VIS[d.visibility || 'public'].label.toLowerCase(),
+          vis: this._visVM(d.visibility), onVis: () => {}, onOpen: () => this.openDraftForEdit(d.id), onDelete: (e) => this.deleteDraft(d.id, e) });
+        const rows = f === 'drafts' ? s.drafts.map(draftRow) : f === 'all' ? [...mine.map(stackRow), ...s.drafts.map(draftRow)] : by(f).map(stackRow);
+        const hints = { all: "Everything you've made. Tap a visibility pill to change who can see a stack.", public: 'Shown on your profile, in search, and to anyone with the link.', unlisted: 'Only people with the link can view. Good for itineraries and one-off recommendations.', private: 'Only you can see these. Use them to collect ideas for yourself.', drafts: 'Unfinished stacks. Only you can see them until you publish.' };
+        return { manageTabs: tabs, manageRows: rows, manageHint: hints[f], manageEmpty: rows.length === 0, manageEmptyLabel: f === 'drafts' ? 'No drafts.' : 'No ' + (f === 'all' ? '' : f + ' ') + 'stacks yet.' };
+      })(),
+      showVisSheet: !!s.visTarget,
+      closeVis: () => this.setState({ visTarget: null, visDelArmed: false }),
+      visDelete: () => {
+        if (!s.visDelArmed) { this.setState({ visDelArmed: true }); return; }
+        const id = s.visTarget, wasOpen = s.screen === 'detail' && s.activeListId === id;
+        this.setState(st => ({ lists: st.lists.filter(l => l.id !== id), myOrder: (st.myOrder || []).filter(x => x !== id), pinnedId: st.pinnedId === id ? null : st.pinnedId, visTarget: null, visDelArmed: false }));
+        if (wasOpen) this.goBack();
+        this.showToast('Stack deleted');
+      },
+      visPick_public: () => this.setVis('public'), visPick_unlisted: () => this.setVis('unlisted'), visPick_private: () => this.setVis('private'),
+      visSheet: (() => {
+        const t = s.visTarget;
+        const cur = t === 'draft' ? (s.draft && s.draft.visibility) || 'public' : ((s.lists.find(l => l.id === t) || {}).visibility || 'public');
+        const title = t === 'draft' ? ((s.draft && s.draft.title) || 'Untitled stack') : ((s.lists.find(l => l.id === t) || {}).title || '');
+        const o = { title, note: s.visNote, canDelete: !!t && t !== 'draft', delLabel: s.visDelArmed ? 'Tap again to delete' : 'Delete stack', delBg: s.visDelArmed ? 'oklch(31% 0.03 25)' : 'transparent' };
+        ['public', 'unlisted', 'private'].forEach(k => { const on = cur === k;
+          o[k + 'Border'] = on ? 'oklch(46% 0.03 160)' : 'oklch(34% 0.012 165)'; o[k + 'Bg'] = on ? 'oklch(25% 0.014 162)' : 'transparent';
+          o[k + 'Ring'] = on ? 'oklch(78% 0.06 160)' : 'oklch(44% 0.012 165)'; o[k + 'Dot'] = on ? 'oklch(78% 0.06 160)' : 'transparent'; });
+        return o;
+      })(),
+      draftVis: this._visVM(s.draft && s.draft.visibility),
+      openDraftVis: () => this.openVis('draft'),
+      activeIsMine: !!(activeList && activeList.isMine),
+      activeVis: this._visVM(activeList && activeList.visibility),
+      openActiveVis: () => activeList && this.openVis(activeList.id),
       isSettings: s.screen === 'settings', isBlocked: s.screen === 'blocked',
       togglePrivate: () => this.setState(st => ({ privateAccount: !st.privateAccount })),
       toggleAllowForks: () => this.setState(st => ({ allowForks: !st.allowForks })),
@@ -1972,7 +2108,7 @@ class Component extends DCLogic {
 
       activeCard, activeFlat, activeLineCount: activeFlat.length,
       closeDetail: () => this.closeDetail(), startFork: () => this.startFork(),
-      shareActive: () => this.setState({ shareListId: s.activeListId }),
+      shareActive: () => activeList && this._shareOrWarn(activeList),
       showShareSheet: !!shareList,
       shareCard: (() => {
         const activeList = shareList, activeFlat = shareList ? this._flatten(shareList) : [];
@@ -1982,7 +2118,7 @@ class Component extends DCLogic {
         const slug = String(activeList.title || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
         const lines = activeFlat.slice(0, 4).map(l => ({ num: l.num, text: l.text }));
         const more = activeFlat.length - lines.length;
-        return { title: activeList.title, lines, hasMore: more > 0, moreCount: more, initials: a.initials || '', handle: '@' + user, url: 'stack.app/' + user + '/' + slug };
+        return { title: activeList.title, lines, hasMore: more > 0, moreCount: more, initials: a.initials || '', handle: '@' + user, url: 'stack.app/' + user + '/' + slug, unlisted: activeList.visibility === 'unlisted' };
       })(),
       closeShare: () => this.setState({ shareListId: null }),
       copyShareLink: () => { this.setState({ shareListId: null }); this.showToast('Link copied to clipboard'); },
