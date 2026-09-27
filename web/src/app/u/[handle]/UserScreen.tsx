@@ -1,18 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { useBack } from "@/components/AppProviders";
 import { BackIcon } from "@/components/icons";
-import SocialLinks from "@/components/SocialLinks";
 import { CompactCard, FollowButton } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
 import cards from "@/components/Cards.module.css";
-import { fmtCount, initials } from "@/lib/format";
 import { useIsFollowing } from "@/lib/store";
 import type { Profile, Stack } from "@/lib/types";
 import { useStackActions } from "@/lib/useStackActions";
-import Featured from "@/app/profile/Featured";
+import { FeaturedStack, ProfileBar, ProfileFooter, ProfileHero } from "@/app/profile/ProfileHead";
 import p from "@/app/profile/Profile.module.css";
 
 export default function UserScreen({
@@ -35,6 +32,7 @@ export default function UserScreen({
   const followers = counts.followers - (following ? 1 : 0) + (isFollowing ? 1 : 0);
   const firstName = profile.name.split(" ")[0];
   const list = tab === "stacks" ? stacks : reposts;
+  const hasContact = !!(profile.featured_link_label && profile.featured_link_url);
   const tabStyle = (t: typeof tab) => ({
     color: tab === t ? "var(--text)" : "var(--muted-56)",
     borderBottomColor: tab === t ? "var(--accent)" : "transparent",
@@ -42,39 +40,29 @@ export default function UserScreen({
 
   return (
     <main className={shell.screen}>
-      <header className={p.header} style={{ paddingTop: "calc(var(--safe-top) + 12px)" }}>
-        <button onClick={back} className={p.back}>
+      <ProfileBar handle={profile.handle}>
+        <button onClick={back} className={p.back} style={{ marginBottom: 0 }}>
           <BackIcon />
           Back
         </button>
-        <div className={p.topRow}>
-          <div className={p.avatar} style={{ fontSize: 19 }}>
-            {initials(profile.name)}
-          </div>
-          <FollowButton className={p.pillButton} following={isFollowing} onClick={() => a.toggleFollow(profile, isFollowing)} style={{ fontWeight: 700 }} />
-        </div>
-        <h1 className={p.name}>{profile.name}</h1>
-        <div className={p.handle} style={{ marginTop: 2, marginBottom: 0 }}>
-          @{profile.handle}
-        </div>
-        {profile.bio && (
-          <div className={p.bio} style={{ marginTop: 10, marginBottom: 0, color: "var(--text-2)", maxWidth: "none" }}>
-            {profile.bio}
-          </div>
-        )}
-        <SocialLinks socials={profile.socials} />
-        <div className={p.stats} style={{ margin: "14px 0 16px" }}>
-          <span>
-            <strong>{stacks.length}</strong> Stacks
-          </span>
-          <Link href={`/u/${profile.handle}/followers`} className={p.statLink}>
-            <strong>{fmtCount(followers)}</strong> Followers
-          </Link>
-          <Link href={`/u/${profile.handle}/following`} className={p.statLink}>
-            <strong>{fmtCount(counts.following)}</strong> Following
-          </Link>
-        </div>
-        <div className={p.tabs} role="tablist">
+      </ProfileBar>
+      <div className={p.scroll}>
+        <ProfileHero profile={profile} stackCount={stacks.length} followers={followers} following={counts.following}>
+          <FollowButton
+            className={p.actionButton}
+            following={isFollowing}
+            label={`Follow ${firstName}`}
+            onClick={() => a.toggleFollow(profile, isFollowing)}
+            style={isFollowing ? { borderColor: "var(--line-4)" } : undefined}
+          />
+          {hasContact && (
+            <a className={p.contact} href={profile.featured_link_url!} target="_blank" rel="noopener noreferrer nofollow">
+              <span>{profile.featured_link_label} ↗</span>
+            </a>
+          )}
+        </ProfileHero>
+        <FeaturedStack profile={profile} stacks={stacks} />
+        <div className={p.tabs} role="tablist" style={{ padding: "24px 20px 0", borderBottom: "1px solid var(--line)" }}>
           <button role="tab" aria-selected={tab === "stacks"} className={p.tab} style={tabStyle("stacks")} onClick={() => setTab("stacks")}>
             Stacks
           </button>
@@ -82,13 +70,13 @@ export default function UserScreen({
             Reposts
           </button>
         </div>
-      </header>
-      <div className={cards.userList}>
-        {tab === "stacks" && <Featured profile={profile} stacks={stacks} />}
-        {list.map((st) => (
-          <CompactCard key={st.id} stack={st} repostedBy={tab === "reposts" ? firstName : undefined} />
-        ))}
-        {list.length === 0 && <div className={cards.empty}>{tab === "reposts" ? "No reposts yet." : "No stacks yet."}</div>}
+        <div className={cards.userList} style={{ overflow: "visible" }}>
+          {list.map((st) => (
+            <CompactCard key={st.id} stack={st} repostedBy={tab === "reposts" ? firstName : undefined} />
+          ))}
+          {list.length === 0 && <div className={cards.empty}>{tab === "reposts" ? "No reposts yet." : "No stacks yet."}</div>}
+        </div>
+        <ProfileFooter />
       </div>
     </main>
   );

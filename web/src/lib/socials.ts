@@ -6,10 +6,10 @@ export const SOCIAL_FIELDS: { key: SocialKey; label: string; placeholder: string
   { key: "tiktok", label: "TikTok", placeholder: "@handle", group: "social" },
   { key: "facebook", label: "Facebook", placeholder: "username", group: "social" },
   { key: "email", label: "Email", placeholder: "you@example.com", group: "other" },
-  { key: "newsletter", label: "Newsletter", placeholder: "substack.com/you", group: "other" },
-  { key: "booking", label: "Booking", placeholder: "calendly.com/you", group: "other" },
-  { key: "shop", label: "Shop", placeholder: "yourshop.com", group: "other" },
 ];
+
+/** The custom link's type, shown as its button text. It's stored in the profile's featured_link fields. */
+export const CONTACT_TYPES = ["Newsletter", "Bookings", "Website", "Shop", "Portfolio", "Podcast"];
 
 const PROFILE_BASE: Partial<Record<SocialKey, string>> = {
   x: "https://x.com/",

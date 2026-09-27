@@ -349,7 +349,21 @@ export function GridCard({ stack, pinned = false }: { stack: Stack; pinned?: boo
   );
 }
 
-export function FollowButton({ following, onClick, small, className, style }: { following: boolean; onClick: () => void; small?: boolean; className?: string; style?: React.CSSProperties }) {
+export function FollowButton({
+  following,
+  onClick,
+  small,
+  className,
+  style,
+  label = "Follow",
+}: {
+  following: boolean;
+  onClick: () => void;
+  small?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+  label?: string;
+}) {
   return (
     <button
       className={small ? s.followSmall : className}
@@ -365,7 +379,7 @@ export function FollowButton({ following, onClick, small, className, style }: { 
         ...style,
       }}
     >
-      {following ? "Following" : "Follow"}
+      {following ? "Following" : label}
     </button>
   );
 }
