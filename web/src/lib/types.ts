@@ -43,7 +43,7 @@ export type FeedItem = Stack & { repost?: { by: Author; note: string } };
 /** A row in your own Reposts tab. */
 export type MyRepost = { stack: Stack; note: string };
 
-export type SocialKey = "x" | "instagram" | "tiktok" | "facebook" | "email" | "newsletter" | "booking" | "shop";
+export type SocialKey = "x" | "instagram" | "tiktok" | "facebook" | "youtube" | "email" | "newsletter" | "booking" | "shop";
 export type Socials = Partial<Record<SocialKey, string>>;
 
 export type Profile = {

@@ -5,6 +5,7 @@ export const SOCIAL_FIELDS: { key: SocialKey; label: string; placeholder: string
   { key: "instagram", label: "Instagram", placeholder: "@handle", group: "social" },
   { key: "tiktok", label: "TikTok", placeholder: "@handle", group: "social" },
   { key: "facebook", label: "Facebook", placeholder: "username", group: "social" },
+  { key: "youtube", label: "YouTube", placeholder: "@channel", group: "social" },
   { key: "email", label: "Email", placeholder: "you@example.com", group: "other" },
 ];
 
@@ -16,6 +17,7 @@ const PROFILE_BASE: Partial<Record<SocialKey, string>> = {
   instagram: "https://instagram.com/",
   tiktok: "https://tiktok.com/@",
   facebook: "https://facebook.com/",
+  youtube: "https://youtube.com/@",
 };
 
 /** Adds https:// to a bare domain; keeps http(s) and mailto links as they are. */
@@ -30,6 +32,8 @@ export function socialUrl(key: SocialKey, value: string | undefined) {
   const v = (value ?? "").trim();
   if (!v) return null;
   const base = PROFILE_BASE[key];
+  // YouTube channels can also be /channel/… or /c/… links, so pasted URLs are kept as they are.
+  if (key === "youtube" && /^(https?:\/\/)?(www\.|m\.)?youtube\.com\//i.test(v)) return toUrl(v);
   if (base) {
     // Accept "@name", "name" or a pasted profile URL.
     const name = v.replace(/^@/, "").replace(/^https?:\/\/[^/]+\/@?/i, "").replace(/\/+$/, "");

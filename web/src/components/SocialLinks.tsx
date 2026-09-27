@@ -30,6 +30,12 @@ const ICONS: Record<SocialKey, React.ReactNode> = {
       <path d="M14 3.5c.4 2.6 2.2 4.4 5 4.6" />
     </>
   ),
+  youtube: (
+    <>
+      <rect x="2.5" y="5.5" width="19" height="13" rx="4" />
+      <path d="M10.2 9.3v5.4l4.6-2.7z" />
+    </>
+  ),
   facebook: <path d="M14 21v-7.5h2.6l.4-3H14V8.6c0-.9.3-1.5 1.6-1.5H17V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.3H8.3v3h2.6V21" />,
   email: (
     <>
