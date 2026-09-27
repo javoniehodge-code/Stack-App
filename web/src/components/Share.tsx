@@ -2,19 +2,25 @@
 
 import { useState } from "react";
 import { flatten, initials } from "@/lib/format";
+import { useVisibility } from "@/lib/store";
 import type { Stack } from "@/lib/types";
 import { useToast } from "./AppProviders";
 import { ShareIcon } from "./icons";
+import { VisIcon } from "./Visibility";
 import sh from "./Share.module.css";
 
 const stackUrl = (id: string) => `${window.location.origin}/s/${id}`;
 
-/** The share arrow in an action row; opens the share sheet. */
-export function ShareButton({ stack, className, size = 16 }: { stack: Stack; className: string; size?: number }) {
+/**
+ * The share arrow in an action row; opens the share sheet. For your own private
+ * stack it calls `onPrivate` instead (to offer making it shareable).
+ */
+export function ShareButton({ stack, className, size = 16, onPrivate }: { stack: Stack; className: string; size?: number; onPrivate?: () => void }) {
   const [open, setOpen] = useState(false);
+  const visibility = useVisibility(stack);
   return (
     <>
-      <button className={className} onClick={() => setOpen(true)} aria-label="Share">
+      <button className={className} onClick={() => (visibility === "private" && onPrivate ? onPrivate() : setOpen(true))} aria-label="Share">
         <ShareIcon size={size} />
       </button>
       {open && <ShareSheet stack={stack} onClose={() => setOpen(false)} />}
@@ -25,6 +31,7 @@ export function ShareButton({ stack, className, size = 16 }: { stack: Stack; cla
 /** A preview card of the stack above a sheet with Copy, Save image and Share…. */
 function ShareSheet({ stack, onClose }: { stack: Stack; onClose: () => void }) {
   const toast = useToast();
+  const unlisted = useVisibility(stack) === "unlisted";
   const lines = flatten(stack);
   const shown = lines.slice(0, 4);
   const more = lines.length - shown.length;
@@ -93,6 +100,12 @@ function ShareSheet({ stack, onClose }: { stack: Stack; onClose: () => void }) {
       </div>
       <div className={sh.sheet} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Share stack">
         <div className={sh.grabber} />
+        {unlisted && (
+          <div className={sh.unlisted}>
+            <VisIcon value="unlisted" size={14} color="oklch(80% 0.05 160)" />
+            Unlisted · only people with this link can view
+          </div>
+        )}
         <button className={sh.copyRow} onClick={copy}>
           <span className={sh.copyUrl}>{shortUrl}</span>
           <span className={sh.copyLabel}>Copy</span>

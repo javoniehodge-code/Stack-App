@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import type { Stack } from "./types";
+import type { Stack, StackRow, Visibility } from "./types";
 
 // Optimistic engagement state shared across screens, so a like on the feed
 // shows up on the stack page without a refetch. Entries exist only for stacks
@@ -11,6 +11,7 @@ export type Engagement = { liked: boolean; saved: boolean; likes: number; saves:
 
 const engagement = new Map<string, Engagement>();
 const follows = new Map<string, boolean>();
+const visibility = new Map<string, Visibility>();
 const listeners = new Set<() => void>();
 let version = 0;
 
@@ -54,9 +55,30 @@ export function setFollowing(userId: string, value: boolean) {
   emit();
 }
 
+type HasVisibility = Pick<StackRow, "id" | "visibility">;
+const visibilityOf = (stack: HasVisibility): Visibility => visibility.get(stack.id) ?? stack.visibility ?? "public";
+
+/** A stack's visibility, including changes made in this session. */
+export function useVisibility(stack: HasVisibility): Visibility {
+  useSyncExternalStore(subscribe, getVersion, getVersion);
+  return visibilityOf(stack);
+}
+
+/** Same as useVisibility, for a list of stacks. */
+export function useVisibilityLookup() {
+  useSyncExternalStore(subscribe, getVersion, getVersion);
+  return visibilityOf;
+}
+
+export function setVisibility(id: string, v: Visibility) {
+  visibility.set(id, v);
+  emit();
+}
+
 /** Called when the viewer changes; server data is refetched afterwards. */
 export function resetStore() {
   engagement.clear();
   follows.clear();
+  visibility.clear();
   emit();
 }

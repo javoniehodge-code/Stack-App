@@ -28,6 +28,18 @@ export async function fetchProfile(sb: SupabaseClient, column: "id" | "handle", 
 
 export const PAGE_SIZE = 12;
 
+type Result = { data: unknown; error: { code?: string } | null };
+
+/**
+ * Runs a stacks query limited to public stacks (unlisted and private ones stay
+ * out of feeds and other people's profiles). Before the stack_visibility
+ * migration there is no visibility column, so it runs without the filter.
+ */
+export async function publicOnly<R extends Result>(run: (publicOnly: boolean) => PromiseLike<R>): Promise<R> {
+  const r = await run(true);
+  return r.error?.code === "42703" ? run(false) : r;
+}
+
 function orderComments(rows: StackRow[]) {
   for (const r of rows) r.comments?.sort((a, b) => a.created_at.localeCompare(b.created_at));
   return rows;
@@ -55,16 +67,20 @@ export async function fetchFeed(sb: SupabaseClient, viewerId: string | null, opt
     const items = await fetchFollowingFeed(sb, viewerId, opts.page);
     if (items) return items;
   }
-  let q = sb.from("stacks").select(STACK_WITH_COMMENTS).eq("status", "published");
+  let ids: string[] | null = null;
   if (opts.following) {
     if (!viewerId) return [];
     const { data: f } = await sb.from("follows").select("followee_id").eq("follower_id", viewerId);
-    const ids = (f ?? []).map((r) => r.followee_id as string);
+    ids = (f ?? []).map((r) => r.followee_id as string);
     if (ids.length === 0) return [];
-    q = q.in("author_id", ids);
   }
   const from = opts.page * PAGE_SIZE;
-  const { data, error } = await q.order("published_at", { ascending: false }).range(from, from + PAGE_SIZE - 1);
+  const { data, error } = await publicOnly((pub) => {
+    let q = sb.from("stacks").select(STACK_WITH_COMMENTS).eq("status", "published");
+    if (pub) q = q.eq("visibility", "public");
+    if (ids) q = q.in("author_id", ids);
+    return q.order("published_at", { ascending: false }).range(from, from + PAGE_SIZE - 1);
+  });
   if (error) throw error;
   return withViewerState(sb, viewerId, (data ?? []) as unknown as StackRow[]);
 }
@@ -141,13 +157,21 @@ export async function fetchFollowList(sb: SupabaseClient, userId: string, kind: 
   return ((data ?? []) as unknown as { person: FollowPerson | null }[]).map((r) => r.person).filter((x): x is FollowPerson => !!x);
 }
 
+/** An author's published stacks in profile order: all of them for the author, public ones for everyone else. */
 export async function fetchAuthorStacks(sb: SupabaseClient, viewerId: string | null, authorId: string) {
-  const query = () => sb.from("stacks").select(STACK_SELECT).eq("author_id", authorId).eq("status", "published");
-  const ordered = await query()
-    .order("profile_position", { ascending: true, nullsFirst: true })
-    .order("published_at", { ascending: false });
-  // Before the profile_featured migration there is no profile_position column.
-  const { data } = ordered.error ? await query().order("published_at", { ascending: false }) : ordered;
+  const own = viewerId === authorId;
+  const query = (pub: boolean) => {
+    const q = sb.from("stacks").select(STACK_SELECT).eq("author_id", authorId).eq("status", "published");
+    return pub ? q.eq("visibility", "public") : q;
+  };
+  const run = async (pub: boolean) => {
+    const ordered = await query(pub)
+      .order("profile_position", { ascending: true, nullsFirst: true })
+      .order("published_at", { ascending: false });
+    // Before the profile_featured migration there is no profile_position column.
+    return ordered.error ? await query(pub).order("published_at", { ascending: false }) : ordered;
+  };
+  const { data } = own ? await run(false) : await publicOnly(run);
   return withViewerState(sb, viewerId, (data ?? []) as unknown as StackRow[]);
 }
 

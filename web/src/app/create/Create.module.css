@@ -72,6 +72,31 @@
   border-bottom-color: var(--accent);
 }
 
+.visRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: -8px 0 24px;
+}
+
+.visLabel {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted-60);
+}
+
+.visShort {
+  flex: 1;
+  min-width: 0;
+  font-size: 11.5px;
+  color: var(--muted-60);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .descCount {
   font-size: 10.5px;
   text-align: right;

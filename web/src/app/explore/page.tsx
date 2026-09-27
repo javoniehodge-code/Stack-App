@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { CATEGORY_DOTS, DEFAULT_DOT, EXPLORE_CATS } from "@/lib/format";
-import { STACK_SELECT, fetchCategoriesFor, fetchFollowing, searchStacks, withViewerState } from "@/lib/queries";
+import { STACK_SELECT, fetchCategoriesFor, fetchFollowing, publicOnly, searchStacks, withViewerState } from "@/lib/queries";
 import { createClient, getViewerId } from "@/lib/supabase/server";
 import type { StackRow } from "@/lib/types";
 import ExploreScreen from "./ExploreScreen";
@@ -13,11 +13,17 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
   const sb = await createClient();
   const viewerId = await getViewerId(sb);
 
-  let trendingQ = sb.from("stacks").select(STACK_SELECT).eq("status", "published");
-  if (viewerId) trendingQ = trendingQ.neq("author_id", viewerId);
+  // Public stacks only (unlisted and private ones stay out of Explore).
+  const published = (pub: boolean) => {
+    const q = sb.from("stacks").select(STACK_SELECT).eq("status", "published");
+    return pub ? q.eq("visibility", "public") : q;
+  };
   const [trendingRes, recentRes, catsRes, results, following] = await Promise.all([
-    trendingQ.order("likes_count", { ascending: false }).limit(4),
-    sb.from("stacks").select(STACK_SELECT).eq("status", "published").order("published_at", { ascending: false }).limit(4),
+    publicOnly((pub) => {
+      const q = published(pub);
+      return (viewerId ? q.neq("author_id", viewerId) : q).order("likes_count", { ascending: false }).limit(4);
+    }),
+    publicOnly((pub) => published(pub).order("published_at", { ascending: false }).limit(4)),
     sb.rpc("explore_categories", { cats: EXPLORE_CATS }),
     query ? searchStacks(sb, viewerId, query) : Promise.resolve(null),
     query ? fetchFollowing(sb, viewerId) : Promise.resolve([] as string[]),
