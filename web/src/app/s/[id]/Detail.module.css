@@ -107,7 +107,15 @@
 .count {
   font-size: 12px;
   color: var(--muted-66);
+}
+
+.countRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   margin-top: 6px;
+  min-height: 30px;
 }
 
 .body {

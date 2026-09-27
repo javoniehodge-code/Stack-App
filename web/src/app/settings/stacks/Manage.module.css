@@ -1,0 +1,107 @@
+.tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 0 14px;
+  scrollbar-width: none;
+}
+
+.tab {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 13px;
+  border-radius: 999px;
+  border: 1px solid oklch(38% 0.012 165);
+  color: var(--text-2);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.tabOn {
+  background: oklch(90% 0.008 160);
+  border-color: oklch(90% 0.008 160);
+  color: var(--bg);
+}
+
+.tabCount {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  opacity: 0.75;
+}
+
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 16px calc(30px + var(--safe-bottom));
+}
+
+.hint {
+  font-size: 12.5px;
+  color: var(--muted-66);
+  line-height: 1.5;
+  padding: 14px 4px 6px;
+  text-wrap: pretty;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 4px;
+  border-bottom: 1px solid oklch(30% 0.012 165);
+  cursor: pointer;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: oklch(92% 0.008 160);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta {
+  font-size: 12px;
+  color: var(--muted-62);
+  margin-top: 3px;
+}
+
+.draftSide {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.draftTag {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: oklch(76% 0.02 160);
+  border: 1px solid oklch(38% 0.012 165);
+  padding: 3px 7px;
+  border-radius: 5px;
+}
+
+.draftDelete {
+  font-size: 12px;
+  color: var(--muted-66);
+}
+
+.empty {
+  padding: 50px 20px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--muted-66);
+}

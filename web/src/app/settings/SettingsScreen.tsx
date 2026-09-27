@@ -54,6 +54,10 @@ export default function SettingsScreen() {
         </div>
         <div className={s.section}>Privacy</div>
         <div className={s.group}>
+          <Link href="/settings/stacks" className={s.row}>
+            <span className={s.rowLabel}>Manage stack visibility</span>
+            <Chevron />
+          </Link>
           <Link href="/settings/blocked" className={s.row}>
             <span className={s.rowLabel}>Blocked accounts</span>
             {!!blocked && <span className={s.rowValue}>{blocked}</span>}

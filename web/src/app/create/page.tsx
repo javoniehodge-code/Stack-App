@@ -13,6 +13,7 @@ const blank = (): Draft => ({
   tags: [],
   style: "numbered",
   forkedFromId: null,
+  visibility: "public",
 });
 
 const toDraftSections = (sections: Section[]) =>
@@ -27,7 +28,7 @@ export default async function CreatePage({ searchParams }: PageProps<"/create">)
     const { data } = await sb.rpc("fork_template", { p_id: fork });
     const t = data as { id: string; title: string; description?: string; sections: Section[]; tags: string[]; style: Draft["style"] } | null;
     if (t) {
-      initial = { id: null, title: `${t.title} (remix)`.slice(0, 120), description: t.description ?? "", sections: toDraftSections(t.sections), tags: t.tags, style: t.style, forkedFromId: t.id };
+      initial = { id: null, title: `${t.title} (remix)`.slice(0, 120), description: t.description ?? "", sections: toDraftSections(t.sections), tags: t.tags, style: t.style, forkedFromId: t.id, visibility: "public" };
     }
   } else if (typeof draft === "string") {
     const viewerId = await getViewerId(sb);
@@ -46,6 +47,7 @@ export default async function CreatePage({ searchParams }: PageProps<"/create">)
           tags: (tags ?? []).map((t) => t.tag as string),
           style: d.style,
           forkedFromId: d.forked_from_id,
+          visibility: d.visibility ?? "public",
         };
       }
     }

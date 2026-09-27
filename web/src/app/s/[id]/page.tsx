@@ -14,6 +14,8 @@ export async function generateMetadata({ params }: PageProps<"/s/[id]">): Promis
     title: stack.title,
     description: `${stack.line_count} lines by @${stack.author.handle}${first ? ` — ${first}` : ""}`,
     openGraph: { title: stack.title, description: first, type: "article" },
+    // Unlisted stacks open from their link but stay out of search engines.
+    ...(stack.visibility && stack.visibility !== "public" ? { robots: { index: false } } : {}),
   };
 }
 

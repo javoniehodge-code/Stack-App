@@ -1,18 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth, useBack, useToast } from "@/components/AppProviders";
 import CommentBody from "@/components/CommentBody";
 import { BackIcon, BookmarkIcon, ForkIcon } from "@/components/icons";
 import { RepostButton } from "@/components/Repost";
 import { ShareButton } from "@/components/Share";
+import { useVisibilityEditor, VisibilityPill } from "@/components/Visibility";
 import { MentionList, useMentions } from "@/components/Mentions";
 import { FollowButton } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
 import { postComment, thread, threadRoot } from "@/lib/comments";
 import { flatten, fmtCount, initials, timeAgo } from "@/lib/format";
-import { useEngagement, useIsFollowing } from "@/lib/store";
+import { useEngagement, useIsFollowing, useVisibility } from "@/lib/store";
 import { createClient } from "@/lib/supabase/client";
 import type { Comment, Stack } from "@/lib/types";
 import { useStackActions } from "@/lib/useStackActions";
@@ -35,6 +37,12 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
   const mentions = useMentions(draft, setDraft);
   const [deleting, setDeleting] = useState(false);
   const mine = viewer?.id === stack.author.id;
+  const router = useRouter();
+  const visibility = useVisibility(stack);
+  const vis = useVisibilityEditor(() => {
+    router.replace("/profile");
+    router.refresh();
+  });
 
   // Arriving from a comment notification (#comment-<id>): scroll to it and highlight it briefly.
   useEffect(() => {
@@ -158,7 +166,10 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
         </div>
         <h1 className={s.title}>{stack.title}</h1>
         {stack.description && <p className={s.description}>{stack.description}</p>}
-        <div className={s.count}>{lines.length} lines</div>
+        <div className={s.countRow}>
+          <span className={s.count}>{lines.length} lines</span>
+          {mine && <VisibilityPill value={visibility} onClick={() => vis.open(stack)} />}
+        </div>
       </header>
 
       <div className={s.body}>
@@ -228,8 +239,14 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
         </button>
         <RepostButton stack={stack} className={s.action} size={15} count={fmtCount} />
         <span style={{ flex: 1 }} />
-        <ShareButton stack={stack} className={s.action} size={17} />
+        <ShareButton
+          stack={stack}
+          className={s.action}
+          size={17}
+          onPrivate={mine ? () => vis.open(stack, "This stack is private. Make it public or unlisted to share it.") : undefined}
+        />
       </div>
+      {vis.sheet}
       {deleting && <DeleteStackSheet stackId={stack.id} title={stack.title} onClose={() => setDeleting(false)} />}
     </main>
   );

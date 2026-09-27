@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth, useToast } from "@/components/AppProviders";
 import shell from "@/components/AppShell.module.css";
+import { VIS, VisibilityPill, VisibilitySheet } from "@/components/Visibility";
 import { MAX_DESCRIPTION, MAX_LINE, MAX_TITLE, TAG_SUGGESTIONS } from "@/lib/format";
 import { createClient } from "@/lib/supabase/client";
 import type { Draft, DraftLine, DraftSection } from "@/lib/types";
@@ -20,6 +21,7 @@ export default function CreateScreen({ initial }: { initial: Draft }) {
   const [draft, setDraft] = useState<Draft>(initial);
   const [tagInput, setTagInput] = useState("");
   const [saving, setSaving] = useState(false);
+  const [visOpen, setVisOpen] = useState(false);
 
   const setSections = (fn: (secs: DraftSection[]) => DraftSection[]) => setDraft((d) => ({ ...d, sections: fn(d.sections) }));
   const setLine = (si: number, li: number, patch: Partial<DraftLine>) =>
@@ -56,9 +58,20 @@ export default function CreateScreen({ initial }: { initial: Draft }) {
       p_style: draft.style,
     };
     const sb = createClient();
-    let { error } = await sb.rpc("save_stack", { ...args, p_description: draft.description.trim() });
-    // Before the stack_description migration runs, save_stack has no p_description.
-    if (error?.code === "PGRST202") ({ error } = await sb.rpc("save_stack", args));
+    const withDescription = { ...args, p_description: draft.description.trim() };
+    let { error } = await sb.rpc("save_stack", { ...withDescription, p_visibility: draft.visibility });
+    // Before the stack_visibility migration runs, save_stack has no p_visibility
+    // (and before stack_description, no p_description). Everything is public then,
+    // so only fall back when that's what was picked.
+    if (error?.code === "PGRST202") {
+      if (draft.visibility !== "public") {
+        setSaving(false);
+        toast("Unlisted and private stacks aren't available yet. Choose Public for now.");
+        return;
+      }
+      ({ error } = await sb.rpc("save_stack", withDescription));
+      if (error?.code === "PGRST202") ({ error } = await sb.rpc("save_stack", args));
+    }
     setSaving(false);
     if (error) {
       toast(error.message.includes("sign in") ? "Sign in to continue." : `Couldn't save: ${error.message}`);
@@ -146,6 +159,12 @@ export default function CreateScreen({ initial }: { initial: Draft }) {
           <div className={s.descCount} style={{ color: draft.description.length >= MAX_DESCRIPTION - 30 ? "oklch(76% 0.08 45)" : "var(--muted-56)" }} aria-live="polite">
             {draft.description.length} / {MAX_DESCRIPTION}
           </div>
+        </div>
+
+        <div className={s.visRow}>
+          <span className={s.visLabel}>Visibility</span>
+          <VisibilityPill value={draft.visibility} onClick={() => setVisOpen(true)} />
+          <span className={s.visShort}>{VIS[draft.visibility].short}</span>
         </div>
 
         {draft.sections.map((sec, si) => (
@@ -299,6 +318,17 @@ export default function CreateScreen({ initial }: { initial: Draft }) {
           )}
         </div>
       </div>
+      {visOpen && (
+        <VisibilitySheet
+          title={draft.title.trim() || "Untitled stack"}
+          value={draft.visibility}
+          onPick={(v) => {
+            setDraft((d) => ({ ...d, visibility: v }));
+            setVisOpen(false);
+          }}
+          onClose={() => setVisOpen(false)}
+        />
+      )}
     </main>
   );
 }

@@ -1,11 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useAuth, useToast } from "@/components/AppProviders";
 import sheet from "@/components/Sheet.module.css";
 import { GridCard } from "@/components/StackCards";
+import { VIS } from "@/components/Visibility";
 import { plural, timeAgo } from "@/lib/format";
 import { fetchProfile } from "@/lib/queries";
+import { useVisibility } from "@/lib/store";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile, Stack } from "@/lib/types";
 import Featured from "./Featured";
@@ -80,9 +83,14 @@ export default function MyStacks({ profile, stacks }: { profile: Profile; stacks
           All stacks
         </span>
         {rows.length > 0 && (
-          <button className={m.reorder} style={{ color: reordering ? "var(--accent)" : "var(--muted-66)" }} onClick={() => setReordering((r) => !r)}>
-            {reordering ? "Done" : "Reorder"}
-          </button>
+          <div className={m.headLinks}>
+            <Link href="/settings/stacks" className={m.reorder} style={{ color: "var(--accent)" }}>
+              Manage
+            </Link>
+            <button className={m.reorder} style={{ color: reordering ? "var(--accent)" : "var(--muted-66)" }} onClick={() => setReordering((r) => !r)}>
+              {reordering ? "Done" : "Reorder"}
+            </button>
+          </div>
         )}
       </div>
       {!reordering && rows.length > 0 && (
@@ -99,7 +107,10 @@ export default function MyStacks({ profile, stacks }: { profile: Profile; stacks
             <div key={st.id} className={m.row}>
               <div className={m.rowMain}>
                 <div className={m.rowTitle}>{st.title}</div>
-                <div className={m.rowMeta}>{meta(st)}</div>
+                <div className={m.rowMeta}>
+                  {meta(st)}
+                  <VisSuffix stack={st} />
+                </div>
               </div>
               <div className={m.controls}>
                 <button
@@ -175,4 +186,10 @@ export default function MyStacks({ profile, stacks }: { profile: Profile; stacks
       )}
     </div>
   );
+}
+
+/** " · Unlisted" / " · Private" after a row's meta line. */
+function VisSuffix({ stack }: { stack: Stack }) {
+  const v = useVisibility(stack);
+  return v === "public" ? null : <span className={m.visSuffix}> · {VIS[v].label}</span>;
 }

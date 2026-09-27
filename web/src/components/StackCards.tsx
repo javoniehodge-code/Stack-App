@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { postComment, thread, threadRoot } from "@/lib/comments";
 import { flatten, fmtCount, initials, plural, timeAgo } from "@/lib/format";
-import { useEngagement, useIsFollowing } from "@/lib/store";
+import { useEngagement, useIsFollowing, useVisibility } from "@/lib/store";
 import type { Comment, FeedItem, Stack } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 import { useStackActions } from "@/lib/useStackActions";
@@ -15,6 +15,7 @@ import { BookmarkIcon, ForkIcon, RepostIcon } from "./icons";
 import { MentionList, useMentions } from "./Mentions";
 import { RepostButton, RepostGlyph } from "./Repost";
 import { ShareButton } from "./Share";
+import { VisibilityBadge } from "./Visibility";
 import s from "./Cards.module.css";
 
 const stop = (e: React.SyntheticEvent) => e.stopPropagation();
@@ -334,9 +335,11 @@ export function ListCard({ stack, following = false }: { stack: Stack; following
 }
 
 /** Your own profile's two-column grid tile: title, first 5 lines, counts, and a pin badge when featured. */
+/** Your own profile's compact card; unlisted and private stacks get a tag. */
 export function GridCard({ stack, pinned = false }: { stack: Stack; pinned?: boolean }) {
   const open = useOpen(stack.id);
   const e = useEngagement(stack);
+  const visibility = useVisibility(stack);
   const lines = flatten(stack);
   return (
     <div className={`${s.gridCard} ${pinned ? s.gridCardPinned : ""}`} {...open}>
@@ -372,6 +375,7 @@ export function GridCard({ stack, pinned = false }: { stack: Stack; pinned?: boo
           <ForkIcon size={11} width={2.2} />
           {fmtCount(stack.forks_count)}
         </span>
+        <VisibilityBadge value={visibility} />
       </div>
     </div>
   );

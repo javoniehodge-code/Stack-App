@@ -3,8 +3,8 @@
 import { useBack } from "@/components/AppProviders";
 import s from "./Settings.module.css";
 
-/** Back chevron and a centered title, like the design's settings screens. */
-export default function SettingsHeader({ title }: { title: string }) {
+/** Back chevron and a centered title, like the design's settings screens, plus anything below it (tabs). */
+export default function SettingsHeader({ title, children }: { title: string; children?: React.ReactNode }) {
   const back = useBack();
   return (
     <header className={s.header}>
@@ -17,6 +17,7 @@ export default function SettingsHeader({ title }: { title: string }) {
         <h1 className={s.title}>{title}</h1>
         <span />
       </div>
+      {children}
     </header>
   );
 }

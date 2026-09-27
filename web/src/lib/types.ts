@@ -12,6 +12,9 @@ export type Comment = {
   author: { handle: string } | null;
 };
 
+/** Who can see a stack: everyone, people with the link, or only the author. */
+export type Visibility = "public" | "unlisted" | "private";
+
 export type StackRow = {
   id: string;
   title: string;
@@ -28,6 +31,8 @@ export type StackRow = {
   comments_count: number;
   /** Missing until the reposts migration has run. */
   reposts_count?: number;
+  /** Missing until the stack_visibility migration has run (everything is public then). */
+  visibility?: Visibility;
   created_at: string;
   published_at: string | null;
   author: Author;
@@ -69,4 +74,5 @@ export type Draft = {
   tags: string[];
   style: "numbered" | "bulleted";
   forkedFromId: string | null;
+  visibility: Visibility;
 };

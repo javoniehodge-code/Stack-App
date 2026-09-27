@@ -1,0 +1,139 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useAuth, useToast } from "@/components/AppProviders";
+import shell from "@/components/AppShell.module.css";
+import { VIS, VisibilityPill, useVisibilityEditor } from "@/components/Visibility";
+import { fmtCount, plural } from "@/lib/format";
+import { useVisibilityLookup } from "@/lib/store";
+import { createClient } from "@/lib/supabase/client";
+import type { Stack, StackRow, Visibility } from "@/lib/types";
+import p from "../../profile/Profile.module.css";
+import SettingsHeader from "../SettingsHeader";
+import s from "./Manage.module.css";
+
+type Filter = "all" | Visibility | "drafts";
+
+const TABS: [Filter, string][] = [
+  ["all", "All"],
+  ["public", "Public"],
+  ["unlisted", "Unlisted"],
+  ["private", "Private"],
+  ["drafts", "Drafts"],
+];
+
+const HINTS: Record<Filter, string> = {
+  all: "Everything you've made. Tap a visibility pill to change who can see a stack.",
+  public: "Shown on your profile, in search, and to anyone with the link.",
+  unlisted: "Only people with the link can view. Good for itineraries and one-off recommendations.",
+  private: "Only you can see these. Use them to collect ideas for yourself.",
+  drafts: "Unfinished stacks. Only you can see them until you publish.",
+};
+
+/** Your stacks and drafts, filtered by who can see them, with a visibility pill on each. */
+export default function ManageScreen({ data }: { data: { stacks: Stack[]; drafts: StackRow[] } | null }) {
+  const router = useRouter();
+  const toast = useToast();
+  const { requireAuth } = useAuth();
+  const visOf = useVisibilityLookup();
+  const [filter, setFilter] = useState<Filter>("all");
+  const [removed, setRemoved] = useState<Set<string>>(() => new Set());
+  const vis = useVisibilityEditor((id) => {
+    setRemoved((r) => new Set(r).add(id));
+    router.refresh();
+  });
+
+  if (!data) {
+    return (
+      <main className={`${shell.screen} ${p.gate}`}>
+        <h1 className={p.gateTitle}>Sign in to manage your stacks</h1>
+        <button className={p.gateButton} onClick={() => requireAuth(null, "Sign in to manage your stacks.")}>
+          Sign in / Create account
+        </button>
+      </main>
+    );
+  }
+
+  const stacks = data.stacks.filter((st) => !removed.has(st.id));
+  const drafts = data.drafts.filter((d) => !removed.has(d.id));
+  const by = (v: Visibility) => stacks.filter((st) => visOf(st) === v);
+  const counts: Record<Filter, number> = {
+    all: stacks.length + drafts.length,
+    public: by("public").length,
+    unlisted: by("unlisted").length,
+    private: by("private").length,
+    drafts: drafts.length,
+  };
+  const shownStacks = filter === "drafts" ? [] : filter === "all" ? stacks : by(filter);
+  const shownDrafts = filter === "all" || filter === "drafts" ? drafts : [];
+  const empty = shownStacks.length + shownDrafts.length === 0;
+
+  async function deleteDraft(id: string) {
+    setRemoved((r) => new Set(r).add(id));
+    const { error } = await createClient().from("stacks").delete().eq("id", id);
+    if (error) {
+      setRemoved((r) => {
+        const next = new Set(r);
+        next.delete(id);
+        return next;
+      });
+      toast("Couldn't delete the draft.");
+    } else router.refresh();
+  }
+
+  const go = (href: string) => () => router.push(href);
+
+  return (
+    <main className={shell.screen}>
+      <SettingsHeader title="Manage stacks">
+        <div className={s.tabs} role="tablist">
+          {TABS.map(([key, label]) => (
+            <button key={key} role="tab" aria-selected={filter === key} className={`${s.tab} ${filter === key ? s.tabOn : ""}`} onClick={() => setFilter(key)}>
+              {label}
+              <span className={s.tabCount}>{counts[key]}</span>
+            </button>
+          ))}
+        </div>
+      </SettingsHeader>
+      <div className={s.scroll}>
+        <div className={s.hint}>{HINTS[filter]}</div>
+        {shownStacks.map((st) => (
+          <div key={st.id} className={s.row} role="link" tabIndex={0} onClick={go(`/s/${st.id}`)} onKeyDown={(e) => e.target === e.currentTarget && e.key === "Enter" && go(`/s/${st.id}`)()}>
+            <div className={s.main}>
+              <div className={s.title}>{st.title}</div>
+              <div className={s.meta}>
+                {plural(st.line_count, "line")} · {fmtCount(st.likes_count)} likes
+              </div>
+            </div>
+            <VisibilityPill value={visOf(st)} onClick={() => vis.open(st)} />
+          </div>
+        ))}
+        {shownDrafts.map((d) => (
+          <div key={d.id} className={s.row} role="link" tabIndex={0} onClick={go(`/create?draft=${d.id}`)} onKeyDown={(e) => e.target === e.currentTarget && e.key === "Enter" && go(`/create?draft=${d.id}`)()}>
+            <div className={s.main}>
+              <div className={s.title}>{d.title || "Untitled stack"}</div>
+              <div className={s.meta}>
+                {plural(d.line_count, "line")} · publishes as {VIS[d.visibility ?? "public"].label.toLowerCase()}
+              </div>
+            </div>
+            <div className={s.draftSide}>
+              <span className={s.draftTag}>DRAFT</span>
+              <button
+                className={s.draftDelete}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteDraft(d.id);
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+        {empty && <div className={s.empty}>{filter === "drafts" ? "No drafts." : `No ${filter === "all" ? "" : `${filter} `}stacks yet.`}</div>}
+      </div>
+      {vis.sheet}
+    </main>
+  );
+}
