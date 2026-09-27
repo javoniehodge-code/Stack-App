@@ -10,7 +10,7 @@ import f from "./Featured.module.css";
 import p from "./Profile.module.css";
 
 /** The fixed bar above a profile: a wordmark or Back on the left, Share profile on the right. */
-export function ProfileBar({ handle, children }: { handle: string; children: React.ReactNode }) {
+export function ProfileBar({ handle, children, more }: { handle: string; children: React.ReactNode; more?: () => void }) {
   const toast = useToast();
   async function share() {
     try {
@@ -24,9 +24,20 @@ export function ProfileBar({ handle, children }: { handle: string; children: Rea
     <header className={p.bar}>
       <div className={p.barRow}>
         {children}
-        <button className={p.share} onClick={share}>
-          ↗ Share profile
-        </button>
+        <span className={p.barActions}>
+          <button className={p.share} onClick={share}>
+            ↗ Share profile
+          </button>
+          {more && (
+            <button className={p.more} onClick={more} aria-label="More options" title="More options">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--muted-72)" aria-hidden>
+                <circle cx="5" cy="12" r="1.8" />
+                <circle cx="12" cy="12" r="1.8" />
+                <circle cx="19" cy="12" r="1.8" />
+              </svg>
+            </button>
+          )}
+        </span>
       </div>
     </header>
   );
