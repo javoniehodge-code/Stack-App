@@ -1,0 +1,145 @@
+.barButton {
+  width: 40px;
+  height: 40px;
+  margin-right: -8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview {
+  padding: 0 40px 18px;
+}
+
+.cardBody {
+  padding: 22px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+  font-size: 19px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.name {
+  font-weight: 800;
+  font-size: 18px;
+  color: oklch(92% 0.008 160);
+  margin-top: 10px;
+  letter-spacing: -0.2px;
+  overflow-wrap: anywhere;
+}
+
+.handle {
+  font-size: 12.5px;
+  color: var(--muted-66);
+  margin-top: 2px;
+}
+
+.bio {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.5;
+  margin-top: 10px;
+  max-width: 250px;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sheet {
+  padding: 14px 16px calc(30px + var(--safe-bottom));
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2);
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-around;
+}
+
+.blockRow {
+  display: flex;
+  padding-left: 8px;
+}
+
+.action {
+  width: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+
+.actionIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: oklch(33% 0.012 165);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionIconDanger {
+  background: oklch(31% 0.03 25);
+}
+
+.actionLabel {
+  font-size: 11.5px;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.25;
+}
+
+.rule {
+  height: 1px;
+  background: var(--line-2);
+  margin: 16px 4px 6px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  height: 54px;
+  padding: 0 6px;
+  text-align: left;
+}
+
+.rowDivided {
+  border-top: 1px solid oklch(33% 0.012 165);
+}
+
+.rowLabel {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  color: oklch(92% 0.008 160);
+}
+
+.danger {
+  color: var(--danger);
+}

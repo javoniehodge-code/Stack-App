@@ -46,39 +46,18 @@ function ShareSheet({ stack, onClose }: { stack: Stack; onClose: () => void }) {
   }
 
   async function share() {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: stack.title, text: `${stack.title} · curated by @${stack.author.handle} on Stack`, url });
-        onClose();
-      } catch (e) {
-        // Closing the system share sheet isn't an error.
-        if ((e as Error).name !== "AbortError") toast("Couldn't open sharing");
-      }
-      return;
-    }
-    copy();
+    const r = await systemShare({ title: stack.title, text: `${stack.title} · curated by @${stack.author.handle} on Stack`, url });
+    if (r === "unsupported") copy();
+    else if (r === "failed") toast("Couldn't open sharing");
+    else if (r === "shared") onClose();
   }
 
   async function saveImage() {
     try {
-      const blob = await renderCard(stack, shortUrl);
-      const file = new File([blob], `${slug(stack.title) || "stack"}.png`, { type: "image/png" });
-      // Phones: hand the image to the share sheet so it can go to Photos. Desktop: download it.
-      if (navigator.canShare?.({ files: [file] })) {
-        try {
-          await navigator.share({ files: [file] });
-          onClose();
-        } catch (e) {
-          if ((e as Error).name !== "AbortError") toast("Couldn't save the image");
-        }
-        return;
-      }
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = file.name;
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-      done("Image saved");
+      const r = await saveImageFile(await renderCard(stack, shortUrl), `${slug(stack.title) || "stack"}.png`);
+      if (r === "downloaded") done("Image saved");
+      else if (r === "shared") onClose();
+      else if (r === "failed") toast("Couldn't save the image");
     } catch {
       toast("Couldn't save the image");
     }
@@ -129,6 +108,31 @@ function ShareSheet({ stack, onClose }: { stack: Stack; onClose: () => void }) {
       </div>
     </div>
   );
+}
+
+type ShareResult = "shared" | "cancelled" | "failed" | "unsupported";
+
+/** Opens the system share sheet. Closing it isn't an error. */
+export async function systemShare(data: ShareData): Promise<ShareResult> {
+  if (!navigator.share) return "unsupported";
+  try {
+    await navigator.share(data);
+    return "shared";
+  } catch (e) {
+    return (e as Error).name === "AbortError" ? "cancelled" : "failed";
+  }
+}
+
+/** Phones: hand the image to the share sheet so it can go to Photos. Desktop: download it. */
+export async function saveImageFile(blob: Blob, name: string): Promise<ShareResult | "downloaded"> {
+  const file = new File([blob], name, { type: "image/png" });
+  if (navigator.canShare?.({ files: [file] })) return systemShare({ files: [file] });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  return "downloaded";
 }
 
 const slug = (t: string) =>
@@ -234,7 +238,7 @@ async function renderCard(stack: Stack, shortUrl: string): Promise<Blob> {
   return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png"));
 }
 
-function roundRect(c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+export function roundRect(c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   c.beginPath();
   c.moveTo(x + r, y);
   c.arcTo(x + w, y, x + w, y + h, r);
@@ -244,14 +248,14 @@ function roundRect(c: CanvasRenderingContext2D, x: number, y: number, w: number,
   c.closePath();
 }
 
-function ellipsize(c: CanvasRenderingContext2D, text: string, max: number) {
+export function ellipsize(c: CanvasRenderingContext2D, text: string, max: number) {
   if (c.measureText(text).width <= max) return text;
   let t = text;
   while (t.length > 1 && c.measureText(t + "…").width > max) t = t.slice(0, -1);
   return t.trimEnd() + "…";
 }
 
-function wrap(c: CanvasRenderingContext2D, text: string, max: number) {
+export function wrap(c: CanvasRenderingContext2D, text: string, max: number) {
   const out: string[] = [];
   let line = "";
   for (const word of text.split(/\s+/)) {
