@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap">
+  <style>body{margin:0;background:oklch(78% 0.03 75);}*{box-sizing:border-box;}a{color:oklch(78% 0.06 160);}a:hover{color:oklch(86% 0.05 160);}</style>
+</helmet>
+<div style="min-height:100vh;padding:32px;font-family:Inter,sans-serif;background:oklch(78% 0.03 75);display:flex;flex-direction:column;align-items:center;gap:16px;overflow-x:auto;min-width:1344px;">
+  <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;background:#20201c;color:#fff;padding:3px 8px;border-radius:5px;">Desktop concept · public profile</span>
+
+  <div style="width:1280px;flex-shrink:0;border-radius:14px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.3);border:1px solid #0d0d0d;background:oklch(23% 0.012 165);display:flex;flex-direction:column;">
+    <div style="height:38px;background:#161816;display:flex;align-items:center;gap:8px;padding:0 14px;flex-shrink:0;">
+      <span style="width:11px;height:11px;border-radius:50%;background:#ff5f57;"></span>
+      <span style="width:11px;height:11px;border-radius:50%;background:#febc2e;"></span>
+      <span style="width:11px;height:11px;border-radius:50%;background:#28c840;"></span>
+      <div style="flex:1;display:flex;justify-content:center;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:oklch(66% 0.012 165);background:oklch(20% 0.012 165);padding:4px 16px;border-radius:6px;">stack.app/@renata.diaz</div>
+      </div>
+    </div>
+
+    <div style="height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 40px;border-bottom:1px solid oklch(32% 0.012 165);">
+      <span style="font-weight:800;font-size:21px;color:oklch(90% 0.008 160);letter-spacing:-0.3px;">Stack</span>
+      <div style="display:flex;align-items:center;gap:22px;">
+        <span onClick="{{ share }}" style="font-size:13.5px;font-weight:600;color:oklch(78% 0.06 160);cursor:pointer;">↗ Share profile</span>
+        <sc-if value="{{ isVisitor }}" hint-placeholder-val="{{ true }}">
+          <span style="font-size:13.5px;font-weight:600;padding:9px 16px;border-radius:10px;border:1px solid oklch(40% 0.012 165);color:oklch(90% 0.008 160);cursor:pointer;">Sign in</span>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:380px minmax(0,1fr);min-height:860px;">
+      <div style="border-right:1px solid oklch(32% 0.012 165);padding:56px 40px;display:flex;flex-direction:column;align-items:center;text-align:center;">
+        <div style="width:112px;height:112px;border-radius:50%;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-weight:700;font-size:38px;display:flex;align-items:center;justify-content:center;">RD</div>
+        <div style="font-weight:700;font-size:28px;color:oklch(92% 0.008 160);margin-top:20px;letter-spacing:-0.4px;">Renata Díaz</div>
+        <div style="font-size:14px;color:oklch(64% 0.012 165);margin-top:4px;">@renata.diaz</div>
+        <div style="font-size:15px;color:oklch(84% 0.008 160);line-height:1.55;margin-top:16px;max-width:290px;text-wrap:pretty;">Bartender turned travel writer. Mostly Mexico City, sometimes Oaxaca.</div>
+        <div style="display:flex;justify-content:center;gap:10px;margin-top:20px;">
+          <a href="https://instagram.com/renata.diaz" target="_blank" title="Instagram" style="width:42px;height:42px;border-radius:12px;border:1px solid oklch(36% 0.012 165);display:flex;align-items:center;justify-content:center;" style-hover="border-color:oklch(46% 0.02 160);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(84% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"></rect><circle cx="12" cy="12" r="3.8"></circle><circle cx="17.2" cy="6.8" r="0.6" fill="oklch(84% 0.01 165)"></circle></svg></a>
+          <a href="https://tiktok.com/@renatadrinks" target="_blank" title="TikTok" style="width:42px;height:42px;border-radius:12px;border:1px solid oklch(36% 0.012 165);display:flex;align-items:center;justify-content:center;" style-hover="border-color:oklch(46% 0.02 160);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(84% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3.5v11.2a3.8 3.8 0 1 1-3.8-3.8"></path><path d="M14 3.5c.4 2.6 2.2 4.4 5 4.6"></path></svg></a>
+          <a href="mailto:renata@example.com" title="Email" style="width:42px;height:42px;border-radius:12px;border:1px solid oklch(36% 0.012 165);display:flex;align-items:center;justify-content:center;" style-hover="border-color:oklch(46% 0.02 160);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(84% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5"></rect><path d="M4.5 7.5l7.5 5.5 7.5-5.5"></path></svg></a>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:290px;margin-top:24px;">
+          <sc-if value="{{ isVisitor }}" hint-placeholder-val="{{ true }}">
+            <div onClick="{{ toggleFollow }}" style="height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:600;cursor:pointer;background:{{ followBg }};color:{{ followColor }};border:1px solid {{ followBorder }};">{{ followLabel }}</div>
+            <a href="https://calendly.com/renata-diaz" target="_blank" style="height:48px;border-radius:12px;border:1px solid oklch(42% 0.012 165);display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:600;color:oklch(90% 0.008 160);text-decoration:none;">Bookings ↗</a>
+          </sc-if>
+          <sc-if value="{{ isOwner }}" hint-placeholder-val="{{ false }}">
+            <div style="height:48px;border-radius:12px;border:1px solid oklch(42% 0.012 165);display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:600;color:oklch(90% 0.008 160);cursor:pointer;">Edit profile</div>
+            <div style="height:48px;border-radius:12px;background:oklch(78% 0.06 160);display:flex;align-items:center;justify-content:center;gap:8px;font-size:14.5px;font-weight:600;color:oklch(23% 0.012 165);cursor:pointer;">Bookings ↗ <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(30% 0.02 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg></div>
+          </sc-if>
+        </div>
+        <div style="display:flex;justify-content:center;gap:22px;margin-top:24px;font-size:13px;color:oklch(72% 0.012 165);">
+          <span><strong style="color:oklch(90% 0.008 160);">6</strong> Stacks</span>
+          <span><strong style="color:oklch(90% 0.008 160);">{{ followers }}</strong> Followers</span>
+          <span><strong style="color:oklch(90% 0.008 160);">188</strong> Following</span>
+        </div>
+      </div>
+
+      <div style="padding:48px 48px 0;display:flex;flex-direction:column;min-width:0;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:oklch(62% 0.012 165);margin-bottom:14px;">Featured</div>
+        <div style="border-radius:20px;background:oklch(32% 0.02 160);padding:28px 32px;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:36px;align-items:start;">
+          <div>
+            <div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:oklch(84% 0.02 160);">Featured stack · 14 lines</div>
+            <div style="font-size:24px;font-weight:500;color:oklch(95% 0.005 160);margin-top:12px;line-height:1.25;letter-spacing:-0.3px;text-wrap:pretty;">Mexico City Bars</div>
+            <div style="font-size:14px;color:oklch(84% 0.015 160);margin-top:10px;line-height:1.5;text-wrap:pretty;">Where I actually drink after three trips — mezcal dens, rooftop spots, and one very loud cantina.</div>
+            <div style="font-size:14px;font-weight:600;color:oklch(86% 0.05 160);margin-top:20px;">Explore this stack →</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;padding-top:4px;">
+            <sc-for list="{{ featuredLines }}" as="l" hint-placeholder-count="4">
+              <div style="display:flex;gap:12px;font-size:14px;line-height:1.45;">
+                <span style="color:oklch(86% 0.05 160);font-weight:600;font-variant-numeric:tabular-nums;">{{ l.num }}</span>
+                <span style="color:oklch(90% 0.01 160);">{{ l.text }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:26px;margin-top:40px;border-bottom:1px solid oklch(32% 0.012 165);">
+          <span onClick="{{ selectStacks }}" style="padding-bottom:12px;font-size:14px;font-weight:600;color:{{ stacksColor }};border-bottom:2px solid {{ stacksBorder }};cursor:pointer;">Stacks</span>
+          <span onClick="{{ selectReposts }}" style="padding-bottom:12px;font-size:14px;font-weight:600;color:{{ repostsColor }};border-bottom:2px solid {{ repostsBorder }};cursor:pointer;">Reposts</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:24px 0 40px;">
+          <sc-for list="{{ cards }}" as="c" hint-placeholder-count="6">
+            <div style="border-radius:16px;background:oklch(27% 0.012 165);border:1px solid oklch(32% 0.012 165);padding:20px;display:flex;flex-direction:column;cursor:pointer;min-height:236px;" style-hover="border-color:oklch(40% 0.02 160);">
+              <sc-if value="{{ c.isRepost }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11.5px;font-weight:600;color:oklch(66% 0.012 165);margin-bottom:10px;">↻ Reposted from {{ c.from }}</div>
+              </sc-if>
+              <div style="font-size:16px;font-weight:600;color:oklch(94% 0.005 160);line-height:1.3;text-wrap:pretty;">{{ c.title }}</div>
+              <div style="flex:1;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:oklch(72% 0.01 165);line-height:1.9;margin-top:12px;">
+                <sc-for list="{{ c.lines }}" as="pl" hint-placeholder-count="3">
+                  <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(78% 0.06 160);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
+                </sc-for>
+              </div>
+              <div style="display:flex;align-items:center;gap:14px;margin-top:14px;padding-top:12px;border-top:1px solid oklch(32% 0.012 165);font-size:12px;color:oklch(64% 0.012 165);">
+                <span>{{ c.count }} lines</span>
+                <span>·</span>
+                <span>{{ c.tag }}</span>
+                <span style="margin-left:auto;display:flex;align-items:center;gap:5px;">♡ {{ c.likes }}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="margin-top:auto;padding:26px 0 30px;border-top:1px solid oklch(32% 0.012 165);text-align:center;font-size:12.5px;color:oklch(58% 0.012 165);">Explore the internet, curated by people · <span style="color:oklch(78% 0.06 160);font-weight:600;">Stack</span></div>
+      </div>
+    </div>
+  </div>
+  <sc-if value="{{ toastVisible }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;bottom:32px;left:50%;transform:translateX(-50%);padding:11px 18px;border-radius:10px;background:oklch(90% 0.008 160);color:oklch(23% 0.012 165);font-size:13.5px;font-weight:600;">Profile link copied</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;view&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Visitor&quot;, &quot;Owner&quot;], &quot;default&quot;: &quot;Visitor&quot;, &quot;tsType&quot;: &quot;'Visitor' | 'Owner'&quot;}}">
+class Component extends DCLogic {
+  state = { following: false, tab: 'stacks', toast: false };
+  STACKS = [
+    ['Mezcal bars that feel like a living room', ['Bósforo', 'La Clandestina', 'Mezcalería Gota'], 9, 'Food & Drink', 214],
+    ['Oaxaca in four slow days', ['Criollo', 'Mercado 20 de Noviembre', 'Hierve el Agua'], 12, 'Travel', 188],
+    ['Rooftops worth the elevator', ['Terraza Cha Cha Chá', 'Supra Roma', 'Balcón del Zócalo'], 7, 'Travel', 96],
+    ['Tools every home bar needs', ['Cocktail Kingdom jigger', 'Yarai mixing glass', 'Hawthorne strainer'], 10, 'Home', 142],
+    ['Books for people who love bars', ['Imbibe!', 'Death & Co', 'The Joy of Mixology'], 8, 'Books', 77],
+    ['Late-night tacos, ranked', ['El Vilsito', 'Taquería Orinoco', 'Los Cocuyos'], 11, 'Food & Drink', 301]
+  ];
+  REPOSTS = [
+    ['Etsy Finds Worth the Shipping Wait', ['Ceramic sake set', 'Hand-dyed linen napkins', 'Brass bottle opener'], 10, 'Shopping', 64, '@junehome'],
+    ['Books That Actually Changed How I Think', ['Thinking in Bets', 'The Mom Test', 'Four Thousand Weeks'], 12, 'Books', 412, '@marcus.reads']
+  ];
+  componentDidMount() {
+    this.onToast = () => { this.setState({ toast: true }); clearTimeout(this.t); this.t = setTimeout(() => this.setState({ toast: false }), 1600); };
+  }
+  componentWillUnmount() { clearTimeout(this.t); }
+  renderVals() {
+    const { following, tab, toast } = this.state;
+    const owner = this.props.view === 'Owner';
+    const on = 'oklch(90% 0.008 160)', off = 'oklch(56% 0.012 165)', sage = 'oklch(78% 0.06 160)';
+    const num = (i) => String(i + 1).padStart(2, '0');
+    const src = tab === 'reposts' ? this.REPOSTS : this.STACKS;
+    return {
+      isVisitor: !owner, isOwner: owner,
+      followers: (2140 + (following ? 1 : 0)).toLocaleString(),
+      followLabel: following ? 'Following' : 'Follow Renata',
+      followBg: following ? 'transparent' : sage,
+      followColor: following ? 'oklch(84% 0.008 160)' : 'oklch(23% 0.012 165)',
+      followBorder: following ? 'oklch(40% 0.012 165)' : sage,
+      toggleFollow: () => this.setState({ following: !following }),
+      share: () => this.onToast && this.onToast(), toastVisible: toast,
+      featuredLines: ['Licorería Limantour', 'Handshake Speakeasy', 'Café La Gloria', 'Salón Tenampa'].map((t, i) => ({ num: num(i), text: t })),
+      selectStacks: () => this.setState({ tab: 'stacks' }), selectReposts: () => this.setState({ tab: 'reposts' }),
+      stacksColor: tab === 'stacks' ? on : off, stacksBorder: tab === 'stacks' ? sage : 'transparent',
+      repostsColor: tab === 'reposts' ? on : off, repostsBorder: tab === 'reposts' ? sage : 'transparent',
+      cards: src.map(([title, lines, count, tag, likes, from]) => ({
+        title, count, tag, likes, from: from || '', isRepost: !!from,
+        lines: lines.map((t, i) => ({ num: num(i), text: t }))
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>
