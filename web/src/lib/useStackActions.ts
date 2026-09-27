@@ -32,7 +32,29 @@ export function useStackActions() {
     });
   }
 
+  /** Resolves true once saved, so the sheet can close; rolls back and toasts on failure. */
+  async function setRepost(id: string, e: Engagement, on: boolean, note = "") {
+    setEngagement(id, { ...e, reposted: on, reposts: Math.max(0, e.reposts + (on ? 1 : -1)), repostNote: on ? note : "" });
+    let error;
+    if (on) {
+      ({ error } = await sb.from("reposts").insert(note ? { stack_id: id, note } : { stack_id: id }));
+      // A repost that's already there (another tab) is fine.
+      if (error?.code === "23505") error = null;
+    } else {
+      ({ error } = await sb.from("reposts").delete().eq("stack_id", id).eq("user_id", viewer?.id ?? ""));
+    }
+    if (error) {
+      setEngagement(id, e);
+      toast(error.code === "PGRST204" ? "Notes on reposts aren't available yet." : "Something went wrong. Try again.");
+      return false;
+    }
+    toast(on ? "Reposted to your profile" : "Repost removed");
+    return true;
+  }
+
   return {
+    repost: (id: string, e: Engagement, note: string) => setRepost(id, e, true, note.trim()),
+    undoRepost: (id: string, e: Engagement) => setRepost(id, e, false),
     toggleLike: (id: string, e: Engagement) =>
       requireAuth(() => toggle("likes", id, e), "Sign in to like stacks and keep track of what you love."),
     toggleSave: (id: string, e: Engagement) =>

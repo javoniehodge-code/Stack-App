@@ -1,9 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type NotificationType = "comment" | "reply" | "mention" | "like" | "save" | "fork" | "follow";
+export type NotificationType = "comment" | "reply" | "mention" | "like" | "save" | "fork" | "follow" | "repost";
 
 /** Filter chips; "comment" also covers replies and mentions. */
-export type NotificationFilter = "comment" | "like" | "save" | "fork";
+export type NotificationFilter = "comment" | "like" | "save" | "fork" | "repost";
 
 export type Notification = {
   id: string;
@@ -13,7 +13,7 @@ export type Notification = {
   stack_id: string | null;
   comment_id: string | null;
   fork_id: string | null;
-  metadata: { stack_title?: string };
+  metadata: { stack_title?: string; note?: string };
   /** Null when the person, stack, comment or fork has since been deleted. */
   actor: { handle: string; name: string } | null;
   stack: { id: string; title: string } | null;

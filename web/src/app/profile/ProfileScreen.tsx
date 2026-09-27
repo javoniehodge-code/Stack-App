@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth, useToast } from "@/components/AppProviders";
@@ -7,17 +8,18 @@ import { SearchIcon } from "@/components/icons";
 import { ListCard } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
 import cards from "@/components/Cards.module.css";
+import { plural } from "@/lib/format";
 import { useEngagement } from "@/lib/store";
 import { createClient } from "@/lib/supabase/client";
-import type { Stack, StackRow } from "@/lib/types";
+import type { MyRepost, Stack, StackRow } from "@/lib/types";
 import { useStackActions } from "@/lib/useStackActions";
 import EditProfileSheet from "./EditProfileSheet";
 import MyStacks from "./MyStacks";
 import { ProfileBar, ProfileFooter, ProfileHero } from "./ProfileHead";
 import p from "./Profile.module.css";
 
-export type ProfileTab = "mine" | "saved" | "forked" | "drafts";
-type Data = { mine: Stack[]; saved: Stack[]; drafts: StackRow[]; counts: { followers: number; following: number } };
+export type ProfileTab = "mine" | "saved" | "forked" | "reposts" | "drafts";
+type Data = { mine: Stack[]; saved: Stack[]; reposts: MyRepost[]; drafts: StackRow[]; counts: { followers: number; following: number } };
 
 export default function ProfileScreen({ data, initialTab }: { data: Data | null; initialTab: ProfileTab }) {
   const { viewer, requireAuth } = useAuth();
@@ -78,6 +80,7 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
                 ["mine", "Stacks"],
                 ["saved", "Saved"],
                 ["forked", "Forked"],
+                ["reposts", "Reposts"],
                 ["drafts", "Drafts" + (data.drafts.length ? ` · ${data.drafts.length}` : "")],
               ] as const
             ).map(([t, label]) => (
@@ -91,6 +94,7 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
           {tab === "drafts" && <Drafts drafts={data.drafts} />}
           {tab === "saved" && <Saved saved={data.saved} />}
           {tab === "mine" && <MyStacks profile={viewer} stacks={data.mine} />}
+          {tab === "reposts" && <Reposts reposts={data.reposts} />}
           {tab === "forked" && (
             <>
               {forked.map((st) => (
@@ -145,6 +149,39 @@ function Drafts({ drafts }: { drafts: StackRow[] }) {
       </button>
     </div>
   ));
+}
+
+function Reposts({ reposts }: { reposts: MyRepost[] }) {
+  if (reposts.length === 0) return <div className={cards.empty}>No reposts yet. Tap ↻ on any stack to share it here.</div>;
+  return (
+    <div className={p.reposts}>
+      {reposts.map((r) => (
+        <RepostRow key={r.stack.id} repost={r} />
+      ))}
+    </div>
+  );
+}
+
+function RepostRow({ repost: { stack, note } }: { repost: MyRepost }) {
+  const router = useRouter();
+  const e = useEngagement(stack);
+  const a = useStackActions();
+  // Undone from the stack page in this session.
+  if (!e.reposted) return null;
+  const open = () => router.push(`/s/${stack.id}`);
+  return (
+    <div className={p.repostRow} role="link" tabIndex={0} onClick={open} onKeyDown={(ev) => ev.target === ev.currentTarget && ev.key === "Enter" && open()}>
+      {note && <div className={p.repostNote}>{note}</div>}
+      <div className={p.repostTitle}>{stack.title} →</div>
+      <div className={p.repostMeta}>
+        Originally curated by{" "}
+        <Link href={a.authorHref(stack.author)} className={p.repostHandle} onClick={(ev) => ev.stopPropagation()}>
+          @{stack.author.handle}
+        </Link>{" "}
+        · {plural(stack.line_count, "line")}
+      </div>
+    </div>
+  );
 }
 
 function Saved({ saved }: { saved: Stack[] }) {

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useAuth, useBack, useToast } from "@/components/AppProviders";
 import CommentBody from "@/components/CommentBody";
 import { BackIcon, BookmarkIcon, ForkIcon, LinkIcon } from "@/components/icons";
+import { RepostButton } from "@/components/Repost";
 import { MentionList, useMentions } from "@/components/Mentions";
 import { FollowButton } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
@@ -224,6 +225,7 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
           <ForkIcon size={15} />
           {fmtCount(stack.forks_count)}
         </button>
+        <RepostButton stack={stack} className={s.action} size={15} count={fmtCount} />
         <span style={{ flex: 1 }} />
         <button className={s.action} onClick={() => a.copyLink(stack.id)} aria-label="Copy link">
           <LinkIcon size={16} />

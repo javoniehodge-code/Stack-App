@@ -26,14 +26,22 @@ export type StackRow = {
   saves_count: number;
   forks_count: number;
   comments_count: number;
+  /** Missing until the reposts migration has run. */
+  reposts_count?: number;
   created_at: string;
   published_at: string | null;
   author: Author;
   comments?: Comment[];
 };
 
-/** A stack plus whether the current viewer has liked/saved it. */
-export type Stack = StackRow & { liked: boolean; saved: boolean };
+/** A stack plus whether the current viewer has liked/saved/reposted it. */
+export type Stack = StackRow & { liked: boolean; saved: boolean; reposted?: boolean; repost_note?: string };
+
+/** A Following feed entry: the stack, and who reposted it when that's why it's there. */
+export type FeedItem = Stack & { repost?: { by: Author; note: string } };
+
+/** A row in your own Reposts tab. */
+export type MyRepost = { stack: Stack; note: string };
 
 export type SocialKey = "x" | "instagram" | "tiktok" | "facebook" | "email" | "newsletter" | "booking" | "shop";
 export type Socials = Partial<Record<SocialKey, string>>;

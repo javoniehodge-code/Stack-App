@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Profile, Stack, StackRow } from "./types";
+import type { Author, FeedItem, MyRepost, Profile, Stack, StackRow } from "./types";
 
 // Shared by server pages and client components; pass whichever client applies.
 
@@ -36,18 +36,25 @@ function orderComments(rows: StackRow[]) {
 /** Adds the viewer's liked/saved flags to stack rows. */
 export async function withViewerState(sb: SupabaseClient, viewerId: string | null, rows: StackRow[]): Promise<Stack[]> {
   orderComments(rows);
-  if (!viewerId || rows.length === 0) return rows.map((r) => ({ ...r, liked: false, saved: false }));
+  if (!viewerId || rows.length === 0) return rows.map((r) => ({ ...r, liked: false, saved: false, reposted: false }));
   const ids = rows.map((r) => r.id);
-  const [likes, saves] = await Promise.all([
+  const [likes, saves, reposts] = await Promise.all([
     sb.from("likes").select("stack_id").eq("user_id", viewerId).in("stack_id", ids),
     sb.from("saves").select("stack_id").eq("user_id", viewerId).in("stack_id", ids),
+    // "*" so this still works before the reposts migration adds the note column.
+    sb.from("reposts").select("*").eq("user_id", viewerId).in("stack_id", ids),
   ]);
   const liked = new Set((likes.data ?? []).map((r) => r.stack_id as string));
   const saved = new Set((saves.data ?? []).map((r) => r.stack_id as string));
-  return rows.map((r) => ({ ...r, liked: liked.has(r.id), saved: saved.has(r.id) }));
+  const reposted = new Map((reposts.data ?? []).map((r) => [r.stack_id as string, (r.note as string | undefined) ?? ""]));
+  return rows.map((r) => ({ ...r, liked: liked.has(r.id), saved: saved.has(r.id), reposted: reposted.has(r.id), repost_note: reposted.get(r.id) ?? "" }));
 }
 
-export async function fetchFeed(sb: SupabaseClient, viewerId: string | null, opts: { page: number; following: boolean }) {
+export async function fetchFeed(sb: SupabaseClient, viewerId: string | null, opts: { page: number; following: boolean }): Promise<FeedItem[]> {
+  if (opts.following && viewerId) {
+    const items = await fetchFollowingFeed(sb, viewerId, opts.page);
+    if (items) return items;
+  }
   let q = sb.from("stacks").select(STACK_WITH_COMMENTS).eq("status", "published");
   if (opts.following) {
     if (!viewerId) return [];
@@ -60,6 +67,37 @@ export async function fetchFeed(sb: SupabaseClient, viewerId: string | null, opt
   const { data, error } = await q.order("published_at", { ascending: false }).range(from, from + PAGE_SIZE - 1);
   if (error) throw error;
   return withViewerState(sb, viewerId, (data ?? []) as unknown as StackRow[]);
+}
+
+type FeedRow = { stack_id: string; activity_at: string; reposter_id: string | null; note: string };
+
+/**
+ * Stacks and reposts from people the viewer follows, one entry per stack at its
+ * latest activity. Null before the reposts migration adds following_feed.
+ */
+async function fetchFollowingFeed(sb: SupabaseClient, viewerId: string, page: number): Promise<FeedItem[] | null> {
+  const { data, error } = await sb.rpc("following_feed", { p_offset: page * PAGE_SIZE, p_limit: PAGE_SIZE });
+  if (error) {
+    if (error.code === "PGRST202" || error.code === "42883") return null;
+    throw error;
+  }
+  const rows = (data ?? []) as FeedRow[];
+  if (rows.length === 0) return [];
+  const reposterIds = [...new Set(rows.flatMap((r) => (r.reposter_id ? [r.reposter_id] : [])))];
+  const [stacks, people] = await Promise.all([
+    sb.from("stacks").select(STACK_WITH_COMMENTS).in("id", rows.map((r) => r.stack_id)).eq("status", "published"),
+    reposterIds.length ? sb.from("profiles").select("id,handle,name").in("id", reposterIds) : Promise.resolve({ data: [] as Author[], error: null }),
+  ]);
+  if (stacks.error) throw stacks.error;
+  const withState = await withViewerState(sb, viewerId, (stacks.data ?? []) as unknown as StackRow[]);
+  const byId = new Map(withState.map((s) => [s.id, s]));
+  const who = new Map(((people.data ?? []) as Author[]).map((p) => [p.id, p]));
+  return rows.flatMap((r) => {
+    const st = byId.get(r.stack_id);
+    if (!st) return [];
+    const by = r.reposter_id ? who.get(r.reposter_id) : undefined;
+    return [by ? { ...st, repost: { by, note: r.note ?? "" } } : st];
+  });
 }
 
 export async function fetchStack(sb: SupabaseClient, viewerId: string | null, id: string) {
@@ -113,14 +151,22 @@ export async function fetchAuthorStacks(sb: SupabaseClient, viewerId: string | n
   return withViewerState(sb, viewerId, (data ?? []) as unknown as StackRow[]);
 }
 
+async function repostRows(sb: SupabaseClient, userId: string) {
+  // "*" so this still works before the reposts migration adds the note column.
+  const { data } = await sb.from("reposts").select(`*, stack:stacks(${STACK_SELECT})`).eq("user_id", userId).order("created_at", { ascending: false });
+  return ((data ?? []) as unknown as { note?: string; stack: StackRow | null }[]).filter((r): r is { note?: string; stack: StackRow } => !!r.stack);
+}
+
 export async function fetchReposts(sb: SupabaseClient, viewerId: string | null, userId: string) {
-  const { data } = await sb
-    .from("reposts")
-    .select(`created_at, stack:stacks(${STACK_SELECT})`)
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
-  const rows = (data ?? []).map((r) => (r as unknown as { stack: StackRow | null }).stack).filter((s): s is StackRow => !!s);
-  return withViewerState(sb, viewerId, rows);
+  const rows = await repostRows(sb, userId);
+  return withViewerState(sb, viewerId, rows.map((r) => r.stack));
+}
+
+/** Your own reposts, newest first, with the notes you added. */
+export async function fetchMyReposts(sb: SupabaseClient, viewerId: string): Promise<MyRepost[]> {
+  const rows = await repostRows(sb, viewerId);
+  const stacks = await withViewerState(sb, viewerId, rows.map((r) => r.stack));
+  return stacks.map((stack, i) => ({ stack, note: rows[i].note ?? "" }));
 }
 
 export async function fetchSaved(sb: SupabaseClient, viewerId: string) {

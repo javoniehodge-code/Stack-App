@@ -6,13 +6,14 @@ import { useRef, useState } from "react";
 import { postComment, thread, threadRoot } from "@/lib/comments";
 import { flatten, fmtCount, initials, plural, timeAgo } from "@/lib/format";
 import { useEngagement, useIsFollowing } from "@/lib/store";
-import type { Comment, Stack } from "@/lib/types";
+import type { Comment, FeedItem, Stack } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 import { useStackActions } from "@/lib/useStackActions";
 import { useAuth, useToast } from "./AppProviders";
 import CommentBody from "./CommentBody";
 import { BookmarkIcon, ForkIcon, LinkIcon, RepostIcon } from "./icons";
 import { MentionList, useMentions } from "./Mentions";
+import { RepostButton, RepostGlyph } from "./Repost";
 import s from "./Cards.module.css";
 
 const stop = (e: React.SyntheticEvent) => e.stopPropagation();
@@ -42,8 +43,8 @@ function AuthorRow({ stack }: { stack: Stack }) {
   );
 }
 
-/** Like · save · fork · [extra] · copy link. `large` is the feed slide's size. */
-export function ActionRow({ stack, extra, large }: { stack: Stack; extra?: React.ReactNode; large?: boolean }) {
+/** Like · save · fork · [repost] · [extra] · copy link. `large` is the feed slide's size. */
+export function ActionRow({ stack, extra, large, repost }: { stack: Stack; extra?: React.ReactNode; large?: boolean; repost?: boolean }) {
   const e = useEngagement(stack);
   const a = useStackActions();
   const likeColor = e.liked ? "var(--accent)" : "var(--muted-66)";
@@ -62,6 +63,7 @@ export function ActionRow({ stack, extra, large }: { stack: Stack; extra?: React
         <ForkIcon size={large ? 16 : 13} />
         {fmtCount(stack.forks_count)}
       </button>
+      {repost && <RepostButton stack={stack} className={s.action} size={large ? 16 : 13} count={fmtCount} />}
       {extra}
       <button className={s.copy} onClick={() => a.copyLink(stack.id)} aria-label="Copy link">
         <LinkIcon size={large ? 17 : 14} />
@@ -70,8 +72,34 @@ export function ActionRow({ stack, extra, large }: { stack: Stack; extra?: React
   );
 }
 
-/** A feed card: up to 4 lines (5 faded plus See more when longer), then comments that open inline. */
-export function FeedCard({ stack }: { stack: Stack }) {
+/** A feed card, with "X reposted" and their note when it's in the Following feed because of a repost. */
+export function FeedCard({ stack }: { stack: FeedItem }) {
+  const { authorHref } = useStackActions();
+  const rp = stack.repost;
+  if (!rp) return <FeedCardBody stack={stack} />;
+  return (
+    <div className={s.feedItem}>
+      <Link href={authorHref(rp.by)} className={s.feedRepostLabel}>
+        <RepostGlyph size={13} width={2.2} />
+        {rp.by.name} reposted
+      </Link>
+      <FeedCardBody
+        stack={stack}
+        note={
+          rp.note && (
+            <div className={s.repostNote}>
+              <span className={s.repostNoteAvatar}>{initials(rp.by.name)}</span>
+              <span className={s.repostNoteText}>{rp.note}</span>
+            </div>
+          )
+        }
+      />
+    </div>
+  );
+}
+
+/** Up to 4 lines (5 faded plus See more when longer), then comments that open inline. */
+function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode }) {
   const open = useOpen(stack.id);
   const { viewer, requireAuth } = useAuth();
   const toast = useToast();
@@ -118,6 +146,7 @@ export function FeedCard({ stack }: { stack: Stack }) {
 
   return (
     <article className={s.feedCard}>
+      {note}
       <AuthorRow stack={stack} />
       <div {...open} className={s.feedOpen}>
         <div className={s.title}>{stack.title}</div>
@@ -136,7 +165,7 @@ export function FeedCard({ stack }: { stack: Stack }) {
         </div>
         {more && <div className={s.viewFull}>See more · {plural(lines.length, "line")} →</div>}
       </div>
-      <ActionRow stack={stack} large />
+      <ActionRow stack={stack} large repost />
       <button className={s.commentToggle} onClick={() => setShowComments((v) => !v)} aria-expanded={showComments}>
         <span className={s.commentToggleLabel}>{toggleLabel}</span>
         <span className={s.commentPreview}>{!showComments && first ? `@${first.author?.handle ?? "deleted"}: ${first.body}` : ""}</span>
