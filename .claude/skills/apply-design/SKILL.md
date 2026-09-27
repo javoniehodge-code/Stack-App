@@ -78,6 +78,8 @@ a different link, use the id from that link.
 - Deleting your own stack (Delete button + confirmation sheet on your stack's page)
 - Comment replies (Reply button, threaded one level) and @mentions with autocomplete, on the
   stack page and feed cards; both create notifications
+- Blocking: the ⋯ button on someone's profile (Block @handle sheet) and Blocked accounts
+  (with Unblock) in Edit profile. Blocks are two-way and enforced by row-level security
 
 Add new app-only features to this list as they ship.
 

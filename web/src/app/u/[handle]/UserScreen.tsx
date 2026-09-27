@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useBack } from "@/components/AppProviders";
+import { useAuth, useBack } from "@/components/AppProviders";
 import { BackIcon } from "@/components/icons";
 import { CompactCard, FollowButton } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
@@ -11,6 +11,7 @@ import type { Profile, Stack } from "@/lib/types";
 import { useStackActions } from "@/lib/useStackActions";
 import { FeaturedStack, ProfileBar, ProfileFooter, ProfileHero } from "@/app/profile/ProfileHead";
 import p from "@/app/profile/Profile.module.css";
+import BlockSheet from "./BlockSheet";
 
 export default function UserScreen({
   profile,
@@ -28,6 +29,8 @@ export default function UserScreen({
   const back = useBack();
   const a = useStackActions();
   const [tab, setTab] = useState<"stacks" | "reposts">("stacks");
+  const [blocking, setBlocking] = useState(false);
+  const { requireAuth } = useAuth();
   const isFollowing = useIsFollowing(profile.id, following);
   const followers = counts.followers - (following ? 1 : 0) + (isFollowing ? 1 : 0);
   const firstName = profile.name.split(" ")[0];
@@ -40,7 +43,7 @@ export default function UserScreen({
 
   return (
     <main className={shell.screen}>
-      <ProfileBar handle={profile.handle}>
+      <ProfileBar handle={profile.handle} more={() => requireAuth(() => setBlocking(true), "Sign in to block accounts.")}>
         <button onClick={back} className={p.back} style={{ marginBottom: 0 }}>
           <BackIcon />
           Back
@@ -78,6 +81,7 @@ export default function UserScreen({
         </div>
         <ProfileFooter />
       </div>
+      {blocking && <BlockSheet profile={profile} onClose={() => setBlocking(false)} />}
     </main>
   );
 }
