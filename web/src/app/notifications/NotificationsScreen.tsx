@@ -25,6 +25,7 @@ const FILTERS: [NotificationFilter | null, string, string][] = [
   ["like", "Likes", "likes"],
   ["fork", "Forks", "forks"],
   ["save", "Saves", "saves"],
+  ["repost", "Reposts", "reposts"],
 ];
 const VERB: Record<NotificationType, string> = {
   like: "liked",
@@ -34,6 +35,7 @@ const VERB: Record<NotificationType, string> = {
   fork: "forked",
   save: "saved",
   follow: "started following you",
+  repost: "reposted",
 };
 const hasComment = (t: NotificationType) => t === "comment" || t === "reply" || t === "mention";
 
@@ -66,6 +68,15 @@ function TypeIcon({ type }: { type: NotificationType }) {
     return (
       <svg width="10" height="10" viewBox="0 0 24 24" fill={ink} aria-hidden>
         <path d="M6.5 3.5h11v17l-5.5-4-5.5 4z" />
+      </svg>
+    );
+  if (type === "repost")
+    return (
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={ink} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M17 2l4 4-4 4" />
+        <path d="M3 11V9a3 3 0 0 1 3-3h15" />
+        <path d="M7 22l-4-4 4-4" />
+        <path d="M21 13v2a3 3 0 0 1-3 3H3" />
       </svg>
     );
   if (type === "fork")
@@ -143,8 +154,8 @@ export default function NotificationsScreen() {
     return (
       <main className={`${shell.screen} ${p.gate}`}>
         <h1 className={p.gateTitle}>Sign in to see your notifications</h1>
-        <div className={p.gateText}>Likes, saves, forks, and comments on your stacks will show up here.</div>
-        <button className={p.gateButton} onClick={() => requireAuth(null, "Sign in to see likes, saves, forks, and comments on your stacks.")}>
+        <div className={p.gateText}>Likes, saves, forks, reposts, and comments on your stacks will show up here.</div>
+        <button className={p.gateButton} onClick={() => requireAuth(null, "Sign in to see likes, saves, forks, reposts, and comments on your stacks.")}>
           Sign in / Create account
         </button>
       </main>
@@ -243,6 +254,7 @@ export default function NotificationsScreen() {
                     </span>
                     {(hasComment(n.type) || n.comment_id) &&
                       (n.comment ? <span className={s.snippet}>“{n.comment.body}”</span> : <span className={s.snippetGone}>This comment was deleted.</span>)}
+                    {n.type === "repost" && n.metadata.note && <span className={s.snippet}>“{n.metadata.note}”</span>}
                     {gone.has(n.id) && <span className={s.goneNote}>This content is no longer available.</span>}
                     <span className={s.time}>{timeAgo(n.created_at)}</span>
                   </span>

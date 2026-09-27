@@ -9,11 +9,11 @@ import shell from "@/components/AppShell.module.css";
 import cards from "@/components/Cards.module.css";
 import { PAGE_SIZE, fetchFeed } from "@/lib/queries";
 import { createClient } from "@/lib/supabase/client";
-import type { Stack } from "@/lib/types";
+import type { FeedItem, Stack } from "@/lib/types";
 import s from "./Feed.module.css";
 
 type Tab = "forYou" | "following";
-type FeedState = { stacks: Stack[]; page: number; done: boolean; loading: boolean };
+type FeedState = { stacks: FeedItem[]; page: number; done: boolean; loading: boolean };
 
 export default function FeedScreen({ initial }: { initial: Stack[] }) {
   const { viewer } = useAuth();

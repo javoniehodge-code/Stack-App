@@ -733,3 +733,54 @@
   font-size: 13px;
   color: var(--muted-66);
 }
+
+/* Following feed: a stack that's here because someone you follow reposted it */
+.feedItem {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feedRepostLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-66);
+}
+
+.repostNote {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: oklch(30% 0.018 162);
+  margin-bottom: 16px;
+}
+
+.repostNoteAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.repostNoteText {
+  font-size: 13.5px;
+  color: var(--text);
+  line-height: 1.45;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}

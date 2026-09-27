@@ -85,6 +85,10 @@ Add new app-only features to this list as they ship.
 
 - Feed text stays the original gray: title and lines use `--text-2`/`--muted-66`,
   handle `--muted-56`, comments `--muted-56`/`--text-2`. Sizes can follow the design.
+- Text limits are 500 characters across the app (lines, descriptions, comments, repost
+  notes), even where the design says less (e.g. 140 for repost notes).
+- You can't repost your own stack, and the Following feed shows each stack once, at its
+  latest activity (published or reposted by someone you follow).
 
 ## 6. Check, push, preview
 

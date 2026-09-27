@@ -7,7 +7,7 @@ import type { Stack } from "./types";
 // shows up on the stack page without a refetch. Entries exist only for stacks
 // or people the viewer has touched in this session; otherwise the server copy wins.
 
-export type Engagement = { liked: boolean; saved: boolean; likes: number; saves: number };
+export type Engagement = { liked: boolean; saved: boolean; likes: number; saves: number; reposted: boolean; reposts: number; repostNote: string };
 
 const engagement = new Map<string, Engagement>();
 const follows = new Map<string, boolean>();
@@ -26,7 +26,17 @@ const getVersion = () => version;
 
 export function useEngagement(stack: Stack): Engagement {
   useSyncExternalStore(subscribe, getVersion, getVersion);
-  return engagement.get(stack.id) ?? { liked: stack.liked, saved: stack.saved, likes: stack.likes_count, saves: stack.saves_count };
+  return (
+    engagement.get(stack.id) ?? {
+      liked: stack.liked,
+      saved: stack.saved,
+      likes: stack.likes_count,
+      saves: stack.saves_count,
+      reposted: !!stack.reposted,
+      reposts: stack.reposts_count ?? 0,
+      repostNote: stack.repost_note ?? "",
+    }
+  );
 }
 
 export function setEngagement(id: string, e: Engagement) {
