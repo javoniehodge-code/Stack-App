@@ -84,7 +84,7 @@
                 <span onClick="{{ card.onToggleSave }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;min-height:32px;color:{{ card.saveColor }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="{{ card.saveFill }}" stroke="{{ card.saveColor }}" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ card.savesLabel }}</span>
                 <span onClick="{{ card.onFork }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;min-height:32px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.2"></circle><circle cx="18" cy="5" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle><path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2"></path><path d="M12 12v4.8"></path></svg>{{ card.forksLabel }}</span>
                 <span onClick="{{ card.onRepost }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;min-height:32px;color:{{ card.repostColor }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{ card.repostColor }}" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 2l4 4-4 4"></path><path d="M3 11V9a3 3 0 0 1 3-3h15"></path><path d="M7 22l-4-4 4-4"></path><path d="M21 13v2a3 3 0 0 1-3 3H3"></path></svg>{{ card.repostsLabel }}</span>
-                <span onClick="{{ card.onCopyLink }}" style="display:flex;align-items:center;cursor:pointer;margin-left:auto;min-height:32px;padding:0 2px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></span>
+                <span onClick="{{ card.onCopyLink }}" style="display:flex;align-items:center;cursor:pointer;margin-left:auto;min-height:32px;padding:0 2px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="oklch(66% 0.012 165)" stroke="oklch(66% 0.012 165)" strokeWidth="1" strokeLinejoin="round"><path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z"></path></svg></span>
               </div>
               <div onClick="{{ card.onToggleComments }}" style="display:flex;align-items:center;gap:10px;margin-top:6px;min-height:44px;cursor:pointer;">
                 <span style="font-family:Inter,sans-serif;font-size:13.5px;font-weight:600;color:oklch(78% 0.06 160);flex-shrink:0;">{{ card.commentToggleLabel }}</span>
@@ -175,7 +175,7 @@
                     <span onClick="{{ tc.onToggleLike }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ tc.likeColor }};"><span style="font-size:13px;line-height:1;">{{ tc.likeGlyph }}</span>{{ tc.likesLabel }}</span>
                     <span onClick="{{ tc.onToggleSave }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ tc.saveColor }};"><svg width="13" height="13" viewBox="0 0 24 24" fill="{{ tc.saveFill }}" stroke="{{ tc.saveColor }}" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ tc.savesLabel }}</span>
                     <span onClick="{{ tc.onFork }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.2"></circle><circle cx="18" cy="5" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle><path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2"></path><path d="M12 12v4.8"></path></svg>{{ tc.forksLabel }}</span>
-                    <span onClick="{{ tc.onCopyLink }}" style="margin-left:auto;display:flex;cursor:pointer;padding:2px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></span>
+                    <span onClick="{{ tc.onCopyLink }}" style="margin-left:auto;display:flex;cursor:pointer;padding:2px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="oklch(66% 0.012 165)" stroke="oklch(66% 0.012 165)" strokeWidth="1" strokeLinejoin="round"><path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z"></path></svg></span>
                   </div>
                 </div>
               </sc-for>
@@ -306,7 +306,7 @@
         </span>
         <span style="flex:1;"></span>
         <span onClick="{{ shareActive }}" style="display:flex;align-items:center;cursor:pointer;padding:10px 9px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="oklch(66% 0.012 165)" stroke="oklch(66% 0.012 165)" strokeWidth="1" strokeLinejoin="round"><path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z"></path></svg>
         </span>
       </div>
     </sc-if>
@@ -392,7 +392,7 @@
                   <span onClick="{{ uc.card.onToggleSave }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ uc.card.saveColor }};"><svg width="13" height="13" viewBox="0 0 24 24" fill="{{ uc.card.saveFill }}" stroke="{{ uc.card.saveColor }}" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ uc.card.savesLabel }}</span>
                   <span onClick="{{ uc.card.onFork }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:oklch(66% 0.012 165);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.2"></circle><circle cx="18" cy="5" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle><path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2"></path><path d="M12 12v4.8"></path></svg>{{ uc.card.forksLabel }}</span>
                   <span style="font-size:10.5px;">{{ uc.card.commentCountLabel }}</span>
-                  <span onClick="{{ uc.card.onCopyLink }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;margin-left:auto;padding:2px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(66% 0.012 165)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></span>
+                  <span onClick="{{ uc.card.onCopyLink }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;margin-left:auto;padding:2px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="oklch(66% 0.012 165)" stroke="oklch(66% 0.012 165)" strokeWidth="1" strokeLinejoin="round"><path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z"></path></svg></span>
               </div>
             </div>
           </div>
@@ -814,6 +814,47 @@
       </div>
     </sc-if>
 
+    <sc-if value="{{ showShareSheet }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeShare }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;flex-direction:column;justify-content:flex-end;z-index:40;">
+        <div onClick="{{ stopClick }}" style="padding:0 28px 18px;">
+          <div style="border-radius:18px;background:oklch(20% 0.012 165);border:1px solid oklch(34% 0.012 165);overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.45);font-family:Inter,sans-serif;">
+            <div style="padding:20px 20px 16px;">
+              <div style="font-weight:800;font-size:19px;color:oklch(92% 0.008 160);line-height:1.25;letter-spacing:-0.2px;text-wrap:pretty;">{{ shareCard.title }}</div>
+              <div style="display:flex;flex-direction:column;gap:3px;margin-top:12px;">
+                <sc-for list="{{ shareCard.lines }}" as="ln" hint-placeholder-count="4">
+                  <div style="display:flex;gap:9px;font-size:13px;color:oklch(86% 0.008 160);line-height:1.55;">
+                    <span style="color:oklch(78% 0.06 160);font-weight:700;flex-shrink:0;font-variant-numeric:tabular-nums;">{{ ln.num }}</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ln.text }}</span>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ shareCard.hasMore }}" hint-placeholder-val="{{ true }}">
+                  <div style="font-size:12px;color:oklch(62% 0.012 165);margin-top:4px;">+ {{ shareCard.moreCount }} more</div>
+                </sc-if>
+              </div>
+            </div>
+            <div style="padding:12px 20px 14px;border-top:1px dashed oklch(34% 0.012 165);background:oklch(17% 0.012 165);display:flex;align-items:center;gap:10px;">
+              <div style="width:26px;height:26px;border-radius:50%;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-weight:700;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ shareCard.initials }}</div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:12px;color:oklch(78% 0.008 160);">Curated by <span style="font-weight:700;color:oklch(92% 0.008 160);">{{ shareCard.handle }}</span> on Stack</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(78% 0.06 160);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ shareCard.url }}</div>
+              </div>
+              <span style="font-weight:800;font-size:13px;color:oklch(78% 0.06 160);letter-spacing:-0.2px;flex-shrink:0;">Stack</span>
+            </div>
+          </div>
+        </div>
+        <div onClick="{{ stopClick }}" style="width:100%;background:oklch(27% 0.012 165);border-radius:22px 22px 0 0;padding:14px 20px 34px;box-sizing:border-box;font-family:Inter,sans-serif;">
+          <div style="width:36px;height:4px;border-radius:2px;background:oklch(42% 0.012 165);margin:0 auto 14px;"></div>
+          <div onClick="{{ copyShareLink }}" style="display:flex;align-items:center;gap:10px;height:48px;padding:0 14px;border-radius:12px;border:1px solid oklch(34% 0.012 165);cursor:pointer;">
+            <span style="flex:1;min-width:0;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:oklch(84% 0.008 160);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ shareCard.url }}</span>
+            <span style="font-size:13px;font-weight:700;color:oklch(78% 0.06 160);flex-shrink:0;">Copy</span>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:10px;">
+            <div onClick="{{ saveShareImage }}" style="flex:1;height:48px;border-radius:12px;border:1px solid oklch(42% 0.012 165);color:oklch(90% 0.008 160);font-size:14.5px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer;">Save image</div>
+            <div onClick="{{ shareToApps }}" style="flex:1;height:48px;border-radius:12px;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-size:14.5px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;">Share…</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
     <sc-if value="{{ showRepostSheet }}" hint-placeholder-val="{{ false }}">
       <div onClick="{{ closeRepost }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:flex-end;z-index:40;">
         <div onClick="{{ stopClick }}" style="width:100%;background:oklch(27% 0.012 165);border-radius:22px 22px 0 0;padding:14px 20px 34px;box-sizing:border-box;font-family:Inter,sans-serif;">
@@ -1196,7 +1237,7 @@ class Component extends DCLogic {
       saveGlyph: l.savedByUser ? '◆' : '◇',
       saveFill: l.savedByUser ? 'oklch(78% 0.06 160)' : 'none',
       onFork: (e) => { if (e) e.stopPropagation(); this.forkFrom(l.id); },
-      onCopyLink: (e) => { if (e) e.stopPropagation(); this.showToast('Link copied to clipboard'); },
+      onCopyLink: (e) => { if (e) e.stopPropagation(); this.setState({ shareListId: l.id }); },
       ...this._repostVM(l),
       likeColor: l.likedByUser ? 'oklch(78% 0.06 160)' : 'oklch(66% 0.012 165)',
       saveLabel: l.savedByUser ? 'Saved' : 'Save',
@@ -1266,7 +1307,7 @@ class Component extends DCLogic {
       return { ...prev, navStack: s.navStack.slice(0, -1) };
     });
   }
-  closeDetail() { this.goBack(); }
+  closeDetail() { this.setState({ shareListId: null }); this.goBack(); }
   _feedCommentVM(l) {
     const cs = l.comments || [], n = cs.length;
     const open = !!this.state.feedCommentsOpen[l.id];
@@ -1626,6 +1667,7 @@ class Component extends DCLogic {
     const activeList = list.find(l => l.id === s.activeListId);
     const activeFlat = activeList ? this._flatten(activeList) : [];
     const activeCard = activeList ? cardVM(activeList) : {};
+    const shareList = s.shareListId ? list.find(l => l.id === s.shareListId) : null;
 
     const draftTitle = s.draft ? s.draft.title : '';
     const draftSections = (s.draft ? s.draft.sections : []).map((sec, sIdx) => ({
@@ -1760,7 +1802,22 @@ class Component extends DCLogic {
 
       activeCard, activeFlat, activeLineCount: activeFlat.length,
       closeDetail: () => this.closeDetail(), startFork: () => this.startFork(),
-      shareActive: () => this.showToast('Link copied to clipboard'),
+      shareActive: () => this.setState({ shareListId: s.activeListId }),
+      showShareSheet: !!shareList,
+      shareCard: (() => {
+        const activeList = shareList, activeFlat = shareList ? this._flatten(shareList) : [];
+        if (!activeList) return { lines: [] };
+        const a = activeList.author || {};
+        const user = String(a.handle || '').replace(/^@/, '');
+        const slug = String(activeList.title || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        const lines = activeFlat.slice(0, 4).map(l => ({ num: l.num, text: l.text }));
+        const more = activeFlat.length - lines.length;
+        return { title: activeList.title, lines, hasMore: more > 0, moreCount: more, initials: a.initials || '', handle: '@' + user, url: 'stack.app/' + user + '/' + slug };
+      })(),
+      closeShare: () => this.setState({ shareListId: null }),
+      copyShareLink: () => { this.setState({ shareListId: null }); this.showToast('Link copied to clipboard'); },
+      saveShareImage: () => { this.setState({ shareListId: null }); this.showToast('Image saved to Photos'); },
+      shareToApps: () => { this.setState({ shareListId: null }); this.showToast('Opening share sheet…'); },
       toastVisible: !!s.toast, toastMessage: s.toast || '',
       followingCount: s.followedHandles.length,
       draftsBadge: s.drafts.length > 0 ? ' · ' + s.drafts.length : '',

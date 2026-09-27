@@ -73,15 +73,6 @@ export function useStackActions() {
         });
       }, "Sign in to follow people and build your own feed."),
     fork: (id: string) => router.push(`/create?fork=${id}`),
-    copyLink: async (id: string) => {
-      const url = `${window.location.origin}/s/${id}`;
-      try {
-        await navigator.clipboard.writeText(url);
-        toast("Link copied to clipboard");
-      } catch {
-        toast("Couldn't copy the link");
-      }
-    },
     authorHref: (a: Author) => (viewer && a.id === viewer.id ? "/profile" : `/u/${a.handle}`),
   };
 }

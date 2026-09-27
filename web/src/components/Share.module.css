@@ -1,0 +1,207 @@
+/* Share sheet: a preview card floating above a bottom sheet */
+.scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.preview {
+  padding: 0 28px 18px;
+}
+
+.card {
+  border-radius: 18px;
+  background: oklch(20% 0.012 165);
+  border: 1px solid var(--line-2);
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+
+.cardBody {
+  padding: 20px 20px 16px;
+}
+
+.title {
+  font-weight: 800;
+  font-size: 19px;
+  color: oklch(92% 0.008 160);
+  line-height: 1.25;
+  letter-spacing: -0.2px;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 12px;
+}
+
+.line {
+  display: flex;
+  gap: 9px;
+  font-size: 13px;
+  color: oklch(86% 0.008 160);
+  line-height: 1.55;
+}
+
+.num {
+  color: var(--accent);
+  font-weight: 700;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.more {
+  font-size: 12px;
+  color: var(--muted-62);
+  margin-top: 4px;
+}
+
+.footer {
+  padding: 12px 20px 14px;
+  border-top: 1px dashed var(--line-2);
+  background: oklch(17% 0.012 165);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.credit {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.curated {
+  font-size: 12px;
+  color: oklch(78% 0.008 160);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.curated strong {
+  font-weight: 700;
+  color: oklch(92% 0.008 160);
+}
+
+.url {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--accent);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.brand {
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--accent);
+  letter-spacing: -0.2px;
+  flex-shrink: 0;
+}
+
+.sheet {
+  width: 100%;
+  background: var(--surface);
+  border-radius: 22px 22px 0 0;
+  padding: 14px 20px calc(34px + var(--safe-bottom));
+}
+
+.grabber {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--handle);
+  margin: 0 auto 14px;
+}
+
+.copyRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line-2);
+  text-align: left;
+}
+
+.copyUrl {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.copyLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.secondary,
+.primary {
+  flex: 1;
+  height: 48px;
+  border-radius: 12px;
+  font-size: 14.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.secondary {
+  border: 1px solid var(--handle);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+}

@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuth, useBack, useToast } from "@/components/AppProviders";
 import CommentBody from "@/components/CommentBody";
-import { BackIcon, BookmarkIcon, ForkIcon, LinkIcon } from "@/components/icons";
+import { BackIcon, BookmarkIcon, ForkIcon } from "@/components/icons";
 import { RepostButton } from "@/components/Repost";
+import { ShareButton } from "@/components/Share";
 import { MentionList, useMentions } from "@/components/Mentions";
 import { FollowButton } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
@@ -227,9 +228,7 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
         </button>
         <RepostButton stack={stack} className={s.action} size={15} count={fmtCount} />
         <span style={{ flex: 1 }} />
-        <button className={s.action} onClick={() => a.copyLink(stack.id)} aria-label="Copy link">
-          <LinkIcon size={16} />
-        </button>
+        <ShareButton stack={stack} className={s.action} size={17} />
       </div>
       {deleting && <DeleteStackSheet stackId={stack.id} title={stack.title} onClose={() => setDeleting(false)} />}
     </main>

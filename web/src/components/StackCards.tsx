@@ -11,9 +11,10 @@ import { createClient } from "@/lib/supabase/client";
 import { useStackActions } from "@/lib/useStackActions";
 import { useAuth, useToast } from "./AppProviders";
 import CommentBody from "./CommentBody";
-import { BookmarkIcon, ForkIcon, LinkIcon, RepostIcon } from "./icons";
+import { BookmarkIcon, ForkIcon, RepostIcon } from "./icons";
 import { MentionList, useMentions } from "./Mentions";
 import { RepostButton, RepostGlyph } from "./Repost";
+import { ShareButton } from "./Share";
 import s from "./Cards.module.css";
 
 const stop = (e: React.SyntheticEvent) => e.stopPropagation();
@@ -43,7 +44,7 @@ function AuthorRow({ stack }: { stack: Stack }) {
   );
 }
 
-/** Like · save · fork · [repost] · [extra] · copy link. `large` is the feed slide's size. */
+/** Like · save · fork · [repost] · [extra] · share. `large` is the feed slide's size. */
 export function ActionRow({ stack, extra, large, repost }: { stack: Stack; extra?: React.ReactNode; large?: boolean; repost?: boolean }) {
   const e = useEngagement(stack);
   const a = useStackActions();
@@ -65,9 +66,7 @@ export function ActionRow({ stack, extra, large, repost }: { stack: Stack; extra
       </button>
       {repost && <RepostButton stack={stack} className={s.action} size={large ? 16 : 13} count={fmtCount} />}
       {extra}
-      <button className={s.copy} onClick={() => a.copyLink(stack.id)} aria-label="Copy link">
-        <LinkIcon size={large ? 17 : 14} />
-      </button>
+      <ShareButton stack={stack} className={s.copy} size={large ? 19 : 16} />
     </div>
   );
 }

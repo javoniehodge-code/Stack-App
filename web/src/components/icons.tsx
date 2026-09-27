@@ -29,11 +29,11 @@ export function ForkIcon({ size = 13, color = "var(--muted-66)", width = 2 }: P 
   );
 }
 
-export function LinkIcon({ size = 14, color = "var(--muted-66)" }: P) {
+/** The share arrow on action rows; opens the share sheet. */
+export function ShareIcon({ size = 16, color = "var(--muted-66)" }: P) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2" />
-      <path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2" />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke={color} strokeWidth="1" strokeLinejoin="round" aria-hidden>
+      <path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z" />
     </svg>
   );
 }
