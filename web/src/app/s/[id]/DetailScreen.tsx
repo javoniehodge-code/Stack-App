@@ -18,7 +18,6 @@ import { useEngagement, useIsFollowing, useVisibility } from "@/lib/store";
 import { createClient } from "@/lib/supabase/client";
 import type { Comment, Stack } from "@/lib/types";
 import { useStackActions } from "@/lib/useStackActions";
-import DeleteStackSheet from "./DeleteStackSheet";
 import s from "./Detail.module.css";
 
 export default function DetailScreen({ stack, following, openComposer }: { stack: Stack; following: boolean; openComposer: boolean }) {
@@ -35,7 +34,6 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
   const [replyTo, setReplyTo] = useState<{ id: string; handle: string } | null>(null);
   const [posting, setPosting] = useState(false);
   const mentions = useMentions(draft, setDraft);
-  const [deleting, setDeleting] = useState(false);
   const mine = viewer?.id === stack.author.id;
   const router = useRouter();
   const visibility = useVisibility(stack);
@@ -156,13 +154,7 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
               </span>
             </span>
           </Link>
-          {mine ? (
-            <button className={s.deleteButton} onClick={() => setDeleting(true)}>
-              Delete
-            </button>
-          ) : (
-            <FollowButton className={s.follow} following={isFollowing} onClick={() => a.toggleFollow(stack.author, isFollowing)} />
-          )}
+          {!mine && <FollowButton className={s.follow} following={isFollowing} onClick={() => a.toggleFollow(stack.author, isFollowing)} />}
         </div>
         <h1 className={s.title}>{stack.title}</h1>
         {stack.description && <p className={s.description}>{stack.description}</p>}
@@ -247,7 +239,6 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
         />
       </div>
       {vis.sheet}
-      {deleting && <DeleteStackSheet stackId={stack.id} title={stack.title} onClose={() => setDeleting(false)} />}
     </main>
   );
 }

@@ -75,7 +75,8 @@ a different link, use the id from that link.
 - Password sign-in (email/username + password)
 - The comment box on stack pages
 - Edit profile (sheet with name, handle, bio, sign out)
-- Deleting your own stack (Delete button + confirmation sheet on your stack's page)
+- Deleting your own stack lives in the visibility sheet ("Delete stack", tap again to confirm);
+  there is no separate Delete button on the stack page
 - Comment replies (Reply button, threaded one level) and @mentions with autocomplete, on the
   stack page and feed cards; both create notifications
 - Blocking: Block in the profile share sheet (Block @handle? dialog) and Settings and
