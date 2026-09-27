@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth, useToast } from "@/components/AppProviders";
 import { SearchIcon } from "@/components/icons";
+import { ProfileShareButton } from "@/components/ProfileShare";
 import { ListCard } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
 import cards from "@/components/Cards.module.css";
@@ -52,7 +53,7 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
 
   return (
     <main className={shell.screen}>
-      <ProfileBar handle={viewer.handle}>
+      <ProfileBar right={<ProfileShareButton profile={viewer} stackCount={data.mine.length} own />}>
         <span className={p.wordmark}>Stack</span>
       </ProfileBar>
       <div className={p.scroll}>

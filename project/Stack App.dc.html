@@ -317,7 +317,7 @@
           <div onClick="{{ goBack }}" style="display:flex;align-items:center;gap:6px;height:44px;font-family:Inter,sans-serif;font-size:13px;color:oklch(72% 0.012 165);cursor:pointer;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(72% 0.012 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>Back
           </div>
-          <span onClick="{{ shareProfile }}" style="display:flex;align-items:center;gap:5px;font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:oklch(78% 0.06 160);cursor:pointer;padding:8px 0;">↗ Share profile</span>
+          <span onClick="{{ openUserShare }}" title="Share profile" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-right:-8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="oklch(90% 0.008 160)" stroke="oklch(90% 0.008 160)" strokeWidth="1" strokeLinejoin="round"><path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z"></path></svg></span>
         </div>
       </div>
       <div style="flex:1;overflow-y:auto;">
@@ -405,6 +405,52 @@
       </div>
     </sc-if>
 
+    <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:56px 16px 0;flex-shrink:0;border-bottom:1px solid oklch(32% 0.012 165);"><div style="display:grid;grid-template-columns:40px 1fr 40px;align-items:center;height:44px;"><div onClick="{{ goBack }}" style="width:40px;height:44px;display:flex;align-items:center;cursor:pointer;margin-left:-4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(84% 0.008 160)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg></div><span style="font-family:Inter,sans-serif;font-weight:700;font-size:16px;color:oklch(92% 0.008 160);text-align:center;">Settings and privacy</span><span></span></div></div>
+      <div style="flex:1;overflow-y:auto;padding:0 16px 30px;font-family:Inter,sans-serif;">
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(60% 0.012 165);margin:22px 4px 8px;">Account</div>
+        <div style="border-radius:14px;background:oklch(27% 0.012 165);display:flex;flex-direction:column;overflow:hidden;"><div onClick="{{ openEditProfileFromSettings }}" style="display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;cursor:pointer;">
+              <span style="flex:1;font-size:14.5px;color:oklch(92% 0.008 160);">Edit profile</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(56% 0.012 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"></path></svg>
+            </div><div style="height:1px;background:oklch(33% 0.012 165);margin-left:14px;"></div><div onClick="{{ noop }}" style="display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;cursor:pointer;">
+              <span style="flex:1;font-size:14.5px;color:oklch(92% 0.008 160);">Email and password</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(56% 0.012 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"></path></svg>
+            </div></div>
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(60% 0.012 165);margin:22px 4px 8px;">Privacy</div>
+        <div style="border-radius:14px;background:oklch(27% 0.012 165);display:flex;flex-direction:column;overflow:hidden;"><div onClick="{{ togglePrivate }}" style="display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;cursor:pointer;">
+              <span style="flex:1;font-size:14.5px;color:oklch(92% 0.008 160);">Private account<div style="font-size:12px;color:oklch(64% 0.012 165);margin-top:2px;line-height:1.4;">Only followers you approve can see your stacks</div></span><span style="width:44px;height:26px;border-radius:13px;background:{{ privateToggle.track }};position:relative;flex-shrink:0;"><span style="position:absolute;top:3px;left:{{ privateToggle.knob }};width:20px;height:20px;border-radius:50%;background:oklch(96% 0.005 160);"></span></span>
+            </div><div style="height:1px;background:oklch(33% 0.012 165);margin-left:14px;"></div><div onClick="{{ toggleAllowForks }}" style="display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;cursor:pointer;">
+              <span style="flex:1;font-size:14.5px;color:oklch(92% 0.008 160);">Allow others to fork your stacks</span><span style="width:44px;height:26px;border-radius:13px;background:{{ forksToggle.track }};position:relative;flex-shrink:0;"><span style="position:absolute;top:3px;left:{{ forksToggle.knob }};width:20px;height:20px;border-radius:50%;background:oklch(96% 0.005 160);"></span></span>
+            </div><div style="height:1px;background:oklch(33% 0.012 165);margin-left:14px;"></div><div onClick="{{ openBlocked }}" style="display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;cursor:pointer;">
+              <span style="flex:1;font-size:14.5px;color:oklch(92% 0.008 160);">Blocked accounts</span><span style="font-size:13px;color:oklch(64% 0.012 165);">{{ blockedCount }}</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(56% 0.012 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"></path></svg>
+            </div></div>
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(60% 0.012 165);margin:22px 4px 8px;">Support</div>
+        <div style="border-radius:14px;background:oklch(27% 0.012 165);display:flex;flex-direction:column;overflow:hidden;"><div onClick="{{ noop }}" style="display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;cursor:pointer;">
+              <span style="flex:1;font-size:14.5px;color:oklch(92% 0.008 160);">Help center</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(56% 0.012 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"></path></svg>
+            </div><div style="height:1px;background:oklch(33% 0.012 165);margin-left:14px;"></div><div onClick="{{ noop }}" style="display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;cursor:pointer;">
+              <span style="flex:1;font-size:14.5px;color:oklch(92% 0.008 160);">Terms and privacy policy</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(56% 0.012 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"></path></svg>
+            </div></div>
+        <div onClick="{{ logOut }}" style="margin-top:26px;height:50px;border-radius:14px;background:oklch(27% 0.012 165);display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:700;color:oklch(72% 0.15 25);cursor:pointer;">Log out</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isBlocked }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:56px 16px 0;flex-shrink:0;border-bottom:1px solid oklch(32% 0.012 165);"><div style="display:grid;grid-template-columns:40px 1fr 40px;align-items:center;height:44px;"><div onClick="{{ goBack }}" style="width:40px;height:44px;display:flex;align-items:center;cursor:pointer;margin-left:-4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(84% 0.008 160)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg></div><span style="font-family:Inter,sans-serif;font-weight:700;font-size:16px;color:oklch(92% 0.008 160);text-align:center;">Blocked accounts</span><span></span></div></div>
+      <div style="flex:1;overflow-y:auto;padding:12px 16px 30px;font-family:Inter,sans-serif;">
+        <sc-for list="{{ blockedRows }}" as="b" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid oklch(30% 0.012 165);">
+            <div style="width:40px;height:40px;border-radius:50%;background:oklch(40% 0.012 165);color:oklch(90% 0.008 160);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ b.initials }}</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:14px;font-weight:600;color:oklch(92% 0.008 160);">{{ b.name }}</div>
+              <div style="font-size:12px;color:oklch(64% 0.012 165);">{{ b.handle }}</div>
+            </div>
+            <span onClick="{{ b.onUnblock }}" style="font-size:12.5px;font-weight:700;padding:8px 16px;border-radius:999px;border:1px solid oklch(42% 0.012 165);color:oklch(90% 0.008 160);cursor:pointer;flex-shrink:0;">Unblock</span>
+          </div>
+        </sc-for>
+        <sc-if value="{{ blockedEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:60px 20px;text-align:center;font-size:13.5px;color:oklch(66% 0.012 165);line-height:1.5;">You haven't blocked anyone. Block someone from the share menu on their profile.</div>
+        </sc-if>
+      </div>
+    </sc-if>
+
     <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
     <sc-if value="{{ profileNeedsAuth }}" hint-placeholder-val="{{ false }}">
       <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 32px;">
@@ -417,7 +463,7 @@
       <div style="padding:56px 20px 0;flex-shrink:0;border-bottom:1px solid oklch(32% 0.012 165);">
         <div style="display:flex;align-items:center;justify-content:space-between;height:44px;">
           <span style="font-family:Inter,sans-serif;font-weight:800;font-size:19px;color:oklch(90% 0.008 160);letter-spacing:-0.3px;">Stack</span>
-          <span onClick="{{ shareProfile }}" style="display:flex;align-items:center;gap:5px;font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:oklch(78% 0.06 160);cursor:pointer;padding:8px 0;">↗ Share profile</span>
+          <span onClick="{{ openOwnShare }}" title="Share profile" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-right:-8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="oklch(90% 0.008 160)" stroke="oklch(90% 0.008 160)" strokeWidth="1" strokeLinejoin="round"><path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z"></path></svg></span>
         </div>
       </div>
       <div style="flex:1;overflow-y:auto;">
@@ -814,6 +860,85 @@
       </div>
     </sc-if>
 
+    <sc-if value="{{ showProfileShare }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeProfileSheet }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;flex-direction:column;justify-content:flex-end;z-index:40;">
+        <div onClick="{{ stopClick }}" style="padding:0 40px 18px;">
+          <div style="border-radius:18px;background:oklch(20% 0.012 165);border:1px solid oklch(34% 0.012 165);overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.45);font-family:Inter,sans-serif;">
+            <div style="padding:22px 20px 18px;display:flex;flex-direction:column;align-items:center;text-align:center;">
+              <div style="width:56px;height:56px;border-radius:50%;background:oklch(78% 0.06 160);color:oklch(23% 0.012 165);font-weight:700;font-size:19px;display:flex;align-items:center;justify-content:center;">{{ profileShare.initials }}</div>
+              <div style="font-weight:800;font-size:18px;color:oklch(92% 0.008 160);margin-top:10px;letter-spacing:-0.2px;">{{ profileShare.name }}</div>
+              <div style="font-size:12.5px;color:oklch(66% 0.012 165);margin-top:2px;">{{ profileShare.handle }} · {{ profileShare.stacksLabel }}</div>
+              <sc-if value="{{ profileShare.bio }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:13px;color:oklch(84% 0.008 160);line-height:1.5;margin-top:10px;max-width:250px;text-wrap:pretty;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ profileShare.bio }}</div>
+              </sc-if>
+            </div>
+            <div style="padding:12px 20px 14px;border-top:1px dashed oklch(34% 0.012 165);background:oklch(17% 0.012 165);display:flex;align-items:center;gap:10px;">
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:12px;color:oklch(78% 0.008 160);">Find <span style="font-weight:700;color:oklch(92% 0.008 160);">{{ profileShare.handle }}</span> on Stack</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(78% 0.06 160);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ profileShare.url }}</div>
+              </div>
+              <span style="font-weight:800;font-size:13px;color:oklch(78% 0.06 160);letter-spacing:-0.2px;flex-shrink:0;">Stack</span>
+            </div>
+          </div>
+        </div>
+        <div onClick="{{ stopClick }}" style="width:100%;background:oklch(27% 0.012 165);border-radius:22px 22px 0 0;padding:14px 16px 30px;box-sizing:border-box;font-family:Inter,sans-serif;">
+          <div style="width:36px;height:4px;border-radius:2px;background:oklch(42% 0.012 165);margin:0 auto 14px;"></div>
+          <div style="font-size:13px;font-weight:700;color:oklch(84% 0.008 160);text-align:center;margin-bottom:16px;">Share profile</div>
+          <div style="display:flex;justify-content:space-around;">
+              <div onClick="{{ psCopy }}" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;width:64px;">
+                <div style="width:52px;height:52px;border-radius:50%;background:oklch(33% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="oklch(92% 0.008 160)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></div>
+                <span style="font-size:11.5px;color:oklch(90% 0.008 160);text-align:center;line-height:1.25;">Copy link</span>
+              </div>
+              <div onClick="{{ psShare }}" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;width:64px;">
+                <div style="width:52px;height:52px;border-radius:50%;background:oklch(33% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="21" height="21" viewBox="0 0 24 24" fill="oklch(92% 0.008 160)" stroke="oklch(92% 0.008 160)" strokeWidth="1" strokeLinejoin="round"><path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z"></path></svg></div>
+                <span style="font-size:11.5px;color:oklch(90% 0.008 160);text-align:center;line-height:1.25;">Share</span>
+              </div>
+              <div onClick="{{ psSave }}" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;width:64px;">
+                <div style="width:52px;height:52px;border-radius:50%;background:oklch(33% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="oklch(92% 0.008 160)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4v11"></path><path d="M7.5 10.5L12 15l4.5-4.5"></path><path d="M5 19.5h14"></path></svg></div>
+                <span style="font-size:11.5px;color:oklch(90% 0.008 160);text-align:center;line-height:1.25;">Save image</span>
+              </div>
+              <div onClick="{{ psMore }}" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;width:64px;">
+                <div style="width:52px;height:52px;border-radius:50%;background:oklch(33% 0.012 165);display:flex;align-items:center;justify-content:center;"><svg width="21" height="21" viewBox="0 0 24 24" fill="oklch(92% 0.008 160)"><circle cx="5.5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="18.5" cy="12" r="1.8"></circle></svg></div>
+                <span style="font-size:11.5px;color:oklch(90% 0.008 160);text-align:center;line-height:1.25;">More</span>
+              </div>
+          </div>
+          <sc-if value="{{ profileShare.own }}" hint-placeholder-val="{{ false }}">
+            <div style="height:1px;background:oklch(34% 0.012 165);margin:16px 4px 6px;"></div>
+            <div onClick="{{ openSettings }}" style="display:flex;align-items:center;gap:14px;height:54px;padding:0 6px;cursor:pointer;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="oklch(90% 0.008 160)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3.5l7 3v5c0 4.5-3 7.8-7 9-4-1.2-7-4.5-7-9v-5z"></path></svg>
+            <span style="flex:1;font-size:15px;font-weight:600;color:oklch(92% 0.008 160);">Settings and privacy</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(56% 0.012 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"></path></svg>
+          </div>
+          <div onClick="{{ logOut }}" style="display:flex;align-items:center;gap:14px;height:54px;padding:0 6px;cursor:pointer;border-top:1px solid oklch(33% 0.012 165);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="oklch(72% 0.15 25)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 4.5H6.5v15H14"></path><path d="M10.5 12H20"></path><path d="M16.5 8.5L20 12l-3.5 3.5"></path></svg>
+            <span style="flex:1;font-size:15px;font-weight:600;color:oklch(72% 0.15 25);">Log out</span>
+          </div>
+          </sc-if>
+          <sc-if value="{{ profileShare.canBlock }}" hint-placeholder-val="{{ false }}">
+            <div style="height:1px;background:oklch(34% 0.012 165);margin:18px 4px 16px;"></div>
+            <div style="display:flex;gap:0;padding-left:8px;">
+              <div onClick="{{ askBlock }}" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;width:64px;">
+                <div style="width:52px;height:52px;border-radius:50%;background:oklch(31% 0.03 25);display:flex;align-items:center;justify-content:center;"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="oklch(72% 0.15 25)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="8"></circle><path d="M6.5 6.5l11 11"></path></svg></div>
+                <span style="font-size:11.5px;color:oklch(72% 0.15 25);text-align:center;line-height:1.25;">Block</span>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showBlockConfirm }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeProfileSheet }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:0 32px;z-index:45;">
+        <div onClick="{{ stopClick }}" style="width:100%;background:oklch(27% 0.012 165);border-radius:18px;padding:22px 20px 16px;box-sizing:border-box;font-family:Inter,sans-serif;text-align:center;">
+          <div style="font-weight:800;font-size:17px;color:oklch(92% 0.008 160);">Block {{ profileShare.handle }}?</div>
+          <div style="font-size:13.5px;color:oklch(72% 0.012 165);line-height:1.5;margin-top:8px;text-wrap:pretty;">They won't be able to see your stacks or find your profile, and you won't see theirs. They won't be notified.</div>
+          <div onClick="{{ confirmBlock }}" style="margin-top:18px;height:46px;border-radius:12px;background:oklch(64% 0.15 25);color:oklch(98% 0.005 25);font-size:14.5px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;">Block</div>
+          <div onClick="{{ closeProfileSheet }}" style="margin-top:6px;height:44px;color:oklch(84% 0.008 160);font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer;">Cancel</div>
+        </div>
+      </div>
+    </sc-if>
+
+
     <sc-if value="{{ showShareSheet }}" hint-placeholder-val="{{ false }}">
       <div onClick="{{ closeShare }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;flex-direction:column;justify-content:flex-end;z-index:40;">
         <div onClick="{{ stopClick }}" style="padding:0 28px 18px;">
@@ -1007,6 +1132,7 @@ class Component extends DCLogic {
     submittedQuery: '',
     profileTab: 'mine',
     viewedHandle: null,
+    blockedHandles: [], privateAccount: false, allowForks: true, profileSheet: null,
     userTab: 'stacks',
     navStack: [],
     activeListId: null,
@@ -1201,7 +1327,7 @@ class Component extends DCLogic {
     this.setState(st => ({ myReposts: st.myReposts.filter(r => r.id !== id), repostSheetId: null }));
     this.showToast('Repost removed');
   }
-  PERSIST = ['signedIn', 'followedHandles', 'drafts', 'myOrder', 'pinnedId', 'pinNote', 'myBio', 'mySocials', 'lists', 'notifs', 'myReposts', 'recentSearches'];
+  PERSIST = ['signedIn', 'followedHandles', 'drafts', 'myOrder', 'pinnedId', 'pinNote', 'myBio', 'mySocials', 'lists', 'notifs', 'myReposts', 'recentSearches', 'blockedHandles', 'privateAccount', 'allowForks'];
   STORE_KEY = 'stack-app-state-v1';
   componentDidMount() {
     this._initial = {}; this.PERSIST.forEach(k => { this._initial[k] = this.state[k]; });
@@ -1300,6 +1426,12 @@ class Component extends DCLogic {
     if (handle === '@you') { this.setState({ screen: 'profile', navStack: [] }); return; }
     this.setState(s => ({ navStack: [...s.navStack, this._snapshot(s)], viewedHandle: handle, userTab: 'stacks', screen: 'user' }));
   }
+  openScreen(screen) { this.setState(s => ({ navStack: [...s.navStack, this._snapshot(s)], screen, profileSheet: null })); }
+  blockUser(handle) {
+    this.setState(s => ({ blockedHandles: [...s.blockedHandles.filter(x => x !== handle), handle], followedHandles: s.followedHandles.filter(x => x !== handle), profileSheet: null }));
+    this.goBack(); this.showToast(handle + ' blocked');
+  }
+  logOut() { this.setState({ signedIn: false, profileSheet: null, screen: 'feed', navStack: [] }); this.showToast('Logged out'); }
   goBack() {
     this.setState(s => {
       if (!s.navStack.length) return { screen: 'feed' };
@@ -1490,7 +1622,7 @@ class Component extends DCLogic {
   }
   renderVals() {
     const s = this.state;
-    const list = s.lists;
+    const list = s.lists.filter(l => !s.blockedHandles.includes(l.author.handle));
     const cardVM = (l) => this._cardVM(l, s.screen);
 
     const feedCards = list.map(cardVM);
@@ -1721,7 +1853,45 @@ class Component extends DCLogic {
       showTabBar: ['feed', 'search', 'detail', 'profile', 'user', 'notifs'].includes(s.screen),
       ...this._notifVMs(s),
       goBack: () => this.goBack(),
-      shareProfile: () => this.showToast('Profile link copied'),
+      shareProfile: () => this.setState({ profileSheet: 'ownShare' }),
+      openUserShare: () => this.setState({ profileSheet: 'userShare' }),
+      openOwnShare: () => this.setState({ profileSheet: 'ownShare' }),
+      openOwnMenu: () => this.setState({ profileSheet: 'ownMenu' }),
+      openOwnShareFromMenu: () => this.setState({ profileSheet: 'ownShare' }),
+      closeProfileSheet: () => this.setState({ profileSheet: null }),
+      showProfileShare: s.profileSheet === 'userShare' || s.profileSheet === 'ownShare',
+      showOwnMenu: s.profileSheet === 'ownMenu',
+      showBlockConfirm: s.profileSheet === 'blockConfirm',
+      profileShare: (() => {
+        const own = s.profileSheet === 'ownShare';
+        const au = !own && s.viewedHandle ? (s.lists.find(l => l.author.handle === s.viewedHandle) || {}).author || {} : {};
+        const handle = own ? '@you' : (s.viewedHandle || '');
+        const n = s.lists.filter(l => own ? l.isMine : l.author.handle === handle).length;
+        return { own, canBlock: !own && s.profileSheet === 'userShare', handle, name: own ? 'You' : (au.name || ''), initials: own ? 'Y' : (au.initials || ''),
+          bio: own ? s.myBio : ((this.USERS[handle] || {}).bio || ''), stacksLabel: n + (n === 1 ? ' stack' : ' stacks'), url: 'stack.app/' + handle.replace(/^@/, '') };
+      })(),
+      psCopy: () => { this.setState({ profileSheet: null }); this.showToast('Profile link copied'); },
+      psMessage: () => { this.setState({ profileSheet: null }); this.showToast('Opening Messages…'); },
+      psSave: () => { this.setState({ profileSheet: null }); this.showToast('Image saved to Photos'); },
+      psShare: () => { this.setState({ profileSheet: null }); this.showToast('Opening share sheet…'); },
+      psMore: () => { this.setState({ profileSheet: null }); this.showToast('Opening share sheet…'); },
+      askBlock: () => this.setState({ profileSheet: 'blockConfirm' }),
+      confirmBlock: () => s.viewedHandle && this.blockUser(s.viewedHandle),
+      logOut: () => this.logOut(),
+      openSettings: () => this.openScreen('settings'),
+      openBlocked: () => this.openScreen('blocked'),
+      openEditProfileFromSettings: () => this.setState(st => ({ showEditProfile: true, socialDraft: { ...st.mySocials }, bioDraft: st.myBio })),
+      noop: () => {},
+      isSettings: s.screen === 'settings', isBlocked: s.screen === 'blocked',
+      togglePrivate: () => this.setState(st => ({ privateAccount: !st.privateAccount })),
+      toggleAllowForks: () => this.setState(st => ({ allowForks: !st.allowForks })),
+      privateToggle: { track: s.privateAccount ? 'oklch(70% 0.08 160)' : 'oklch(38% 0.012 165)', knob: s.privateAccount ? '21px' : '3px' },
+      forksToggle: { track: s.allowForks ? 'oklch(70% 0.08 160)' : 'oklch(38% 0.012 165)', knob: s.allowForks ? '21px' : '3px' },
+      blockedCount: String(s.blockedHandles.length || ''),
+      blockedEmpty: s.blockedHandles.length === 0,
+      blockedRows: s.blockedHandles.map(hd => { const au = (s.lists.find(l => l.author.handle === hd) || {}).author || {};
+        return { handle: hd, name: au.name || hd, initials: au.initials || hd.slice(1, 3).toUpperCase(),
+          onUnblock: () => { this.setState(st => ({ blockedHandles: st.blockedHandles.filter(x => x !== hd) })); this.showToast(hd + ' unblocked'); } }; }),
       resetPrototype: () => this.resetPrototype(),
       showRepostSheet: !!s.repostSheetId,
       repostSheet: (() => {
@@ -1784,7 +1954,7 @@ class Component extends DCLogic {
       showAuthModal: s.showAuthModal, authMessage: s.authMessage, stopClick: (e) => e.stopPropagation(),
       confirmAuth: () => this.confirmAuth(), cancelAuth: () => this.cancelAuth(),
       profileSignedIn: s.signedIn, profileNeedsAuth: !s.signedIn,
-      goSearch: () => this.goSearch(), goNew: () => this.goNew(), goFeed: () => this.goFeed(), goProfile: () => this.goProfile(),
+      goSearch: () => this.goSearch(), goNew: () => this.requireAuth(() => this.goNew(), 'Sign in or create an account to start a stack.'), goFeed: () => this.goFeed(), goProfile: () => this.goProfile(),
 
       searchQuery: s.searchQuery,
       onSearchChange: (e) => this.setState({ searchQuery: e.target.value, submittedQuery: '' }),

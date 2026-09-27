@@ -3,13 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "@/components/AppProviders";
-import sheet from "@/components/Sheet.module.css";
 import { blockUser } from "@/lib/blocks";
 import { setFollowing } from "@/lib/store";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/types";
-import s from "@/app/s/[id]/Detail.module.css";
+import b from "./Block.module.css";
 
+/** "Block @handle?" confirmation, opened from the profile share sheet. */
 export default function BlockSheet({ profile, onClose }: { profile: Profile; onClose: () => void }) {
   const router = useRouter();
   const toast = useToast();
@@ -26,27 +26,25 @@ export default function BlockSheet({ profile, onClose }: { profile: Profile; onC
       return;
     }
     setFollowing(profile.id, false);
-    toast(`Blocked @${profile.handle}`);
+    toast(`@${profile.handle} blocked`);
     router.replace("/");
     router.refresh();
   }
 
   return (
-    <div className={sheet.scrim} onClick={busy ? undefined : onClose}>
-      <div className={sheet.sheet} onClick={(e) => e.stopPropagation()} role="alertdialog" aria-modal="true" aria-labelledby="block-title" aria-describedby="block-msg">
-        <div className={sheet.grabber} />
-        <div id="block-title" className={sheet.title}>
+    <div className={b.scrim} onClick={busy ? undefined : onClose}>
+      <div className={b.dialog} onClick={(e) => e.stopPropagation()} role="alertdialog" aria-modal="true" aria-labelledby="block-title" aria-describedby="block-msg">
+        <div id="block-title" className={b.title}>
           Block @{profile.handle}?
         </div>
-        <div id="block-msg" className={sheet.message}>
-          You won&apos;t see each other&apos;s profiles, stacks or comments anywhere on Stack, and any follows between you are removed. They won&apos;t be
-          told. You can unblock them from Edit profile.
+        <div id="block-msg" className={b.message}>
+          They won&apos;t be able to see your stacks or find your profile, and you won&apos;t see theirs. They won&apos;t be notified.
         </div>
-        {error && <div className={sheet.error}>{error}</div>}
-        <button type="button" className={`${sheet.primary} ${s.danger}`} onClick={block} disabled={busy}>
+        {error && <div className={b.error}>{error}</div>}
+        <button type="button" className={b.block} onClick={block} disabled={busy}>
           {busy ? "Blocking…" : "Block"}
         </button>
-        <button type="button" className={sheet.secondary} onClick={onClose} disabled={busy}>
+        <button type="button" className={b.cancel} onClick={onClose} disabled={busy}>
           Cancel
         </button>
       </div>

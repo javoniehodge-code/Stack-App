@@ -341,3 +341,10 @@
   border: 1px solid var(--line);
   color: var(--text-2);
 }
+
+.gateBack {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--muted-66);
+  padding: 8px;
+}

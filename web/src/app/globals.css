@@ -18,6 +18,7 @@
   --muted-56: oklch(56% 0.012 165);
   --accent: oklch(78% 0.06 160);
   --on-accent: var(--bg);
+  --danger: oklch(72% 0.15 25);
   --outside: oklch(19% 0.01 165);
 
   --sans: var(--font-inter), Inter, -apple-system, sans-serif;

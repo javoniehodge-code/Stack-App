@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { fetchUnreadCount, onNotificationsChanged } from "@/lib/notifications";
 import { createClient } from "@/lib/supabase/client";
@@ -34,6 +34,8 @@ function useUnreadCount(path: string) {
 
 export default function TabBar() {
   const path = usePathname();
+  const router = useRouter();
+  const { viewer, requireAuth } = useAuth();
   const unread = useUnreadCount(path);
   if (path.startsWith("/create")) return null;
   const c = (active: boolean) => (active ? ON : OFF);
@@ -47,7 +49,17 @@ export default function TabBar() {
         <SearchIcon size={21} color={c(path === "/explore")} />
         Explore
       </Link>
-      <Link href="/create" className={styles.tab} style={{ color: OFF }}>
+      <Link
+        href="/create"
+        className={styles.tab}
+        style={{ color: OFF }}
+        onClick={(e) => {
+          // Signed out: sign in first, then go to Create.
+          if (viewer) return;
+          e.preventDefault();
+          requireAuth(() => router.push("/create"), "Sign in or create an account to start a stack.");
+        }}
+      >
         <span className={styles.createPill}>
           <PlusIcon />
         </span>

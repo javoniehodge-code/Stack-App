@@ -2,42 +2,19 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/components/AppProviders";
 import SocialLinks from "@/components/SocialLinks";
 import { fmtCount, initials, plural } from "@/lib/format";
 import type { Profile, Stack } from "@/lib/types";
 import f from "./Featured.module.css";
 import p from "./Profile.module.css";
 
-/** The fixed bar above a profile: a wordmark or Back on the left, Share profile on the right. */
-export function ProfileBar({ handle, children, more }: { handle: string; children: React.ReactNode; more?: () => void }) {
-  const toast = useToast();
-  async function share() {
-    try {
-      await navigator.clipboard.writeText(`${location.origin}/u/${handle}`);
-      toast("Profile link copied");
-    } catch {
-      toast("Couldn't copy the link.");
-    }
-  }
+/** The fixed bar above a profile: a wordmark or Back on the left, the share button on the right. */
+export function ProfileBar({ children, right }: { children: React.ReactNode; right: React.ReactNode }) {
   return (
     <header className={p.bar}>
       <div className={p.barRow}>
         {children}
-        <span className={p.barActions}>
-          <button className={p.share} onClick={share}>
-            ↗ Share profile
-          </button>
-          {more && (
-            <button className={p.more} onClick={more} aria-label="More options" title="More options">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--muted-72)" aria-hidden>
-                <circle cx="5" cy="12" r="1.8" />
-                <circle cx="12" cy="12" r="1.8" />
-                <circle cx="19" cy="12" r="1.8" />
-              </svg>
-            </button>
-          )}
-        </span>
+        {right}
       </div>
     </header>
   );

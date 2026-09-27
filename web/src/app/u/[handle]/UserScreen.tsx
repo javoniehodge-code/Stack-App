@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth, useBack } from "@/components/AppProviders";
 import { BackIcon } from "@/components/icons";
+import { ProfileShareButton } from "@/components/ProfileShare";
 import { CompactCard, FollowButton } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
 import cards from "@/components/Cards.module.css";
@@ -43,7 +44,16 @@ export default function UserScreen({
 
   return (
     <main className={shell.screen}>
-      <ProfileBar handle={profile.handle} more={() => requireAuth(() => setBlocking(true), "Sign in to block accounts.")}>
+      <ProfileBar
+        right={
+          <ProfileShareButton
+            profile={profile}
+            stackCount={stacks.length}
+            own={false}
+            onBlock={() => requireAuth(() => setBlocking(true), "Sign in to block accounts.")}
+          />
+        }
+      >
         <button onClick={back} className={p.back} style={{ marginBottom: 0 }}>
           <BackIcon />
           Back

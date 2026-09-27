@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth, useToast } from "@/components/AppProviders";
@@ -7,13 +8,14 @@ import shell from "@/components/AppShell.module.css";
 import { MAX_DESCRIPTION, MAX_LINE, MAX_TITLE, TAG_SUGGESTIONS } from "@/lib/format";
 import { createClient } from "@/lib/supabase/client";
 import type { Draft, DraftLine, DraftSection } from "@/lib/types";
+import p from "../profile/Profile.module.css";
 import s from "./Create.module.css";
 
 const linkDomain = (url: string) => url.replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, "");
 
 export default function CreateScreen({ initial }: { initial: Draft }) {
   const router = useRouter();
-  const { requireAuth } = useAuth();
+  const { viewer, requireAuth } = useAuth();
   const toast = useToast();
   const [draft, setDraft] = useState<Draft>(initial);
   const [tagInput, setTagInput] = useState("");
@@ -88,6 +90,22 @@ export default function CreateScreen({ initial }: { initial: Draft }) {
   }
 
   const suggestions = TAG_SUGGESTIONS.filter((n) => !draft.tags.some((t) => t.toLowerCase() === n.toLowerCase()));
+
+  // Signed-out visitors sign in first (the Create tab asks before coming here).
+  if (!viewer) {
+    return (
+      <main className={`${shell.screen} ${p.gate}`}>
+        <h1 className={p.gateTitle}>Sign in to start a stack</h1>
+        <div className={p.gateText}>Create a free account to make stacks, save drafts, and share them.</div>
+        <button className={p.gateButton} onClick={() => requireAuth(null, "Sign in or create an account to start a stack.")}>
+          Sign in / Create account
+        </button>
+        <Link href="/" className={s.gateBack}>
+          Back to the feed
+        </Link>
+      </main>
+    );
+  }
 
   return (
     <main className={shell.screen}>
