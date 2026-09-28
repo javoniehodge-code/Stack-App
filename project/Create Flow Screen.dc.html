@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <style>
+    body { margin: 0; background: oklch(99.6% 0.002 80); }
+    * { box-sizing: border-box; }
+    input::placeholder, textarea::placeholder { color: oklch(62% 0.006 80); }
+    a { color: oklch(54% 0.16 45); } a:hover { color: oklch(46% 0.15 45); }
+  </style>
+</helmet>
+<div style="height:100%;display:flex;flex-direction:column;background:{{ screenBg }};position:relative;font-family:Inter,-apple-system,sans-serif;">
+
+  <sc-if value="{{ showHeader }}" hint-placeholder-val="{{ true }}">
+    <div style="padding:54px 8px 0;flex-shrink:0;background:oklch(99.6% 0.002 80);">
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:44px;">
+        <div style="display:flex;">
+          <span onClick="{{ exit }}" style="height:44px;padding:0 10px;display:flex;align-items:center;gap:4px;cursor:pointer;font-size:13.5px;font-weight:500;color:oklch(36% 0.006 80);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2" strokeLinecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"></path></svg>Exit
+          </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:oklch(47.1% 0.006 80);white-space:nowrap;">
+          <sc-if value="{{ showStatus }}" hint-placeholder-val="{{ true }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ statusDot }};flex-shrink:0;"></span>{{ statusText }}</sc-if>
+        </div>
+        <div style="display:flex;justify-content:flex-end;">
+          <span onClick="{{ saveDraft }}" style="height:44px;padding:0 12px;display:flex;align-items:center;font-size:13.5px;font-weight:600;color:oklch(19.4% 0.006 80);cursor:pointer;">Save draft</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:0 12px 8px;">
+        <div style="flex:1;display:flex;gap:4px;">
+          <sc-for list="{{ progSegs }}" as="p" hint-placeholder-count="4">
+            <span style="flex:1;height:3px;border-radius:2px;background:{{ p.bg }};"></span>
+          </sc-for>
+        </div>
+        <span style="font-size:11.5px;font-weight:600;color:oklch(41.5% 0.006 80);font-variant-numeric:tabular-nums;white-space:nowrap;">{{ stepNum }}/4 · {{ stepName }}</span>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isTitle }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;padding:0 32px 60px;">
+      <input value="{{ title }}" onChange="{{ onTitle }}" onKeyDown="{{ onTitleKey }}" style="width:100%;border:none;border-bottom:1.5px solid oklch(86.3% 0.006 80);outline:none;background:transparent;font-family:Inter,sans-serif;font-weight:700;font-size:22px;letter-spacing:-0.3px;text-align:center;color:oklch(14.8% 0.006 80);padding:8px 0 10px;border-radius:0;" style-focus="border-bottom-color:oklch(19.4% 0.006 80);" />
+      <div style="font-size:16px;color:oklch(41.5% 0.006 80);text-align:center;margin-top:14px;">What would you like to call this Stack?</div>
+      <div style="display:flex;justify-content:center;margin-top:6px;">
+        <span onClick="{{ nextTitle }}" style="height:44px;padding:0 18px;display:flex;align-items:center;font-size:14px;font-weight:600;color:oklch(54% 0.16 45);cursor:pointer;">{{ titleSkipLabel }}</span>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isDesc }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;padding:0 32px 60px;">
+      <textarea value="{{ description }}" onChange="{{ onDesc }}" onKeyDown="{{ onDescKey }}" rows="1" style="width:100%;field-sizing:content;resize:none;border:none;border-bottom:1.5px solid oklch(86.3% 0.006 80);outline:none;background:transparent;font-family:Inter,sans-serif;font-size:17px;line-height:1.5;text-align:center;color:oklch(19.4% 0.006 80);padding:8px 0 10px;border-radius:0;display:block;" style-focus="border-bottom-color:oklch(19.4% 0.006 80);"></textarea>
+      <div style="font-size:16px;color:oklch(41.5% 0.006 80);text-align:center;margin-top:14px;">What is this Stack about?</div>
+      <div style="display:flex;justify-content:center;margin-top:6px;">
+        <span onClick="{{ goBuild }}" style="height:44px;padding:0 18px;display:flex;align-items:center;font-size:14px;font-weight:600;color:oklch(54% 0.16 45);cursor:pointer;">{{ descSkipLabel }}</span>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isBuild }}" hint-placeholder-val="{{ true }}">
+    <div ref="{{ buildScrollRef }}" style="flex:1;min-height:0;overflow-y:auto;padding:12px 20px 28px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <div style="width:30px;height:30px;border-radius:50%;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">Y</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:13px;color:oklch(19.4% 0.006 80);">You</div>
+          <div style="font-size:12px;color:oklch(41.5% 0.006 80);">@you · Draft, only you can see it</div>
+        </div>
+      </div>
+      <input value="{{ title }}" onChange="{{ onTitle }}" onFocus="{{ clearSel }}" placeholder="Add a title" style="width:100%;border:none;border-bottom:1.5px dashed {{ titleBorder }};outline:none;background:transparent;font-family:Inter,sans-serif;font-weight:800;font-size:21px;line-height:1.25;color:oklch(19.4% 0.006 80);padding:2px 0 4px;border-radius:0;" />
+      <textarea value="{{ description }}" onChange="{{ onDesc }}" onFocus="{{ clearSel }}" placeholder="Add a description (optional)" rows="1" style="width:100%;field-sizing:content;resize:none;border:none;border-bottom:1.5px dashed {{ descBorder }};outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14.5px;line-height:1.5;color:oklch(36% 0.006 80);padding:4px 0;margin-top:6px;display:block;"></textarea>
+      <div style="height:14px;"></div>
+      <sc-if value="{{ showTopSub }}" hint-placeholder-val="{{ true }}">
+        <div onClick="{{ addTopSection }}" style="display:flex;align-items:center;min-height:40px;font-size:13px;font-weight:600;color:oklch(41.5% 0.006 80);cursor:pointer;">+ Add subsection</div>
+      </sc-if>
+
+      <div>
+        <sc-for list="{{ sections }}" as="sec" hint-placeholder-count="1">
+          <div style="margin-bottom:6px;">
+            <sc-if value="{{ sec.headed }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:18px;">
+                <input ref="{{ sec.headRef }}" value="{{ sec.label }}" onChange="{{ sec.onLabel }}" onFocus="{{ sec.onSelect }}" placeholder="Subsection heading" style="width:100%;height:36px;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(41.5% 0.006 80);padding:0;" />
+                <sc-if value="{{ sec.isSel }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                    <span onClick="{{ sec.onUp }}" style="width:36px;height:36px;border-radius:10px;border:1px solid oklch(88.5% 0.006 80);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ sec.upOp }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 14.5l6-6 6 6"></path></svg></span>
+                    <span onClick="{{ sec.onDown }}" style="width:36px;height:36px;border-radius:10px;border:1px solid oklch(88.5% 0.006 80);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ sec.downOp }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span>
+                    <span onClick="{{ sec.onRemove }}" style="height:36px;padding:0 10px;display:flex;align-items:center;font-size:12.5px;font-weight:600;color:oklch(41.5% 0.006 80);cursor:pointer;">Remove heading</span>
+                    <span style="flex:1;"></span>
+                    <span onClick="{{ clearSel }}" style="height:36px;padding:0 4px;display:flex;align-items:center;font-size:13px;font-weight:700;color:oklch(54% 0.16 45);cursor:pointer;">Done</span>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-if>
+
+            <sc-for list="{{ sec.lines }}" as="ln" hint-placeholder-count="3">
+              <div>
+                <sc-if value="{{ ln.notSel }}" hint-placeholder-val="{{ true }}">
+                  <div onClick="{{ ln.onSelect }}" style="display:flex;gap:10px;padding:5px 0;cursor:pointer;">
+                    <span style="color:oklch(64% 0.16 50);font-weight:700;font-size:14.5px;line-height:1.7;flex-shrink:0;min-width:18px;font-variant-numeric:tabular-nums;">{{ ln.num }}</span>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:14.5px;line-height:1.7;color:{{ ln.textColor }};text-wrap:pretty;">{{ ln.display }}</div>
+                      <sc-if value="{{ ln.hasLink }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;align-items:center;gap:10px;margin:4px 0 4px;padding:8px 10px;border-radius:10px;border:1px solid oklch(91.8% 0.006 80);background:oklch(99.6% 0.002 80);">
+                          <span style="width:20px;height:20px;border-radius:5px;background:{{ ln.favBg }};color:oklch(99.6% 0.002 80);font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ ln.favLetter }}</span>
+                          <div style="flex:1;min-width:0;">
+                            <div style="font-size:13px;font-weight:600;color:{{ ln.linkTitleColor }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ln.linkTitle }}</div>
+                            <div style="font-size:11.5px;color:oklch(47.1% 0.006 80);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ln.domain }}</div>
+                          </div>
+                          <span style="color:oklch(54% 0.16 45);font-size:14px;font-weight:700;flex-shrink:0;">↗</span>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ ln.isSel }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin:4px -12px;padding:8px 12px 8px;border-radius:14px;background:oklch(97.6% 0.006 80);border:1px solid oklch(90% 0.006 80);">
+                    <div style="display:flex;gap:10px;">
+                      <span style="color:oklch(64% 0.16 50);font-weight:700;font-size:14.5px;line-height:1.7;flex-shrink:0;min-width:18px;padding-top:2px;font-variant-numeric:tabular-nums;">{{ ln.num }}</span>
+                      <textarea ref="{{ ln.ref }}" value="{{ ln.text }}" onChange="{{ ln.onText }}" onKeyDown="{{ ln.onKey }}" placeholder="{{ ln.placeholder }}" rows="1" style="flex:1;min-width:0;field-sizing:content;resize:none;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14.5px;line-height:1.7;color:oklch(14.8% 0.006 80);padding:2px 0;"></textarea>
+                    </div>
+                    <div style="padding-left:28px;">
+                      <sc-if value="{{ ln.hasLink }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;align-items:center;gap:10px;margin-top:6px;padding:8px 4px 8px 10px;border-radius:10px;border:1px solid oklch(91.8% 0.006 80);background:oklch(99.6% 0.002 80);">
+                          <span style="width:20px;height:20px;border-radius:5px;background:{{ ln.favBg }};color:oklch(99.6% 0.002 80);font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ ln.favLetter }}</span>
+                          <div style="flex:1;min-width:0;">
+                            <div style="font-size:13px;font-weight:600;color:{{ ln.linkTitleColor }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ln.linkTitle }}</div>
+                            <div style="font-size:11.5px;color:oklch(47.1% 0.006 80);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ln.domain }}</div>
+                          </div>
+                          <span onClick="{{ ln.onRemoveLink }}" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(47.1% 0.006 80)" strokeWidth="2.2" strokeLinecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"></path></svg></span>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{ ln.showLinkInput }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;align-items:center;gap:8px;padding:0 12px;height:44px;border-radius:12px;border:1.5px solid oklch(64% 0.16 50);background:oklch(99.6% 0.002 80);margin-top:6px;">
+                          <span style="color:oklch(54% 0.16 45);font-size:14px;flex-shrink:0;">↗</span>
+                          <input ref="{{ ln.linkRef }}" value="{{ linkDraft }}" onChange="{{ onLinkDraft }}" onPaste="{{ ln.onLinkPaste }}" onKeyDown="{{ ln.onLinkKey }}" placeholder="Paste a link" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14px;color:oklch(17.5% 0.006 80);" />
+                        </div>
+                        <div style="display:flex;gap:8px;margin-top:8px;">
+                          <span onClick="{{ ln.onLinkDone }}" style="font-size:13px;font-weight:700;padding:9px 16px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);cursor:pointer;">Add</span>
+                          <span onClick="{{ closeLink }}" style="font-size:13px;font-weight:600;padding:9px 16px;border-radius:999px;border:1px solid oklch(88.5% 0.006 80);color:oklch(36% 0.006 80);cursor:pointer;">Cancel</span>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{ ln.showAddLink }}" hint-placeholder-val="{{ false }}">
+                        <span onClick="{{ ln.onOpenLink }}" style="display:inline-flex;align-items:center;margin-top:6px;font-size:14px;font-weight:500;padding:10px 18px;border-radius:14px;border:1.5px solid oklch(60% 0.03 60);color:oklch(54% 0.16 45);cursor:pointer;">+ Add link</span>
+                      </sc-if>
+                      <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+                        <span onClick="{{ ln.onUp }}" style="width:36px;height:36px;border-radius:10px;border:1px solid oklch(88.5% 0.006 80);background:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ ln.upOp }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 14.5l6-6 6 6"></path></svg></span>
+                        <span onClick="{{ ln.onDown }}" style="width:36px;height:36px;border-radius:10px;border:1px solid oklch(88.5% 0.006 80);background:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ ln.downOp }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span>
+                        <span onClick="{{ ln.onDelete }}" style="width:36px;height:36px;border-radius:10px;border:1px solid oklch(88.5% 0.006 80);background:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"></path></svg></span>
+                        <span style="flex:1;min-width:0;font-size:11.5px;color:oklch(47.1% 0.006 80);text-align:center;white-space:nowrap;">Added by you</span>
+                        <span onClick="{{ clearSel }}" style="height:36px;padding:0 4px;display:flex;align-items:center;font-size:13px;font-weight:700;color:oklch(54% 0.16 45);cursor:pointer;">Done</span>
+                      </div>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+
+            <div onClick="{{ sec.onAddLine }}" style="display:flex;gap:10px;align-items:center;min-height:44px;cursor:pointer;">
+              <span style="color:oklch(64% 0.16 50);font-weight:700;font-size:17px;min-width:18px;text-align:center;">+</span>
+              <span style="font-size:14.5px;font-weight:600;color:oklch(54% 0.16 45);">Add line</span>
+            </div>
+          </div>
+        </sc-for>
+        <div onClick="{{ addSection }}" style="display:flex;align-items:center;gap:8px;min-height:44px;margin-top:8px;border-top:1px dashed oklch(88.5% 0.006 80);font-size:13px;font-weight:600;color:oklch(41.5% 0.006 80);cursor:pointer;">+ Add subsection</div>
+      </div>
+    </div>
+    <div style="padding:10px 20px 34px;display:flex;align-items:center;gap:10px;flex-shrink:0;border-top:1px solid oklch(91.8% 0.006 80);background:oklch(99.6% 0.002 80);">
+      <span onClick="{{ backToDesc }}" style="height:48px;padding:0 6px;display:flex;align-items:center;gap:2px;font-size:14px;font-weight:600;color:oklch(36% 0.006 80);cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>Back</span>
+      <span onClick="{{ goReview }}" style="flex:1;height:48px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:700;cursor:pointer;opacity:{{ reviewOp }};">Finalize</span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isArrange }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;overflow-y:auto;padding:10px 20px 24px;">
+      <span onClick="{{ backToBuild }}" style="display:inline-flex;align-items:center;gap:2px;height:36px;font-size:13.5px;font-weight:600;color:oklch(36% 0.006 80);cursor:pointer;margin-left:-4px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>Back to editing</span>
+      <div style="font-size:22px;font-weight:800;color:oklch(19.4% 0.006 80);letter-spacing:-0.3px;margin:6px 0 20px;">Finalize</div>
+
+      <div style="border:1px solid oklch(91.8% 0.006 80);border-radius:16px;padding:16px 16px 8px;">
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(41.5% 0.006 80);margin-bottom:6px;">Privacy</div>
+        <sc-for list="{{ visOptions }}" as="v" hint-placeholder-count="3">
+          <div onClick="{{ v.onPick }}" style="display:flex;align-items:center;gap:12px;min-height:52px;cursor:pointer;border-top:{{ v.divider }};">
+            <span style="width:20px;height:20px;border-radius:50%;border:2px solid {{ v.ring }};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="width:10px;height:10px;border-radius:50%;background:{{ v.dot }};"></span></span>
+            <div style="flex:1;min-width:0;padding:8px 0;">
+              <div style="font-size:14.5px;font-weight:{{ v.weight }};color:oklch(19.4% 0.006 80);">{{ v.label }}</div>
+              <div style="font-size:12.5px;color:oklch(41.5% 0.006 80);margin-top:1px;">{{ v.desc }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="border:1px solid oklch(91.8% 0.006 80);border-radius:16px;padding:16px;margin-top:14px;">
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(41.5% 0.006 80);margin-bottom:4px;">Tags</div>
+      <div style="font-size:12.5px;color:oklch(41.5% 0.006 80);line-height:1.45;margin-bottom:10px;">Help people find it in search. They appear at the bottom of the Stack.</div>
+      <sc-if value="{{ hasTags }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;">
+          <sc-for list="{{ tags }}" as="t" hint-placeholder-count="2">
+            <span style="display:flex;align-items:center;gap:4px;font-size:12.5px;font-weight:600;padding:0 4px 0 13px;height:34px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);">{{ t.name }}<span onClick="{{ t.onRemove }}" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;line-height:1;">×</span></span>
+          </sc-for>
+        </div>
+      </sc-if>
+      <input value="{{ tagInput }}" onChange="{{ onTagInput }}" onKeyDown="{{ onTagKey }}" placeholder="Type a tag and press Enter" style="width:100%;height:44px;padding:0 14px;border:1px solid oklch(88.5% 0.006 80);border-radius:999px;background:oklch(99.6% 0.002 80);font-family:Inter,sans-serif;font-size:14px;color:oklch(19.4% 0.006 80);outline:none;" style-focus="border-color:oklch(64% 0.16 50);" />
+      <sc-if value="{{ hasTagSugg }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;">
+          <sc-for list="{{ tagSugg }}" as="t" hint-placeholder-count="4">
+            <span onClick="{{ t.onAdd }}" style="display:flex;align-items:center;height:34px;font-size:12.5px;font-weight:600;padding:0 13px;border-radius:999px;border:1px solid oklch(88.5% 0.006 80);color:oklch(24.9% 0.006 80);cursor:pointer;">+ {{ t.name }}</span>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      </div>
+      <sc-if value="{{ cantPublish }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:12.5px;color:oklch(41.5% 0.006 80);margin-top:12px;text-align:center;">Add a line with some text to publish.</div>
+      </sc-if>
+    </div>
+    <div style="padding:10px 20px 34px;display:flex;align-items:center;gap:10px;flex-shrink:0;border-top:1px solid oklch(91.8% 0.006 80);background:oklch(99.6% 0.002 80);">
+      <span onClick="{{ showPreview }}" style="flex:1;height:48px;border-radius:999px;border:1.5px solid oklch(88.5% 0.006 80);display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:600;color:oklch(19.4% 0.006 80);cursor:pointer;">Preview</span>
+      <span onClick="{{ publish }}" style="flex:1;height:48px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;opacity:{{ publishOp }};">Publish</span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isPreview }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:54px 20px 0;flex-shrink:0;">
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:44px;">
+        <div style="display:flex;"><span onClick="{{ showArrange }}" style="height:44px;display:flex;align-items:center;gap:2px;font-size:14px;font-weight:600;color:{{ thText }};cursor:pointer;margin-left:-6px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>Back</span></div>
+        <span style="font-size:12px;font-weight:600;color:{{ thMuted }};">Preview · {{ visLabel }}</span>
+        <div style="display:flex;justify-content:flex-end;"><span onClick="{{ publish }}" style="height:36px;padding:0 18px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);display:flex;align-items:center;font-size:14px;font-weight:700;cursor:pointer;opacity:{{ publishOp }};">Publish</span></div>
+      </div>
+    </div>
+    <div style="flex:1;min-height:0;overflow-y:auto;padding:10px 20px 20px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <div style="width:30px;height:30px;border-radius:50%;background:{{ thAccent }};color:{{ thBg }};font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">Y</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:13px;color:{{ thText }};">You</div>
+          <div style="font-size:12px;color:{{ thMuted }};">@you · just now</div>
+        </div>
+      </div>
+      <div style="font-weight:800;font-size:21px;line-height:1.25;color:{{ thText }};text-wrap:pretty;">{{ reviewTitle }}</div>
+      <sc-if value="{{ description }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:14.5px;line-height:1.5;color:{{ thMuted }};margin-top:8px;text-wrap:pretty;">{{ description }}</div>
+      </sc-if>
+      <div style="font-size:12px;color:{{ thMuted }};margin-top:8px;padding-bottom:12px;border-bottom:1px solid {{ thLine }};">{{ countLabel }}</div>
+      <div style="padding-top:10px;">
+        <sc-for list="{{ pvSections }}" as="sec" hint-placeholder-count="1">
+          <div>
+            <sc-if value="{{ sec.headed }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:{{ thMuted }};margin:16px 0 6px;">{{ sec.label }}</div>
+            </sc-if>
+            <sc-for list="{{ sec.lines }}" as="ln" hint-placeholder-count="3">
+              <div style="display:flex;gap:10px;padding:3px 0;">
+                <span style="color:{{ thAccent }};font-weight:700;font-size:14.5px;line-height:1.7;flex-shrink:0;min-width:18px;font-variant-numeric:tabular-nums;">{{ ln.num }}</span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:14.5px;line-height:1.7;color:{{ thText }};text-wrap:pretty;">{{ ln.text }}</div>
+                  <sc-if value="{{ ln.hasLink }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;align-items:center;gap:10px;margin:4px 0 4px;padding:8px 10px;border-radius:10px;background:{{ thChip }};">
+                      <span style="width:20px;height:20px;border-radius:5px;background:{{ ln.favBg }};color:oklch(99.6% 0.002 80);font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ ln.favLetter }}</span>
+                      <div style="flex:1;min-width:0;">
+                        <div style="font-size:13px;font-weight:600;color:{{ thText }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ln.linkTitle }}</div>
+                        <div style="font-size:11.5px;color:{{ thMuted }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ln.domain }}</div>
+                      </div>
+                      <span style="color:{{ thAccent }};font-size:14px;font-weight:700;flex-shrink:0;">↗</span>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+        <sc-if value="{{ pv.hasTags }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:22px;padding-top:14px;border-top:1px solid {{ thLine }};">
+            <sc-for list="{{ pv.tagItems }}" as="tg" hint-placeholder-count="2">
+              <span style="font-family:Inter,sans-serif;font-size:12.5px;font-weight:500;color:{{ thMuted }};"><span style="color:{{ thAccent }};font-weight:700;margin-right:2px;">#</span>{{ tg.name }}</span>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isPublished }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 32px;text-align:center;">
+      <div style="width:56px;height:56px;border-radius:50%;background:oklch(92.9% 0.03 60);display:flex;align-items:center;justify-content:center;margin-bottom:18px;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="oklch(54% 0.16 45)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></div>
+      <div style="font-size:22px;font-weight:800;color:oklch(19.4% 0.006 80);letter-spacing:-0.3px;">Your Stack is live</div>
+      <div style="font-size:14px;color:oklch(41.5% 0.006 80);margin-top:6px;line-height:1.45;text-wrap:balance;">{{ reviewTitle }} · {{ countLabel }}</div>
+      <div style="display:flex;flex-direction:column;gap:10px;width:100%;margin-top:28px;">
+        <span onClick="{{ copyLink }}" style="height:48px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;">Share</span>
+        <span onClick="{{ newStack }}" style="height:48px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:oklch(36% 0.006 80);cursor:pointer;">Start another Stack</span>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isDrafts }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:58px 20px 0;flex-shrink:0;border-bottom:1px solid oklch(91.8% 0.006 80);">
+      <div style="display:flex;align-items:center;justify-content:space-between;height:40px;">
+        <span style="font-size:19px;font-weight:800;color:oklch(19.4% 0.006 80);">Profile</span>
+        <span onClick="{{ newStack }}" style="font-size:13px;font-weight:700;padding:9px 16px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);cursor:pointer;">+ New Stack</span>
+      </div>
+      <div style="display:flex;gap:22px;margin-top:10px;">
+        <span style="font-size:13.5px;font-weight:600;color:oklch(47.1% 0.006 80);padding:10px 0;">Stacks</span>
+        <span style="font-size:13.5px;font-weight:700;color:oklch(19.4% 0.006 80);padding:10px 0;border-bottom:2px solid oklch(19.4% 0.006 80);">Drafts</span>
+      </div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:16px 20px;">
+      <sc-if value="{{ hasDraft }}" hint-placeholder-val="{{ true }}">
+        <div onClick="{{ reopen }}" style="border-radius:16px;border:1px solid oklch(91.8% 0.006 80);background:oklch(97.6% 0.006 80);padding:16px;cursor:pointer;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span style="font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(41.5% 0.006 80);">Draft</span>
+            <span style="font-size:12px;color:oklch(47.1% 0.006 80);">· saved just now</span>
+          </div>
+          <div style="font-size:16px;font-weight:800;color:{{ draftRowColor }};line-height:1.3;">{{ reviewTitle }}</div>
+          <div style="font-size:12.5px;color:oklch(41.5% 0.006 80);margin-top:4px;">{{ countLabel }}</div>
+          <div style="font-size:13.5px;font-weight:700;color:oklch(54% 0.16 45);margin-top:12px;">Keep building ›</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ noDraft }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:13.5px;color:oklch(41.5% 0.006 80);text-align:center;padding:40px 0;">Nothing was added, so there's no draft to keep.</div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showSheet }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeSheet }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.42);display:flex;align-items:flex-end;z-index:20;">
+      <div onClick="{{ stop }}" style="width:100%;background:oklch(99.6% 0.002 80);border-radius:22px 22px 0 0;padding:12px 20px 34px;">
+        <div style="width:36px;height:4px;border-radius:2px;background:oklch(86.3% 0.006 80);margin:0 auto 18px;"></div>
+        <div style="font-size:19px;font-weight:800;color:oklch(19.4% 0.006 80);">Name your Stack to publish</div>
+        <div style="font-size:13.5px;color:oklch(41.5% 0.006 80);line-height:1.45;margin-top:6px;">Everything else stays as it is.</div>
+        <input ref="{{ sheetRef }}" value="{{ titleDraft }}" onChange="{{ onTitleDraft }}" onKeyDown="{{ onSheetKey }}" placeholder="e.g. Tokyo ramen worth the line" style="width:100%;height:50px;margin-top:16px;border:1.5px solid oklch(64% 0.16 50);border-radius:12px;outline:none;background:oklch(99.6% 0.002 80);font-family:Inter,sans-serif;font-size:16px;font-weight:600;color:oklch(14.8% 0.006 80);padding:0 14px;" />
+        <span onClick="{{ confirmTitle }}" style="margin-top:14px;height:48px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;opacity:{{ sheetOp }};">Publish</span>
+        <span onClick="{{ closeSheet }}" style="height:44px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:oklch(36% 0.006 80);cursor:pointer;margin-top:4px;">Not now</span>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:20px;right:20px;bottom:104px;display:flex;justify-content:center;pointer-events:none;z-index:30;">
+      <div style="background:oklch(19.4% 0.006 80);color:oklch(99.6% 0.002 80);font-size:13px;font-weight:500;padding:11px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.2);text-align:center;line-height:1.4;">{{ toast }}</div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:402,&quot;height&quot;:874},&quot;start&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;title&quot;,&quot;description&quot;,&quot;build-empty&quot;,&quot;build-draft&quot;,&quot;build-editing&quot;,&quot;review&quot;,&quot;preview&quot;,&quot;publish-title&quot;,&quot;drafts&quot;],&quot;default&quot;:&quot;title&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;initial&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;object&quot;},&quot;onExit&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(draft, hasContent) =&gt; void&quot;},&quot;onSave&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(draft) =&gt; void&quot;},&quot;onPublish&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(draft) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this._n = 1;
+    this.FETCH = { 'fuunji.jp': 'Fuunji | Tsukemen in Shinjuku', 'tabelog.com': 'Nakiryu (Otsuka) — Tabelog', 'afuri.com': 'AFURI — Yuzu Shio Ramen', 'tsuta.world': 'Tsuta — Japanese Soba Noodles', 'youtube.com': 'YouTube', 'nytimes.com': 'The New York Times' };
+    this.FAVBG = ['oklch(45% 0.13 30)', 'oklch(38% 0.08 250)', 'oklch(40% 0.09 150)', 'oklch(28% 0.01 80)', 'oklch(46% 0.13 60)'];
+    this.THEMES = [
+      { id: 'default', name: 'Default', bg: 'oklch(99.6% 0.002 80)', text: 'oklch(14.8% 0.006 80)', muted: 'oklch(41.5% 0.006 80)', accent: 'oklch(54% 0.16 45)', line: 'oklch(91.8% 0.006 80)', chip: 'oklch(95.5% 0.006 80)' },
+      { id: 'cream', name: 'Cream', bg: 'oklch(96.5% 0.022 85)', text: 'oklch(18% 0.01 60)', muted: 'oklch(40% 0.02 60)', accent: 'oklch(48% 0.13 50)', line: 'oklch(88.5% 0.022 80)', chip: 'oklch(93% 0.028 80)' },
+      { id: 'ink', name: 'Ink', bg: 'oklch(19% 0.006 80)', text: 'oklch(96% 0.004 80)', muted: 'oklch(74% 0.006 80)', accent: 'oklch(75% 0.14 55)', line: 'oklch(31% 0.006 80)', chip: 'oklch(25% 0.006 80)' },
+      { id: 'sage', name: 'Sage', bg: 'oklch(96.5% 0.018 150)', text: 'oklch(18% 0.012 150)', muted: 'oklch(38% 0.025 150)', accent: 'oklch(43% 0.08 155)', line: 'oklch(88.5% 0.02 150)', chip: 'oklch(92.5% 0.022 150)' },
+    ];
+    this.TAGS = ['Food & Drink', 'Books', 'Travel', 'Home', 'Shopping', 'Tech'];
+    const init = props && props.initial;
+    this.state = init ? { ...this._seed('title'), step: ['title', 'description', 'build', 'review'].includes(init.step) ? init.step : 'build', mode: 'arrange', draft: this._fromApp(init), save: 'saved' } : this._seed((props && props.start) || 'title');
+  }
+  _id() { return 'x' + (this._n++); }
+  _domain(url) { return url.replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[/?#]/)[0]; }
+  _meta(url) {
+    const domain = this._domain(url);
+    const base = domain.split('.')[0];
+    const title = this.FETCH[domain] || (base.charAt(0).toUpperCase() + base.slice(1));
+    let h = 0; for (const c of domain) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+    return { link: url, domain, linkTitle: title, favLetter: title.charAt(0).toUpperCase(), favBg: this.FAVBG[h % this.FAVBG.length], fetching: false };
+  }
+  _L(text, link) { return { id: this._id(), text, ...(link ? this._meta(link) : { link: '' }) }; }
+  _empty() { return { title: '', description: '', theme: 'default', tags: [], visibility: 'public', sections: [{ id: this._id(), headed: false, label: '', lines: [] }] }; }
+  _sample() {
+    return { title: 'Tokyo ramen worth the line', description: 'Five bowls from a week of eating nothing else, and one rule for all of them.', theme: 'default', tags: ['Food & Drink', 'Travel'], visibility: 'public', sections: [
+      { id: this._id(), headed: false, label: '', lines: [
+        this._L('Fuunji — the tsukemen broth is thick enough to coat a spoon. Go at 11:00 sharp.', 'https://fuunji.jp'),
+        this._L('Skip the famous chain by the station. The line is for tourists, not the broth.'),
+        this._L('Nakiryu — Michelin-starred tantanmen for under ¥1,500.', 'https://tabelog.com/tokyo/A1323/A132301/13141542/'),
+      ] },
+      { id: this._id(), headed: true, label: 'If you only have one night', lines: [
+        this._L('Afuri in Ebisu — yuzu shio, light enough for a 1 a.m. bowl.', 'https://afuri.com'),
+        this._L("Bring cash. Half of these places don't take cards."),
+      ] },
+    ] };
+  }
+  _fromApp(a) {
+    const secs = (a.sections || []).map(sec => ({ id: this._id(), headed: !!(sec.label && String(sec.label).trim()), label: sec.label || '', lines: (sec.lines || []).map(ln => this._L(ln.text || '', ln.link || '')) }));
+    if (!secs.length) secs.push({ id: this._id(), headed: false, label: '', lines: [this._L('')] });
+    return { title: a.title || '', description: a.description || '', theme: 'default', tags: [...(a.tags || [])], visibility: a.visibility || 'public', forkedFromId: a.forkedFromId || null, sections: secs };
+  }
+  _toApp(d) {
+    const st = this.state && this.state.step;
+    return { step: ['title', 'description', 'build', 'review'].includes(st) ? st : 'build', title: d.title, description: d.description, tags: d.tags || [], visibility: d.visibility || 'public', forkedFromId: d.forkedFromId || null,
+      sections: d.sections.map(sec => ({ label: sec.headed ? sec.label : '', lines: sec.lines.map(ln => ({ text: ln.text, link: ln.link || '' })) })) };
+  }
+  addTag(name) {
+    const t = (name || '').trim().replace(/^#/, '').replace(/,$/, '');
+    this.setState({ tagInput: '' }); if (!t) return;
+    this.upd(d => (d.tags || []).some(x => x.toLowerCase() === t.toLowerCase()) ? d : { ...d, tags: [...(d.tags || []), t] });
+  }
+  _seed(start) {
+    const st = { step: 'title', mode: 'arrange', draft: this._empty(), sel: null, linkOpen: null, linkDraft: '', save: 'idle', toast: '', sheet: false, titleDraft: '' };
+    if (start === 'description') { st.step = 'description'; st.draft.title = 'Tokyo ramen worth the line'; st.save = 'saved'; }
+    else if (start === 'build-empty') { st.step = 'build'; const l = this._L(''); st.draft.sections[0].lines = [l]; st.sel = { kind: 'line', id: l.id }; st.save = 'saved'; }
+    else if (start === 'build-draft') { st.step = 'build'; st.draft = this._sample(); st.save = 'saved'; }
+    else if (start === 'build-editing') {
+      st.step = 'build'; st.draft = this._sample(); st.save = 'saving';
+      const l = { id: this._id(), text: 'Tsuta — truffle shoyu. Worth one visit, even if you queue alone.', link: 'https://tsuta.world', domain: 'tsuta.world', linkTitle: '', favLetter: '', favBg: 'oklch(88.5% 0.006 80)', fetching: true };
+      st.draft.sections[1].lines.push(l); st.sel = { kind: 'line', id: l.id }; this._pending = l.id; this._scrollSel = true;
+    }
+    else if (start === 'review') { st.step = 'review'; st.draft = this._sample(); st.save = 'saved'; }
+    else if (start === 'preview') { st.step = 'review'; st.mode = 'preview'; st.draft = this._sample(); st.save = 'saved'; }
+    else if (start === 'publish-title') { st.step = 'review'; st.draft = { ...this._sample(), title: '' }; st.sheet = true; st.save = 'saved'; }
+    else if (start === 'drafts') { st.step = 'drafts'; st.draft = this._sample(); st.save = 'saved'; }
+    return st;
+  }
+  componentDidMount() {
+    if (this._pending) { const id = this._pending; this._pending = null; this._t1 = setTimeout(() => this._resolve(id), 6000); }
+  }
+  componentWillUnmount() { clearTimeout(this._t1); clearTimeout(this._st); clearTimeout(this._tt); }
+  _resolve(id) {
+    this.setState(s => ({ draft: this._mapLine(s.draft, id, ln => ln.link ? { ...ln, ...this._meta(ln.link) } : ln) }));
+    this.dirty();
+  }
+  dirty() {
+    this.setState({ save: 'saving' });
+    clearTimeout(this._st); this._st = setTimeout(() => this.setState({ save: 'saved' }), 700);
+  }
+  upd(fn) { this.setState(s => ({ draft: fn(s.draft) })); this.dirty(); }
+  showToast(msg) { this.setState({ toast: msg }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: '' }), 2400); }
+  _mapLine(d, id, fn) { return { ...d, sections: d.sections.map(sec => ({ ...sec, lines: sec.lines.map(ln => ln.id === id ? fn(ln) : ln) })) }; }
+  _ref(id) { return (el) => { if (el && this._focus === id) { this._focus = null; requestAnimationFrame(() => { try { el.focus({ preventScroll: true }); const v = el.value || ''; el.setSelectionRange && el.setSelectionRange(v.length, v.length); } catch (e) {} }); } }; }
+  _find(d, id) { for (let s = 0; s < d.sections.length; s++) { const i = d.sections[s].lines.findIndex(l => l.id === id); if (i >= 0) return [s, i]; } return [-1, -1]; }
+  addLine(secId, afterId) {
+    const l = this._L(''); this._focus = l.id;
+    this.upd(d => ({ ...d, sections: d.sections.map(sec => {
+      if (sec.id !== secId) return sec;
+      const lines = [...sec.lines];
+      const i = afterId ? lines.findIndex(x => x.id === afterId) : -1;
+      if (i >= 0) lines.splice(i + 1, 0, l); else lines.push(l);
+      return { ...sec, lines };
+    }) }));
+    this.setState({ sel: { kind: 'line', id: l.id }, linkOpen: null });
+  }
+  moveLine(id, dir) {
+    this.upd(d => {
+      const [s, i] = this._find(d, id); if (s < 0) return d;
+      const secs = d.sections.map(x => ({ ...x, lines: [...x.lines] }));
+      const cur = secs[s].lines;
+      const j = i + dir;
+      if (j >= 0 && j < cur.length) { [cur[i], cur[j]] = [cur[j], cur[i]]; }
+      else if (dir < 0 && s > 0) { const [ln] = cur.splice(i, 1); secs[s - 1].lines.push(ln); }
+      else if (dir > 0 && s < secs.length - 1) { const [ln] = cur.splice(i, 1); secs[s + 1].lines.unshift(ln); }
+      return { ...d, sections: secs };
+    });
+  }
+  deleteLine(id) {
+    this.upd(d => ({ ...d, sections: d.sections.map(sec => ({ ...sec, lines: sec.lines.filter(l => l.id !== id) })) }));
+    this.setState({ sel: null, linkOpen: null });
+  }
+  addSection() {
+    const l = this._L(''); const sid = this._id(); this._focus = sid;
+    this.upd(d => ({ ...d, sections: [...d.sections, { id: sid, headed: true, label: '', lines: [l] }] }));
+    this.setState({ sel: { kind: 'sec', id: sid }, linkOpen: null });
+  }
+  addTopSection() {
+    const d0 = this.state.draft.sections[0]; if (!d0 || d0.headed) return;
+    this._focus = d0.id;
+    this.upd(d => ({ ...d, sections: d.sections.map((x, i) => i === 0 ? { ...x, headed: true, label: '', lines: x.lines.length ? x.lines : [this._L('')] } : x) }));
+    this.setState({ sel: { kind: 'sec', id: d0.id }, linkOpen: null });
+  }
+  moveSection(id, dir) {
+    this.upd(d => {
+      const i = d.sections.findIndex(x => x.id === id); const j = i + dir;
+      if (i < 0 || j < 0 || j >= d.sections.length || !d.sections[i].headed || !d.sections[j].headed) return d;
+      const secs = [...d.sections]; [secs[i], secs[j]] = [secs[j], secs[i]];
+      return { ...d, sections: secs };
+    });
+  }
+  removeSection(id) {
+    this.upd(d => {
+      const i = d.sections.findIndex(x => x.id === id); if (i < 0) return d;
+      if (i === 0) return { ...d, sections: d.sections.map((x, k) => k === 0 ? { ...x, headed: false, label: '' } : x) };
+      const secs = d.sections.map(x => ({ ...x, lines: [...x.lines] }));
+      secs[i - 1].lines.push(...secs[i].lines); secs.splice(i, 1);
+      return { ...d, sections: secs };
+    });
+    this.setState({ sel: null });
+  }
+  submitLink(id, raw) {
+    const v = (raw || '').trim();
+    if (!v) { this.setState({ linkOpen: null, linkDraft: '' }); return; }
+    const url = /^https?:\/\//.test(v) ? v : 'https://' + v;
+    this.upd(d => this._mapLine(d, id, ln => ({ ...ln, link: url, domain: this._domain(url), linkTitle: '', favLetter: '', favBg: 'oklch(88.5% 0.006 80)', fetching: true })));
+    this.setState({ linkOpen: null, linkDraft: '' });
+    setTimeout(() => this._resolve(id), 1100);
+  }
+  _counts(d) {
+    let n = 0, k = 0;
+    d.sections.forEach(sec => sec.lines.forEach(l => { if (l.text.trim()) n++; if (l.link) k++; }));
+    return { n, k };
+  }
+  _hasContent(d) { return !!(d.title.trim() || d.description.trim() || this._counts(d).n || this._counts(d).k); }
+  goBuild() {
+    this.setState(s => {
+      const total = s.draft.sections.reduce((a, x) => a + x.lines.length, 0);
+      if (total) return { step: 'build', sel: null };
+      const l = this._L(''); this._focus = l.id;
+      const secs = s.draft.sections.map((x, i) => i === 0 ? { ...x, lines: [l] } : x);
+      return { step: 'build', draft: { ...s.draft, sections: secs }, sel: { kind: 'line', id: l.id } };
+    });
+  }
+  publish() {
+    const d = this.state.draft;
+    if (!this._counts(d).n) { this.showToast('Add a line with some text to publish.'); return; }
+    if (!d.title.trim()) { this._focus = 'sheet'; this.setState({ sheet: true, titleDraft: '' }); return; }
+    if (this.props.onPublish) { this.setState({ sheet: false }); this.props.onPublish(this._toApp(d)); return; }
+    this.setState({ step: 'published', sheet: false });
+  }
+  confirmTitle() {
+    const t = this.state.titleDraft.trim(); if (!t) return;
+    if (this.props.onPublish) { this.setState({ sheet: false }); this.props.onPublish(this._toApp({ ...this.state.draft, title: t })); return; }
+    this.setState(s => ({ draft: { ...s.draft, title: t }, sheet: false, step: 'published' }));
+  }
+  renderVals() {
+    const s = this.state, d = s.draft;
+    const th = this.THEMES.find(t => t.id === d.theme) || this.THEMES[0];
+    const { n, k } = this._counts(d);
+    const countLabel = n === 0 ? 'No lines yet' : n + (n === 1 ? ' line' : ' lines') + (k ? ' · ' + k + (k === 1 ? ' link' : ' links') : '');
+    const sel = s.sel;
+    const clearSel = () => this.setState({ sel: null, linkOpen: null });
+    const allIds = []; d.sections.forEach(sec => sec.lines.forEach(l => allIds.push(l.id)));
+    const firstId = allIds[0], lastId = allIds[allIds.length - 1];
+    let num = 0;
+    const sections = d.sections.map((sec, si) => ({
+      key: sec.id, headed: sec.headed, label: sec.label,
+      isSel: !!(sel && sel.kind === 'sec' && sel.id === sec.id),
+      headRef: this._ref(sec.id),
+      onLabel: (e) => { const v = e.target.value; this.upd(dd => ({ ...dd, sections: dd.sections.map(x => x.id === sec.id ? { ...x, label: v } : x) })); },
+      onSelect: () => this.setState({ sel: { kind: 'sec', id: sec.id }, linkOpen: null }),
+      onUp: () => this.moveSection(sec.id, -1), onDown: () => this.moveSection(sec.id, 1),
+      upOp: si > 0 && d.sections[si - 1].headed ? 1 : 0.35, downOp: si < d.sections.length - 1 ? 1 : 0.35,
+      onRemove: () => this.removeSection(sec.id),
+      onAddLine: () => this.addLine(sec.id),
+      lines: sec.lines.map(ln => {
+        num++;
+        const isSel = !!(sel && sel.kind === 'line' && sel.id === ln.id);
+        const linkOpen = s.linkOpen === ln.id;
+        return {
+          key: ln.id, num: String(num).padStart(2, '0'), text: ln.text,
+          display: ln.text || 'Empty line — tap to write', textColor: ln.text ? 'oklch(14.8% 0.006 80)' : 'oklch(58% 0.006 80)',
+          isSel, notSel: !isSel,
+          hasLink: !!ln.link && !linkOpen,
+          linkTitle: ln.fetching ? 'Fetching title…' : ln.linkTitle, linkTitleColor: ln.fetching ? 'oklch(50.8% 0.006 80)' : 'oklch(19.4% 0.006 80)',
+          domain: ln.domain, favLetter: ln.favLetter, favBg: ln.favBg,
+          showLinkInput: isSel && linkOpen, showAddLink: isSel && !ln.link && !linkOpen,
+          placeholder: num === 1 ? 'Write your first line' : 'Write a line',
+          ref: this._ref(ln.id), linkRef: this._ref('link-' + ln.id),
+          onSelect: () => { this._focus = ln.id; this.setState({ sel: { kind: 'line', id: ln.id }, linkOpen: null }); },
+          onText: (e) => { const v = e.target.value; this.upd(dd => this._mapLine(dd, ln.id, x => ({ ...x, text: v }))); },
+          onKey: (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.addLine(sec.id, ln.id); } },
+          onOpenLink: () => { this._focus = 'link-' + ln.id; this.setState({ linkOpen: ln.id, linkDraft: '' }); },
+          onLinkPaste: (e) => { const t = (e.clipboardData && e.clipboardData.getData('text')) || ''; if (t.trim()) { e.preventDefault(); this.submitLink(ln.id, t); } },
+          onLinkKey: (e) => { if (e.key === 'Enter') { e.preventDefault(); this.submitLink(ln.id, this.state.linkDraft); } },
+          onLinkDone: () => this.submitLink(ln.id, this.state.linkDraft),
+          onRemoveLink: () => this.upd(dd => this._mapLine(dd, ln.id, x => ({ id: x.id, text: x.text, link: '' }))),
+          onUp: () => this.moveLine(ln.id, -1), onDown: () => this.moveLine(ln.id, 1),
+          upOp: ln.id === firstId ? 0.35 : 1, downOp: ln.id === lastId ? 0.35 : 1,
+          onDelete: () => this.deleteLine(ln.id),
+        };
+      }),
+    }));
+    let an = 0;
+    const arrSections = d.sections.map((sec, si) => ({
+      key: sec.id, headed: sec.headed, label: sec.label || 'Untitled subsection',
+      onUp: () => this.moveSection(sec.id, -1), onDown: () => this.moveSection(sec.id, 1),
+      upOp: si > 0 && d.sections[si - 1].headed ? 1 : 0.3, downOp: si < d.sections.length - 1 ? 1 : 0.3,
+      lines: sec.lines.filter(l => l.text.trim() || l.link).map(ln => ({
+        key: ln.id, num: String(++an).padStart(2, '0'), text: ln.text || ln.linkTitle || ln.domain, hasLink: !!ln.link, domain: ln.domain,
+        onUp: () => this.moveLine(ln.id, -1), onDown: () => this.moveLine(ln.id, 1),
+        upOp: ln.id === firstId ? 0.3 : 1, downOp: ln.id === lastId ? 0.3 : 1,
+      })),
+    }));
+    let pn = 0;
+    const pvSections = d.sections.map(sec => ({
+      key: sec.id, headed: sec.headed && !!sec.label.trim(), label: sec.label,
+      lines: sec.lines.filter(l => l.text.trim() || l.link).map(ln => ({ key: ln.id, num: String(++pn).padStart(2, '0'), text: ln.text, hasLink: !!ln.link && !ln.fetching, linkTitle: ln.linkTitle, domain: ln.domain, favLetter: ln.favLetter, favBg: ln.favBg })),
+    }));
+    const isPreview = s.step === 'review' && s.mode === 'preview';
+    const hasDraft = this._hasContent(d);
+    return {
+      screenBg: isPreview ? th.bg : 'oklch(99.6% 0.002 80)',
+      showHeader: ['title', 'description', 'build'].includes(s.step) || (s.step === 'review' && !isPreview),
+      statusText: s.save === 'saving' ? 'Saving…' : s.save === 'saved' ? 'Saved just now' : 'New draft',
+      statusDot: s.save === 'saving' ? 'oklch(76% 0.12 80)' : s.save === 'saved' ? 'oklch(62% 0.12 150)' : 'oklch(80% 0.006 80)',
+      exit: () => { if (this.props.onExit) { this.props.onExit(this._toApp(d), hasDraft); return; } this.setState({ step: 'drafts', sel: null, sheet: false, linkOpen: null, toast: '' }, () => { if (hasDraft) this.showToast('Draft saved'); }); },
+      saveDraft: () => { if (this.props.onSave) this.props.onSave(this._toApp(d)); clearTimeout(this._st); this.setState({ save: 'saved' }); this.showToast('Draft saved. Pick it up anytime from Profile › Drafts.'); },
+      isTitle: s.step === 'title', isDesc: s.step === 'description', isBuild: s.step === 'build',
+      isArrange: s.step === 'review' && !isPreview, isPreview, isPublished: s.step === 'published', isDrafts: s.step === 'drafts',
+      title: d.title, description: d.description,
+      onTitle: (e) => { const v = e.target.value; this.upd(dd => ({ ...dd, title: v })); },
+      onTitleKey: (e) => { if (e.key === 'Enter') this.setState({ step: 'description' }); },
+      onDesc: (e) => { const v = e.target.value.slice(0, 200); this.upd(dd => ({ ...dd, description: v })); },
+      titleNextOp: d.title.trim() ? 1 : 0.4,
+      nextTitle: () => this.setState({ step: 'description' }),
+      titleSkipLabel: d.title.trim() ? 'Next' : 'Skip', titleSkipColor: d.title.trim() ? 'oklch(54% 0.16 45)' : 'oklch(41.5% 0.006 80)',
+      descSkipLabel: d.description.trim() ? 'Next' : 'Skip', descSkipColor: d.description.trim() ? 'oklch(54% 0.16 45)' : 'oklch(41.5% 0.006 80)',
+      onDescKey: (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.goBuild(); } },
+      showStatus: !['title', 'description'].includes(s.step),
+      skipTitle: () => this.setState({ step: 'description' }),
+      descTitle: d.title.trim() || 'Untitled Stack', descTitleColor: d.title.trim() ? 'oklch(19.4% 0.006 80)' : 'oklch(58% 0.006 80)',
+      descCount: d.description.length + '/200', descNextOp: d.description.trim() ? 1 : 0.4,
+      backToTitle: () => this.setState({ step: 'title' }),
+      goBuild: () => this.goBuild(),
+      backToDesc: () => this.setState({ step: 'description', sel: null, linkOpen: null }),
+      titleBorder: d.title ? 'transparent' : 'oklch(80% 0.006 80)', descBorder: d.description ? 'transparent' : 'oklch(86.3% 0.006 80)',
+      countLabel, sections, clearSel,
+      linkDraft: s.linkDraft, onLinkDraft: (e) => this.setState({ linkDraft: e.target.value }),
+      closeLink: () => this.setState({ linkOpen: null, linkDraft: '' }),
+      addSection: () => this.addSection(),
+      showTopSub: !(d.sections[0] && d.sections[0].headed), addTopSection: () => this.addTopSection(),
+      reviewOp: n || k ? 1 : 0.4,
+      goReview: () => { if (n || k) this.setState({ step: 'review', mode: 'arrange', sel: null, linkOpen: null }); },
+      showPreview: () => this.setState({ mode: 'preview' }), showArrange: () => this.setState({ mode: 'arrange' }),
+      backToBuild: () => this.setState({ step: 'build', mode: 'arrange' }),
+      swatches: this.THEMES.map(t => ({ key: t.id, name: t.name, bg: t.bg, accent: t.accent, ring: t.id === th.id ? 'oklch(19.4% 0.006 80)' : 'oklch(86.3% 0.006 80)', weight: t.id === th.id ? 700 : 500, onPick: () => this.upd(dd => ({ ...dd, theme: t.id })) })),
+      thBg: th.bg, thText: th.text, thMuted: th.muted, thAccent: th.accent, thLine: th.line, thChip: th.chip,
+      reviewTitle: d.title.trim() || 'Untitled Stack', draftRowColor: d.title.trim() ? 'oklch(19.4% 0.006 80)' : 'oklch(50.8% 0.006 80)',
+      arrSections, pvSections,
+      cantPublish: !n, publishOp: n ? 1 : 0.4,
+      publish: () => this.publish(),
+      showSheet: s.sheet, titleDraft: s.titleDraft, sheetRef: this._ref('sheet'),
+      onTitleDraft: (e) => this.setState({ titleDraft: e.target.value }),
+      onSheetKey: (e) => { if (e.key === 'Enter') this.confirmTitle(); },
+      confirmTitle: () => this.confirmTitle(), sheetOp: s.titleDraft.trim() ? 1 : 0.4,
+      closeSheet: () => this.setState({ sheet: false }), stop: (e) => e.stopPropagation(),
+      copyLink: () => this.showToast('Link copied'),
+      newStack: () => this.setState({ ...this._seed('title'), toast: '' }),
+      reopen: () => this.setState({ step: 'build', sel: null, mode: 'arrange' }),
+      hasDraft, noDraft: !hasDraft,
+      toast: s.toast,
+      visOptions: [['public', 'Public', 'Anyone can find it on your profile and in search'], ['unlisted', 'Unlisted', 'Only people with the link'], ['private', 'Private', 'Only you']].map(([k, label, desc], i) => { const on = (d.visibility || 'public') === k; return { key: k, label, desc, onPick: () => this.upd(dd => ({ ...dd, visibility: k })), ring: on ? 'oklch(64% 0.16 50)' : 'oklch(80% 0.006 80)', dot: on ? 'oklch(64% 0.16 50)' : 'transparent', weight: on ? 700 : 600, divider: i ? '1px solid oklch(93% 0.006 80)' : 'none' }; }),
+      pv: { hasTags: (d.tags || []).length > 0, tagItems: (d.tags || []).map(t => ({ key: t, name: t })) },
+      visLabel: { public: 'Public', unlisted: 'Unlisted', private: 'Private' }[d.visibility || 'public'],
+      stepNum: ({ title: 1, description: 2, build: 3, review: 4 })[s.step] || 1, stepName: ({ title: 'Title', description: 'Description', build: 'Build', review: 'Finalize' })[s.step] || 'Title',
+      progSegs: [1, 2, 3, 4].map(i => ({ key: i, bg: i <= (({ title: 1, description: 2, build: 3, review: 4 })[s.step] || 1) ? 'oklch(64% 0.16 50)' : 'oklch(91.8% 0.006 80)' })),
+      visHint: { public: 'Shows on your profile, in search, and to anyone with the link.', unlisted: 'Only people with the link can open it.', private: 'Only you can see it.' }[d.visibility || 'public'],
+      tags: (d.tags || []).map(t => ({ key: t, name: t, onRemove: () => this.upd(dd => ({ ...dd, tags: (dd.tags || []).filter(x => x !== t) })) })),
+      hasTags: (d.tags || []).length > 0,
+      tagInput: s.tagInput || '',
+      onTagInput: (e) => this.setState({ tagInput: e.target.value }),
+      onTagKey: (e) => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); this.addTag(this.state.tagInput); } },
+      tagSugg: this.TAGS.filter(n => !(d.tags || []).some(t => t.toLowerCase() === n.toLowerCase())).map(n => ({ key: n, name: n, onAdd: () => this.addTag(n) })),
+      hasTagSugg: this.TAGS.some(n => !(d.tags || []).some(t => t.toLowerCase() === n.toLowerCase())),
+      buildScrollRef: (el) => { if (el && this._scrollSel) { this._scrollSel = false; setTimeout(() => { el.scrollTop = el.scrollHeight; }, 60); } },
+    };
+  }
+}
+</script>
+</body>
+</html>

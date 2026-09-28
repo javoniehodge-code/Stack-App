@@ -271,6 +271,13 @@
             </sc-if>
           </div>
         </sc-for>
+        <sc-if value="{{ activeCard.hasTags }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:22px;padding-top:14px;border-top:1px solid oklch(91.8% 0.006 80);">
+            <sc-for list="{{ activeCard.tagItems }}" as="tg" hint-placeholder-count="2">
+              <span style="font-family:Inter,sans-serif;font-size:12.5px;font-weight:500;color:oklch(41.5% 0.006 80);"><span style="color:oklch(64% 0.16 50);font-weight:700;margin-right:2px;">#</span>{{ tg.name }}</span>
+            </sc-for>
+          </div>
+        </sc-if>
         <sc-if value="{{ activeCard.hasComments }}" hint-placeholder-val="{{ false }}">
           <div style="margin-top:20px;padding-top:16px;border-top:1px solid oklch(91.8% 0.006 80);">
             <div style="font-family:Inter,sans-serif;font-size:9.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(50.8% 0.006 80);margin-bottom:10px;">Comments</div>
@@ -687,89 +694,8 @@
     </sc-if>
 
     <sc-if value="{{ isCreate }}" hint-placeholder-val="{{ false }}">
-      <div style="padding:60px 20px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid oklch(91.8% 0.006 80);flex-shrink:0;">
-        <span onClick="{{ cancelDraft }}" style="font-family:Inter,sans-serif;font-size:13px;color:oklch(41.5% 0.006 80);cursor:pointer;">Cancel</span>
-        <span style="font-family:Inter,sans-serif;font-weight:700;font-size:14.5px;color:oklch(19.4% 0.006 80);">{{ createTitle }}</span>
-        <div style="display:flex;gap:14px;align-items:center;">
-          <span onClick="{{ saveDraft }}" style="font-family:Inter,sans-serif;font-size:13px;color:oklch(41.5% 0.006 80);cursor:pointer;">Save Draft</span>
-          <span onClick="{{ publishDraft }}" style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:{{ publishColor }};cursor:pointer;">Publish</span>
-        </div>
-      </div>
-
-      <div style="flex:1;overflow-y:auto;padding:20px;">
-        <input value="{{ draftTitle }}" onChange="{{ onDraftTitleChange }}" placeholder="Untitled stack" style="width:100%;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-weight:800;font-size:21px;color:oklch(19.4% 0.006 80);margin-bottom:22px;padding:0;" />
-        <div style="margin:4px 0 22px;">
-          <textarea value="{{ draftDescription }}" onChange="{{ onDraftDescriptionChange }}" placeholder="Add a description (optional)" rows="2" style="width:100%;box-sizing:border-box;field-sizing:content;min-height:44px;resize:none;border:none;border-bottom:1px solid oklch(91.8% 0.006 80);outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14px;line-height:1.45;color:oklch(28.6% 0.006 80);padding:6px 0;"></textarea>
-          <div style="font-family:Inter,sans-serif;font-size:10.5px;color:{{ draftDescCountColor }};text-align:right;margin-top:4px;">{{ draftDescCount }}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;margin:-8px 0 24px;">
-          <span style="font-family:Inter,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(47.1% 0.006 80);">Visibility</span>
-          <span onClick="{{ openDraftVis }}" style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;border:1px solid oklch(88.5% 0.006 80);font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:oklch(23.1% 0.006 80);cursor:pointer;flex-shrink:0;"><sc-if value="{{ draftVis.is_public }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M3.5 12h17"></path><ellipse cx="12" cy="12" rx="3.8" ry="8.5"></ellipse></svg></sc-if><sc-if value="{{ draftVis.is_unlisted }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></sc-if><sc-if value="{{ draftVis.is_private }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg></sc-if>{{ draftVis.label }}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span>
-          <span style="flex:1;min-width:0;font-family:Inter,sans-serif;font-size:11.5px;color:oklch(47.1% 0.006 80);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ draftVis.short }}</span>
-        </div>
-        <sc-for list="{{ draftSections }}" as="sec" hint-placeholder-count="1">
-          <div style="margin-bottom:20px;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-              <input value="{{ sec.label }}" onChange="{{ sec.onLabelChange }}" placeholder="Subsection (optional)" style="flex:1;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(41.5% 0.006 80);padding:0;" />
-              <sc-if value="{{ sec.showRemove }}" hint-placeholder-val="{{ false }}">
-                <span onClick="{{ sec.onRemoveSection }}" style="font-family:Inter,sans-serif;font-size:11px;color:oklch(41.5% 0.006 80);cursor:pointer;">Remove</span>
-              </sc-if>
-            </div>
-            <sc-for list="{{ sec.lines }}" as="ln" hint-placeholder-count="2">
-              <div style="margin-bottom:10px;">
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <span style="font-family:Inter,sans-serif;font-weight:700;font-size:12px;color:oklch(64% 0.16 50);width:18px;flex-shrink:0;">{{ ln.num }}</span>
-                  <textarea value="{{ ln.text }}" onChange="{{ ln.onChange }}" placeholder="Add a line…" rows="1" style="flex:1;min-width:0;field-sizing:content;resize:none;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:13.5px;line-height:1.45;color:oklch(19.4% 0.006 80);border-bottom:1px solid oklch(91.8% 0.006 80);padding:6px 0;"></textarea>
-                  <span style="font-family:Inter,sans-serif;font-size:10px;color:oklch(50.8% 0.006 80);width:30px;text-align:right;flex-shrink:0;">{{ ln.remaining }}</span>
-                  <span onClick="{{ ln.onRemove }}" style="font-family:Inter,sans-serif;font-size:14px;color:oklch(50.8% 0.006 80);cursor:pointer;flex-shrink:0;">×</span>
-                </div>
-                <div style="margin-left:26px;margin-top:8px;">
-                  <sc-if value="{{ ln.showLinkChip }}" hint-placeholder-val="{{ false }}">
-                    <div onClick="{{ ln.onToggleLinkInput }}" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-family:Inter,sans-serif;font-size:14px;color:oklch(64% 0.16 50);padding:4px 0;max-width:100%;">
-                      <span style="flex-shrink:0;">↗</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ln.linkDomain }}</span>
-                    </div>
-                    <div style="font-family:Inter,sans-serif;font-size:11.5px;color:oklch(50.8% 0.006 80);margin-top:4px;">Tap the link to edit or remove it</div>
-                  </sc-if>
-                  <sc-if value="{{ ln.showLinkInput }}" hint-placeholder-val="{{ false }}">
-                    <div style="display:flex;align-items:center;gap:8px;padding:0 12px;height:42px;border-radius:12px;border:1.5px solid oklch(60% 0.03 60);background:oklch(98.4% 0.006 80);">
-                      <span style="color:oklch(64% 0.16 50);font-size:14px;flex-shrink:0;">↗</span>
-                      <input value="{{ ln.link }}" onChange="{{ ln.onLinkChange }}" onKeyDown="{{ ln.onLinkKey }}" placeholder="Paste a link" autoFocus="{{ true }}" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14px;color:oklch(17.5% 0.006 80);" />
-                    </div>
-                    <div style="display:flex;gap:8px;margin-top:8px;">
-                      <span onClick="{{ ln.onLinkDone }}" style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;padding:8px 16px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);cursor:pointer;">Done</span>
-                      <span onClick="{{ ln.onLinkRemove }}" style="font-family:Inter,sans-serif;font-size:13px;font-weight:600;padding:8px 16px;border-radius:999px;border:1px solid oklch(88.5% 0.006 80);color:oklch(36% 0.006 80);cursor:pointer;">{{ ln.removeLabel }}</span>
-                    </div>
-                  </sc-if>
-                  <sc-if value="{{ ln.showAddLinkBtn }}" hint-placeholder-val="{{ true }}">
-                    <span onClick="{{ ln.onToggleLinkInput }}" style="display:inline-flex;align-items:center;font-family:Inter,sans-serif;font-size:14px;font-weight:500;padding:10px 18px;border-radius:14px;border:1.5px solid oklch(60% 0.03 60);color:oklch(64% 0.16 50);cursor:pointer;">+ Add link</span>
-                  </sc-if>
-                </div>
-              </div>
-            </sc-for>
-            <div onClick="{{ sec.onAddLine }}" style="font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:oklch(64% 0.16 50);cursor:pointer;margin-top:4px;">+ Add line</div>
-          </div>
-        </sc-for>
-        <div onClick="{{ addSection }}" style="font-family:Inter,sans-serif;font-size:12.5px;color:oklch(41.5% 0.006 80);cursor:pointer;padding:12px 0;border-top:1px dashed oklch(91.8% 0.006 80);">+ Add subsection</div>
-        <div style="margin-top:14px;padding-top:18px;border-top:1px solid oklch(91.8% 0.006 80);">
-          <div style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(41.5% 0.006 80);margin-bottom:5px;">Tags</div>
-          <div style="font-family:Inter,sans-serif;font-size:12px;color:oklch(47.1% 0.006 80);line-height:1.5;margin-bottom:12px;">Tags help people find this stack in search. They stay private — nobody sees them on the published stack.</div>
-          <sc-if value="{{ hasDraftTags }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;">
-              <sc-for list="{{ draftTags }}" as="t" hint-placeholder-count="2">
-                <span style="display:flex;align-items:center;gap:7px;font-family:Inter,sans-serif;font-size:12px;font-weight:600;padding:7px 10px 7px 13px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);">{{ t.name }}<span onClick="{{ t.onRemove }}" style="cursor:pointer;font-size:14px;line-height:1;opacity:0.7;">×</span></span>
-              </sc-for>
-            </div>
-          </sc-if>
-          <input value="{{ tagInput }}" onChange="{{ onTagInputChange }}" onKeyDown="{{ onTagKeyDown }}" placeholder="Type a tag and press Enter" style="width:100%;padding:10px 13px;border:1px solid oklch(91.8% 0.006 80);border-radius:999px;background:oklch(94.5% 0.006 80);font-family:Inter,sans-serif;font-size:13px;color:oklch(19.4% 0.006 80);outline:none;margin-bottom:14px;" />
-          <sc-if value="{{ hasTagSuggestions }}" hint-placeholder-val="{{ true }}">
-            <div style="font-family:Inter,sans-serif;font-size:11.5px;color:oklch(47.1% 0.006 80);margin-bottom:8px;">Suggestions</div>
-            <div style="display:flex;flex-wrap:wrap;gap:7px;">
-              <sc-for list="{{ tagSuggestions }}" as="t" hint-placeholder-count="5">
-                <span onClick="{{ t.onAdd }}" style="font-family:Inter,sans-serif;font-size:12px;font-weight:600;padding:7px 13px;border-radius:999px;border:1px solid oklch(91.8% 0.006 80);background:transparent;color:oklch(24.9% 0.006 80);cursor:pointer;">+ {{ t.name }}</span>
-              </sc-for>
-            </div>
-          </sc-if>
-        </div>
+      <div style="flex:1;min-height:0;position:relative;">
+        <dc-import name="Create Flow Screen" start="{{ createStart }}" initial="{{ createInitial }}" on-exit="{{ createExit }}" on-save="{{ createSave }}" on-publish="{{ createPublish }}" hint-size="100%,100%" style="position:absolute;inset:0;"></dc-import>
       </div>
     </sc-if>
 
@@ -1218,6 +1144,7 @@ class Component extends DCLogic {
     navStack: [],
     activeListId: null,
     draft: null,
+    createStart: 'title', createInitial: null,
     linkInputOpen: {},
     feedCommentsOpen: {},
     notifFilter: 'all',
@@ -1438,6 +1365,7 @@ class Component extends DCLogic {
       id: l.id, initials: l.author.initials, authorName: l.author.name, authorHandle: l.author.handle,
       timeAgo: l.timeAgo, title: l.title, previewLines: p.lines, hasMore: p.hasMore, moreCount: p.moreCount,
       totalCount: total,
+      hasTags: (l.tags || []).length > 0, tagItems: (l.tags || []).map(t => ({ key: t, name: t })),
       likes: l.likes, forks: l.forks, saves: l.saves, likedByUser: l.likedByUser, savedByUser: l.savedByUser,
       likesLabel: this._fmt(l.likes), forksLabel: this._fmt(l.forks), savesLabel: this._fmt(l.saves),
       likeGlyph: l.likedByUser ? '♥' : '♡',
@@ -1602,7 +1530,22 @@ class Component extends DCLogic {
       tabNotifsColor: s.screen === 'notifs' ? 'oklch(19.4% 0.006 80)' : 'oklch(50.8% 0.006 80)',
     };
   }
-  goNew() { this.setState({ draft: { title: '', description: '', tags: [], sections: [{ label: '', lines: [{ text: '', link: '' }] }] }, linkInputOpen: {}, tagInput: '', editingDraftId: null, screen: 'create' }); }
+  _upsertDraft(out) {
+    const s = this.state;
+    const id = s.editingDraftId || ('d' + Date.now());
+    const entry = { id, step: out.step || 'build', title: (out.title || '').trim() || 'Untitled draft', description: (out.description || '').trim(), tags: out.tags || [], visibility: out.visibility || 'public', forkedFromId: out.forkedFromId || null,
+      sections: out.sections.map(sec => ({ label: (sec.label || '').trim() || null, lines: sec.lines.map(ln => ({ text: ln.text.trim(), link: (ln.link || '').trim() || undefined })).filter(ln => ln.text) })).filter(sec => sec.lines.length) };
+    const drafts = s.editingDraftId ? s.drafts.map(d => d.id === id ? entry : d) : [entry, ...s.drafts];
+    this.setState({ drafts, editingDraftId: id });
+  }
+  createSave(out) { this.requireAuth(() => this._upsertDraft(out), 'Sign in to save this stack as a draft.'); }
+  createExit(out, has) {
+    if (!has) { this.setState({ draft: null, editingDraftId: null, screen: 'feed' }); return; }
+    this.requireAuth(() => { this._upsertDraft(out); this.setState({ draft: null, editingDraftId: null, screen: 'profile', profileTab: 'drafts' }); this.showToast('Draft saved'); }, 'Sign in to keep this draft.');
+  }
+  createPublish(out) { this.setState({ draft: out }, () => this.publishDraft()); }
+  goNewLegacy() { this.setState({ draft: { title: '', description: '', tags: [], sections: [{ label: '', lines: [{ text: '', link: '' }] }] }, linkInputOpen: {}, tagInput: '', editingDraftId: null, screen: 'create' }); }
+  goNew() { this.setState({ draft: null, createStart: 'title', createInitial: null, editingDraftId: null, screen: 'create' }); }
   signIn() { this.setState({ signedIn: true }); }
   requireAuth(action, message) {
     if (this.state.signedIn) { action(); return; }
@@ -1617,7 +1560,8 @@ class Component extends DCLogic {
     this.setState(s => {
       const d = s.drafts.find(x => x.id === id);
       if (!d) return null;
-      return { draft: { title: d.title, description: d.description || '', tags: d.tags || [], sections: d.sections, forkedFromId: d.forkedFromId || null, visibility: d.visibility || 'public' }, editingDraftId: id, linkInputOpen: {}, tagInput: '', screen: 'create' };
+      const dd = { step: d.step || 'build', title: d.title === 'Untitled draft' ? '' : d.title, description: d.description || '', tags: d.tags || [], sections: d.sections, forkedFromId: d.forkedFromId || null, visibility: d.visibility || 'public' };
+      return { draft: dd, createInitial: dd, createStart: 'build', editingDraftId: id, linkInputOpen: {}, tagInput: '', screen: 'create' };
     });
   }
   deleteDraft(id, e) { if (e) e.stopPropagation(); this.setState(s => ({ drafts: s.drafts.filter(d => d.id !== id) })); }
@@ -1663,7 +1607,8 @@ class Component extends DCLogic {
       const sections = src.sections.map(sec => ({ label: sec.label || '', lines: sec.lines.map(ln => ({ text: ln.text, link: ln.link || '' })) }));
       return {
         lists: s.lists.map(l => l.id === src.id ? { ...l, forks: l.forks + 1 } : l),
-        draft: { title: src.title + ' (remix)', description: src.description || '', tags: [...(src.tags || [])], sections, forkedFromId: src.id },
+        draft: null, createStart: 'build', editingDraftId: null,
+        createInitial: { title: src.title + ' (remix)', description: src.description || '', tags: [...(src.tags || [])], sections, forkedFromId: src.id },
         linkInputOpen: {}, tagInput: '',
         screen: 'create',
       };
@@ -1947,6 +1892,8 @@ class Component extends DCLogic {
       isProfile: s.screen === 'profile',
       isUser: s.screen === 'user',
       isCreate: s.screen === 'create',
+      createStart: s.createStart || 'title', createInitial: s.createInitial || null,
+      createExit: (out, has) => this.createExit(out, has), createSave: (out) => this.createSave(out), createPublish: (out) => this.createPublish(out),
       showTabBar: ['feed', 'search', 'detail', 'profile', 'user', 'notifs'].includes(s.screen),
       ...this._notifVMs(s),
       goBack: () => this.goBack(),
