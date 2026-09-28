@@ -67,12 +67,12 @@
                 <div style="position:relative;display:flex;flex-direction:column;gap:8px;">
                   <sc-for list="{{ card.shortLines }}" as="pl" hint-placeholder-count="4">
                     <div style="display:flex;gap:12px;font-family:Inter,sans-serif;font-size:14.5px;line-height:1.5;">
-                      <span style="color:oklch(64% 0.16 50);font-weight:600;font-variant-numeric:tabular-nums;flex-shrink:0;">{{ pl.num }}</span>
-                      <span style="color:oklch(23.1% 0.006 80);text-wrap:pretty;">{{ pl.text }} <sc-if value="{{ pl.hasLink }}" hint-placeholder-val="{{ false }}"><span style="color:oklch(64% 0.16 50);">↗</span></sc-if></span>
+                      <span style="color:oklch(54% 0.16 45);font-weight:600;font-variant-numeric:tabular-nums;flex-shrink:0;">{{ pl.num }}</span>
+                      <span style="color:oklch(23.1% 0.006 80);text-wrap:pretty;">{{ pl.text }} <sc-if value="{{ pl.hasLink }}" hint-placeholder-val="{{ false }}"><span style="color:oklch(54% 0.16 45);">↗</span></sc-if></span>
                     </div>
                   </sc-for>
                   <sc-if value="{{ card.hasMoreShort }}" hint-placeholder-val="{{ false }}">
-                    <div style="position:absolute;left:0;right:0;bottom:0;height:64px;background:linear-gradient(to bottom, oklch(94.5% 0.006 80 / 0), oklch(94.5% 0.006 80) 92%);pointer-events:none;"></div>
+                    <div style="position:absolute;left:0;right:0;bottom:0;height:64px;background:linear-gradient(to bottom, oklch(27% 0.012 165 / 0), oklch(94.5% 0.006 80) 92%);pointer-events:none;"></div>
                   </sc-if>
                 </div>
                 <sc-if value="{{ card.hasMoreShort }}" hint-placeholder-val="{{ false }}">
@@ -87,9 +87,9 @@
                 <span onClick="{{ card.onCopyLink }}" style="display:flex;align-items:center;cursor:pointer;margin-left:auto;min-height:32px;padding:0 2px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="oklch(41.5% 0.006 80)" stroke="oklch(41.5% 0.006 80)" strokeWidth="1" strokeLinejoin="round"><path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z"></path></svg></span>
               </div>
               <div onClick="{{ card.onToggleComments }}" style="display:flex;align-items:center;gap:10px;margin-top:6px;min-height:44px;cursor:pointer;">
-                <span style="font-family:Inter,sans-serif;font-size:13.5px;font-weight:600;color:oklch(64% 0.16 50);flex-shrink:0;">{{ card.commentToggleLabel }}</span>
+                <span style="font-family:Inter,sans-serif;font-size:13.5px;font-weight:600;color:oklch(54% 0.16 45);flex-shrink:0;">{{ card.commentToggleLabel }}</span>
                 <span style="flex:1;min-width:0;font-family:Inter,sans-serif;font-size:13px;color:oklch(47.1% 0.006 80);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ card.commentPreview }}</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex-shrink:0;transform:rotate({{ card.commentArrowRot }});transition:transform 200ms ease;"><path d="M12 5v14M6 13l6 6 6-6"></path></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(54% 0.16 45)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex-shrink:0;transform:rotate({{ card.commentArrowRot }});transition:transform 200ms ease;"><path d="M12 5v14M6 13l6 6 6-6"></path></svg>
               </div>
               <sc-if value="{{ card.commentsOpen }}" hint-placeholder-val="{{ false }}">
                 <div style="border-top:1px solid oklch(91.2% 0.006 80);padding-top:4px;">
@@ -139,7 +139,7 @@
             <div style="padding:18px 20px 0;">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
                 <span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(41.5% 0.006 80);">Recent searches</span>
-                <span onClick="{{ clearRecents }}" style="font-family:Inter,sans-serif;font-size:12px;color:oklch(64% 0.16 50);cursor:pointer;">Clear</span>
+                <span onClick="{{ clearRecents }}" style="font-family:Inter,sans-serif;font-size:12px;color:oklch(54% 0.16 45);cursor:pointer;">Clear</span>
               </div>
               <sc-for list="{{ recents }}" as="r" hint-placeholder-count="2">
                 <div onClick="{{ r.onSelect }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;cursor:pointer;">
@@ -165,11 +165,11 @@
                   <div style="font-family:Inter,sans-serif;font-size:14px;color:oklch(24.9% 0.006 80);line-height:1.3;margin-bottom:10px;text-wrap:pretty;">{{ tc.title }}</div>
                   <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(41.5% 0.006 80);line-height:1.9;">
                     <sc-for list="{{ tc.lines3 }}" as="pl" hint-placeholder-count="3">
-                      <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(64% 0.16 50);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
+                      <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(54% 0.16 45);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
                     </sc-for>
                   </div>
                   <sc-if value="{{ tc.hasMore3 }}" hint-placeholder-val="{{ true }}">
-                    <div style="font-family:Inter,sans-serif;font-size:11.5px;font-weight:600;color:oklch(64% 0.16 50);margin-top:6px;">{{ tc.more3 }}</div>
+                    <div style="font-family:Inter,sans-serif;font-size:11.5px;font-weight:600;color:oklch(54% 0.16 45);margin-top:6px;">{{ tc.more3 }}</div>
                   </sc-if>
                   <div style="display:flex;align-items:center;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid oklch(91.8% 0.006 80);font-family:Inter,sans-serif;font-size:11px;color:oklch(41.5% 0.006 80);">
                     <span onClick="{{ tc.onToggleLike }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ tc.likeColor }};"><span style="font-size:13px;line-height:1;">{{ tc.likeGlyph }}</span>{{ tc.likesLabel }}</span>
@@ -256,7 +256,7 @@
         </sc-if>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px;min-height:30px;">
           <span style="font-family:Inter,sans-serif;font-size:12px;color:oklch(41.5% 0.006 80);">{{ activeLineCount }} lines</span>
-          <sc-if value="{{ activeIsMine }}" hint-placeholder-val="{{ false }}"><span onClick="{{ openActiveVis }}" style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;border:1px solid oklch(88.5% 0.006 80);font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:oklch(23.1% 0.006 80);cursor:pointer;flex-shrink:0;"><sc-if value="{{ activeVis.is_public }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M3.5 12h17"></path><ellipse cx="12" cy="12" rx="3.8" ry="8.5"></ellipse></svg></sc-if><sc-if value="{{ activeVis.is_unlisted }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></sc-if><sc-if value="{{ activeVis.is_private }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg></sc-if>{{ activeVis.label }}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span></sc-if>
+          <sc-if value="{{ activeIsMine }}" hint-placeholder-val="{{ false }}"><span onClick="{{ openActiveVis }}" style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;border:1px solid oklch(88.5% 0.006 80);font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:oklch(23.1% 0.006 80);cursor:pointer;flex-shrink:0;"><sc-if value="{{ activeVis.is_public }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(54% 0.16 45)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M3.5 12h17"></path><ellipse cx="12" cy="12" rx="3.8" ry="8.5"></ellipse></svg></sc-if><sc-if value="{{ activeVis.is_unlisted }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(54% 0.16 45)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></sc-if><sc-if value="{{ activeVis.is_private }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(54% 0.16 45)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg></sc-if>{{ activeVis.label }}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span></sc-if>
         </div>
       </div>
       <div style="flex:1;overflow-y:auto;padding:16px 20px 8px;">
@@ -265,9 +265,9 @@
             <div style="font-family:Inter,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(41.5% 0.006 80);margin:16px 0 6px;">{{ ln.label }}</div>
           </sc-if>
           <div style="display:flex;gap:10px;font-family:Inter,sans-serif;font-size:14.5px;color:oklch(14.8% 0.006 80);line-height:1.7;text-wrap:pretty;">
-            <span style="color:oklch(64% 0.16 50);font-weight:700;flex-shrink:0;font-variant-numeric:tabular-nums;">{{ ln.num }}</span><span style="flex:1;">{{ ln.text }}</span>
+            <span style="color:oklch(54% 0.16 45);font-weight:700;flex-shrink:0;font-variant-numeric:tabular-nums;">{{ ln.num }}</span><span style="flex:1;">{{ ln.text }}</span>
             <sc-if value="{{ ln.hasLink }}" hint-placeholder-val="{{ false }}">
-              <span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:oklch(99.6% 0.002 80);border:2px solid oklch(64% 0.16 50);color:oklch(64% 0.16 50);font-size:13px;font-weight:700;flex-shrink:0;">↗</span>
+              <span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:oklch(99.6% 0.002 80);border:2px solid oklch(64% 0.16 50);color:oklch(54% 0.16 45);font-size:13px;font-weight:700;flex-shrink:0;">↗</span>
             </sc-if>
           </div>
         </sc-for>
@@ -289,7 +289,7 @@
             <div style="font-family:Inter,sans-serif;font-size:9.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(50.8% 0.006 80);margin-bottom:10px;">Comments</div>
             <div style="border-radius:12px;background:oklch(98.4% 0.006 80);border:1px dashed oklch(91.8% 0.006 80);padding:22px 16px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;">
               <div style="font-family:Inter,sans-serif;font-size:13px;color:oklch(41.5% 0.006 80);line-height:1.5;">No comments yet. Share a tip, a favorite, or what you'd add.</div>
-              <span style="font-family:Inter,sans-serif;font-size:12.5px;font-weight:700;padding:9px 18px;border-radius:999px;border:1.5px solid oklch(64% 0.16 50);color:oklch(64% 0.16 50);cursor:pointer;">Add a comment</span>
+              <span style="font-family:Inter,sans-serif;font-size:12.5px;font-weight:700;padding:9px 18px;border-radius:999px;border:1.5px solid oklch(64% 0.16 50);color:oklch(54% 0.16 45);cursor:pointer;">Add a comment</span>
             </div>
           </div>
         </sc-if>
@@ -320,7 +320,10 @@
           <div onClick="{{ goBack }}" style="display:flex;align-items:center;gap:6px;height:44px;font-family:Inter,sans-serif;font-size:13px;color:oklch(36% 0.006 80);cursor:pointer;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>Back
           </div>
-          <span onClick="{{ openUserShare }}" title="Share profile" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-right:-8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="oklch(19.4% 0.006 80)" stroke="oklch(19.4% 0.006 80)" strokeWidth="1" strokeLinejoin="round"><path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z"></path></svg></span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span onClick="{{ viewedUser.onToggleFollow }}" style="height:34px;padding:0 18px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;font-size:13px;font-weight:700;cursor:pointer;background:{{ viewedUser.followBg }};color:{{ viewedUser.followColor }};border:1px solid {{ viewedUser.followBorder }};">{{ viewedUser.followLabel }}</span>
+            <span onClick="{{ openUserShare }}" title="Share profile" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-right:-8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="oklch(19.4% 0.006 80)" stroke="oklch(19.4% 0.006 80)" strokeWidth="1" strokeLinejoin="round"><path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z"></path></svg></span>
+          </div>
         </div>
       </div>
       <div style="flex:1;overflow-y:auto;">
@@ -329,25 +332,10 @@
           <div style="font-family:Inter,sans-serif;font-weight:700;font-size:21px;color:oklch(17.5% 0.006 80);margin-top:14px;letter-spacing:-0.2px;">{{ viewedUser.name }}</div>
           <div style="font-family:Inter,sans-serif;font-size:13px;color:oklch(43.4% 0.006 80);margin-top:3px;">{{ viewedUser.handle }}</div>
           <div style="font-family:Inter,sans-serif;font-size:14px;color:oklch(24.9% 0.006 80);line-height:1.5;margin-top:12px;max-width:300px;text-wrap:pretty;white-space:pre-wrap;">{{ viewedUser.bio }}</div>
-          <sc-if value="{{ viewedUser.hasSocials }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:16px;">
-              <sc-if value="{{ viewedUser.socials.x }}" hint-placeholder-val="{{ false }}"><a href="{{ viewedUser.socials.xUrl }}" target="_blank" title="X" style="width:40px;height:40px;border-radius:12px;border:1px solid oklch(89.6% 0.006 80);display:flex;align-items:center;justify-content:center;" style-hover="border-color:oklch(60% 0.03 60);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="oklch(24.9% 0.006 80)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4l16 16"></path><path d="M20 4L4 20"></path></svg></a></sc-if>
-              <sc-if value="{{ viewedUser.socials.instagram }}" hint-placeholder-val="{{ false }}"><a href="{{ viewedUser.socials.instagramUrl }}" target="_blank" title="Instagram" style="width:40px;height:40px;border-radius:12px;border:1px solid oklch(89.6% 0.006 80);display:flex;align-items:center;justify-content:center;" style-hover="border-color:oklch(60% 0.03 60);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="oklch(24.9% 0.006 80)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"></rect><circle cx="12" cy="12" r="3.8"></circle><circle cx="17.2" cy="6.8" r="0.6" fill="oklch(24.9% 0.006 80)"></circle></svg></a></sc-if>
-              <sc-if value="{{ viewedUser.socials.tiktok }}" hint-placeholder-val="{{ false }}"><a href="{{ viewedUser.socials.tiktokUrl }}" target="_blank" title="TikTok" style="width:40px;height:40px;border-radius:12px;border:1px solid oklch(89.6% 0.006 80);display:flex;align-items:center;justify-content:center;" style-hover="border-color:oklch(60% 0.03 60);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="oklch(24.9% 0.006 80)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3.5v11.2a3.8 3.8 0 1 1-3.8-3.8"></path><path d="M14 3.5c.4 2.6 2.2 4.4 5 4.6"></path></svg></a></sc-if>
-              <sc-if value="{{ viewedUser.socials.facebook }}" hint-placeholder-val="{{ false }}"><a href="{{ viewedUser.socials.facebookUrl }}" target="_blank" title="Facebook" style="width:40px;height:40px;border-radius:12px;border:1px solid oklch(89.6% 0.006 80);display:flex;align-items:center;justify-content:center;" style-hover="border-color:oklch(60% 0.03 60);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="oklch(24.9% 0.006 80)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M14 21v-7.5h2.6l.4-3H14V8.6c0-.9.3-1.5 1.6-1.5H17V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.3H8.3v3h2.6V21"></path></svg></a></sc-if>
-              <sc-if value="{{ viewedUser.socials.email }}" hint-placeholder-val="{{ false }}"><a href="{{ viewedUser.socials.emailUrl }}" title="Email" style="width:40px;height:40px;border-radius:12px;border:1px solid oklch(89.6% 0.006 80);display:flex;align-items:center;justify-content:center;" style-hover="border-color:oklch(60% 0.03 60);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="oklch(24.9% 0.006 80)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5"></rect><path d="M4.5 7.5l7.5 5.5 7.5-5.5"></path></svg></a></sc-if>
-            </div>
-          </sc-if>
-          <div style="display:flex;justify-content:center;gap:10px;width:100%;max-width:330px;margin-top:18px;">
-            <div onClick="{{ viewedUser.onToggleFollow }}" style="flex:1;max-width:160px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;font-size:14px;font-weight:600;cursor:pointer;background:{{ viewedUser.followBg }};color:{{ viewedUser.followColor }};border:1px solid {{ viewedUser.followBorder }};">{{ viewedUser.followButtonLabel }}</div>
-            <sc-if value="{{ viewedUser.hasContact }}" hint-placeholder-val="{{ true }}">
-              <a href="{{ viewedUser.contact.url }}" target="_blank" style="flex:1;min-width:0;height:46px;box-sizing:border-box;border-radius:12px;border:1px solid oklch(86.3% 0.006 80);display:flex;align-items:center;justify-content:center;padding:0 12px;font-family:Inter,sans-serif;font-size:14px;font-weight:600;color:oklch(19.4% 0.006 80);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ viewedUser.contact.label }} ↗</a>
-            </sc-if>
-          </div>
-          <div style="display:flex;justify-content:center;gap:18px;margin-top:18px;font-family:Inter,sans-serif;font-size:12.5px;color:oklch(36% 0.006 80);">
-            <span><strong style="color:oklch(19.4% 0.006 80);">{{ viewedUser.stackCount }}</strong> Stacks</span>
-            <span><strong style="color:oklch(19.4% 0.006 80);">{{ viewedUser.followersLabel }}</strong> Followers</span>
-            <span><strong style="color:oklch(19.4% 0.006 80);">{{ viewedUser.following }}</strong> Following</span>
+          <div style="display:flex;gap:10px;width:100%;max-width:330px;margin-top:18px;">
+            <div title="Instagram" style="flex:1;min-width:0;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid oklch(86.3% 0.006 80);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="oklch(19.4% 0.006 80)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"></rect><circle cx="12" cy="12" r="3.8"></circle><circle cx="17.2" cy="6.8" r="0.6" fill="oklch(19.4% 0.006 80)"></circle></svg></div>
+            <div title="TikTok" style="flex:1;min-width:0;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid oklch(86.3% 0.006 80);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="oklch(19.4% 0.006 80)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3.5v11.2a3.8 3.8 0 1 1-3.8-3.8"></path><path d="M14 3.5c.4 2.6 2.2 4.4 5 4.6"></path></svg></div>
+            <div title="Newsletter" style="flex:1;min-width:0;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:oklch(64% 0.16 50);font-family:Inter,sans-serif;font-size:14px;font-weight:600;color:oklch(99.6% 0.002 80);">Newsletter</div>
           </div>
         </div>
         <sc-if value="{{ viewedUser.hasFeatured }}" hint-placeholder-val="{{ true }}">
@@ -363,9 +351,9 @@
             </div>
           </div>
         </sc-if>
-        <div style="display:flex;gap:22px;padding:24px 20px 0;border-bottom:1px solid oklch(91.8% 0.006 80);">
-          <span onClick="{{ selectUserStacks }}" style="padding-bottom:10px;font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:{{ userStacksColor }};border-bottom:2px solid {{ userStacksBorder }};cursor:pointer;">Stacks</span>
-          <span onClick="{{ selectUserReposts }}" style="padding-bottom:10px;font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:{{ userRepostsColor }};border-bottom:2px solid {{ userRepostsBorder }};cursor:pointer;">Reposts</span>
+        <div style="display:flex;padding:24px 0 0;border-bottom:1px solid oklch(91.8% 0.006 80);">
+          <span onClick="{{ selectUserStacks }}" style="flex:1;text-align:center;padding-bottom:12px;font-size:13.5px;font-family:Inter,sans-serif;font-weight:600;color:{{ userStacksColor }};border-bottom:2px solid {{ userStacksBorder }};cursor:pointer;">Stacks</span>
+          <span onClick="{{ selectUserReposts }}" style="flex:1;text-align:center;padding-bottom:12px;font-size:13.5px;font-family:Inter,sans-serif;font-weight:600;color:{{ userRepostsColor }};border-bottom:2px solid {{ userRepostsBorder }};cursor:pointer;">Reposts</span>
         </div>
       <div style="padding:16px 20px 24px;display:flex;flex-direction:column;gap:14px;">
         <sc-for list="{{ userCards }}" as="uc" hint-placeholder-count="2">
@@ -384,11 +372,11 @@
               <div style="font-family:Inter,sans-serif;font-weight:400;font-size:14px;color:oklch(24.9% 0.006 80);line-height:1.3;margin-bottom:12px;text-wrap:pretty;">{{ uc.card.title }}</div>
               <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(41.5% 0.006 80);line-height:1.9;">
                 <sc-for list="{{ uc.card.shortLines }}" as="pl" hint-placeholder-count="4">
-                  <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(64% 0.16 50);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
+                  <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(54% 0.16 45);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
                 </sc-for>
               </div>
               <sc-if value="{{ uc.card.hasMoreShort }}" hint-placeholder-val="{{ false }}">
-                <div style="font-family:Inter,sans-serif;font-size:11.5px;font-weight:600;color:oklch(64% 0.16 50);margin-top:6px;">{{ uc.card.moreShortLabel }}</div>
+                <div style="font-family:Inter,sans-serif;font-size:11.5px;font-weight:600;color:oklch(54% 0.16 45);margin-top:6px;">{{ uc.card.moreShortLabel }}</div>
               </sc-if>
               <div style="display:flex;align-items:center;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid oklch(91.8% 0.006 80);font-family:Inter,sans-serif;font-size:11px;color:oklch(50.8% 0.006 80);">
                   <span onClick="{{ uc.card.onToggleLike }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ uc.card.likeColor }};"><span style="font-size:13px;line-height:1;">{{ uc.card.likeGlyph }}</span>{{ uc.card.likesLabel }}</span>
@@ -404,7 +392,7 @@
           <div style="padding:40px 20px;text-align:center;font-family:Inter,sans-serif;font-size:13px;color:oklch(41.5% 0.006 80);">{{ userEmptyLabel }}</div>
         </sc-if>
       </div>
-        <div style="margin-top:12px;padding:22px 20px 28px;border-top:1px solid oklch(91.8% 0.006 80);text-align:center;font-family:Inter,sans-serif;font-size:12px;color:oklch(48.9% 0.006 80);">Explore the internet, curated by people · <span style="color:oklch(64% 0.16 50);font-weight:600;">Stack</span></div>
+        <div style="margin-top:12px;padding:22px 20px 28px;border-top:1px solid oklch(91.8% 0.006 80);text-align:center;font-family:Inter,sans-serif;font-size:12px;color:oklch(48.9% 0.006 80);">Explore the internet, curated by people · <span style="color:oklch(54% 0.16 45);font-weight:600;">Stack</span></div>
       </div>
     </sc-if>
 
@@ -431,7 +419,7 @@
                 <span onClick="{{ m.onDelete }}" style="font-size:12px;color:oklch(41.5% 0.006 80);cursor:pointer;">Delete</span>
               </div>
             </sc-if>
-            <sc-if value="{{ m.isStack }}" hint-placeholder-val="{{ true }}"><span onClick="{{ m.onVis }}" style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;border:1px solid oklch(88.5% 0.006 80);font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:oklch(23.1% 0.006 80);cursor:pointer;flex-shrink:0;"><sc-if value="{{ m.vis.is_public }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M3.5 12h17"></path><ellipse cx="12" cy="12" rx="3.8" ry="8.5"></ellipse></svg></sc-if><sc-if value="{{ m.vis.is_unlisted }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></sc-if><sc-if value="{{ m.vis.is_private }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg></sc-if>{{ m.vis.label }}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span></sc-if>
+            <sc-if value="{{ m.isStack }}" hint-placeholder-val="{{ true }}"><span onClick="{{ m.onVis }}" style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;border:1px solid oklch(88.5% 0.006 80);font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:oklch(23.1% 0.006 80);cursor:pointer;flex-shrink:0;"><sc-if value="{{ m.vis.is_public }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(54% 0.16 45)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M3.5 12h17"></path><ellipse cx="12" cy="12" rx="3.8" ry="8.5"></ellipse></svg></sc-if><sc-if value="{{ m.vis.is_unlisted }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(54% 0.16 45)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></sc-if><sc-if value="{{ m.vis.is_private }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(54% 0.16 45)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg></sc-if>{{ m.vis.label }}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span></sc-if>
           </div>
         </sc-for>
         <sc-if value="{{ manageEmpty }}" hint-placeholder-val="{{ false }}">
@@ -519,21 +507,9 @@
             </div>
           </sc-if>
           <div style="display:flex;gap:10px;width:100%;max-width:330px;margin-top:18px;">
-            <div onClick="{{ openEditProfile }}" style="flex:1;height:46px;border-radius:12px;border:1px solid oklch(86.3% 0.006 80);display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;font-size:14px;font-weight:600;color:oklch(19.4% 0.006 80);cursor:pointer;">Edit profile</div>
-            <sc-if value="{{ me.hasContact }}" hint-placeholder-val="{{ true }}">
-              <div onClick="{{ openEditProfile }}" title="Edit custom link" style="flex:1;min-width:0;height:46px;border-radius:12px;background:oklch(64% 0.16 50);display:flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;font-family:Inter,sans-serif;font-size:14px;font-weight:600;color:oklch(99.6% 0.002 80);cursor:pointer;">
-                <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ me.contact.label }} ↗</span>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(92.9% 0.03 60)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style="flex-shrink:0;"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg>
-              </div>
-            </sc-if>
-            <sc-if value="{{ me.noContact }}" hint-placeholder-val="{{ false }}">
-              <div onClick="{{ openEditProfile }}" style="flex:1;height:46px;border-radius:12px;border:1.5px dashed oklch(87.4% 0.006 80);display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;font-size:13.5px;color:oklch(43.4% 0.006 80);cursor:pointer;">+ Add custom link</div>
-            </sc-if>
-          </div>
-          <div style="display:flex;justify-content:center;gap:18px;margin-top:18px;font-family:Inter,sans-serif;font-size:12.5px;color:oklch(36% 0.006 80);">
-            <span><strong style="color:oklch(19.4% 0.006 80);">{{ mineCount }}</strong> Stacks</span>
-            <span><strong style="color:oklch(19.4% 0.006 80);">128</strong> Followers</span>
-            <span><strong style="color:oklch(19.4% 0.006 80);">{{ followingCount }}</strong> Following</span>
+            <div title="Instagram" style="flex:1;min-width:0;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid oklch(86.3% 0.006 80);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="oklch(19.4% 0.006 80)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"></rect><circle cx="12" cy="12" r="3.8"></circle><circle cx="17.2" cy="6.8" r="0.6" fill="oklch(19.4% 0.006 80)"></circle></svg></div>
+            <div title="TikTok" style="flex:1;min-width:0;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid oklch(86.3% 0.006 80);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="oklch(19.4% 0.006 80)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3.5v11.2a3.8 3.8 0 1 1-3.8-3.8"></path><path d="M14 3.5c.4 2.6 2.2 4.4 5 4.6"></path></svg></div>
+            <div title="Newsletter" style="flex:1;min-width:0;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:oklch(64% 0.16 50);font-family:Inter,sans-serif;font-size:14px;font-weight:600;color:oklch(99.6% 0.002 80);">Newsletter</div>
           </div>
         </div>
         <div style="padding:22px 20px 0;border-bottom:1px solid oklch(91.8% 0.006 80);">
@@ -554,7 +530,7 @@
                   <div style="font-size:13.5px;color:oklch(19.4% 0.006 80);line-height:1.45;padding-left:12px;border-left:2px solid oklch(60% 0.03 60);margin-bottom:12px;text-wrap:pretty;">{{ r.note }}</div>
                 </sc-if>
                 <div style="font-size:14.5px;color:oklch(19.4% 0.006 80);font-weight:500;line-height:1.3;">{{ r.title }} →</div>
-                <div style="font-size:12px;color:oklch(47.1% 0.006 80);margin-top:5px;">Originally curated by <span onClick="{{ r.onOpenAuthor }}" style="color:oklch(64% 0.16 50);font-weight:600;cursor:pointer;">{{ r.handle }}</span> · {{ r.count }} lines</div>
+                <div style="font-size:12px;color:oklch(47.1% 0.006 80);margin-top:5px;">Originally curated by <span onClick="{{ r.onOpenAuthor }}" style="color:oklch(54% 0.16 45);font-weight:600;cursor:pointer;">{{ r.handle }}</span> · {{ r.count }} lines</div>
               </div>
             </sc-for>
             <sc-if value="{{ myRepostsEmpty }}" hint-placeholder-val="{{ false }}">
@@ -591,7 +567,7 @@
                 <div style="font-family:Inter,sans-serif;font-size:13.5px;color:oklch(19.4% 0.006 80);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.title }}</div>
                 <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(50.8% 0.006 80);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.meta }}</div>
               </div>
-              <span onClick="{{ r.onUnsave }}" style="font-family:Inter,sans-serif;font-size:15px;color:oklch(64% 0.16 50);cursor:pointer;padding:8px;margin-right:-8px;flex-shrink:0;">◆</span>
+              <span onClick="{{ r.onUnsave }}" style="font-family:Inter,sans-serif;font-size:15px;color:oklch(54% 0.16 45);cursor:pointer;padding:8px;margin-right:-8px;flex-shrink:0;">◆</span>
             </div>
           </sc-for>
           <sc-if value="{{ savedEmpty }}" hint-placeholder-val="{{ false }}">
@@ -616,23 +592,23 @@
 
             <div style="display:flex;align-items:center;justify-content:space-between;margin-top:30px;margin-bottom:4px;">
               <span style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:oklch(45.2% 0.006 80);">All stacks</span>
-              <div style="display:flex;align-items:center;gap:16px;"><span onClick="{{ openManage }}" style="font-size:12.5px;font-weight:600;color:oklch(64% 0.16 50);cursor:pointer;padding:4px 0;">Manage</span><span onClick="{{ toggleReorder }}" style="font-size:12.5px;font-weight:600;color:{{ reorderColor }};cursor:pointer;padding:4px 0;">{{ reorderLabel }}</span></div>
+              <div style="display:flex;align-items:center;gap:16px;"><span onClick="{{ openManage }}" style="font-size:12.5px;font-weight:600;color:oklch(54% 0.16 45);cursor:pointer;padding:4px 0;">Manage</span><span onClick="{{ toggleReorder }}" style="font-size:12.5px;font-weight:600;color:{{ reorderColor }};cursor:pointer;padding:4px 0;">{{ reorderLabel }}</span></div>
             </div>
             <sc-if value="{{ showMyGrid }}" hint-placeholder-val="{{ false }}">
               <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;padding-top:12px;border-top:1px solid oklch(91.8% 0.006 80);">
                 <sc-for list="{{ mineGrid }}" as="g" hint-placeholder-count="4">
                   <div onClick="{{ g.onOpen }}" style="height:212px;border-radius:14px;background:oklch(94.5% 0.006 80);border:1px solid {{ g.border }};display:flex;flex-direction:column;padding:12px;cursor:pointer;overflow:hidden;position:relative;">
                     <sc-if value="{{ g.isPinned }}" hint-placeholder-val="{{ false }}">
-                      <span style="position:absolute;top:10px;right:10px;width:20px;height:20px;border-radius:6px;background:oklch(91.8% 0.03 60);display:flex;align-items:center;justify-content:center;"><svg width="11" height="11" viewBox="0 0 24 24" fill="oklch(64% 0.16 50)" stroke="oklch(64% 0.16 50)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 17v5"></path><path d="M9 10.8V4h6v6.8l3 3.2H6z"></path></svg></span>
+                      <span style="position:absolute;top:10px;right:10px;width:20px;height:20px;border-radius:6px;background:oklch(91.8% 0.03 60);display:flex;align-items:center;justify-content:center;"><svg width="11" height="11" viewBox="0 0 24 24" fill="oklch(54% 0.16 45)" stroke="oklch(54% 0.16 45)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 17v5"></path><path d="M9 10.8V4h6v6.8l3 3.2H6z"></path></svg></span>
                     </sc-if>
                     <div style="font-family:Inter,sans-serif;font-size:13.5px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.3;margin-bottom:8px;padding-right:{{ g.titlePad }};display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ g.title }}</div>
                     <div style="flex:1;min-height:0;overflow:hidden;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(36% 0.006 80);line-height:1.85;">
                       <sc-for list="{{ g.lines }}" as="pl" hint-placeholder-count="4">
-                        <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(64% 0.16 50);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
+                        <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(54% 0.16 45);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
                       </sc-for>
                     </div>
                     <sc-if value="{{ g.hasMore }}" hint-placeholder-val="{{ true }}">
-                      <div style="font-family:Inter,sans-serif;font-size:10.5px;font-weight:600;color:oklch(64% 0.16 50);margin-top:4px;">{{ g.more }}</div>
+                      <div style="font-family:Inter,sans-serif;font-size:10.5px;font-weight:600;color:oklch(54% 0.16 45);margin-top:4px;">{{ g.more }}</div>
                     </sc-if>
                     <div style="display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid oklch(91.8% 0.006 80);font-family:Inter,sans-serif;font-size:10.5px;color:oklch(41.5% 0.006 80);">
                       <span style="display:flex;align-items:center;gap:4px;"><span style="font-size:12px;line-height:1;">♡</span>{{ g.likes }}</span>
@@ -652,7 +628,7 @@
                   <div style="font-size:12.5px;color:oklch(47.1% 0.006 80);margin-top:5px;">{{ r.meta }}<span style="color:oklch(54% 0.16 45);font-weight:600;">{{ r.visSuffix }}</span></div>
                 </div>
                 <sc-if value="{{ r.showPinnedTag }}" hint-placeholder-val="{{ false }}">
-                  <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.04em;color:oklch(64% 0.16 50);border:1px solid oklch(87.4% 0.03 60);padding:3px 7px;border-radius:5px;flex-shrink:0;">PINNED</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.04em;color:oklch(54% 0.16 45);border:1px solid oklch(87.4% 0.03 60);padding:3px 7px;border-radius:5px;flex-shrink:0;">PINNED</span>
                 </sc-if>
                 <sc-if value="{{ r.editing }}" hint-placeholder-val="{{ false }}">
                   <div style="display:flex;gap:6px;flex-shrink:0;">
@@ -681,7 +657,7 @@
         </sc-if>
         </sc-if>
       </div>
-        <div style="margin-top:12px;padding:22px 20px 28px;border-top:1px solid oklch(91.8% 0.006 80);text-align:center;font-family:Inter,sans-serif;font-size:12px;color:oklch(48.9% 0.006 80);">Explore the internet, curated by people · <span style="color:oklch(64% 0.16 50);font-weight:600;">Stack</span></div>
+        <div style="margin-top:12px;padding:22px 20px 28px;border-top:1px solid oklch(91.8% 0.006 80);text-align:center;font-family:Inter,sans-serif;font-size:12px;color:oklch(48.9% 0.006 80);">Explore the internet, curated by people · <span style="color:oklch(54% 0.16 45);font-weight:600;">Stack</span></div>
       </div>
     </sc-if>
     </sc-if>
@@ -704,7 +680,7 @@
         </div>
         <div style="display:flex;align-items:center;gap:10px;margin:-8px 0 24px;">
           <span style="font-family:Inter,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(47.1% 0.006 80);">Visibility</span>
-          <span onClick="{{ openDraftVis }}" style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;border:1px solid oklch(88.5% 0.006 80);font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:oklch(23.1% 0.006 80);cursor:pointer;flex-shrink:0;"><sc-if value="{{ draftVis.is_public }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M3.5 12h17"></path><ellipse cx="12" cy="12" rx="3.8" ry="8.5"></ellipse></svg></sc-if><sc-if value="{{ draftVis.is_unlisted }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></sc-if><sc-if value="{{ draftVis.is_private }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg></sc-if>{{ draftVis.label }}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span>
+          <span onClick="{{ openDraftVis }}" style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;border:1px solid oklch(88.5% 0.006 80);font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:oklch(23.1% 0.006 80);cursor:pointer;flex-shrink:0;"><sc-if value="{{ draftVis.is_public }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(54% 0.16 45)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M3.5 12h17"></path><ellipse cx="12" cy="12" rx="3.8" ry="8.5"></ellipse></svg></sc-if><sc-if value="{{ draftVis.is_unlisted }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(54% 0.16 45)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></sc-if><sc-if value="{{ draftVis.is_private }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(54% 0.16 45)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg></sc-if>{{ draftVis.label }}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span>
           <span style="flex:1;min-width:0;font-family:Inter,sans-serif;font-size:11.5px;color:oklch(47.1% 0.006 80);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ draftVis.short }}</span>
         </div>
         <sc-for list="{{ draftSections }}" as="sec" hint-placeholder-count="1">
@@ -718,21 +694,21 @@
             <sc-for list="{{ sec.lines }}" as="ln" hint-placeholder-count="2">
               <div style="margin-bottom:10px;">
                 <div style="display:flex;align-items:center;gap:8px;">
-                  <span style="font-family:Inter,sans-serif;font-weight:700;font-size:12px;color:oklch(64% 0.16 50);width:18px;flex-shrink:0;">{{ ln.num }}</span>
+                  <span style="font-family:Inter,sans-serif;font-weight:700;font-size:12px;color:oklch(54% 0.16 45);width:18px;flex-shrink:0;">{{ ln.num }}</span>
                   <textarea value="{{ ln.text }}" onChange="{{ ln.onChange }}" placeholder="Add a line…" rows="1" style="flex:1;min-width:0;field-sizing:content;resize:none;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:13.5px;line-height:1.45;color:oklch(19.4% 0.006 80);border-bottom:1px solid oklch(91.8% 0.006 80);padding:6px 0;"></textarea>
                   <span style="font-family:Inter,sans-serif;font-size:10px;color:oklch(50.8% 0.006 80);width:30px;text-align:right;flex-shrink:0;">{{ ln.remaining }}</span>
                   <span onClick="{{ ln.onRemove }}" style="font-family:Inter,sans-serif;font-size:14px;color:oklch(50.8% 0.006 80);cursor:pointer;flex-shrink:0;">×</span>
                 </div>
                 <div style="margin-left:26px;margin-top:8px;">
                   <sc-if value="{{ ln.showLinkChip }}" hint-placeholder-val="{{ false }}">
-                    <div onClick="{{ ln.onToggleLinkInput }}" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-family:Inter,sans-serif;font-size:14px;color:oklch(64% 0.16 50);padding:4px 0;max-width:100%;">
+                    <div onClick="{{ ln.onToggleLinkInput }}" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-family:Inter,sans-serif;font-size:14px;color:oklch(54% 0.16 45);padding:4px 0;max-width:100%;">
                       <span style="flex-shrink:0;">↗</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ln.linkDomain }}</span>
                     </div>
                     <div style="font-family:Inter,sans-serif;font-size:11.5px;color:oklch(50.8% 0.006 80);margin-top:4px;">Tap the link to edit or remove it</div>
                   </sc-if>
                   <sc-if value="{{ ln.showLinkInput }}" hint-placeholder-val="{{ false }}">
                     <div style="display:flex;align-items:center;gap:8px;padding:0 12px;height:42px;border-radius:12px;border:1.5px solid oklch(60% 0.03 60);background:oklch(98.4% 0.006 80);">
-                      <span style="color:oklch(64% 0.16 50);font-size:14px;flex-shrink:0;">↗</span>
+                      <span style="color:oklch(54% 0.16 45);font-size:14px;flex-shrink:0;">↗</span>
                       <input value="{{ ln.link }}" onChange="{{ ln.onLinkChange }}" onKeyDown="{{ ln.onLinkKey }}" placeholder="Paste a link" autoFocus="{{ true }}" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14px;color:oklch(17.5% 0.006 80);" />
                     </div>
                     <div style="display:flex;gap:8px;margin-top:8px;">
@@ -741,12 +717,12 @@
                     </div>
                   </sc-if>
                   <sc-if value="{{ ln.showAddLinkBtn }}" hint-placeholder-val="{{ true }}">
-                    <span onClick="{{ ln.onToggleLinkInput }}" style="display:inline-flex;align-items:center;font-family:Inter,sans-serif;font-size:14px;font-weight:500;padding:10px 18px;border-radius:14px;border:1.5px solid oklch(60% 0.03 60);color:oklch(64% 0.16 50);cursor:pointer;">+ Add link</span>
+                    <span onClick="{{ ln.onToggleLinkInput }}" style="display:inline-flex;align-items:center;font-family:Inter,sans-serif;font-size:14px;font-weight:500;padding:10px 18px;border-radius:14px;border:1.5px solid oklch(60% 0.03 60);color:oklch(54% 0.16 45);cursor:pointer;">+ Add link</span>
                   </sc-if>
                 </div>
               </div>
             </sc-for>
-            <div onClick="{{ sec.onAddLine }}" style="font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:oklch(64% 0.16 50);cursor:pointer;margin-top:4px;">+ Add line</div>
+            <div onClick="{{ sec.onAddLine }}" style="font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:oklch(54% 0.16 45);cursor:pointer;margin-top:4px;">+ Add line</div>
           </div>
         </sc-for>
         <div onClick="{{ addSection }}" style="font-family:Inter,sans-serif;font-size:12.5px;color:oklch(41.5% 0.006 80);cursor:pointer;padding:12px 0;border-top:1px dashed oklch(91.8% 0.006 80);">+ Add subsection</div>
@@ -778,7 +754,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;height:38px;">
           <div style="font-family:Inter,sans-serif;font-weight:800;font-size:19px;color:oklch(19.4% 0.006 80);letter-spacing:-0.3px;">Notifications</div>
           <sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ false }}">
-            <span onClick="{{ markAllRead }}" style="font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:oklch(64% 0.16 50);cursor:pointer;padding:8px 0;">Mark all read</span>
+            <span onClick="{{ markAllRead }}" style="font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:oklch(54% 0.16 45);cursor:pointer;padding:8px 0;">Mark all read</span>
           </sc-if>
         </div>
         <div style="display:flex;gap:8px;padding:10px 0 12px;overflow-x:auto;">
@@ -950,9 +926,9 @@
             <div style="padding:12px 20px 14px;border-top:1px dashed oklch(90.7% 0.006 80);background:oklch(99% 0.006 80);display:flex;align-items:center;gap:10px;">
               <div style="flex:1;min-width:0;">
                 <div style="font-size:12px;color:oklch(30.5% 0.006 80);">Find <span style="font-weight:700;color:oklch(17.5% 0.006 80);">{{ profileShare.handle }}</span> on Stack</div>
-                <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(64% 0.16 50);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ profileShare.url }}</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(54% 0.16 45);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ profileShare.url }}</div>
               </div>
-              <span style="font-weight:800;font-size:13px;color:oklch(64% 0.16 50);letter-spacing:-0.2px;flex-shrink:0;">Stack</span>
+              <span style="font-weight:800;font-size:13px;color:oklch(54% 0.16 45);letter-spacing:-0.2px;flex-shrink:0;">Stack</span>
             </div>
           </div>
         </div>
@@ -1016,41 +992,37 @@
 
     <sc-if value="{{ showShareSheet }}" hint-placeholder-val="{{ false }}">
       <div onClick="{{ closeShare }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;flex-direction:column;justify-content:flex-end;z-index:40;">
-        <div onClick="{{ closeShare }}" style="flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:54px 20px 14px;box-sizing:border-box;">
-          <div onClick="{{ stopClick }}" style="height:100%;max-width:100%;aspect-ratio:9 / 16;border-radius:16px;background:oklch(99.6% 0.002 80);box-shadow:0 20px 50px rgba(0,0,0,0.5);font-family:Inter,sans-serif;display:flex;flex-direction:column;padding:22px 22px 18px;box-sizing:border-box;overflow:hidden;position:relative;">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <span style="font-weight:800;font-size:15px;color:oklch(64% 0.16 50);letter-spacing:-0.3px;">Stack</span>
-              <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(41.5% 0.006 80);">{{ shareCard.handle }}</span>
-            </div>
-            <div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;">
-              <div style="font-weight:800;font-size:25px;color:oklch(14.8% 0.006 80);line-height:1.15;letter-spacing:-0.5px;text-wrap:balance;">{{ shareCard.title }}</div>
-              <div style="display:flex;flex-direction:column;gap:12px;margin-top:20px;">
-                <sc-for list="{{ shareCard.lines }}" as="ln" hint-placeholder-count="5">
-                  <div style="display:flex;gap:11px;font-size:17px;font-weight:600;color:oklch(17.5% 0.006 80);line-height:1.3;">
-                    <span style="color:oklch(64% 0.16 50);font-weight:800;flex-shrink:0;min-width:20px;font-variant-numeric:tabular-nums;">{{ ln.num }}</span><span style="flex:1;min-width:0;text-wrap:pretty;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">{{ ln.text }}</span>
+        <div onClick="{{ stopClick }}" style="padding:0 28px 18px;">
+          <div style="border-radius:18px;background:oklch(98.4% 0.006 80);border:1px solid oklch(90.7% 0.006 80);overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.45);font-family:Inter,sans-serif;">
+            <div style="padding:20px 20px 16px;">
+              <div style="font-weight:800;font-size:19px;color:oklch(17.5% 0.006 80);line-height:1.25;letter-spacing:-0.2px;text-wrap:pretty;">{{ shareCard.title }}</div>
+              <div style="display:flex;flex-direction:column;gap:3px;margin-top:12px;">
+                <sc-for list="{{ shareCard.lines }}" as="ln" hint-placeholder-count="4">
+                  <div style="display:flex;gap:9px;font-size:13px;color:oklch(23.1% 0.006 80);line-height:1.55;">
+                    <span style="color:oklch(54% 0.16 45);font-weight:700;flex-shrink:0;font-variant-numeric:tabular-nums;">{{ ln.num }}</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ln.text }}</span>
                   </div>
                 </sc-for>
-                <sc-if value="{{ shareCard.hasMore }}" hint-placeholder-val="{{ false }}">
-                  <div style="font-size:13px;font-weight:600;color:oklch(36% 0.006 80);">+ {{ shareCard.moreCount }} more on Stack</div>
+                <sc-if value="{{ shareCard.hasMore }}" hint-placeholder-val="{{ true }}">
+                  <div style="font-size:12px;color:oklch(45.2% 0.006 80);margin-top:4px;">+ {{ shareCard.moreCount }} more</div>
                 </sc-if>
               </div>
             </div>
-            <div style="display:flex;align-items:center;gap:10px;padding-top:14px;border-top:1px solid oklch(91.8% 0.006 80);">
-              <div style="width:28px;height:28px;border-radius:50%;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);font-weight:700;font-size:10.5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ shareCard.initials }}</div>
+            <div style="padding:12px 20px 14px;border-top:1px dashed oklch(90.7% 0.006 80);background:oklch(99% 0.006 80);display:flex;align-items:center;gap:10px;">
+              <div style="width:26px;height:26px;border-radius:50%;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);font-weight:700;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ shareCard.initials }}</div>
               <div style="flex:1;min-width:0;">
-                <div style="font-size:12px;color:oklch(24.9% 0.006 80);">Curated by <span style="font-weight:700;color:oklch(14.8% 0.006 80);">{{ shareCard.handle }}</span></div>
-                <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(64% 0.16 50);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ shareCard.url }}</div>
+                <div style="font-size:12px;color:oklch(30.5% 0.006 80);">Curated by <span style="font-weight:700;color:oklch(17.5% 0.006 80);">{{ shareCard.handle }}</span> on Stack</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(54% 0.16 45);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ shareCard.url }}</div>
               </div>
-              <span style="font-weight:800;font-size:15px;color:oklch(64% 0.16 50);letter-spacing:-0.3px;flex-shrink:0;">Stack</span>
+              <span style="font-weight:800;font-size:13px;color:oklch(54% 0.16 45);letter-spacing:-0.2px;flex-shrink:0;">Stack</span>
             </div>
           </div>
         </div>
-        <div onClick="{{ stopClick }}" style="width:100%;background:oklch(94.5% 0.006 80);border-radius:22px 22px 0 0;padding:14px 20px 28px;box-sizing:border-box;font-family:Inter,sans-serif;flex-shrink:0;">
+        <div onClick="{{ stopClick }}" style="width:100%;background:oklch(94.5% 0.006 80);border-radius:22px 22px 0 0;padding:14px 20px 34px;box-sizing:border-box;font-family:Inter,sans-serif;">
           <div style="width:36px;height:4px;border-radius:2px;background:oklch(86.3% 0.006 80);margin:0 auto 14px;"></div>
           <sc-if value="{{ shareCard.unlisted }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:oklch(54% 0.16 45);margin:-2px 2px 12px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(54% 0.16 45)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg>Unlisted · only people with this link can view</div></sc-if>
           <div onClick="{{ copyShareLink }}" style="display:flex;align-items:center;gap:10px;height:48px;padding:0 14px;border-radius:12px;border:1px solid oklch(90.7% 0.006 80);cursor:pointer;">
             <span style="flex:1;min-width:0;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:oklch(24.9% 0.006 80);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ shareCard.url }}</span>
-            <span style="font-size:13px;font-weight:700;color:oklch(64% 0.16 50);flex-shrink:0;">Copy</span>
+            <span style="font-size:13px;font-weight:700;color:oklch(54% 0.16 45);flex-shrink:0;">Copy</span>
           </div>
           <div style="display:flex;gap:10px;margin-top:10px;">
             <div onClick="{{ saveShareImage }}" style="flex:1;height:48px;border-radius:12px;border:1px solid oklch(86.3% 0.006 80);color:oklch(19.4% 0.006 80);font-size:14.5px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer;">Save image</div>
@@ -1097,7 +1069,7 @@
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
             <span onClick="{{ closeEditProfile }}" style="font-family:Inter,sans-serif;font-size:13.5px;color:oklch(41.5% 0.006 80);cursor:pointer;">Cancel</span>
             <span style="font-family:Inter,sans-serif;font-weight:700;font-size:15px;color:oklch(19.4% 0.006 80);">Edit profile</span>
-            <span onClick="{{ saveEditProfile }}" style="font-family:Inter,sans-serif;font-size:13.5px;font-weight:700;color:oklch(64% 0.16 50);cursor:pointer;">Save</span>
+            <span onClick="{{ saveEditProfile }}" style="font-family:Inter,sans-serif;font-size:13.5px;font-weight:700;color:oklch(54% 0.16 45);cursor:pointer;">Save</span>
           </div>
           <div style="display:flex;align-items:baseline;justify-content:space-between;margin:18px 0 6px;">
             <span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(47.1% 0.006 80);">Bio</span>
@@ -1185,8 +1157,8 @@
 <script type="text/x-dc" data-dc-script data-props="{&quot;stacksLayout&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;grid&quot;,&quot;list&quot;],&quot;default&quot;:&quot;grid&quot;,&quot;tsType&quot;:&quot;'grid' | 'list'&quot;,&quot;section&quot;:&quot;Profile&quot;}}">
 class Component extends DCLogic {
   state = {
-    screen: 'feed',
-    signedIn: false,
+    screen: 'user',
+    signedIn: true,
     feedTab: 'forYou',
     followedHandles: ['@marcus.reads', '@kenji.eats'],
     drafts: [],
@@ -1211,7 +1183,7 @@ class Component extends DCLogic {
     searchQuery: '',
     submittedQuery: '',
     profileTab: 'mine',
-    viewedHandle: null,
+    viewedHandle: '@renata.diaz',
     visTarget: null, visNote: '', manageFilter: 'all',
     blockedHandles: [], privateAccount: false, allowForks: true, profileSheet: null,
     userTab: 'stacks',
@@ -1391,7 +1363,7 @@ class Component extends DCLogic {
     const mine = this.state.myReposts.some(r => r.id === l.id);
     const base = l.repostsBase != null ? l.repostsBase : Math.round((l.forks || 0) * 0.6);
     return {
-      repostColor: mine ? 'oklch(64% 0.16 50)' : 'oklch(41.5% 0.006 80)',
+      repostColor: mine ? 'oklch(54% 0.16 45)' : 'oklch(41.5% 0.006 80)',
       repostsLabel: this._fmt(base + (mine ? 1 : 0)),
       onRepost: (e) => { if (e) e.stopPropagation(); this.requireAuth(() => this.setState({ repostSheetId: l.id, repostMode: 'plain', repostNote: '' }), 'Sign in to repost stacks to your profile.'); },
       repostBy: '', repostNote: '', repostInitials: '', onOpenReposter: () => {},
@@ -1409,7 +1381,7 @@ class Component extends DCLogic {
     this.showToast('Repost removed');
   }
   PERSIST = ['signedIn', 'followedHandles', 'drafts', 'myOrder', 'pinnedId', 'pinNote', 'myBio', 'mySocials', 'lists', 'notifs', 'myReposts', 'recentSearches', 'blockedHandles', 'privateAccount', 'allowForks'];
-  STORE_KEY = 'stack-app-state-v1';
+  STORE_KEY = 'stack-app-light-state-v1';
   componentDidMount() {
     this._initial = {}; this.PERSIST.forEach(k => { this._initial[k] = this.state[k]; });
     try {
@@ -1442,13 +1414,13 @@ class Component extends DCLogic {
       likesLabel: this._fmt(l.likes), forksLabel: this._fmt(l.forks), savesLabel: this._fmt(l.saves),
       likeGlyph: l.likedByUser ? '♥' : '♡',
       saveGlyph: l.savedByUser ? '◆' : '◇',
-      saveFill: l.savedByUser ? 'oklch(64% 0.16 50)' : 'none',
+      saveFill: l.savedByUser ? 'oklch(54% 0.16 45)' : 'none',
       onFork: (e) => { if (e) e.stopPropagation(); this.forkFrom(l.id); },
       onCopyLink: (e) => { if (e) e.stopPropagation(); this._shareOrWarn(l); },
       ...this._repostVM(l),
-      likeColor: l.likedByUser ? 'oklch(64% 0.16 50)' : 'oklch(41.5% 0.006 80)',
+      likeColor: l.likedByUser ? 'oklch(54% 0.16 45)' : 'oklch(41.5% 0.006 80)',
       saveLabel: l.savedByUser ? 'Saved' : 'Save',
-      saveColor: l.savedByUser ? 'oklch(64% 0.16 50)' : 'oklch(41.5% 0.006 80)',
+      saveColor: l.savedByUser ? 'oklch(54% 0.16 45)' : 'oklch(41.5% 0.006 80)',
       showFollow: !l.isMine,
       followLabel: following ? 'Following' : 'Follow',
       followBg: following ? 'transparent' : 'oklch(64% 0.16 50)',
@@ -1744,7 +1716,7 @@ class Component extends DCLogic {
       name, onSelect: () => this.submitSearch(name),
     }));
     const EXPLORE_DOTS = {
-      'Food & Drink': 'oklch(54% 0.16 45)', 'Travel': 'oklch(64% 0.16 50)', 'Books': 'oklch(64% 0.16 50)',
+      'Food & Drink': 'oklch(64% 0.16 50)', 'Travel': 'oklch(64% 0.16 50)', 'Books': 'oklch(64% 0.16 50)',
       'Home': 'oklch(64% 0.16 50)', 'Art & Design': 'oklch(64% 0.16 50)', 'Tech': 'oklch(64% 0.16 50)', 'Shopping': 'oklch(64% 0.16 50)',
     };
     const EXPLORE_CATS = ['Food & Drink', 'Travel', 'Books', 'Home', 'Art & Design', 'Tech'];
@@ -1834,8 +1806,8 @@ class Component extends DCLogic {
         pinTitle: pinned ? 'Unpin' : 'Pin to featured',
         pinBg: pinned ? 'oklch(91.8% 0.03 60)' : 'transparent',
         pinBorder: pinned ? 'oklch(56.3% 0.03 60)' : 'oklch(90.7% 0.006 80)',
-        pinFill: pinned ? 'oklch(64% 0.16 50)' : 'none',
-        pinStroke: pinned ? 'oklch(64% 0.16 50)' : 'oklch(28.6% 0.006 80)',
+        pinFill: pinned ? 'oklch(54% 0.16 45)' : 'none',
+        pinStroke: pinned ? 'oklch(54% 0.16 45)' : 'oklch(28.6% 0.006 80)',
       };
     });
     const pinDraftId = s.pinDraft || s.pinnedId;
@@ -2120,7 +2092,7 @@ class Component extends DCLogic {
         const a = activeList.author || {};
         const user = String(a.handle || '').replace(/^@/, '');
         const slug = String(activeList.title || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-        const lines = activeFlat.slice(0, 6).map(l => ({ num: l.num, text: l.text }));
+        const lines = activeFlat.slice(0, 4).map(l => ({ num: l.num, text: l.text }));
         const more = activeFlat.length - lines.length;
         return { title: activeList.title, lines, hasMore: more > 0, moreCount: more, initials: a.initials || '', handle: '@' + user, url: 'stack.app/' + user + '/' + slug, unlisted: activeList.visibility === 'unlisted' };
       })(),
@@ -2146,7 +2118,7 @@ class Component extends DCLogic {
       showMyList: (this.props.stacksLayout ?? 'grid') !== 'grid' || s.reordering,
       toggleReorder: () => this.setState(st => ({ reordering: !st.reordering })),
       reorderLabel: s.reordering ? 'Done' : 'Reorder',
-      reorderColor: s.reordering ? 'oklch(64% 0.16 50)' : 'oklch(41.5% 0.006 80)',
+      reorderColor: s.reordering ? 'oklch(54% 0.16 45)' : 'oklch(41.5% 0.006 80)',
       hasFeatured: true,
       featured: pinnedList ? { title: pinnedList.title, count: this._flatten(pinnedList).length + ' ' + unitFor(pinnedList), note: s.pinNote, hasNote: !!s.pinNote, onOpen: () => this.openList(pinnedList.id, 'profile') }
         : { title: 'Pick a stack to feature', count: 'none', note: 'Tap Change to choose one.', hasNote: true, onOpen: () => {} },
@@ -2205,7 +2177,7 @@ class Component extends DCLogic {
         else if (e.key === 'Backspace' && this.state.tagInput === '' && currentTags.length) { this.removeTag(currentTags[currentTags.length - 1]); }
       },
       cancelDraft: () => this.cancelDraft(), publishDraft: () => this.publishDraft(),
-      publishColor: publishEnabled ? 'oklch(64% 0.16 50)' : 'oklch(50.8% 0.006 80)',
+      publishColor: publishEnabled ? 'oklch(54% 0.16 45)' : 'oklch(50.8% 0.006 80)',
 
       tabFeedColor: s.screen === 'feed' ? 'oklch(19.4% 0.006 80)' : 'oklch(50.8% 0.006 80)',
       tabSearchColor: s.screen === 'search' ? 'oklch(19.4% 0.006 80)' : 'oklch(50.8% 0.006 80)',
