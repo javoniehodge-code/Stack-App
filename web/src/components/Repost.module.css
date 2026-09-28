@@ -47,15 +47,15 @@
 }
 
 .optionOn {
-  border-color: oklch(46% 0.03 160);
-  background: oklch(25% 0.014 162);
+  border-color: oklch(60% 0.03 60);
+  background: oklch(95.6% 0.006 80);
 }
 
 .optionIcon {
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: oklch(32% 0.02 160);
+  background: oklch(91.8% 0.03 60);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -71,7 +71,7 @@
 .optionTitle {
   font-size: 15px;
   font-weight: 600;
-  color: oklch(92% 0.008 160);
+  color: oklch(17.5% 0.006 80);
 }
 
 .optionSub {

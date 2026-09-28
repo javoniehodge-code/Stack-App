@@ -116,7 +116,7 @@ export function VisibilitySheet({
           return (
             <button key={k} type="button" className={`${v.option} ${on ? v.optionOn : ""}`} onClick={() => onPick(k)} aria-pressed={on}>
               <span className={v.optionIcon}>
-                <VisIcon value={k} size={18} color="oklch(86% 0.05 160)" />
+                <VisIcon value={k} size={18} color="oklch(54% 0.16 45)" />
               </span>
               <span className={v.optionText}>
                 <span className={v.optionLabel}>{VIS[k].label}</span>

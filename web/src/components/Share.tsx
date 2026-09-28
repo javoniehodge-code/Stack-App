@@ -102,7 +102,7 @@ function ShareSheet({ stack, onClose }: { stack: Stack; onClose: () => void }) {
         <div className={sh.grabber} />
         {unlisted && (
           <div className={sh.unlisted}>
-            <VisIcon value="unlisted" size={14} color="oklch(80% 0.05 160)" />
+            <VisIcon value="unlisted" size={14} color="oklch(54% 0.16 45)" />
             Unlisted · only people with this link can view
           </div>
         )}
@@ -181,14 +181,14 @@ async function renderCard(stack: Stack, shortUrl: string): Promise<Blob> {
   c.textBaseline = "alphabetic";
 
   roundRect(c, 0, 0, W, H, 18);
-  c.fillStyle = "oklch(20% 0.012 165)";
+  c.fillStyle = "oklch(98.4% 0.006 80)";
   c.fill();
   c.save();
   roundRect(c, 0, 0, W, H, 18);
   c.clip();
 
   let y = PAD + 18;
-  c.fillStyle = "oklch(92% 0.008 160)";
+  c.fillStyle = "oklch(17.5% 0.006 80)";
   c.font = `800 19px ${font}`;
   for (const t of titleLines) {
     c.fillText(t, PAD, y);
@@ -197,24 +197,24 @@ async function renderCard(stack: Stack, shortUrl: string): Promise<Blob> {
   y += 10;
   for (const l of shown) {
     c.font = `700 13px ${font}`;
-    c.fillStyle = "oklch(78% 0.06 160)";
+    c.fillStyle = "oklch(64% 0.16 50)";
     c.fillText(l.num, PAD, y);
     const numW = Math.max(c.measureText(l.num).width, 16) + 9;
     c.font = `400 13px ${font}`;
-    c.fillStyle = "oklch(86% 0.008 160)";
+    c.fillStyle = "oklch(23.1% 0.006 80)";
     c.fillText(ellipsize(c, l.text, W - PAD * 2 - numW), PAD + numW, y);
     y += 20;
   }
   if (more > 0) {
     c.font = `400 12px ${font}`;
-    c.fillStyle = "oklch(62% 0.012 165)";
+    c.fillStyle = "oklch(45.2% 0.006 80)";
     c.fillText(`+ ${more} more`, PAD, y + 2);
   }
 
   // Footer: dashed rule, darker band, avatar, credit, url, wordmark.
-  c.fillStyle = "oklch(17% 0.012 165)";
+  c.fillStyle = "oklch(99% 0.006 80)";
   c.fillRect(0, bodyH, W, footH);
-  c.strokeStyle = "oklch(34% 0.012 165)";
+  c.strokeStyle = "oklch(90.7% 0.006 80)";
   c.setLineDash([4, 3]);
   c.beginPath();
   c.moveTo(0, bodyH + 0.5);
@@ -225,9 +225,9 @@ async function renderCard(stack: Stack, shortUrl: string): Promise<Blob> {
   const cy = bodyH + footH / 2;
   c.beginPath();
   c.arc(PAD + 13, cy, 13, 0, Math.PI * 2);
-  c.fillStyle = "oklch(78% 0.06 160)";
+  c.fillStyle = "oklch(64% 0.16 50)";
   c.fill();
-  c.fillStyle = "oklch(23% 0.012 165)";
+  c.fillStyle = "oklch(99.6% 0.002 80)";
   c.font = `700 10px ${font}`;
   c.textAlign = "center";
   c.fillText(initials(stack.author.name), PAD + 13, cy + 3.5);
@@ -235,16 +235,16 @@ async function renderCard(stack: Stack, shortUrl: string): Promise<Blob> {
 
   c.font = `800 13px ${font}`;
   const brandW = c.measureText("Stack").width;
-  c.fillStyle = "oklch(78% 0.06 160)";
+  c.fillStyle = "oklch(64% 0.16 50)";
   c.fillText("Stack", W - PAD - brandW, cy + 4);
 
   const tx = PAD + 36;
   const maxW = W - tx - PAD - brandW - 10;
   c.font = `400 12px ${font}`;
-  c.fillStyle = "oklch(78% 0.008 160)";
+  c.fillStyle = "oklch(30.5% 0.006 80)";
   c.fillText(ellipsize(c, `Curated by @${stack.author.handle} on Stack`, maxW), tx, cy - 3);
   c.font = `400 10.5px ${getComputedStyle(document.body).getPropertyValue("--mono") || "monospace"}`;
-  c.fillStyle = "oklch(78% 0.06 160)";
+  c.fillStyle = "oklch(64% 0.16 50)";
   c.fillText(ellipsize(c, shortUrl, maxW), tx, cy + 12);
   c.restore();
 

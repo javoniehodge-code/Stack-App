@@ -59,8 +59,8 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: oklch(34% 0.02 160);
-  color: oklch(86% 0.03 160);
+  background: oklch(90.7% 0.03 60);
+  color: oklch(23.1% 0.03 60);
   font-weight: 700;
   font-size: 13px;
   display: flex;

@@ -120,20 +120,20 @@ export default function MyStacks({ profile, stacks }: { profile: Profile; stacks
                   title={pinned ? "Unpin" : "Pin to featured"}
                   aria-label={pinned ? "Unpin" : "Pin to featured"}
                   aria-pressed={pinned}
-                  style={pinned ? { background: "oklch(32% 0.02 160)", borderColor: "oklch(50% 0.04 160)" } : undefined}
+                  style={pinned ? { background: "oklch(91.8% 0.03 60)", borderColor: "oklch(60% 0.03 60)" } : undefined}
                 >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill={pinned ? "var(--accent)" : "none"} stroke={pinned ? "var(--accent)" : "oklch(80% 0.01 165)"} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill={pinned ? "var(--accent)" : "none"} stroke={pinned ? "var(--accent)" : "oklch(28.6% 0.006 80)"} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <path d="M12 17v5" />
                     <path d="M9 10.8V4h6v6.8l3 3.2H6z" />
                   </svg>
                 </button>
                 <button className={m.control} onClick={() => move(st.id, -1)} disabled={i === 0} title="Move up" aria-label="Move up">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(28.6% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <path d="M6 14l6-6 6 6" />
                   </svg>
                 </button>
                 <button className={m.control} onClick={() => move(st.id, 1)} disabled={i === rows.length - 1} title="Move down" aria-label="Move down">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(28.6% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <path d="M6 10l6 6 6-6" />
                   </svg>
                 </button>
@@ -155,7 +155,7 @@ export default function MyStacks({ profile, stacks }: { profile: Profile; stacks
             {rows.map((st) => {
               const on = st.id === pinDraft;
               return (
-                <button key={st.id} className={m.choice} onClick={() => setPinDraft(st.id)} aria-pressed={on} style={{ background: on ? "oklch(32% 0.02 160)" : "transparent" }}>
+                <button key={st.id} className={m.choice} onClick={() => setPinDraft(st.id)} aria-pressed={on} style={{ background: on ? "oklch(91.8% 0.03 60)" : "transparent" }}>
                   <span className={m.rowMain}>
                     <span className={m.choiceTitle}>{st.title}</span>
                     <span className={m.choiceMeta}>{meta(st)}</span>

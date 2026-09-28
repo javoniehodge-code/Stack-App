@@ -4,7 +4,7 @@ import s from "./SocialLinks.module.css";
 
 export function SocialIcon({ name, size = 15 }: { name: SocialKey; size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="oklch(28.6% 0.006 80)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       {ICONS[name]}
     </svg>
   );
@@ -21,7 +21,7 @@ const ICONS: Record<SocialKey, React.ReactNode> = {
     <>
       <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
       <circle cx="12" cy="12" r="3.8" />
-      <circle cx="17.2" cy="6.8" r="0.6" fill="oklch(80% 0.01 165)" />
+      <circle cx="17.2" cy="6.8" r="0.6" fill="oklch(28.6% 0.006 80)" />
     </>
   ),
   tiktok: (

@@ -24,15 +24,15 @@
 
 .item:hover,
 .itemActive {
-  background: oklch(31% 0.014 163);
+  background: oklch(92.3% 0.03 60);
 }
 
 .avatar {
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: oklch(34% 0.02 160);
-  color: oklch(86% 0.03 160);
+  background: oklch(90.7% 0.03 60);
+  color: oklch(23.1% 0.03 60);
   font-weight: 700;
   font-size: 10px;
   display: flex;

@@ -185,8 +185,8 @@
 }
 
 .commentHighlight {
-  background: oklch(30% 0.03 160);
-  box-shadow: 0 0 0 6px oklch(30% 0.03 160);
+  background: oklch(92.9% 0.03 60);
+  box-shadow: 0 0 0 6px oklch(92.9% 0.03 60);
 }
 
 .commentAuthor {

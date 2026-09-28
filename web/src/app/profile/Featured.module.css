@@ -9,7 +9,7 @@
 
 .card {
   border-radius: 18px;
-  background: oklch(32% 0.02 160);
+  background: oklch(91.8% 0.03 60);
   padding: 18px 20px;
 }
 
@@ -25,17 +25,17 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: oklch(84% 0.02 160);
+  color: oklch(24.9% 0.03 60);
 }
 
 .change {
   font-size: 12px;
   font-weight: 600;
-  color: oklch(86% 0.05 160);
+  color: oklch(54% 0.16 45);
   padding: 4px 10px;
   margin: -4px -8px -4px 0;
   border-radius: 999px;
-  background: oklch(26% 0.015 160);
+  background: oklch(95.1% 0.03 60);
 }
 
 .title {
@@ -50,13 +50,13 @@
 
 .note {
   font-size: 13px;
-  color: oklch(84% 0.015 160);
+  color: oklch(24.9% 0.03 60);
   margin-top: 7px;
 }
 
 .explore {
   font-size: 13px;
   font-weight: 600;
-  color: oklch(86% 0.05 160);
+  color: oklch(54% 0.16 45);
   margin-top: 14px;
 }

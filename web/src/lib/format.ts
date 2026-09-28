@@ -50,15 +50,15 @@ export const plural = (n: number, one: string, many = one + "s") => `${n} ${n ==
 export const EXPLORE_CATS = ["Food & Drink", "Travel", "Books", "Home", "Art & Design", "Tech"];
 export const TAG_SUGGESTIONS = ["Food & Drink", "Books", "Travel", "Home", "Shopping", "Tech"];
 export const CATEGORY_DOTS: Record<string, string> = {
-  "Food & Drink": "oklch(76% 0.08 45)",
-  Travel: "oklch(76% 0.07 200)",
-  Books: "oklch(76% 0.07 285)",
-  Home: "oklch(78% 0.06 160)",
-  "Art & Design": "oklch(76% 0.08 340)",
-  Tech: "oklch(75% 0.07 240)",
-  Shopping: "oklch(76% 0.07 100)",
+  "Food & Drink": "oklch(54% 0.16 45)",
+  Travel: "oklch(64% 0.16 50)",
+  Books: "oklch(64% 0.16 50)",
+  Home: "oklch(64% 0.16 50)",
+  "Art & Design": "oklch(64% 0.16 50)",
+  Tech: "oklch(64% 0.16 50)",
+  Shopping: "oklch(64% 0.16 50)",
 };
-export const DEFAULT_DOT = "oklch(78% 0.06 160)";
+export const DEFAULT_DOT = "oklch(64% 0.16 50)";
 
 export const MAX_LINE = 500;
 export const MAX_TITLE = 120;

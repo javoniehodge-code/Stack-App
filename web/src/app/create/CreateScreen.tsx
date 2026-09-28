@@ -156,7 +156,7 @@ export default function CreateScreen({ initial }: { initial: Draft }) {
             placeholder="Add a description (optional)"
             aria-label="Description"
           />
-          <div className={s.descCount} style={{ color: draft.description.length >= MAX_DESCRIPTION - 30 ? "oklch(76% 0.08 45)" : "var(--muted-56)" }} aria-live="polite">
+          <div className={s.descCount} style={{ color: draft.description.length >= MAX_DESCRIPTION - 30 ? "oklch(54% 0.16 45)" : "var(--muted-56)" }} aria-live="polite">
             {draft.description.length} / {MAX_DESCRIPTION}
           </div>
         </div>

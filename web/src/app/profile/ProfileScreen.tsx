@@ -64,7 +64,7 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
           {hasContact ? (
             <button className={p.contactMine} onClick={() => setEditing(true)} title="Edit custom link">
               <span>{viewer.featured_link_label} ↗</span>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(30% 0.02 165)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }} aria-hidden>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(92.9% 0.03 60)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }} aria-hidden>
                 <path d="M4 20h4L19 9l-4-4L4 16z" />
               </svg>
             </button>

@@ -112,23 +112,23 @@ function ProfileShareSheet({
         </div>
         <div className={ps.actions}>
           <Action label="Copy link" onClick={copy}>
-            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="oklch(92% 0.008 160)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="oklch(17.5% 0.006 80)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2" />
               <path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2" />
             </svg>
           </Action>
           <Action label="Share" onClick={share}>
-            <ShareIcon size={21} color="oklch(92% 0.008 160)" />
+            <ShareIcon size={21} color="oklch(17.5% 0.006 80)" />
           </Action>
           <Action label="Save image" onClick={saveImage}>
-            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="oklch(92% 0.008 160)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="oklch(17.5% 0.006 80)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M12 4v11" />
               <path d="M7.5 10.5L12 15l4.5-4.5" />
               <path d="M5 19.5h14" />
             </svg>
           </Action>
           <Action label="More" onClick={share}>
-            <svg width="21" height="21" viewBox="0 0 24 24" fill="oklch(92% 0.008 160)" aria-hidden>
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="oklch(17.5% 0.006 80)" aria-hidden>
               <circle cx="5.5" cy="12" r="1.8" />
               <circle cx="12" cy="12" r="1.8" />
               <circle cx="18.5" cy="12" r="1.8" />
@@ -145,7 +145,7 @@ function ProfileShareSheet({
                 router.push("/settings");
               }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="oklch(90% 0.008 160)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="oklch(19.4% 0.006 80)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d="M12 3.5l7 3v5c0 4.5-3 7.8-7 9-4-1.2-7-4.5-7-9v-5z" />
               </svg>
               <span className={ps.rowLabel}>Settings and privacy</span>
@@ -224,7 +224,7 @@ async function renderProfileCard(profile: Profile, stacksLabel: string, shortUrl
   c.scale(scale, scale);
 
   roundRect(c, 0, 0, W, H, 18);
-  c.fillStyle = "oklch(20% 0.012 165)";
+  c.fillStyle = "oklch(98.4% 0.006 80)";
   c.fill();
   c.save();
   roundRect(c, 0, 0, W, H, 18);
@@ -234,22 +234,22 @@ async function renderProfileCard(profile: Profile, stacksLabel: string, shortUrl
   let y = 22;
   c.beginPath();
   c.arc(W / 2, y + 28, 28, 0, Math.PI * 2);
-  c.fillStyle = "oklch(78% 0.06 160)";
+  c.fillStyle = "oklch(64% 0.16 50)";
   c.fill();
-  c.fillStyle = "oklch(23% 0.012 165)";
+  c.fillStyle = "oklch(99.6% 0.002 80)";
   c.font = `700 19px ${font}`;
   c.fillText(initials(profile.name), W / 2, y + 35);
   y += 56 + 10 + 17;
 
-  c.fillStyle = "oklch(92% 0.008 160)";
+  c.fillStyle = "oklch(17.5% 0.006 80)";
   c.font = `800 18px ${font}`;
   c.fillText(ellipsize(c, profile.name, W - 40), W / 2, y);
   y += 20;
-  c.fillStyle = "oklch(66% 0.012 165)";
+  c.fillStyle = "oklch(41.5% 0.006 80)";
   c.font = `400 12.5px ${font}`;
   c.fillText(ellipsize(c, `@${profile.handle} · ${stacksLabel}`, W - 40), W / 2, y);
   y += 10;
-  c.fillStyle = "oklch(84% 0.008 160)";
+  c.fillStyle = "oklch(24.9% 0.006 80)";
   c.font = `400 13px ${font}`;
   for (const line of bio) {
     y += 19.5;
@@ -257,9 +257,9 @@ async function renderProfileCard(profile: Profile, stacksLabel: string, shortUrl
   }
 
   c.textAlign = "left";
-  c.fillStyle = "oklch(17% 0.012 165)";
+  c.fillStyle = "oklch(99% 0.006 80)";
   c.fillRect(0, bodyH, W, footH);
-  c.strokeStyle = "oklch(34% 0.012 165)";
+  c.strokeStyle = "oklch(90.7% 0.006 80)";
   c.setLineDash([4, 3]);
   c.beginPath();
   c.moveTo(0, bodyH + 0.5);
@@ -270,14 +270,14 @@ async function renderProfileCard(profile: Profile, stacksLabel: string, shortUrl
   const cy = bodyH + footH / 2;
   c.font = `800 13px ${font}`;
   const brandW = c.measureText("Stack").width;
-  c.fillStyle = "oklch(78% 0.06 160)";
+  c.fillStyle = "oklch(64% 0.16 50)";
   c.fillText("Stack", W - 20 - brandW, cy + 4);
   const maxW = W - 40 - brandW - 10;
   c.font = `400 12px ${font}`;
-  c.fillStyle = "oklch(78% 0.008 160)";
+  c.fillStyle = "oklch(30.5% 0.006 80)";
   c.fillText(ellipsize(c, `Find @${profile.handle} on Stack`, maxW), 20, cy - 3);
   c.font = `400 10.5px ${mono}`;
-  c.fillStyle = "oklch(78% 0.06 160)";
+  c.fillStyle = "oklch(64% 0.16 50)";
   c.fillText(ellipsize(c, shortUrl, maxW), 20, cy + 12);
   c.restore();
 
