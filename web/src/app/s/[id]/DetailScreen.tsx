@@ -180,6 +180,19 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
           </div>
         ))}
 
+        {!!stack.stack_tags?.length && (
+          <div className={s.tags}>
+            {[...stack.stack_tags]
+              .sort((x, y) => x.tag.localeCompare(y.tag))
+              .map(({ tag }) => (
+                <span key={tag} className={s.tag}>
+                  <span className={s.tagHash}>#</span>
+                  {tag}
+                </span>
+              ))}
+          </div>
+        )}
+
         <section className={s.commentsSection}>
           <div className={s.commentsLabel}>Comments</div>
           {comments.length > 0 ? (

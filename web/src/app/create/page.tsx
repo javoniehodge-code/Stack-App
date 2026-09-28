@@ -54,5 +54,7 @@ export default async function CreatePage({ searchParams }: PageProps<"/create">)
   }
 
   const key = typeof fork === "string" ? `fork-${fork}` : typeof draft === "string" ? `draft-${draft}` : "new";
-  return <CreateScreen key={key} initial={initial} />;
+  // Forks and saved drafts open on the Build step; a new stack starts at the title.
+  const start = initial.id || initial.forkedFromId ? "build" : "title";
+  return <CreateScreen key={key} initial={initial} start={start} />;
 }

@@ -118,7 +118,8 @@ async function fetchFollowingFeed(sb: SupabaseClient, viewerId: string, page: nu
 
 export async function fetchStack(sb: SupabaseClient, viewerId: string | null, id: string) {
   if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
-  const { data } = await sb.from("stacks").select(STACK_WITH_COMMENTS).eq("id", id).eq("status", "published").maybeSingle();
+  // Tags are readable by everyone once the public_tags migration runs; before it, only by the author.
+  const { data } = await sb.from("stacks").select(`${STACK_WITH_COMMENTS},stack_tags(tag)`).eq("id", id).eq("status", "published").maybeSingle();
   if (!data) return null;
   const [s] = await withViewerState(sb, viewerId, [data as unknown as StackRow]);
   return s;

@@ -92,6 +92,8 @@ Add new app-only features to this list as they ship.
   handle `--muted-56`, comments `--muted-56`/`--text-2`. Sizes can follow the design.
 - Text limits are 500 characters across the app (lines, descriptions, comments, repost
   notes), even where the design says less (e.g. 140 for repost notes).
+- Link cards in the create flow show a letter tile, the site name taken from the domain and
+  the domain. The app doesn't fetch page titles or favicons (the user chose this).
 - You can't repost your own stack, and the Following feed shows each stack once, at its
   latest activity (published or reposted by someone you follow).
 

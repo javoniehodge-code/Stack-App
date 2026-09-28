@@ -37,6 +37,8 @@ export type StackRow = {
   published_at: string | null;
   author: Author;
   comments?: Comment[];
+  /** Only loaded on the stack page. */
+  stack_tags?: { tag: string }[];
 };
 
 /** A stack plus whether the current viewer has liked/saved/reposted it. */
