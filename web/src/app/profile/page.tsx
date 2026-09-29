@@ -5,7 +5,7 @@ import ProfileScreen, { type ProfileTab } from "./ProfileScreen";
 
 export const metadata: Metadata = { title: "Profile" };
 
-const TABS: ProfileTab[] = ["mine", "saved", "forked", "reposts", "drafts"];
+const TABS: ProfileTab[] = ["mine", "saved", "reposts", "drafts"];
 
 export default async function ProfilePage({ searchParams }: PageProps<"/profile">) {
   const { tab } = await searchParams;

@@ -95,7 +95,9 @@ function ShareSheet({ stack, onClose }: { stack: Stack; onClose: () => void }) {
               </span>
               <span className={sh.url}>{shortUrl}</span>
             </span>
-            <span className={sh.brand}>Stack</span>
+            <span className={sh.brand}>
+              stack<span className={sh.brandDot}>.</span>
+            </span>
           </div>
         </div>
       </div>
@@ -235,9 +237,13 @@ async function renderCard(stack: Stack, shortUrl: string): Promise<Blob> {
   c.textAlign = "left";
 
   c.font = `800 13px ${font}`;
-  const brandW = c.measureText("Stack").width;
+  // Wordmark: "stack" in ink with an orange dot.
+  const brandW = c.measureText("stack.").width;
+  const bx = W - PAD - brandW;
+  c.fillStyle = "oklch(14.8% 0.006 80)";
+  c.fillText("stack", bx, cy + 4);
   c.fillStyle = "oklch(64% 0.16 50)";
-  c.fillText("Stack", W - PAD - brandW, cy + 4);
+  c.fillText(".", bx + c.measureText("stack").width, cy + 4);
 
   const tx = PAD + 36;
   const maxW = W - tx - PAD - brandW - 10;

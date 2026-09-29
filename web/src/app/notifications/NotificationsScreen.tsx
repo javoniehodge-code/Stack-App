@@ -23,7 +23,6 @@ const FILTERS: [NotificationFilter | null, string, string][] = [
   [null, "All", ""],
   ["comment", "Comments", "comments"],
   ["like", "Likes", "likes"],
-  ["fork", "Forks", "forks"],
   ["save", "Saves", "saves"],
   ["repost", "Reposts", "reposts"],
 ];
@@ -77,15 +76,6 @@ function TypeIcon({ type }: { type: NotificationType }) {
         <path d="M3 11V9a3 3 0 0 1 3-3h15" />
         <path d="M7 22l-4-4 4-4" />
         <path d="M21 13v2a3 3 0 0 1-3 3H3" />
-      </svg>
-    );
-  if (type === "fork")
-    return (
-      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={ink} strokeWidth="3.2" strokeLinecap="round" aria-hidden>
-        <circle cx="6" cy="5" r="1.6" />
-        <circle cx="18" cy="5" r="1.6" />
-        <circle cx="12" cy="19" r="1.6" />
-        <path d="M6 7v2a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7M12 12v5" />
       </svg>
     );
   // comment, reply, and anything newer this screen doesn't know yet
@@ -154,8 +144,8 @@ export default function NotificationsScreen() {
     return (
       <main className={`${shell.screen} ${p.gate}`}>
         <h1 className={p.gateTitle}>Sign in to see your notifications</h1>
-        <div className={p.gateText}>Likes, saves, forks, reposts, and comments on your stacks will show up here.</div>
-        <button className={p.gateButton} onClick={() => requireAuth(null, "Sign in to see likes, saves, forks, reposts, and comments on your stacks.")}>
+        <div className={p.gateText}>Likes, saves, reposts, and comments on your stacks will show up here.</div>
+        <button className={p.gateButton} onClick={() => requireAuth(null, "Sign in to see likes, saves, reposts, and comments on your stacks.")}>
           Sign in / Create account
         </button>
       </main>
@@ -291,7 +281,7 @@ export default function NotificationsScreen() {
             ) : (
               <>
                 <div className={s.stateTitle}>No activity yet</div>
-                <div className={s.stateText}>Likes, saves, forks, and comments on your Stacks will appear here.</div>
+                <div className={s.stateText}>Likes, saves, reposts, and comments on your Stacks will appear here.</div>
               </>
             )}
           </div>

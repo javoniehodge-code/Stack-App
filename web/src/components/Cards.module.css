@@ -113,46 +113,78 @@
   padding: 2px;
 }
 
-/* ── Feed: scrolling cards, comments open inline ── */
+/* ── Feed: paper cards on a gray page, comments open inline ── */
 .feedScroll {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
-  padding: 14px 16px 24px;
+  padding: 14px 12px 24px;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  background: oklch(96.5% 0.004 80);
 }
 
 .feedCard {
   flex-shrink: 0;
-  border-radius: 18px;
-  background: var(--surface);
-  border: 1px solid oklch(91.2% 0.006 80);
-  padding: 18px 18px 14px;
   display: flex;
   flex-direction: column;
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.05);
 }
 
-.feedCard .author {
+/* Author on the left, "2d · 6 lines" on the right */
+.feedTop {
+  height: 48px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
   gap: 10px;
+  border-bottom: 1px solid oklch(91.2% 0.006 80);
+}
+
+.feedTop .author {
+  flex: 1;
+  min-width: 0;
+  gap: 10px;
+  margin-bottom: 0;
+  align-self: center;
+}
+
+.feedTop .avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 10px;
+}
+
+.feedTop .authorName {
+  font-size: 13.5px;
+}
+
+.feedTop .authorHandle {
+  font-size: 12.5px;
+}
+
+.feedMeta {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--muted-60);
+  white-space: nowrap;
+}
+
+.feedBody {
+  padding: 16px 18px 14px;
+}
+
+.feedBody .repostNote {
   margin-bottom: 14px;
-}
-
-.feedCard .avatar {
-  width: 32px;
-  height: 32px;
-  font-size: 11px;
-}
-
-.feedCard .authorName {
-  font-size: 14px;
-}
-
-.feedCard .authorHandle {
-  font-size: 13px;
 }
 
 .feedOpen {
@@ -161,14 +193,15 @@
 
 .feedCard .title {
   font-size: 19px;
-  font-weight: 500;
-  letter-spacing: -0.2px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.4px;
   margin-bottom: 6px;
   overflow-wrap: anywhere;
 }
 
 .feedDescription {
-  font-size: 14px;
+  font-size: 13.5px;
   line-height: 1.45;
   color: var(--muted-66);
   text-wrap: pretty;
@@ -177,16 +210,34 @@
 
 .feedLines {
   position: relative;
-  margin-top: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  margin-top: 16px;
   color: var(--muted-66);
+}
+
+/* Section name in orange caps, ruled underneath */
+.feedLabel {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding: 14px 0 8px;
+  border-bottom: 1px solid oklch(91.2% 0.006 80);
+  overflow-wrap: anywhere;
+}
+
+.feedLabelFirst {
+  padding-top: 0;
 }
 
 .feedLine {
   display: flex;
   gap: 12px;
+  padding: 11px 0 12px;
+}
+
+.feedLineDivided {
+  border-bottom: 1px solid oklch(91.2% 0.006 80);
 }
 
 .feedLine .num {
@@ -204,7 +255,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
   text-wrap: pretty;
   overflow-wrap: anywhere;
 }
@@ -228,57 +279,76 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 64px;
-  background: linear-gradient(to bottom, oklch(94.5% 0.006 80 / 0), var(--surface) 92%);
+  height: 56px;
+  background: linear-gradient(to bottom, oklch(99.6% 0.002 80 / 0), var(--bg) 90%);
   pointer-events: none;
 }
 
+/* "See all 6 lines →" */
 .viewFull {
-  min-height: 44px;
-  margin-top: 12px;
+  min-height: 40px;
+  margin-top: 6px;
   border-radius: 12px;
-  background: oklch(92.9% 0.03 60);
-  border: 1px solid oklch(89.6% 0.03 60);
-  color: oklch(21.2% 0.03 60);
+  background: oklch(96.5% 0.004 80);
+  border: 1px solid oklch(91.2% 0.006 80);
+  color: var(--text-2);
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   padding: 0 16px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   text-align: center;
 }
 
-.feedOpen:hover .viewFull {
-  background: oklch(91.2% 0.03 60);
+.viewFullArrow {
+  color: var(--accent);
 }
 
+.feedOpen:hover .viewFull {
+  background: var(--surface);
+}
+
+/* Bottom bar: like · save · repost … Share */
 .feedCard .actions {
-  gap: 18px;
-  margin-top: 14px;
-  padding-top: 12px;
+  height: 48px;
+  gap: 2px;
+  margin-top: 0;
+  padding: 0 10px 0 8px;
   border-top-color: oklch(91.2% 0.006 80);
-  font-size: 13px;
+  font-size: 12.5px;
+  color: var(--muted-66);
 }
 
 .feedCard .action {
-  min-height: 32px;
-  font-size: 13px;
+  height: 44px;
+  padding: 0 8px;
+  font-size: 12.5px;
 }
 
 .feedCard .heart {
-  font-size: 16px;
+  font-size: 17px;
 }
 
 .feedCard .copy {
-  min-height: 32px;
+  height: 44px;
+  padding: 0 8px;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted-66);
+}
+
+.feedCommentsWrap {
+  padding: 0 18px 4px;
+  border-top: 1px solid oklch(91.2% 0.006 80);
 }
 
 .commentToggle {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 6px;
   min-height: 44px;
   width: 100%;
   text-align: left;

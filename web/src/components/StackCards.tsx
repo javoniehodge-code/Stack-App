@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useStackActions } from "@/lib/useStackActions";
 import { useAuth, useToast } from "./AppProviders";
 import CommentBody from "./CommentBody";
-import { BookmarkIcon, ForkIcon, RepostIcon } from "./icons";
+import { BookmarkIcon, RepostIcon } from "./icons";
 import { MentionList, useMentions } from "./Mentions";
 import { RepostButton, RepostGlyph } from "./Repost";
 import { ShareButton } from "./Share";
@@ -45,8 +45,8 @@ function AuthorRow({ stack }: { stack: Stack }) {
   );
 }
 
-/** Like · save · fork · [repost] · [extra] · share. `large` is the feed slide's size. */
-export function ActionRow({ stack, extra, large, repost }: { stack: Stack; extra?: React.ReactNode; large?: boolean; repost?: boolean }) {
+/** Like · save · [extra] · share. The feed's bar (`feed`) is like · save · repost · Share. */
+export function ActionRow({ stack, extra, feed }: { stack: Stack; extra?: React.ReactNode; feed?: boolean }) {
   const e = useEngagement(stack);
   const a = useStackActions();
   const likeColor = e.liked ? "var(--accent)" : "var(--muted-66)";
@@ -58,16 +58,12 @@ export function ActionRow({ stack, extra, large, repost }: { stack: Stack; extra
         {fmtCount(e.likes)}
       </button>
       <button className={s.action} style={{ color: saveColor }} onClick={() => a.toggleSave(stack.id, e)} aria-pressed={e.saved} aria-label={e.saved ? "Unsave" : "Save"}>
-        <BookmarkIcon size={large ? 16 : 13} color={saveColor} filled={e.saved} />
+        <BookmarkIcon size={feed ? 16 : 13} color={saveColor} filled={e.saved} />
         {fmtCount(e.saves)}
       </button>
-      <button className={s.action} style={{ color: "var(--muted-66)" }} onClick={() => a.fork(stack.id)} aria-label="Fork">
-        <ForkIcon size={large ? 16 : 13} />
-        {fmtCount(stack.forks_count)}
-      </button>
-      {repost && <RepostButton stack={stack} className={s.action} size={large ? 16 : 13} count={fmtCount} />}
+      {feed && <RepostButton stack={stack} className={s.action} size={16} count={fmtCount} />}
       {extra}
-      <ShareButton stack={stack} className={s.copy} size={large ? 19 : 16} />
+      <ShareButton stack={stack} className={s.copy} size={16} label={feed ? "Share" : undefined} />
     </div>
   );
 }
@@ -98,13 +94,14 @@ export function FeedCard({ stack }: { stack: FeedItem }) {
   );
 }
 
-/** Up to 4 lines (5 faded plus See more when longer), then comments that open inline. */
+/** A paper card: author and age on top, up to 4 lines (faded, with See all, when longer), the action bar, then comments that open inline. */
 function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode }) {
   const open = useOpen(stack.id);
   const { viewer, requireAuth } = useAuth();
   const toast = useToast();
+  const { authorHref } = useStackActions();
   const lines = flatten(stack);
-  // Longer stacks show a 5th line under a fade, then See more.
+  const shown = lines.slice(0, 4);
   const more = lines.length > 4;
   const [comments, setComments] = useState<Comment[]>(stack.comments ?? []);
   const [showComments, setShowComments] = useState(false);
@@ -146,79 +143,103 @@ function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode })
 
   return (
     <article className={s.feedCard}>
-      {note}
-      <AuthorRow stack={stack} />
-      <div {...open} className={s.feedOpen}>
-        <div className={s.title}>{stack.title}</div>
-        {stack.description && <div className={s.feedDescription}>{stack.description}</div>}
-        <div className={s.feedLines}>
-          {lines.slice(0, more ? 5 : 4).map((l, i) => (
-            <div key={i} className={s.feedLine}>
-              <span className={s.num}>{l.num}</span>
-              <span className={s.feedLineText}>
-                <span className={s.feedHead}>{l.head}</span>
-                {l.note && <span className={s.feedNote}>{l.note}</span>}
-              </span>
-            </div>
-          ))}
-          {more && <div className={s.feedFade} aria-hidden />}
-        </div>
-        {more && <div className={s.viewFull}>See more · {plural(lines.length, "line")} →</div>}
+      <div className={s.feedTop}>
+        <Link href={authorHref(stack.author)} className={s.author}>
+          <span className={s.avatar}>{initials(stack.author.name)}</span>
+          <span className={s.authorName}>{stack.author.name}</span>
+          <span className={s.authorHandle}>@{stack.author.handle}</span>
+        </Link>
+        <span className={s.feedMeta}>
+          {timeAgo(stack.published_at)} · {plural(lines.length, "line")}
+        </span>
       </div>
-      <ActionRow stack={stack} large repost />
-      <button className={s.commentToggle} onClick={() => setShowComments((v) => !v)} aria-expanded={showComments}>
-        <span className={s.commentToggleLabel}>{toggleLabel}</span>
-        <span className={s.commentPreview}>{!showComments && first ? `@${first.author?.handle ?? "deleted"}: ${first.body}` : ""}</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={{ transform: showComments ? "rotate(180deg)" : undefined }}>
-          <path d="M12 5v14M6 13l6 6 6-6" />
-        </svg>
-      </button>
-      {showComments && (
-        <div className={s.feedComments}>
-          {thread(comments).map(({ comment: c, isReply }) => (
-            <div key={c.id} className={`${s.feedComment} ${isReply ? s.feedReply : ""}`}>
-              <div className={s.commentInitial}>{(c.author?.handle ?? "?").charAt(0).toUpperCase()}</div>
-              <div className={s.feedCommentBody}>
-                <div className={s.commentAuthor}>@{c.author?.handle ?? "deleted"}</div>
-                <div className={s.commentText}>
-                  <CommentBody text={c.body} linkClass={s.mention} />
+      <div className={s.feedBody}>
+        {note}
+        <div {...open} className={s.feedOpen}>
+          <div className={s.title}>{stack.title}</div>
+          {stack.description && <div className={s.feedDescription}>{stack.description}</div>}
+          <div className={s.feedLines}>
+            {shown.map((l, i) => {
+              // A rule under each line, except before a new section and after the last line shown.
+              const divided = i < shown.length - 1 && !shown[i + 1].label;
+              return (
+                <div key={i}>
+                  {l.label && <div className={`${s.feedLabel} ${i === 0 ? s.feedLabelFirst : ""}`}>{l.label}</div>}
+                  <div className={`${s.feedLine} ${divided ? s.feedLineDivided : ""}`}>
+                    <span className={s.num}>{l.num}</span>
+                    <span className={s.feedLineText}>
+                      <span className={s.feedHead}>{l.head}</span>
+                      {l.note && <span className={s.feedNote}>{l.note}</span>}
+                    </span>
+                  </div>
                 </div>
-                <button className={s.replyButton} onClick={() => startReply(c)}>
-                  Reply
-                </button>
-              </div>
-            </div>
-          ))}
-          {replyTo && (
-            <div className={s.replyingTo}>
-              Replying to <span className={s.mention}>@{replyTo.handle}</span>
-              <button className={s.replyingClear} onClick={() => setReplyTo(null)} aria-label="Cancel reply">
-                ×
-              </button>
+              );
+            })}
+            {more && <div className={s.feedFade} aria-hidden />}
+          </div>
+          {more && (
+            <div className={s.viewFull}>
+              See all {lines.length} lines<span className={s.viewFullArrow}>→</span>
             </div>
           )}
-          <form className={s.commentForm} onSubmit={post}>
-            <MentionList {...mentions} />
-            <input
-              ref={inputRef}
-              className={s.commentInput}
-              value={draft}
-              maxLength={500}
-              onChange={(e) => {
-                setDraft(e.target.value);
-                mentions.track(e.target);
-              }}
-              onKeyDown={(e) => mentions.onKeyDown(e)}
-              onBlur={mentions.close}
-              placeholder={replyTo ? "Write a reply…" : "Add a comment… (@ to tag)"}
-              aria-label={replyTo ? `Reply to @${replyTo.handle}` : `Comment on ${stack.title}`}
-            />
-            <button type="submit" className={s.postButton} disabled={posting} style={{ opacity: draft.trim() && !posting ? 1 : 0.4 }}>
-              Post
-            </button>
-          </form>
         </div>
-      )}
+      </div>
+      <ActionRow stack={stack} feed />
+      <div className={s.feedCommentsWrap}>
+        <button className={s.commentToggle} onClick={() => setShowComments((v) => !v)} aria-expanded={showComments}>
+          <span className={s.commentToggleLabel}>{toggleLabel}</span>
+          <span className={s.commentPreview}>{!showComments && first ? `@${first.author?.handle ?? "deleted"}: ${first.body}` : ""}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={{ transform: showComments ? "rotate(180deg)" : undefined }}>
+            <path d="M12 5v14M6 13l6 6 6-6" />
+          </svg>
+        </button>
+        {showComments && (
+          <div className={s.feedComments}>
+            {thread(comments).map(({ comment: c, isReply }) => (
+              <div key={c.id} className={`${s.feedComment} ${isReply ? s.feedReply : ""}`}>
+                <div className={s.commentInitial}>{(c.author?.handle ?? "?").charAt(0).toUpperCase()}</div>
+                <div className={s.feedCommentBody}>
+                  <div className={s.commentAuthor}>@{c.author?.handle ?? "deleted"}</div>
+                  <div className={s.commentText}>
+                    <CommentBody text={c.body} linkClass={s.mention} />
+                  </div>
+                  <button className={s.replyButton} onClick={() => startReply(c)}>
+                    Reply
+                  </button>
+                </div>
+              </div>
+            ))}
+            {replyTo && (
+              <div className={s.replyingTo}>
+                Replying to <span className={s.mention}>@{replyTo.handle}</span>
+                <button className={s.replyingClear} onClick={() => setReplyTo(null)} aria-label="Cancel reply">
+                  ×
+                </button>
+              </div>
+            )}
+            <form className={s.commentForm} onSubmit={post}>
+              <MentionList {...mentions} />
+              <input
+                ref={inputRef}
+                className={s.commentInput}
+                value={draft}
+                maxLength={500}
+                onChange={(e) => {
+                  setDraft(e.target.value);
+                  mentions.track(e.target);
+                }}
+                onKeyDown={(e) => mentions.onKeyDown(e)}
+                onBlur={mentions.close}
+                placeholder={replyTo ? "Write a reply…" : "Add a comment… (@ to tag)"}
+                aria-label={replyTo ? `Reply to @${replyTo.handle}` : `Comment on ${stack.title}`}
+              />
+              <button type="submit" className={s.postButton} disabled={posting} style={{ opacity: draft.trim() && !posting ? 1 : 0.4 }}>
+                Post
+              </button>
+            </form>
+          </div>
+        )}
+      </div>
     </article>
   );
 }
@@ -320,10 +341,6 @@ export function ListCard({ stack, following = false }: { stack: Stack; following
           <span style={{ fontSize: 14, lineHeight: 1 }}>{e.liked ? "♥" : "♡"}</span>
           {fmtCount(e.likes)}
         </button>
-        <span className={s.lcAction} style={{ color: "var(--muted-66)" }}>
-          <span style={{ fontSize: 13, lineHeight: 1 }}>⑂</span>
-          {fmtCount(stack.forks_count)}
-        </span>
         <span style={{ flex: 1 }} />
         <button className={s.lcAction} style={{ color: saveColor }} onClick={() => a.toggleSave(stack.id, e)} aria-pressed={e.saved} aria-label={e.saved ? "Unsave" : "Save"}>
           <span style={{ fontSize: 13, lineHeight: 1 }}>{e.saved ? "◆" : "◇"}</span>
@@ -370,10 +387,6 @@ export function GridCard({ stack, pinned = false }: { stack: Stack; pinned?: boo
         <span className={s.gridStat}>
           <BookmarkIcon size={11} color="var(--muted-66)" filled={false} width={2.2} />
           {fmtCount(e.saves)}
-        </span>
-        <span className={s.gridStat}>
-          <ForkIcon size={11} width={2.2} />
-          {fmtCount(stack.forks_count)}
         </span>
         <VisibilityBadge value={visibility} />
       </div>

@@ -17,18 +17,6 @@ export function BookmarkIcon({ size = 13, color, filled, width = 2 }: P & { fill
   );
 }
 
-export function ForkIcon({ size = 13, color = "var(--muted-66)", width = 2 }: P & { width?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={width} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <circle cx="6" cy="5" r="2.2" />
-      <circle cx="18" cy="5" r="2.2" />
-      <circle cx="12" cy="19" r="2.2" />
-      <path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2" />
-      <path d="M12 12v4.8" />
-    </svg>
-  );
-}
-
 /** The share arrow on action rows; opens the share sheet. */
 export function ShareIcon({ size = 16, color = "var(--muted-66)" }: P) {
   return (

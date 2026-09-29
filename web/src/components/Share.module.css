@@ -127,9 +127,13 @@
 .brand {
   font-weight: 800;
   font-size: 13px;
-  color: var(--accent);
-  letter-spacing: -0.2px;
+  color: var(--text-bright);
+  letter-spacing: -0.4px;
   flex-shrink: 0;
+}
+
+.brandDot {
+  color: var(--accent);
 }
 
 .sheet {

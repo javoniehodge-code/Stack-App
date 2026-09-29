@@ -1,5 +1,7 @@
 .header {
-  padding: calc(var(--safe-top) + 12px) 20px 0;
+  position: relative;
+  z-index: 20;
+  padding: calc(var(--safe-top) + 8px) 20px 8px;
   flex-shrink: 0;
   border-bottom: 1px solid var(--line);
   background: var(--bg);
@@ -9,37 +11,87 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 38px;
+  height: 40px;
 }
 
 .wordmark {
   margin: 0;
   font-weight: 800;
   font-size: 19px;
-  color: var(--text);
-  letter-spacing: -0.3px;
+  color: var(--text-bright);
+  letter-spacing: -0.6px;
 }
 
-.searchBtn {
-  width: 38px;
-  height: 38px;
-  margin-right: -9px;
+.dot {
+  color: var(--accent);
+}
+
+/* "For you ▾" pill and its menu */
+.picker {
+  position: relative;
+}
+
+.pill {
+  height: 36px;
+  padding: 0 12px 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line-2);
+  background: var(--bg);
   display: flex;
   align-items: center;
-  justify-content: center;
-}
-
-.tabs {
-  display: flex;
-}
-
-.tab {
-  flex: 1;
-  text-align: center;
-  padding: 11px 0 9px;
-  border-bottom: 2px solid transparent;
+  gap: 6px;
   font-size: 13px;
   font-weight: 700;
+  color: var(--text);
+}
+
+.pill:hover {
+  background: oklch(96.5% 0.004 80);
+}
+
+.chevron,
+.chevronOpen {
+  transition: transform 160ms ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.menu {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  width: 180px;
+  padding: 6px;
+  border-radius: 16px;
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.menuItem {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+}
+
+.menuItem:hover {
+  background: oklch(96.5% 0.004 80);
+}
+
+.menuScrim {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
 }
 
 .empty {
@@ -50,6 +102,7 @@
   justify-content: center;
   text-align: center;
   padding: 0 32px;
+  background: oklch(96.5% 0.004 80);
 }
 
 .emptyTitle {

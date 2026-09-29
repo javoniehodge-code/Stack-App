@@ -294,8 +294,12 @@
 .wordmark {
   font-weight: 800;
   font-size: 19px;
-  color: var(--text);
-  letter-spacing: -0.3px;
+  color: var(--text-bright);
+  letter-spacing: -0.6px;
+}
+
+.wordmarkDot {
+  color: var(--accent);
 }
 
 

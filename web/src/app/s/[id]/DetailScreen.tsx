@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuth, useBack, useToast } from "@/components/AppProviders";
 import CommentBody from "@/components/CommentBody";
-import { BackIcon, BookmarkIcon, ForkIcon } from "@/components/icons";
+import { BackIcon, BookmarkIcon } from "@/components/icons";
 import { RepostButton } from "@/components/Repost";
 import { ShareButton } from "@/components/Share";
 import { StackPaper, updatedLabel } from "@/components/StackView";
@@ -132,9 +132,6 @@ export default function DetailScreen({
         <BookmarkIcon size={17} color={saveColor} filled={e.saved} />
       </button>
       <RepostButton stack={stack} className={s.barButton} size={17} count={noCount} />
-      <button className={s.barButton} onClick={() => a.fork(stack.id)} aria-label="Fork">
-        <ForkIcon size={17} />
-      </button>
       <span style={{ flex: 1 }} />
       <ShareButton
         stack={stack}
