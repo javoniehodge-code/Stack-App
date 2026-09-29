@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/AppProviders";
-import { SearchIcon } from "@/components/icons";
 import { FeedCard } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
 import cards from "@/components/Cards.module.css";
@@ -22,6 +21,7 @@ export default function FeedScreen({ initial }: { initial: Stack[] }) {
     forYou: { stacks: initial, page: 0, done: initial.length < PAGE_SIZE, loading: false },
     following: null,
   });
+  const [menuOpen, setMenuOpen] = useState(false);
   const railRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -50,6 +50,7 @@ export default function FeedScreen({ initial }: { initial: Stack[] }) {
   }
 
   function selectTab(t: Tab) {
+    setMenuOpen(false);
     if (t === tab) return;
     setTab(t);
     railRef.current?.scrollTo({ top: 0 });
@@ -68,30 +69,50 @@ export default function FeedScreen({ initial }: { initial: Stack[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feed, tab]);
 
-  const tabStyle = (t: Tab) => ({
-    color: tab === t ? "var(--text)" : "var(--muted-60)",
-    borderBottomColor: tab === t ? "var(--accent)" : "transparent",
-  });
+  // Escape closes the For you / Following menu.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMenuOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
+  const option = (t: Tab, label: string) => (
+    <button role="menuitemradio" aria-checked={tab === t} className={s.menuItem} onClick={() => selectTab(t)}>
+      {label}
+      {tab === t && (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M5 12.5l4.5 4.5L19 7.5" />
+        </svg>
+      )}
+    </button>
+  );
   const empty = feed && !feed.loading && feed.stacks.length === 0;
 
   return (
     <main className={shell.screen}>
       <header className={s.header}>
         <div className={s.bar}>
-          <h1 className={s.wordmark}>Stack</h1>
-          <Link href="/explore" className={s.searchBtn} aria-label="Search">
-            <SearchIcon />
-          </Link>
-        </div>
-        <div className={s.tabs} role="tablist">
-          <button role="tab" aria-selected={tab === "forYou"} className={s.tab} style={tabStyle("forYou")} onClick={() => selectTab("forYou")}>
-            For You
-          </button>
-          <button role="tab" aria-selected={tab === "following"} className={s.tab} style={tabStyle("following")} onClick={() => selectTab("following")}>
-            Following
-          </button>
+          <h1 className={s.wordmark}>
+            stack<span className={s.dot}>.</span>
+          </h1>
+          <div className={s.picker}>
+            <button className={s.pill} onClick={() => setMenuOpen((o) => !o)} aria-haspopup="menu" aria-expanded={menuOpen}>
+              {tab === "following" ? "Following" : "For you"}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted-66)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden className={menuOpen ? s.chevronOpen : s.chevron}>
+                <path d="M6 9.5l6 6 6-6" />
+              </svg>
+            </button>
+            {menuOpen && (
+              <div className={s.menu} role="menu" aria-label="Feed">
+                {option("forYou", "For you")}
+                {option("following", "Following")}
+              </div>
+            )}
+          </div>
         </div>
       </header>
+      {menuOpen && <div className={s.menuScrim} onClick={() => setMenuOpen(false)} aria-hidden />}
 
       {empty ? (
         <div className={s.empty}>

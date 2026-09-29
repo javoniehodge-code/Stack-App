@@ -54,7 +54,9 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
   return (
     <main className={shell.screen}>
       <ProfileBar right={<ProfileShareButton profile={viewer} stackCount={data.mine.length} own />}>
-        <span className={p.wordmark}>Stack</span>
+        <span className={p.wordmark}>
+          stack<span className={p.wordmarkDot}>.</span>
+        </span>
       </ProfileBar>
       <div className={p.scroll}>
         <ProfileHero profile={viewer} stackCount={data.mine.length} followers={data.counts.followers} following={data.counts.following}>
