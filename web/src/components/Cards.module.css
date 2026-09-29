@@ -130,7 +130,7 @@
   flex-shrink: 0;
   border-radius: 18px;
   background: var(--surface);
-  border: 1px solid oklch(33% 0.012 165);
+  border: 1px solid oklch(91.2% 0.006 80);
   padding: 18px 18px 14px;
   display: flex;
   flex-direction: column;
@@ -180,9 +180,7 @@
   margin-top: 14px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  font-size: 14.5px;
-  line-height: 1.5;
+  gap: 12px;
   color: var(--muted-66);
 }
 
@@ -193,19 +191,36 @@
 
 .feedLine .num {
   flex-shrink: 0;
-  font-weight: 600;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 400;
+  padding-top: 1px;
   font-variant-numeric: tabular-nums;
 }
 
+/* Bold head, then the note in gray (feed text keeps the app's gray tones). */
 .feedLineText {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   text-wrap: pretty;
   overflow-wrap: anywhere;
 }
 
-.feedLink {
-  color: var(--accent);
+.feedHead {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.2px;
+  color: var(--text-2);
+}
+
+.feedNote {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted-66);
 }
 
 .feedFade {
@@ -214,7 +229,7 @@
   right: 0;
   bottom: 0;
   height: 64px;
-  background: linear-gradient(to bottom, oklch(27% 0.012 165 / 0), var(--surface) 92%);
+  background: linear-gradient(to bottom, oklch(94.5% 0.006 80 / 0), var(--surface) 92%);
   pointer-events: none;
 }
 
@@ -222,9 +237,9 @@
   min-height: 44px;
   margin-top: 12px;
   border-radius: 12px;
-  background: oklch(30% 0.018 162);
-  border: 1px solid oklch(36% 0.02 162);
-  color: oklch(88% 0.02 160);
+  background: oklch(92.9% 0.03 60);
+  border: 1px solid oklch(89.6% 0.03 60);
+  color: oklch(21.2% 0.03 60);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -235,14 +250,14 @@
 }
 
 .feedOpen:hover .viewFull {
-  background: oklch(33% 0.022 162);
+  background: oklch(91.2% 0.03 60);
 }
 
 .feedCard .actions {
   gap: 18px;
   margin-top: 14px;
   padding-top: 12px;
-  border-top-color: oklch(33% 0.012 165);
+  border-top-color: oklch(91.2% 0.006 80);
   font-size: 13px;
 }
 
@@ -292,7 +307,7 @@
 }
 
 .feedComments {
-  border-top: 1px solid oklch(33% 0.012 165);
+  border-top: 1px solid oklch(91.2% 0.006 80);
   padding-top: 4px;
 }
 
@@ -300,15 +315,15 @@
   display: flex;
   gap: 12px;
   padding: 12px 0;
-  border-bottom: 1px solid oklch(31% 0.012 165);
+  border-bottom: 1px solid oklch(92.3% 0.006 80);
 }
 
 .commentInitial {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: oklch(34% 0.02 160);
-  color: oklch(86% 0.03 160);
+  background: oklch(90.7% 0.03 60);
+  color: oklch(23.1% 0.03 60);
   font-weight: 700;
   font-size: 11px;
   display: flex;
@@ -398,7 +413,7 @@
   border-radius: 999px;
   border: 1px solid var(--line-3);
   background: var(--bg);
-  color: oklch(92% 0.008 160);
+  color: oklch(17.5% 0.006 80);
   font-size: 14px;
   outline: none;
 }
@@ -663,7 +678,7 @@
 }
 
 .gridCardPinned {
-  border-color: oklch(42% 0.03 160);
+  border-color: oklch(86.3% 0.03 60);
 }
 
 .gridPin {
@@ -673,7 +688,7 @@
   width: 20px;
   height: 20px;
   border-radius: 6px;
-  background: oklch(32% 0.02 160);
+  background: oklch(91.8% 0.03 60);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -758,7 +773,7 @@
   gap: 10px;
   padding: 12px;
   border-radius: 12px;
-  background: oklch(30% 0.018 162);
+  background: oklch(92.9% 0.03 60);
   margin-bottom: 16px;
 }
 

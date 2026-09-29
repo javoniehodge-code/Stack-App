@@ -1,26 +1,26 @@
 :root {
-  /* Ink & Sage palette */
-  --bg: oklch(23% 0.012 165);
-  --surface: oklch(27% 0.012 165);
-  --sunken: oklch(20% 0.012 165);
-  --line: oklch(32% 0.012 165);
-  --line-2: oklch(34% 0.012 165);
-  --line-3: oklch(36% 0.012 165);
-  --line-4: oklch(40% 0.012 165);
-  --handle: oklch(42% 0.012 165);
-  --text: oklch(90% 0.008 160);
-  --text-2: oklch(84% 0.008 160);
-  --text-bright: oklch(95% 0.005 160);
-  --muted-72: oklch(72% 0.012 165);
-  --muted-66: oklch(66% 0.012 165);
-  --muted-62: oklch(62% 0.012 165);
-  --muted-60: oklch(60% 0.012 165);
-  --muted-56: oklch(56% 0.012 165);
-  --accent: oklch(78% 0.06 160);
+  /* Light warm palette (design "Stack App"; the old dark sage one is "Stack App Green") */
+  --bg: oklch(99.6% 0.002 80);
+  --surface: oklch(94.5% 0.006 80);
+  --sunken: oklch(98.4% 0.006 80);
+  --line: oklch(91.8% 0.006 80);
+  --line-2: oklch(90.7% 0.006 80);
+  --line-3: oklch(89.6% 0.006 80);
+  --line-4: oklch(87.4% 0.006 80);
+  --handle: oklch(86.3% 0.006 80);
+  --text: oklch(19.4% 0.006 80);
+  --text-2: oklch(24.9% 0.006 80);
+  --text-bright: oklch(14.8% 0.006 80);
+  --muted-72: oklch(36% 0.006 80);
+  --muted-66: oklch(41.5% 0.006 80);
+  --muted-62: oklch(45.2% 0.006 80);
+  --muted-60: oklch(47.1% 0.006 80);
+  --muted-56: oklch(50.8% 0.006 80);
+  --accent: oklch(64% 0.16 50);
   --on-accent: var(--bg);
-  --danger: oklch(72% 0.15 25);
-  --warn: oklch(76% 0.13 55);
-  --outside: oklch(19% 0.01 165);
+  --danger: oklch(56% 0.18 27);
+  --warn: oklch(54% 0.16 45);
+  --outside: oklch(93% 0.004 80);
 
   --sans: var(--font-inter), Inter, -apple-system, sans-serif;
   --mono: var(--font-plex-mono), "IBM Plex Mono", monospace;
@@ -29,7 +29,7 @@
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 * {

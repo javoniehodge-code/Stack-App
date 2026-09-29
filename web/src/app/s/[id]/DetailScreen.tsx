@@ -2,25 +2,40 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth, useBack, useToast } from "@/components/AppProviders";
 import CommentBody from "@/components/CommentBody";
 import { BackIcon, BookmarkIcon, ForkIcon } from "@/components/icons";
 import { RepostButton } from "@/components/Repost";
 import { ShareButton } from "@/components/Share";
+import { StackPaper, updatedLabel } from "@/components/StackView";
 import { useVisibilityEditor, VisibilityPill } from "@/components/Visibility";
 import { MentionList, useMentions } from "@/components/Mentions";
 import { FollowButton } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
 import { postComment, thread, threadRoot } from "@/lib/comments";
-import { flatten, fmtCount, initials, timeAgo } from "@/lib/format";
+import { flatten, initials, timeAgo } from "@/lib/format";
 import { useEngagement, useIsFollowing, useVisibility } from "@/lib/store";
 import { createClient } from "@/lib/supabase/client";
 import type { Comment, Stack } from "@/lib/types";
 import { useStackActions } from "@/lib/useStackActions";
 import s from "./Detail.module.css";
 
-export default function DetailScreen({ stack, following, openComposer }: { stack: Stack; following: boolean; openComposer: boolean }) {
+const noCount = () => "";
+
+/** A stack as a paper card, with its actions in the card's bottom bar and comments in a sheet. */
+export default function DetailScreen({
+  stack,
+  following,
+  openComposer,
+  fromCreate = false,
+}: {
+  stack: Stack;
+  following: boolean;
+  openComposer: boolean;
+  /** Opened from "View your Stack" after publishing: show Exit (to your profile) instead of Back. */
+  fromCreate?: boolean;
+}) {
   const back = useBack();
   const { viewer, requireAuth } = useAuth();
   const toast = useToast();
@@ -29,7 +44,8 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
   const isFollowing = useIsFollowing(stack.author.id, following);
   const lines = flatten(stack);
   const [comments, setComments] = useState<Comment[]>(stack.comments ?? []);
-  const [composing, setComposing] = useState(openComposer && !!viewer);
+  // The comments sheet opens straight away from a "comment" link or a comment notification (#comment-<id>).
+  const [sheetOpen, setSheetOpen] = useState(openComposer);
   const [draft, setDraft] = useState("");
   const [replyTo, setReplyTo] = useState<{ id: string; handle: string } | null>(null);
   const [posting, setPosting] = useState(false);
@@ -42,11 +58,20 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
     router.refresh();
   });
 
-  // Arriving from a comment notification (#comment-<id>): scroll to it and highlight it briefly.
+  // Arriving from a comment notification: open the sheet, then scroll to the comment and highlight it briefly.
+  const pendingHash = useRef<string | null>(null);
   useEffect(() => {
     const m = /^#comment-(.+)$/.exec(window.location.hash);
     if (!m) return;
-    const el = document.getElementById(`comment-${m[1]}`);
+    pendingHash.current = m[1];
+    const r = requestAnimationFrame(() => setSheetOpen(true));
+    return () => cancelAnimationFrame(r);
+  }, []);
+  useEffect(() => {
+    const id = pendingHash.current;
+    if (!sheetOpen || !id) return;
+    pendingHash.current = null;
+    const el = document.getElementById(`comment-${id}`);
     if (!el) {
       toast("This comment is no longer available.");
       return;
@@ -55,16 +80,10 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
     el.classList.add(s.commentHighlight);
     const t = setTimeout(() => el.classList.remove(s.commentHighlight), 2000);
     return () => clearTimeout(t);
-  }, [toast]);
+  }, [sheetOpen, toast]);
 
   const likeColor = e.liked ? "var(--accent)" : "var(--muted-66)";
   const saveColor = e.saved ? "var(--accent)" : "var(--muted-66)";
-
-  const startComment = () =>
-    requireAuth(() => {
-      setReplyTo(null);
-      setComposing(true);
-    }, "Sign in to join the conversation.");
 
   // Replies attach to the top-level comment and start with the person's @handle, so they're notified.
   const startReply = (c: Comment) =>
@@ -72,19 +91,13 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
       const handle = c.author?.handle;
       setReplyTo({ id: threadRoot(c), handle: handle ?? "deleted" });
       if (handle && handle !== viewer?.handle && !draft.includes(`@${handle}`)) setDraft((d) => `@${handle} ${d}`.slice(0, 500));
-      setComposing(true);
     }, "Sign in to reply.");
-
-  const cancelComposer = () => {
-    setComposing(false);
-    setReplyTo(null);
-    mentions.close();
-  };
 
   async function post(ev: React.FormEvent) {
     ev.preventDefault();
     const body = draft.trim();
-    if (!body || !viewer) return;
+    if (!body) return;
+    if (!viewer) return requireAuth(null, "Sign in to join the conversation.");
     setPosting(true);
     const data = await postComment(createClient(), stack.id, body, replyTo?.id ?? null);
     setPosting(false);
@@ -95,149 +108,156 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
     setComments((c) => [...c, { ...data, author: { handle: viewer.handle } }]);
     setDraft("");
     setReplyTo(null);
-    setComposing(false);
+    mentions.close();
   }
 
-  const composer = composing && (
-    <form className={s.composer} onSubmit={post}>
-      {replyTo && (
-        <div className={s.replyingTo}>
-          Replying to <span className={s.replyingHandle}>@{replyTo.handle}</span>
-          <button type="button" className={s.replyingClear} onClick={() => setReplyTo(null)} aria-label="Cancel reply">
-            ×
-          </button>
-        </div>
-      )}
-      <div className={s.composerField}>
-        <MentionList {...mentions} />
-        <textarea
-          className={s.composerInput}
-          value={draft}
-          onChange={(ev) => {
-            setDraft(ev.target.value.slice(0, 500));
-            mentions.track(ev.target);
-          }}
-          onKeyDown={(ev) => mentions.onKeyDown(ev)}
-          onBlur={mentions.close}
-          placeholder={replyTo ? "Write a reply…" : "Share a tip, a favorite, or what you'd add. Type @ to tag someone."}
-          rows={3}
-          autoFocus
-          aria-label={replyTo ? `Reply to @${replyTo.handle}` : "Comment"}
-        />
-      </div>
-      <div className={s.composerBar}>
-        <span className={s.composerCount}>{500 - draft.length}</span>
-        <button type="button" className={s.composerCancel} onClick={cancelComposer}>
-          Cancel
-        </button>
-        <button type="submit" className={s.composerPost} disabled={!draft.trim() || posting}>
-          {posting ? "Posting…" : replyTo ? "Reply" : "Post"}
-        </button>
-      </div>
-    </form>
+  const first = comments[0];
+  const author = (
+    <div className={s.authorRow}>
+      <Link href={a.authorHref(stack.author)} className={s.authorLink}>
+        <span className={s.avatar}>{initials(stack.author.name)}</span>
+        <span className={s.authorName}>{stack.author.name}</span>
+        <span className={s.authorHandle}>@{stack.author.handle}</span>
+      </Link>
+      {!mine && <FollowButton className={s.follow} following={isFollowing} onClick={() => a.toggleFollow(stack.author, isFollowing)} />}
+    </div>
+  );
+
+  const footer = (
+    <>
+      <button className={s.barButton} style={{ color: likeColor }} onClick={() => a.toggleLike(stack.id, e)} aria-pressed={e.liked} aria-label={e.liked ? "Unlike" : "Like"}>
+        <span style={{ fontSize: 18, lineHeight: 1 }}>{e.liked ? "♥" : "♡"}</span>
+      </button>
+      <button className={s.barButton} onClick={() => a.toggleSave(stack.id, e)} aria-pressed={e.saved} aria-label={e.saved ? "Unsave" : "Save"}>
+        <BookmarkIcon size={17} color={saveColor} filled={e.saved} />
+      </button>
+      <RepostButton stack={stack} className={s.barButton} size={17} count={noCount} />
+      <button className={s.barButton} onClick={() => a.fork(stack.id)} aria-label="Fork">
+        <ForkIcon size={17} />
+      </button>
+      <span style={{ flex: 1 }} />
+      <ShareButton
+        stack={stack}
+        className={s.share}
+        size={16}
+        label="Share"
+        onPrivate={mine ? () => vis.open(stack, "This stack is private. Make it public or invite only to share it.") : undefined}
+      />
+    </>
   );
 
   return (
-    <main className={shell.screen}>
-      <header className={s.header}>
-        <button onClick={back} className={s.back}>
-          <BackIcon />
-          Back
-        </button>
-        <div className={s.authorRow}>
-          <Link href={a.authorHref(stack.author)} className={s.authorLink}>
-            <span className={s.avatar}>{initials(stack.author.name)}</span>
-            <span className={s.authorText}>
-              <span className={s.authorName}>{stack.author.name}</span>
-              <span className={s.authorMeta}>
-                @{stack.author.handle} · {timeAgo(stack.published_at)}
-              </span>
-            </span>
-          </Link>
-          {!mine && <FollowButton className={s.follow} following={isFollowing} onClick={() => a.toggleFollow(stack.author, isFollowing)} />}
-        </div>
-        <h1 className={s.title}>{stack.title}</h1>
-        {stack.description && <p className={s.description}>{stack.description}</p>}
-        <div className={s.countRow}>
-          <span className={s.count}>{lines.length} lines</span>
-          {mine && <VisibilityPill value={visibility} onClick={() => vis.open(stack)} />}
-        </div>
-      </header>
+    <main className={`${shell.screen} ${s.page}`}>
+      <div className={s.topRow}>
+        {fromCreate ? (
+          <button onClick={() => router.replace("/profile")} className={s.back}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+              <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />
+            </svg>
+            Exit
+          </button>
+        ) : (
+          <button onClick={back} className={s.back}>
+            <BackIcon />
+            Back
+          </button>
+        )}
+        {mine && <VisibilityPill value={visibility} onClick={() => vis.open(stack)} />}
+      </div>
 
-      <div className={s.body}>
-        {lines.map((l, i) => (
-          <div key={i}>
-            {l.label && <div className={s.label}>{l.label}</div>}
-            <div className={s.line}>
-              <span className={s.num}>{l.num}</span>
-              <span className={s.text}>{l.text}</span>
-              {l.link && (
-                <a className={s.linkChip} href={l.link} target="_blank" rel="noopener noreferrer nofollow ugc" aria-label={`Open link for “${l.text}”`} title={l.link}>
-                  ↗
-                </a>
-              )}
+      <StackPaper
+        updated={updatedLabel(timeAgo(stack.updated_at ?? stack.published_at), lines.length)}
+        author={author}
+        title={stack.title}
+        description={stack.description}
+        lines={lines}
+        footer={footer}
+      />
+
+      <button className={s.commentsPill} onClick={() => setSheetOpen(true)}>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--muted-66)" strokeWidth="2" strokeLinejoin="round" aria-hidden style={{ flexShrink: 0 }}>
+          <path d="M20.5 11.5a8 8 0 0 1-11.6 7.1L3.5 20l1.4-4.6A8 8 0 1 1 20.5 11.5z" />
+        </svg>
+        <span className={s.pillLabel}>{comments.length ? `Show comments · ${comments.length}` : "Add a comment"}</span>
+        <span className={s.pillPreview}>{first ? `@${first.author?.handle ?? "deleted"}: ${first.body}` : ""}</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--muted-66)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={{ flexShrink: 0 }}>
+          <path d="M6 14.5l6-6 6 6" />
+        </svg>
+      </button>
+
+      {sheetOpen && (
+        <div className={s.scrim} onClick={() => setSheetOpen(false)}>
+          <div className={s.sheet} onClick={(ev) => ev.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="comments-title">
+            <div className={s.sheetHead}>
+              <div className={s.grabber} />
+              <div className={s.sheetTitleRow}>
+                <span />
+                <span id="comments-title" className={s.sheetTitle}>
+                  Comments
+                </span>
+                <button className={s.hide} onClick={() => setSheetOpen(false)}>
+                  Hide
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
-
-        <section className={s.commentsSection}>
-          <div className={s.commentsLabel}>Comments</div>
-          {comments.length > 0 ? (
-            <div className={s.commentsBox}>
+            <div className={s.commentList}>
               {thread(comments).map(({ comment: c, isReply }) => (
                 <div key={c.id} id={`comment-${c.id}`} className={`${s.comment} ${isReply ? s.reply : ""}`}>
-                  <div className={s.commentAuthor}>@{c.author?.handle ?? "deleted"}</div>
-                  <div className={s.commentText}>
-                    <CommentBody text={c.body} linkClass={s.mention} />
+                  <span className={s.commentAvatar}>{(c.author?.handle ?? "?").charAt(0).toUpperCase()}</span>
+                  <div className={s.commentMain}>
+                    <div className={s.commentAuthor}>@{c.author?.handle ?? "deleted"}</div>
+                    <div className={s.commentText}>
+                      <CommentBody text={c.body} linkClass={s.mention} />
+                    </div>
+                    <button className={s.replyButton} onClick={() => startReply(c)}>
+                      Reply
+                    </button>
                   </div>
-                  <button className={s.replyButton} onClick={() => startReply(c)}>
-                    Reply
-                  </button>
                 </div>
               ))}
-              {composer || (
-                <button className={s.addInline} onClick={startComment}>
-                  Add a comment…
-                </button>
+              {comments.length === 0 && (
+                <div className={s.noComments}>
+                  <div className={s.noCommentsTitle}>No comments yet</div>
+                  <div className={s.noCommentsText}>Share a tip, a favorite, or what you&apos;d add.</div>
+                </div>
               )}
             </div>
-          ) : (
-            <div className={`${s.commentsBox} ${s.emptyBox}`}>
-              {composer || (
-                <>
-                  <div className={s.emptyText}>No comments yet. Share a tip, a favorite, or what you&apos;d add.</div>
-                  <button className={s.outlinePill} onClick={startComment}>
-                    Add a comment
+            <form className={s.composer} onSubmit={post}>
+              {replyTo && (
+                <div className={s.replyingTo}>
+                  Replying to <span className={s.replyingHandle}>@{replyTo.handle}</span>
+                  <button type="button" className={s.replyingClear} onClick={() => setReplyTo(null)} aria-label="Cancel reply">
+                    ×
                   </button>
-                </>
+                </div>
               )}
-            </div>
-          )}
-        </section>
-      </div>
-
-      <div className={s.actions}>
-        <button className={s.action} style={{ color: likeColor }} onClick={() => a.toggleLike(stack.id, e)} aria-pressed={e.liked} aria-label={e.liked ? "Unlike" : "Like"}>
-          <span style={{ fontSize: 15, lineHeight: 1 }}>{e.liked ? "♥" : "♡"}</span>
-          {fmtCount(e.likes)}
-        </button>
-        <button className={s.action} style={{ color: saveColor }} onClick={() => a.toggleSave(stack.id, e)} aria-pressed={e.saved} aria-label={e.saved ? "Unsave" : "Save"}>
-          <BookmarkIcon size={15} color={saveColor} filled={e.saved} />
-          {fmtCount(e.saves)}
-        </button>
-        <button className={s.action} style={{ color: "var(--muted-66)" }} onClick={() => a.fork(stack.id)} aria-label="Fork">
-          <ForkIcon size={15} />
-          {fmtCount(stack.forks_count)}
-        </button>
-        <RepostButton stack={stack} className={s.action} size={15} count={fmtCount} />
-        <span style={{ flex: 1 }} />
-        <ShareButton
-          stack={stack}
-          className={s.action}
-          size={17}
-          onPrivate={mine ? () => vis.open(stack, "This stack is private. Make it public or unlisted to share it.") : undefined}
-        />
-      </div>
+              <div className={s.composerRow}>
+                <div className={s.composerField}>
+                  <MentionList {...mentions} />
+                  <textarea
+                    className={s.composerInput}
+                    value={draft}
+                    rows={1}
+                    onFocus={() => !viewer && requireAuth(null, "Sign in to join the conversation.")}
+                    onChange={(ev) => {
+                      setDraft(ev.target.value.slice(0, 500));
+                      mentions.track(ev.target);
+                    }}
+                    onKeyDown={(ev) => mentions.onKeyDown(ev)}
+                    onBlur={mentions.close}
+                    placeholder={replyTo ? "Write a reply…" : "Add a comment…"}
+                    aria-label={replyTo ? `Reply to @${replyTo.handle}` : "Comment"}
+                  />
+                </div>
+                <button type="submit" className={s.post} disabled={!draft.trim() || posting}>
+                  {posting ? "Posting…" : replyTo ? "Reply" : "Post"}
+                </button>
+              </div>
+              {draft.length > 400 && <div className={s.composerCount}>{500 - draft.length} left</div>}
+            </form>
+          </div>
+        </div>
+      )}
       {vis.sheet}
     </main>
   );

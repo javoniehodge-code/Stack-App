@@ -21,10 +21,10 @@ export async function generateMetadata({ params }: PageProps<"/s/[id]">): Promis
 
 export default async function StackPage({ params, searchParams }: PageProps<"/s/[id]">) {
   const { id } = await params;
-  const { comment } = await searchParams;
+  const { comment, from } = await searchParams;
   const sb = await createClient();
   const viewerId = await getViewerId(sb);
   const [stack, following] = await Promise.all([fetchStack(sb, viewerId, id), fetchFollowing(sb, viewerId)]);
   if (!stack) notFound();
-  return <DetailScreen stack={stack} following={following.includes(stack.author.id)} openComposer={comment === "1"} />;
+  return <DetailScreen stack={stack} following={following.includes(stack.author.id)} openComposer={comment === "1"} fromCreate={from === "create"} />;
 }

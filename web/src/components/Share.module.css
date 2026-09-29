@@ -15,7 +15,7 @@
 
 .card {
   border-radius: 18px;
-  background: oklch(20% 0.012 165);
+  background: oklch(98.4% 0.006 80);
   border: 1px solid var(--line-2);
   overflow: hidden;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
@@ -28,7 +28,7 @@
 .title {
   font-weight: 800;
   font-size: 19px;
-  color: oklch(92% 0.008 160);
+  color: oklch(17.5% 0.006 80);
   line-height: 1.25;
   letter-spacing: -0.2px;
   text-wrap: pretty;
@@ -46,7 +46,7 @@
   display: flex;
   gap: 9px;
   font-size: 13px;
-  color: oklch(86% 0.008 160);
+  color: oklch(23.1% 0.006 80);
   line-height: 1.55;
 }
 
@@ -74,7 +74,7 @@
 .footer {
   padding: 12px 20px 14px;
   border-top: 1px dashed var(--line-2);
-  background: oklch(17% 0.012 165);
+  background: oklch(99% 0.006 80);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -103,7 +103,7 @@
 
 .curated {
   font-size: 12px;
-  color: oklch(78% 0.008 160);
+  color: oklch(30.5% 0.006 80);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -111,7 +111,7 @@
 
 .curated strong {
   font-weight: 700;
-  color: oklch(92% 0.008 160);
+  color: oklch(17.5% 0.006 80);
 }
 
 .url {
@@ -211,6 +211,6 @@
   align-items: center;
   gap: 8px;
   font-size: 12.5px;
-  color: oklch(80% 0.05 160);
+  color: oklch(54% 0.16 45);
   margin: -2px 2px 12px;
 }

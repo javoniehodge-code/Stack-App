@@ -23,7 +23,24 @@ export function initials(name: string) {
   return ((parts[0][0] ?? "") + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase();
 }
 
-export type FlatLine = { num: string; label: string | null; text: string; link: string | null };
+export type FlatLine = {
+  num: string;
+  label: string | null;
+  text: string;
+  link: string | null;
+  /** The line split for display: bold head, gray note (the saved note, or "Name — details"). */
+  head: string;
+  note: string;
+};
+
+/** A line's saved note, or for older lines written as "Name — details", the part after the dash. */
+function splitLine(text: string, note: string | null | undefined) {
+  if (note?.trim()) return { head: text, note: note.trim() };
+  const parts = text.split(/\s+[—–]\s+/);
+  if (parts.length < 2) return { head: text, note: "" };
+  const rest = parts.slice(1).join(" — ");
+  return { head: parts[0], note: rest.charAt(0).toUpperCase() + rest.slice(1) };
+}
 
 /** Every line of a stack in order, numbered "01", "02"… or bulleted. */
 export function flatten(stack: Pick<Stack, "sections" | "style">): FlatLine[] {
@@ -37,6 +54,7 @@ export function flatten(stack: Pick<Stack, "sections" | "style">): FlatLine[] {
         label: i === 0 ? sec.label : null,
         text: ln.text,
         link: ln.link,
+        ...splitLine(ln.text, ln.note),
       });
       n++;
     });
@@ -50,15 +68,15 @@ export const plural = (n: number, one: string, many = one + "s") => `${n} ${n ==
 export const EXPLORE_CATS = ["Food & Drink", "Travel", "Books", "Home", "Art & Design", "Tech"];
 export const TAG_SUGGESTIONS = ["Food & Drink", "Books", "Travel", "Home", "Shopping", "Tech"];
 export const CATEGORY_DOTS: Record<string, string> = {
-  "Food & Drink": "oklch(76% 0.08 45)",
-  Travel: "oklch(76% 0.07 200)",
-  Books: "oklch(76% 0.07 285)",
-  Home: "oklch(78% 0.06 160)",
-  "Art & Design": "oklch(76% 0.08 340)",
-  Tech: "oklch(75% 0.07 240)",
-  Shopping: "oklch(76% 0.07 100)",
+  "Food & Drink": "oklch(54% 0.16 45)",
+  Travel: "oklch(64% 0.16 50)",
+  Books: "oklch(64% 0.16 50)",
+  Home: "oklch(64% 0.16 50)",
+  "Art & Design": "oklch(64% 0.16 50)",
+  Tech: "oklch(64% 0.16 50)",
+  Shopping: "oklch(64% 0.16 50)",
 };
-export const DEFAULT_DOT = "oklch(78% 0.06 160)";
+export const DEFAULT_DOT = "oklch(64% 0.16 50)";
 
 export const MAX_LINE = 500;
 export const MAX_TITLE = 120;

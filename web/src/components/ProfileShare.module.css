@@ -35,7 +35,7 @@
 .name {
   font-weight: 800;
   font-size: 18px;
-  color: oklch(92% 0.008 160);
+  color: oklch(17.5% 0.006 80);
   margin-top: 10px;
   letter-spacing: -0.2px;
   overflow-wrap: anywhere;
@@ -96,14 +96,14 @@
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: oklch(33% 0.012 165);
+  background: oklch(91.2% 0.006 80);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .actionIconDanger {
-  background: oklch(31% 0.03 25);
+  background: oklch(92.3% 0.03 60);
 }
 
 .actionLabel {
@@ -130,14 +130,14 @@
 }
 
 .rowDivided {
-  border-top: 1px solid oklch(33% 0.012 165);
+  border-top: 1px solid oklch(91.2% 0.006 80);
 }
 
 .rowLabel {
   flex: 1;
   font-size: 15px;
   font-weight: 600;
-  color: oklch(92% 0.008 160);
+  color: oklch(17.5% 0.006 80);
 }
 
 .danger {

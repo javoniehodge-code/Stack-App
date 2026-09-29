@@ -88,7 +88,7 @@ function RepostSheet({ stack, e, onClose }: { stack: Stack; e: Engagement; onClo
           <>
             <button className={`${r.option} ${mode === "plain" ? r.optionOn : ""}`} aria-pressed={mode === "plain"} onClick={() => setMode("plain")}>
               <span className={r.optionIcon}>
-                <RepostGlyph size={18} color="oklch(86% 0.05 160)" />
+                <RepostGlyph size={18} color="oklch(54% 0.16 45)" />
               </span>
               <span className={r.optionText}>
                 <span className={r.optionTitle}>Repost</span>
@@ -98,7 +98,7 @@ function RepostSheet({ stack, e, onClose }: { stack: Stack; e: Engagement; onClo
             <div className={`${r.option} ${r.noteOption} ${mode === "note" ? r.optionOn : ""}`}>
               <button className={r.optionHead} aria-pressed={mode === "note"} onClick={() => setMode("note")}>
                 <span className={r.optionIcon}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(86% 0.05 160)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(54% 0.16 45)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <path d="M4 5h16v11H9l-5 4z" />
                   </svg>
                 </span>
@@ -119,7 +119,7 @@ function RepostSheet({ stack, e, onClose }: { stack: Stack; e: Engagement; onClo
                     placeholder="What makes this one good?"
                     aria-label="Note"
                   />
-                  <div className={r.count} style={{ color: note.length >= MAX_DESCRIPTION - 30 ? "oklch(76% 0.08 45)" : undefined }}>
+                  <div className={r.count} style={{ color: note.length >= MAX_DESCRIPTION - 30 ? "oklch(54% 0.16 45)" : undefined }}>
                     {note.length} / {MAX_DESCRIPTION}
                   </div>
                 </>

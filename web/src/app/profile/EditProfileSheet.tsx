@@ -86,7 +86,7 @@ export default function EditProfileSheet({ onClose }: { onClose: () => void }) {
           <label className={sheet.label} htmlFor="ep-bio">
             Bio
           </label>
-          <span className={p.bioCount} style={{ color: bio.length >= 150 ? "oklch(76% 0.08 45)" : undefined }}>
+          <span className={p.bioCount} style={{ color: bio.length >= 150 ? "oklch(54% 0.16 45)" : undefined }}>
             {bio.length} / 160
           </span>
         </div>
@@ -134,7 +134,7 @@ export default function EditProfileSheet({ onClose }: { onClose: () => void }) {
         </div>
         <label className={p.socialField} style={{ marginBottom: 20 }}>
           <span className={p.socialIcon}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(80% 0.01 165)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(28.6% 0.006 80)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2" />
               <path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2" />
             </svg>

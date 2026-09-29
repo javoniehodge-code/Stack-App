@@ -46,7 +46,7 @@
   padding: 7px 13px;
   border-radius: 999px;
   border: 1px solid var(--line-3);
-  color: oklch(78% 0.01 160);
+  color: oklch(30.5% 0.006 80);
 }
 
 .filterOn {
@@ -83,15 +83,15 @@
 }
 
 .rowUnread {
-  background: oklch(25.5% 0.016 162);
+  background: oklch(95.3% 0.03 60);
 }
 
 .row:hover {
-  background: oklch(26% 0.012 165);
+  background: oklch(95.1% 0.006 80);
 }
 
 .row:active {
-  background: oklch(28% 0.014 163);
+  background: oklch(94% 0.03 60);
 }
 
 .row:focus-visible {
@@ -110,8 +110,8 @@
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: oklch(34% 0.02 160);
-  color: oklch(86% 0.03 160);
+  background: oklch(90.7% 0.03 60);
+  color: oklch(23.1% 0.03 60);
   font-weight: 700;
   font-size: 12px;
   display: flex;
@@ -143,14 +143,14 @@
 .text {
   font-size: 14px;
   line-height: 1.4;
-  color: oklch(78% 0.01 160);
+  color: oklch(30.5% 0.006 80);
   text-wrap: pretty;
   overflow-wrap: anywhere;
 }
 
 .actor {
   font-weight: 700;
-  color: oklch(92% 0.008 160);
+  color: oklch(17.5% 0.006 80);
 }
 
 .stackTitle {
@@ -164,7 +164,7 @@
   padding: 8px 11px;
   border-radius: 10px;
   background: var(--surface);
-  border: 1px solid oklch(33% 0.012 165);
+  border: 1px solid oklch(91.2% 0.006 80);
   font-size: 13.5px;
   line-height: 1.45;
   color: var(--text-2);
@@ -184,7 +184,7 @@
 .goneNote {
   margin-top: 6px;
   font-size: 12.5px;
-  color: oklch(76% 0.08 45);
+  color: oklch(54% 0.16 45);
 }
 
 .time {

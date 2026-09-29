@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+  <style>
+    body { margin: 0; background: oklch(95% 0.004 80); }
+    input::placeholder, textarea::placeholder { color: oklch(62% 0.006 80) !important; }
+    a { color: oklch(54% 0.16 45); } a:hover { color: oklch(46% 0.15 45); }
+  </style>
+</helmet>
+<section style="padding:56px 56px 80px;font-family:Inter,sans-serif;display:flex;flex-direction:column;gap:36px;">
+  <div style="max-width:760px;">
+    <div style="font-size:30px;font-weight:800;color:oklch(19.4% 0.006 80);letter-spacing:-0.5px;">Create a Stack — mobile flow</div>
+    <div style="font-size:15px;color:oklch(36% 0.006 80);line-height:1.55;margin-top:10px;text-wrap:pretty;">Every phone below is live: type, paste a link, reorder, publish. Title and description are skippable. From step 3 on you're editing the Stack as visitors will see it. Drafts save automatically, and Exit keeps your work.</div>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:48px 40px;align-items:flex-start;">
+    <div id="1a" style="display:flex;flex-direction:column;gap:12px;width:402px;">
+      <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:oklch(19.4% 0.006 80);color:oklch(99.6% 0.002 80);padding:3px 8px;border-radius:5px;">1a</span><span style="font-size:14px;font-weight:700;color:oklch(19.4% 0.006 80);">Step 1 · Title</span></div>
+      <dc-import name="Create Flow" start="title" hint-size="402px,874px"></dc-import>
+      <div style="font-size:13px;color:oklch(36% 0.006 80);line-height:1.5;">A blank screen with one line to type on. Skip turns into Next once you've typed something. A title is only asked for again at publish.</div>
+    </div>
+    <div id="1b" style="display:flex;flex-direction:column;gap:12px;width:402px;">
+      <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:oklch(19.4% 0.006 80);color:oklch(99.6% 0.002 80);padding:3px 8px;border-radius:5px;">1b</span><span style="font-size:14px;font-weight:700;color:oklch(19.4% 0.006 80);">Step 2 · Description</span></div>
+      <dc-import name="Create Flow" start="description" hint-size="402px,874px"></dc-import>
+      <div style="font-size:13px;color:oklch(36% 0.006 80);line-height:1.5;">Same pattern. The description stays optional, even at publish.</div>
+    </div>
+    <div id="1c" style="display:flex;flex-direction:column;gap:12px;width:402px;">
+      <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:oklch(19.4% 0.006 80);color:oklch(99.6% 0.002 80);padding:3px 8px;border-radius:5px;">1c</span><span style="font-size:14px;font-weight:700;color:oklch(19.4% 0.006 80);">Step 3 · Build, empty</span></div>
+      <dc-import name="Create Flow" start="build-empty" hint-size="402px,874px"></dc-import>
+      <div style="font-size:13px;color:oklch(36% 0.006 80);line-height:1.5;">Title and description were skipped, so they show as dashed placeholders you can tap to edit. The first line is ready to type into. Enter starts the next line.</div>
+    </div>
+    <div id="1d" style="display:flex;flex-direction:column;gap:12px;width:402px;">
+      <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:oklch(19.4% 0.006 80);color:oklch(99.6% 0.002 80);padding:3px 8px;border-radius:5px;">1d</span><span style="font-size:14px;font-weight:700;color:oklch(19.4% 0.006 80);">Step 3 · Build, in progress</span></div>
+      <dc-import name="Create Flow" start="build-draft" hint-size="402px,874px"></dc-import>
+      <div style="font-size:13px;color:oklch(36% 0.006 80);line-height:1.5;">This reads like the published Stack. Lines 02 and 05 are text only; 01, 03 and 04 have links with their fetched title and favicon. There's one subsection. Tap any line to edit it.</div>
+    </div>
+    <div id="1e" style="display:flex;flex-direction:column;gap:12px;width:402px;">
+      <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:oklch(19.4% 0.006 80);color:oklch(99.6% 0.002 80);padding:3px 8px;border-radius:5px;">1e</span><span style="font-size:14px;font-weight:700;color:oklch(19.4% 0.006 80);">Step 3 · Editing a line</span></div>
+      <dc-import name="Create Flow" start="build-editing" hint-size="402px,874px"></dc-import>
+      <div style="font-size:13px;color:oklch(36% 0.006 80);line-height:1.5;">Edit controls appear only on the selected line: move, delete, link, and an "Added by you" label. A pasted URL fetches its title and favicon in place.</div>
+    </div>
+    <div id="1f" style="display:flex;flex-direction:column;gap:12px;width:402px;">
+      <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:oklch(19.4% 0.006 80);color:oklch(99.6% 0.002 80);padding:3px 8px;border-radius:5px;">1f</span><span style="font-size:14px;font-weight:700;color:oklch(19.4% 0.006 80);">Step 4 · Review, arrange</span></div>
+      <dc-import name="Create Flow" start="review" hint-size="402px,874px"></dc-import>
+      <div style="font-size:13px;color:oklch(36% 0.006 80);line-height:1.5;">Reorder lines and subsections; changes show immediately.</div>
+    </div>
+    <div id="1g" style="display:flex;flex-direction:column;gap:12px;width:402px;">
+      <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:oklch(19.4% 0.006 80);color:oklch(99.6% 0.002 80);padding:3px 8px;border-radius:5px;">1g</span><span style="font-size:14px;font-weight:700;color:oklch(19.4% 0.006 80);">Step 4 · Preview</span></div>
+      <dc-import name="Create Flow" start="preview" hint-size="402px,874px"></dc-import>
+      <div style="font-size:13px;color:oklch(36% 0.006 80);line-height:1.5;">The exact visitor view with every editing control hidden. Only Exit preview and Publish remain.</div>
+    </div>
+    <div id="1h" style="display:flex;flex-direction:column;gap:12px;width:402px;">
+      <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:oklch(19.4% 0.006 80);color:oklch(99.6% 0.002 80);padding:3px 8px;border-radius:5px;">1h</span><span style="font-size:14px;font-weight:700;color:oklch(19.4% 0.006 80);">Publish · title was skipped</span></div>
+      <dc-import name="Create Flow" start="publish-title" hint-size="402px,874px"></dc-import>
+      <div style="font-size:13px;color:oklch(36% 0.006 80);line-height:1.5;">The only thing publish requires: a title and at least one line with text. Description, subsections and links are never required.</div>
+    </div>
+    <div id="1i" style="display:flex;flex-direction:column;gap:12px;width:402px;">
+      <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:oklch(19.4% 0.006 80);color:oklch(99.6% 0.002 80);padding:3px 8px;border-radius:5px;">1i</span><span style="font-size:14px;font-weight:700;color:oklch(19.4% 0.006 80);">After Exit · Drafts</span></div>
+      <dc-import name="Create Flow" start="drafts" hint-size="402px,874px"></dc-import>
+      <div style="font-size:13px;color:oklch(36% 0.006 80);line-height:1.5;">Exit keeps the draft and returns to Profile › Drafts. Reopening lands on Build with content, order and theme intact.</div>
+    </div>
+  </div>
+</section>
+</x-dc>
+</body>
+</html>

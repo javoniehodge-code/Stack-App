@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <style>
+    body { margin: 0; background: oklch(99.6% 0.002 80); }
+    * { box-sizing: border-box; }
+    input::placeholder, textarea::placeholder { color: oklch(62% 0.006 80) !important; }
+    a { color: oklch(54% 0.16 45); } a:hover { color: oklch(46% 0.15 45); }
+  </style>
+</helmet>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+  <dc-import name="Create Flow Screen" start="{{ start }}" hint-size="100%,100%" style="display:block;width:100%;height:100%;"></dc-import>
+</x-import>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:402,&quot;height&quot;:874},&quot;start&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;title&quot;,&quot;description&quot;,&quot;build-empty&quot;,&quot;build-draft&quot;,&quot;build-editing&quot;,&quot;review&quot;,&quot;preview&quot;,&quot;publish-title&quot;,&quot;drafts&quot;],&quot;default&quot;:&quot;title&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() { return { start: this.props.start ?? 'title' }; }
+}
+</script>
+</body>
+</html>

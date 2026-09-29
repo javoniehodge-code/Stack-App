@@ -1,4 +1,5 @@
-export type Line = { text: string; link: string | null };
+/** A line of a stack. `note` is missing until the line_notes_location migration has run. */
+export type Line = { text: string; link: string | null; note?: string | null };
 export type Section = { label: string | null; lines: Line[] };
 
 export type Author = { id: string; handle: string; name: string };
@@ -33,6 +34,9 @@ export type StackRow = {
   reposts_count?: number;
   /** Missing until the stack_visibility migration has run (everything is public then). */
   visibility?: Visibility;
+  /** City or area; missing until the line_notes_location migration has run. */
+  location?: string;
+  updated_at?: string;
   created_at: string;
   published_at: string | null;
   author: Author;
@@ -64,7 +68,7 @@ export type Profile = {
 };
 
 /** A draft being edited in the create screen. */
-export type DraftLine = { text: string; link: string; linkOpen?: boolean };
+export type DraftLine = { text: string; link: string; note?: string; linkOpen?: boolean };
 export type DraftSection = { label: string; lines: DraftLine[] };
 export type Draft = {
   id: string | null;
@@ -75,4 +79,5 @@ export type Draft = {
   style: "numbered" | "bulleted";
   forkedFromId: string | null;
   visibility: Visibility;
+  location: string;
 };

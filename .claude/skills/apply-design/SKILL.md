@@ -83,6 +83,8 @@ a different link, use the id from that link.
   privacy → Blocked accounts (with Unblock). Blocks are two-way and enforced by row-level
   security
 - Sign out stays in the Edit profile sheet as well as Settings and the profile share sheet
+- Fork button in the stack page's bottom bar (the design's bar only has like, save, repost, share)
+- Comment replies and @mentions also work in the stack page's comments sheet
 
 Add new app-only features to this list as they ship.
 
@@ -92,6 +94,12 @@ Add new app-only features to this list as they ship.
   handle `--muted-56`, comments `--muted-56`/`--text-2`. Sizes can follow the design.
 - Text limits are 500 characters across the app (lines, descriptions, comments, repost
   notes), even where the design says less (e.g. 140 for repost notes).
+- "Unlisted" is called "Invite Only" in the UI, but the description stays "Only people with
+  the link" (there are no invites). The database value is still `unlisted`.
+- Tags aren't shown or edited any more (replaced by the stack's location); existing tags stay
+  in the database and still count for search.
+- Link cards in the create flow show a letter tile, the site name taken from the domain and
+  the domain. The app doesn't fetch page titles or favicons (the user chose this).
 - You can't repost your own stack, and the Following feed shows each stack once, at its
   latest activity (published or reposted by someone you follow).
 
