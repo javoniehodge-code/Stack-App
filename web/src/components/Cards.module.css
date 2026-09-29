@@ -180,9 +180,7 @@
   margin-top: 14px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  font-size: 14.5px;
-  line-height: 1.5;
+  gap: 12px;
   color: var(--muted-66);
 }
 
@@ -193,19 +191,36 @@
 
 .feedLine .num {
   flex-shrink: 0;
-  font-weight: 600;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 400;
+  padding-top: 1px;
   font-variant-numeric: tabular-nums;
 }
 
+/* Bold head, then the note in gray (feed text keeps the app's gray tones). */
 .feedLineText {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   text-wrap: pretty;
   overflow-wrap: anywhere;
 }
 
-.feedLink {
-  color: var(--accent);
+.feedHead {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.2px;
+  color: var(--text-2);
+}
+
+.feedNote {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted-66);
 }
 
 .feedFade {

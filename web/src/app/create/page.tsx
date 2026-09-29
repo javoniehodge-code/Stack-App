@@ -14,10 +14,11 @@ const blank = (): Draft => ({
   style: "numbered",
   forkedFromId: null,
   visibility: "public",
+  location: "",
 });
 
 const toDraftSections = (sections: Section[]) =>
-  sections.map((sec) => ({ label: sec.label ?? "", lines: sec.lines.map((l) => ({ text: l.text, link: l.link ?? "" })) }));
+  sections.map((sec) => ({ label: sec.label ?? "", lines: sec.lines.map((l) => ({ text: l.text, link: l.link ?? "", note: l.note ?? "" })) }));
 
 export default async function CreatePage({ searchParams }: PageProps<"/create">) {
   const { fork, draft } = await searchParams;
@@ -26,9 +27,9 @@ export default async function CreatePage({ searchParams }: PageProps<"/create">)
 
   if (typeof fork === "string") {
     const { data } = await sb.rpc("fork_template", { p_id: fork });
-    const t = data as { id: string; title: string; description?: string; sections: Section[]; tags: string[]; style: Draft["style"] } | null;
+    const t = data as { id: string; title: string; description?: string; location?: string; sections: Section[]; tags: string[]; style: Draft["style"] } | null;
     if (t) {
-      initial = { id: null, title: `${t.title} (remix)`.slice(0, 120), description: t.description ?? "", sections: toDraftSections(t.sections), tags: t.tags, style: t.style, forkedFromId: t.id, visibility: "public" };
+      initial = { id: null, title: `${t.title} (remix)`.slice(0, 120), description: t.description ?? "", sections: toDraftSections(t.sections), tags: t.tags, style: t.style, forkedFromId: t.id, visibility: "public", location: t.location ?? "" };
     }
   } else if (typeof draft === "string") {
     const viewerId = await getViewerId(sb);
@@ -48,6 +49,7 @@ export default async function CreatePage({ searchParams }: PageProps<"/create">)
           style: d.style,
           forkedFromId: d.forked_from_id,
           visibility: d.visibility ?? "public",
+          location: d.location ?? "",
         };
       }
     }

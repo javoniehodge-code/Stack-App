@@ -1,6 +1,16 @@
-.header {
-  padding: calc(var(--safe-top) + 12px) 20px 16px;
-  border-bottom: 1px solid var(--line);
+/* The stack page: a paper card on a light gray page, comments below it. */
+.page {
+  background: oklch(96.5% 0.004 80);
+  padding: calc(var(--safe-top) + 6px) 12px calc(12px + var(--safe-bottom));
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  min-height: 36px;
   flex-shrink: 0;
 }
 
@@ -8,18 +18,18 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 34px;
-  margin-left: -4px;
+  height: 36px;
+  padding: 0 6px;
   font-size: 13px;
+  font-weight: 500;
   color: var(--muted-72);
-  margin-bottom: 10px;
 }
 
 .authorRow {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
 .authorLink {
@@ -27,12 +37,12 @@
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .avatar {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--accent);
   color: var(--on-accent);
@@ -44,22 +54,19 @@
   flex-shrink: 0;
 }
 
-.authorText {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
 .authorName {
   font-weight: 600;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.authorMeta {
-  font-size: 12px;
-  color: var(--muted-66);
+.authorHandle {
+  font-size: 13px;
+  color: var(--muted-60);
+  white-space: nowrap;
 }
 
 .follow {
@@ -70,118 +77,139 @@
   flex-shrink: 0;
 }
 
-.title {
-  margin: 0;
-  font-weight: 800;
-  font-size: 21px;
-  color: var(--text);
-  line-height: 1.25;
-  text-wrap: pretty;
-}
-
-.description {
-  margin: 8px 0 0;
-  font-size: 14.5px;
-  line-height: 1.5;
-  color: var(--muted-72);
-  text-wrap: pretty;
-  overflow-wrap: anywhere;
-  white-space: pre-line;
-}
-
-.count {
-  font-size: 12px;
-  color: var(--muted-66);
-}
-
-.countRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 6px;
-  min-height: 30px;
-}
-
-.body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px 20px 8px;
-}
-
-.label {
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--muted-66);
-  margin: 16px 0 6px;
-}
-
-.line {
-  display: flex;
-  gap: 10px;
-  font-size: 14.5px;
-  color: var(--text-bright);
-  line-height: 1.7;
-  text-wrap: pretty;
-}
-
-.num {
-  color: var(--accent);
-  font-weight: 700;
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-.text {
-  flex: 1;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.linkChip {
+/* Bottom bar inside the card */
+.barButton {
+  width: 40px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  margin-top: 2px;
-  border-radius: 6px;
-  background: var(--bg);
-  border: 2px solid var(--accent);
-  color: var(--accent);
+  color: var(--muted-66);
+}
+
+.share {
+  height: 44px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
+  color: var(--muted-66);
+}
+
+/* "Show comments · 3" under the card */
+.commentsPill {
+  flex-shrink: 0;
+  margin-top: 10px;
+  min-height: 52px;
+  padding: 0 14px 0 16px;
+  border-radius: 18px;
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+
+.pillLabel {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
   flex-shrink: 0;
 }
 
-.commentsSection {
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid var(--line);
+.pillPreview {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--muted-60);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.commentsLabel {
-  font-size: 9.5px;
+/* Comments sheet */
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.42);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 12px calc(12px + var(--safe-bottom));
+  z-index: 35;
+}
+
+.sheet {
+  height: 55%;
+  min-height: 300px;
+  max-height: 90%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.sheetHead {
+  flex-shrink: 0;
+  padding: 10px 16px 0;
+}
+
+.grabber {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--handle);
+  margin: 0 auto 6px;
+}
+
+.sheetTitleRow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: 44px;
+  border-bottom: 1px solid oklch(91.2% 0.006 80);
+}
+
+.sheetTitle {
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted-56);
-  margin-bottom: 10px;
+  color: var(--text);
 }
 
-.commentsBox {
-  border-radius: 12px;
-  background: var(--sunken);
-  border: 1px dashed var(--line);
-  padding: 14px 16px;
+.hide {
+  justify-self: end;
+  height: 44px;
+  padding: 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.commentList {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 16px;
 }
 
 .comment {
-  margin-bottom: 12px;
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
   border-radius: 8px;
   transition: background 0.6s;
+}
+
+.reply {
+  margin-left: 22px;
 }
 
 .commentHighlight {
@@ -189,60 +217,85 @@
   box-shadow: 0 0 0 6px oklch(92.9% 0.03 60);
 }
 
-.commentAuthor {
-  font-family: var(--mono);
+.commentAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: oklch(90.7% 0.03 60);
+  color: oklch(23.1% 0.03 60);
+  font-weight: 700;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.reply .commentAvatar {
+  width: 26px;
+  height: 26px;
   font-size: 10.5px;
-  color: var(--muted-56);
-  margin-bottom: 3px;
+}
+
+.commentMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.commentAuthor {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: 2px;
 }
 
 .commentText {
-  font-size: 13px;
-  color: var(--text-2);
-  line-height: 1.5;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.45;
+  text-wrap: pretty;
   overflow-wrap: anywhere;
 }
 
-.emptyBox {
-  padding: 22px 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  text-align: center;
+.mention {
+  color: var(--accent);
+  font-weight: 600;
 }
 
-.emptyText {
-  font-size: 13px;
-  color: var(--muted-66);
-  line-height: 1.5;
+.replyButton {
+  margin-top: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted-60);
+  padding: 2px 0;
 }
 
-.outlinePill {
-  font-size: 12.5px;
-  font-weight: 700;
-  padding: 9px 18px;
-  border-radius: 999px;
-  border: 1.5px solid var(--accent);
+.replyButton:hover {
   color: var(--accent);
 }
 
-.addInline {
-  display: block;
-  width: 100%;
-  padding-top: 10px;
-  border-top: 1px dashed var(--line);
+.noComments {
+  padding: 48px 20px;
+  text-align: center;
+}
+
+.noCommentsTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.noCommentsText {
   font-size: 13px;
-  color: var(--muted-56);
+  color: var(--muted-66);
+  margin-top: 4px;
+  line-height: 1.5;
 }
 
 .composer {
-  width: 100%;
-  text-align: left;
-}
-
-.composerField {
-  position: relative;
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border-top: 1px solid oklch(91.2% 0.006 80);
 }
 
 .replyingTo {
@@ -251,7 +304,7 @@
   gap: 4px;
   font-size: 12px;
   color: var(--muted-60);
-  margin-bottom: 6px;
+  margin: 0 4px 6px;
 }
 
 .replyingHandle {
@@ -267,110 +320,57 @@
   padding: 0 4px;
 }
 
-.reply {
-  margin-left: 16px;
-  padding-left: 12px;
-  border-left: 2px solid var(--line-2);
+.composerRow {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
 }
 
-.replyButton {
-  margin-top: 4px;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--muted-60);
-  padding: 2px 0;
-}
-
-.replyButton:hover {
-  color: var(--accent);
-}
-
-.mention {
-  color: var(--accent);
-  font-weight: 600;
+.composerField {
+  position: relative;
+  flex: 1;
+  min-width: 0;
 }
 
 .composerInput {
   display: block;
   width: 100%;
-  border: none;
-  outline: none;
+  min-height: 44px;
+  max-height: 120px;
+  field-sizing: content;
   resize: none;
-  background: transparent;
-  font-size: 13px;
-  line-height: 1.5;
+  padding: 11px 16px;
+  border: 1px solid oklch(88.5% 0.006 80);
+  border-radius: 22px;
+  background: var(--bg);
+  font-size: 14px;
+  line-height: 1.45;
   color: var(--text);
-  padding: 0;
+  outline: none;
 }
 
-.composerBar {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-top: 8px;
+.composerInput:focus {
+  border-color: var(--accent);
 }
 
-.composerCount {
-  flex: 1;
-  font-size: 10px;
-  color: var(--muted-56);
-}
-
-.composerCancel {
-  font-size: 12.5px;
-  color: var(--muted-66);
-}
-
-.composerPost {
-  font-size: 12.5px;
-  font-weight: 700;
-  padding: 7px 15px;
+.post {
+  height: 44px;
+  padding: 0 16px;
   border-radius: 999px;
   background: var(--accent);
   color: var(--on-accent);
-}
-
-.composerPost:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.actions {
-  padding: 8px 12px;
-  border-top: 1px solid var(--line);
-  display: flex;
-  align-items: center;
-  gap: 2px;
+  font-size: 13.5px;
+  font-weight: 700;
   flex-shrink: 0;
 }
 
-.action {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 10px 9px;
+.post:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
-/* Tags under the lines */
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
-  margin-top: 22px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
-}
-
-.tag {
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--muted-66);
-}
-
-.tagHash {
-  color: var(--accent);
-  font-weight: 700;
-  margin-right: 2px;
+.composerCount {
+  font-size: 10.5px;
+  color: var(--muted-56);
+  margin: 4px 16px 0;
 }

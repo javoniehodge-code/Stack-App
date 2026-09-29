@@ -18,7 +18,7 @@ type Filter = "all" | Visibility | "drafts";
 const TABS: [Filter, string][] = [
   ["all", "All"],
   ["public", "Public"],
-  ["unlisted", "Unlisted"],
+  ["unlisted", "Invite Only"],
   ["private", "Private"],
   ["drafts", "Drafts"],
 ];

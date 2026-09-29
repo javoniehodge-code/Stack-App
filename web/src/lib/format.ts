@@ -23,7 +23,24 @@ export function initials(name: string) {
   return ((parts[0][0] ?? "") + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase();
 }
 
-export type FlatLine = { num: string; label: string | null; text: string; link: string | null };
+export type FlatLine = {
+  num: string;
+  label: string | null;
+  text: string;
+  link: string | null;
+  /** The line split for display: bold head, gray note (the saved note, or "Name — details"). */
+  head: string;
+  note: string;
+};
+
+/** A line's saved note, or for older lines written as "Name — details", the part after the dash. */
+function splitLine(text: string, note: string | null | undefined) {
+  if (note?.trim()) return { head: text, note: note.trim() };
+  const parts = text.split(/\s+[—–]\s+/);
+  if (parts.length < 2) return { head: text, note: "" };
+  const rest = parts.slice(1).join(" — ");
+  return { head: parts[0], note: rest.charAt(0).toUpperCase() + rest.slice(1) };
+}
 
 /** Every line of a stack in order, numbered "01", "02"… or bulleted. */
 export function flatten(stack: Pick<Stack, "sections" | "style">): FlatLine[] {
@@ -37,6 +54,7 @@ export function flatten(stack: Pick<Stack, "sections" | "style">): FlatLine[] {
         label: i === 0 ? sec.label : null,
         text: ln.text,
         link: ln.link,
+        ...splitLine(ln.text, ln.note),
       });
       n++;
     });

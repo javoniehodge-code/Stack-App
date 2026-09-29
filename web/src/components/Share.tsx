@@ -15,12 +15,13 @@ const stackUrl = (id: string) => `${window.location.origin}/s/${id}`;
  * The share arrow in an action row; opens the share sheet. For your own private
  * stack it calls `onPrivate` instead (to offer making it shareable).
  */
-export function ShareButton({ stack, className, size = 16, onPrivate }: { stack: Stack; className: string; size?: number; onPrivate?: () => void }) {
+export function ShareButton({ stack, className, size = 16, onPrivate, label }: { stack: Stack; className: string; size?: number; onPrivate?: () => void; label?: string }) {
   const [open, setOpen] = useState(false);
   const visibility = useVisibility(stack);
   return (
     <>
       <button className={className} onClick={() => (visibility === "private" && onPrivate ? onPrivate() : setOpen(true))} aria-label="Share">
+        {label}
         <ShareIcon size={size} />
       </button>
       {open && <ShareSheet stack={stack} onClose={() => setOpen(false)} />}
@@ -103,7 +104,7 @@ function ShareSheet({ stack, onClose }: { stack: Stack; onClose: () => void }) {
         {unlisted && (
           <div className={sh.unlisted}>
             <VisIcon value="unlisted" size={14} color="oklch(54% 0.16 45)" />
-            Unlisted · only people with this link can view
+            Invite only · only people with this link can view
           </div>
         )}
         <button className={sh.copyRow} onClick={copy}>

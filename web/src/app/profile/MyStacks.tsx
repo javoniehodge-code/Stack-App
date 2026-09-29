@@ -188,7 +188,7 @@ export default function MyStacks({ profile, stacks }: { profile: Profile; stacks
   );
 }
 
-/** " · Unlisted" / " · Private" after a row's meta line. */
+/** " · Invite Only" / " · Private" after a row's meta line. */
 function VisSuffix({ stack }: { stack: Stack }) {
   const v = useVisibility(stack);
   return v === "public" ? null : <span className={m.visSuffix}> · {VIS[v].label}</span>;

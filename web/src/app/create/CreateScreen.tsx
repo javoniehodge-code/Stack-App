@@ -6,23 +6,25 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth, useToast } from "@/components/AppProviders";
 import shell from "@/components/AppShell.module.css";
 import { systemShare } from "@/components/Share";
-import { initials, MAX_DESCRIPTION, MAX_LINE, MAX_TITLE, TAG_SUGGESTIONS } from "@/lib/format";
+import { StackPaper } from "@/components/StackView";
+import { initials, MAX_DESCRIPTION, MAX_LINE, MAX_TITLE } from "@/lib/format";
 import { createClient } from "@/lib/supabase/client";
 import type { Draft, Visibility } from "@/lib/types";
 import p from "../profile/Profile.module.css";
 import s from "./Create.module.css";
 
 type Step = "title" | "description" | "build" | "review";
-type Line = { id: string; text: string; link: string };
+type Line = { id: string; text: string; link: string; note: string };
 type Sec = { id: string; headed: boolean; label: string; lines: Line[] };
-type Work = { title: string; description: string; tags: string[]; visibility: Visibility; sections: Sec[] };
+// Tags are no longer edited here; a draft keeps the ones it already had.
+type Work = { title: string; description: string; tags: string[]; visibility: Visibility; location: string; sections: Sec[] };
 type Sel = { kind: "line" | "sec"; id: string } | null;
 type SaveState = "idle" | "saving" | "saved" | "error";
 
 const STEPS: Record<Step, [number, string]> = { title: [1, "Title"], description: [2, "Description"], build: [3, "Build"], review: [4, "Finalize"] };
 const PRIVACY: [Visibility, string, string][] = [
   ["public", "Public", "Anyone can find it on your profile and in search"],
-  ["unlisted", "Unlisted", "Only people with the link"],
+  ["unlisted", "Invite Only", "Only people with the link"],
   ["private", "Private", "Only you"],
 ];
 const FAV_BG = ["oklch(45% 0.13 30)", "oklch(38% 0.08 250)", "oklch(40% 0.09 150)", "oklch(28% 0.01 80)", "oklch(46% 0.13 60)"];
@@ -30,7 +32,7 @@ const UNTITLED = "Untitled draft";
 
 let nextId = 1;
 const uid = () => `k${nextId++}`;
-const newLine = (text = "", link = ""): Line => ({ id: uid(), text, link });
+const newLine = (text = "", link = "", note = ""): Line => ({ id: uid(), text, link, note });
 
 /** Site name, domain and a colored letter tile for a link (no fetching). */
 function linkMeta(url: string) {
@@ -47,10 +49,10 @@ function fromDraft(d: Draft): Work {
     id: uid(),
     headed: i > 0 || !!sec.label.trim(),
     label: sec.label,
-    lines: sec.lines.map((l) => newLine(l.text, l.link)),
+    lines: sec.lines.map((l) => newLine(l.text, l.link, l.note ?? "")),
   }));
   if (!sections.length) sections.push({ id: uid(), headed: false, label: "", lines: [] });
-  return { title: d.title === UNTITLED ? "" : d.title, description: d.description, tags: d.tags, visibility: d.visibility, sections };
+  return { title: d.title === UNTITLED ? "" : d.title, description: d.description, tags: d.tags, visibility: d.visibility, location: d.location, sections };
 }
 
 const counts = (w: Work) => {
@@ -99,7 +101,6 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
   const [sel, setSel] = useState<Sel>(null);
   const [linkOpen, setLinkOpen] = useState<string | null>(null);
   const [linkDraft, setLinkDraft] = useState("");
-  const [tagInput, setTagInput] = useState("");
   const [sheet, setSheet] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
   const [save, setSave] = useState<SaveState>(initial.id ? "saved" : "idle");
@@ -123,7 +124,7 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
         const args = {
           p_id: idRef.current,
           p_title: status === "draft" && !t ? UNTITLED : t,
-          p_sections: w.sections.map((sec) => ({ label: sec.headed ? sec.label : "", lines: sec.lines.map((l) => ({ text: l.text, link: l.link || null })) })),
+          p_sections: w.sections.map((sec) => ({ label: sec.headed ? sec.label : "", lines: sec.lines.map((l) => ({ text: l.text, note: l.note.trim() || null, link: l.link || null })) })),
           p_tags: w.tags,
           p_status: status,
           p_forked_from: initial.forkedFromId,
@@ -131,7 +132,10 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
           p_description: w.description.trim(),
           p_visibility: w.visibility,
         };
-        const { data, error } = await createClient().rpc("save_stack", args);
+        const sb = createClient();
+        let { data, error } = await sb.rpc("save_stack", { ...args, p_location: w.location.trim() });
+        // Before the line_notes_location migration runs, save_stack has no p_location (notes are dropped too).
+        if (error?.code === "PGRST202") ({ data, error } = await sb.rpc("save_stack", args));
         if (error) return error.message;
         idRef.current = data as string;
         return null;
@@ -266,12 +270,7 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
     mapLine(id, (l) => ({ ...l, link: url }));
   }
 
-  function addTag(raw: string) {
-    const t = raw.trim().replace(/^#/, "").replace(/,$/, "").slice(0, 40);
-    setTagInput("");
-    if (!t) return;
-    edit((w) => (w.tags.some((x) => x.toLowerCase() === t.toLowerCase()) || w.tags.length >= 20 ? w : { ...w, tags: [...w.tags, t] }));
-  }
+
 
   function goBuild() {
     setStep("build");
@@ -338,7 +337,7 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
   function startOver() {
     idRef.current = null;
     dirty.current = false;
-    setWork(fromDraft({ ...initial, id: null, title: "", description: "", tags: [], sections: [], forkedFromId: null, visibility: "public" }));
+    setWork(fromDraft({ ...initial, id: null, title: "", description: "", tags: [], sections: [], forkedFromId: null, visibility: "public", location: "" }));
     setStep("title");
     setPreview(false);
     setSel(null);
@@ -461,7 +460,7 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
   let pn = 0;
 
   return (
-    <main className={shell.screen}>
+    <main className={`${shell.screen} ${step === "review" && preview ? s.previewMain : ""}`}>
       {header}
 
       {step === "title" && (
@@ -619,7 +618,7 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
                       return (
                         <div
                           key={l.id}
-                          className={s.line}
+                          className={`${s.line} ${l.id === sec.lines[sec.lines.length - 1].id ? "" : s.lineDivided}`}
                           role="button"
                           tabIndex={0}
                           onClick={() => {
@@ -637,7 +636,8 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
                           <span className={s.num}>{n2}</span>
                           <div className={s.lineBody}>
                             <div className={l.text ? s.lineText : s.lineEmpty}>{l.text || "Empty line — tap to write"}</div>
-                            {l.link && <LinkCard link={l.link} />}
+                            {l.note.trim() && <div className={s.lineNote}>{l.note}</div>}
+                            {l.link && <span className={s.visit}>Visit site ↗</span>}
                           </div>
                         </div>
                       );
@@ -649,6 +649,7 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
                           <span className={s.num} style={{ paddingTop: 2 }}>
                             {n2}
                           </span>
+                          <div className={s.lineInputs}>
                           <textarea
                             data-fid={l.id}
                             className={s.lineInput}
@@ -669,6 +670,25 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
                             placeholder={num === 1 ? "Write your first line" : "Write a line"}
                             aria-label={`Line ${num}`}
                           />
+                          <textarea
+                            className={s.noteInput}
+                            value={l.note}
+                            rows={1}
+                            maxLength={MAX_LINE}
+                            onChange={(e) => {
+                              const v = e.target.value.replace(/\s*\n\s*/g, " ").slice(0, MAX_LINE);
+                              mapLine(l.id, (x) => ({ ...x, note: v }));
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+                                addLine(sec.id, l.id);
+                              }
+                            }}
+                            placeholder="Add a subheading (optional)"
+                            aria-label={`Note for line ${num}`}
+                          />
+                          </div>
                         </div>
                         <div className={s.lineTools}>
                           {l.link && !open && <LinkCard link={l.link} onRemove={() => mapLine(l.id, (x) => ({ ...x, link: "" }))} />}
@@ -833,49 +853,25 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
             </div>
 
             <div className={s.card} style={{ marginTop: 14 }}>
-              <div className={s.cardLabel} style={{ marginBottom: 4 }}>
-                Tags
-              </div>
-              <div className={s.cardHelp}>Help people find it in search. They appear at the bottom of the Stack.</div>
-              {work.tags.length > 0 && (
-                <div className={s.tagList}>
-                  {work.tags.map((t) => (
-                    <span key={t} className={s.tag}>
-                      {t}
-                      <button className={s.tagRemove} aria-label={`Remove tag ${t}`} onClick={() => edit((w) => ({ ...w, tags: w.tags.filter((x) => x !== t) }))}>
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-              <input
-                className={s.tagInput}
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === ",") {
-                    e.preventDefault();
-                    addTag(tagInput);
-                  } else if (e.key === "Backspace" && tagInput === "" && work.tags.length) {
-                    const last = work.tags[work.tags.length - 1];
-                    edit((w) => ({ ...w, tags: w.tags.filter((x) => x !== last) }));
-                  }
-                }}
-                onBlur={() => tagInput.trim() && addTag(tagInput)}
-                placeholder="Type a tag and press Enter"
-                aria-label="Add a tag"
-                enterKeyHint="done"
-              />
-              {TAG_SUGGESTIONS.some((t) => !work.tags.some((x) => x.toLowerCase() === t.toLowerCase())) && (
-                <div className={s.tagList} style={{ marginTop: 10, marginBottom: 0 }}>
-                  {TAG_SUGGESTIONS.filter((t) => !work.tags.some((x) => x.toLowerCase() === t.toLowerCase())).map((t) => (
-                    <button key={t} className={s.suggestion} onClick={() => addTag(t)}>
-                      + {t}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <div className={s.placeTitle}>Is this Stack about a place?</div>
+              <div className={s.placeHelp}>Add a city or area so people can find it locally.</div>
+              <label className={s.placeField}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" />
+                  <circle cx="12" cy="10" r="2.4" />
+                </svg>
+                <input
+                  className={s.placeInput}
+                  value={work.location}
+                  maxLength={80}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    edit((w) => ({ ...w, location: v }));
+                  }}
+                  placeholder="e.g. Mexico City, or Brooklyn, NY"
+                  aria-label="Location"
+                />
+              </label>
             </div>
             {!n && <div className={s.cantPublish}>Add a line with some text to publish.</div>}
           </div>
@@ -909,47 +905,57 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
               </button>
             </div>
           </header>
-          <div className={s.scroll} style={{ paddingTop: 10 }}>
-            <div className={s.author}>
-              <span className={s.avatar}>{initials(viewer.name)}</span>
-              <span className={s.authorText}>
-                <span className={s.authorName}>{viewer.name}</span>
-                <span className={s.authorMeta}>@{viewer.handle} · just now</span>
-              </span>
-            </div>
-            <div className={s.pvTitle}>{shownTitle}</div>
-            {work.description.trim() && <div className={s.pvDesc}>{work.description}</div>}
-            <div className={s.pvCount}>{countLabel}</div>
-            <div style={{ paddingTop: 10 }}>
-              {work.sections.map((sec) => {
-                const lines = sec.lines.filter((l) => l.text.trim());
-                if (!lines.length) return null;
-                return (
-                  <div key={sec.id}>
-                    {sec.headed && sec.label.trim() && <div className={s.pvLabel}>{sec.label}</div>}
-                    {lines.map((l) => (
-                      <div key={l.id} className={s.pvLine}>
-                        <span className={s.num}>{String(++pn).padStart(2, "0")}</span>
-                        <div className={s.lineBody}>
-                          <div className={s.lineText}>{l.text}</div>
-                          {l.link && <LinkCard link={l.link} />}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })}
-              {work.tags.length > 0 && (
-                <div className={s.pvTags}>
-                  {work.tags.map((t) => (
-                    <span key={t} className={s.pvTag}>
-                      <span className={s.pvHash}>#</span>
-                      {t}
-                    </span>
-                  ))}
+          <div className={s.previewPage}>
+            <StackPaper
+              updated={`Updated ${new Date().toLocaleString("en-US", { month: "short", year: "numeric" })}${n ? ` · ${n} ${n === 1 ? "line" : "lines"}` : ""}`}
+              author={
+                <div className={s.pvAuthor}>
+                  <span className={s.pvAvatar}>{initials(viewer.name)}</span>
+                  <span className={s.pvName}>{viewer.name}</span>
+                  <span className={s.pvHandle}>@{viewer.handle}</span>
                 </div>
+              }
+              title={shownTitle}
+              description={work.description.trim()}
+              lines={work.sections.flatMap((sec) =>
+                sec.lines
+                  .filter((l) => l.text.trim())
+                  .map((l, i) => ({
+                    num: String(++pn).padStart(2, "0"),
+                    label: i === 0 && sec.headed && sec.label.trim() ? sec.label : null,
+                    head: l.text,
+                    note: l.note.trim(),
+                    link: l.link || null,
+                  })),
               )}
-            </div>
+              footer={
+                <>
+                  <span className={s.pvIcon} style={{ fontSize: 18 }}>
+                    ♡
+                  </span>
+                  <span className={s.pvIcon}>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--muted-66)" strokeWidth="2" strokeLinejoin="round" aria-hidden>
+                      <path d="M6.5 3.5h11v17l-5.5-4-5.5 4z" />
+                    </svg>
+                  </span>
+                  <span className={s.pvIcon}>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--muted-66)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M17 2l4 4-4 4" />
+                      <path d="M3 11V9a3 3 0 0 1 3-3h15" />
+                      <path d="M7 22l-4-4 4-4" />
+                      <path d="M21 13v2a3 3 0 0 1-3 3H3" />
+                    </svg>
+                  </span>
+                  <span style={{ flex: 1 }} />
+                  <span className={s.pvShare}>
+                    Share
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--muted-66)" stroke="var(--muted-66)" strokeWidth="1" strokeLinejoin="round" aria-hidden>
+                      <path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z" />
+                    </svg>
+                  </span>
+                </>
+              }
+            />
           </div>
         </>
       )}

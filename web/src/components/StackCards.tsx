@@ -156,8 +156,8 @@ function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode })
             <div key={i} className={s.feedLine}>
               <span className={s.num}>{l.num}</span>
               <span className={s.feedLineText}>
-                {l.text}
-                {l.link && <span className={s.feedLink}> ↗</span>}
+                <span className={s.feedHead}>{l.head}</span>
+                {l.note && <span className={s.feedNote}>{l.note}</span>}
               </span>
             </div>
           ))}

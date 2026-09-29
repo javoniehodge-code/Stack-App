@@ -9,7 +9,7 @@ import v from "./Visibility.module.css";
 
 export const VIS: Record<Visibility, { label: string; short: string; long: string; toast: string }> = {
   public: { label: "Public", short: "Profile, search and link", long: "On your profile, in search, and anyone with the link", toast: "Now public" },
-  unlisted: { label: "Unlisted", short: "Anyone with the link", long: "Only people with the link. Hidden from your profile and search", toast: "Now unlisted · link only" },
+  unlisted: { label: "Invite Only", short: "Anyone with the link", long: "Only people with the link. Hidden from your profile and search", toast: "Now invite only · link only" },
   private: { label: "Private", short: "Only you", long: "Only you. Great for personal notes and collecting ideas", toast: "Now private · only you" },
 };
 const ORDER: Visibility[] = ["public", "unlisted", "private"];
@@ -62,7 +62,7 @@ export function VisibilityPill({ value, onClick }: { value: Visibility; onClick:
   );
 }
 
-/** Amber "🔗 Unlisted" / "🔒 Private" tag for your own non-public stacks. */
+/** Amber "🔗 Invite Only" / "🔒 Private" tag for your own non-public stacks. */
 export function VisibilityBadge({ value }: { value: Visibility }) {
   if (value === "public") return null;
   return (
