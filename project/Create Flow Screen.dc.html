@@ -8,7 +8,7 @@
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
   <style>
     body { margin: 0; background: oklch(99.6% 0.002 80); }
     * { box-sizing: border-box; }
@@ -88,9 +88,9 @@
           <div style="margin-bottom:6px;">
             <sc-if value="{{ sec.headed }}" hint-placeholder-val="{{ false }}">
               <div style="margin-top:18px;">
-                <input ref="{{ sec.headRef }}" value="{{ sec.label }}" onChange="{{ sec.onLabel }}" onFocus="{{ sec.onSelect }}" placeholder="Subsection heading" style="width:100%;height:36px;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(41.5% 0.006 80);padding:0;" />
+                <input ref="{{ sec.headRef }}" value="{{ sec.label }}" onChange="{{ sec.onLabel }}" onFocus="{{ sec.onSelect }}" placeholder="Subsection heading" style="width:100%;height:34px;border:none;border-bottom:1px solid oklch(91.2% 0.006 80);outline:none;background:transparent;font-family:Inter,sans-serif;font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:oklch(64% 0.16 50);padding:0;border-radius:0;" />
                 <sc-if value="{{ sec.isSel }}" hint-placeholder-val="{{ false }}">
-                  <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                  <div style="display:flex;align-items:center;gap:6px;margin:8px 0 6px;">
                     <span onClick="{{ sec.onUp }}" style="width:36px;height:36px;border-radius:10px;border:1px solid oklch(88.5% 0.006 80);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ sec.upOp }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 14.5l6-6 6 6"></path></svg></span>
                     <span onClick="{{ sec.onDown }}" style="width:36px;height:36px;border-radius:10px;border:1px solid oklch(88.5% 0.006 80);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ sec.downOp }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span>
                     <span onClick="{{ sec.onRemove }}" style="height:36px;padding:0 10px;display:flex;align-items:center;font-size:12.5px;font-weight:600;color:oklch(41.5% 0.006 80);cursor:pointer;">Remove heading</span>
@@ -104,30 +104,29 @@
             <sc-for list="{{ sec.lines }}" as="ln" hint-placeholder-count="3">
               <div>
                 <sc-if value="{{ ln.notSel }}" hint-placeholder-val="{{ true }}">
-                  <div onClick="{{ ln.onSelect }}" style="display:flex;gap:10px;padding:5px 0;cursor:pointer;">
-                    <span style="color:oklch(64% 0.16 50);font-weight:700;font-size:14.5px;line-height:1.7;flex-shrink:0;min-width:18px;font-variant-numeric:tabular-nums;">{{ ln.num }}</span>
-                    <div style="flex:1;min-width:0;">
-                      <div style="font-size:14.5px;line-height:1.7;color:{{ ln.textColor }};text-wrap:pretty;">{{ ln.display }}</div>
+                  <div onClick="{{ ln.onSelect }}" style="display:flex;gap:12px;padding:12px 0 13px;border-bottom:{{ ln.divider }};cursor:pointer;">
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(64% 0.16 50);padding-top:1px;flex-shrink:0;font-variant-numeric:tabular-nums;">{{ ln.num }}</span>
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+                      <div style="font-size:14px;font-weight:600;color:{{ ln.textColor }};line-height:1.3;letter-spacing:-0.2px;text-wrap:pretty;">{{ ln.display }}</div>
+                      <sc-if value="{{ ln.hasSub }}" hint-placeholder-val="{{ false }}">
+                        <div style="font-size:12.5px;color:oklch(39.7% 0.006 80);line-height:1.45;text-wrap:pretty;">{{ ln.sub }}</div>
+                      </sc-if>
                       <sc-if value="{{ ln.hasLink }}" hint-placeholder-val="{{ false }}">
-                        <div style="display:flex;align-items:center;gap:10px;margin:4px 0 4px;padding:8px 10px;border-radius:10px;border:1px solid oklch(91.8% 0.006 80);background:oklch(99.6% 0.002 80);">
-                          <span style="width:20px;height:20px;border-radius:5px;background:{{ ln.favBg }};color:oklch(99.6% 0.002 80);font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ ln.favLetter }}</span>
-                          <div style="flex:1;min-width:0;">
-                            <div style="font-size:13px;font-weight:600;color:{{ ln.linkTitleColor }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ln.linkTitle }}</div>
-                            <div style="font-size:11.5px;color:oklch(47.1% 0.006 80);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ln.domain }}</div>
-                          </div>
-                          <span style="color:oklch(54% 0.16 45);font-size:14px;font-weight:700;flex-shrink:0;">↗</span>
-                        </div>
+                        <span style="font-size:12px;font-weight:500;color:oklch(64% 0.16 50);margin-top:3px;">{{ ln.linkLabel }}</span>
                       </sc-if>
                     </div>
                   </div>
                 </sc-if>
                 <sc-if value="{{ ln.isSel }}" hint-placeholder-val="{{ false }}">
                   <div style="margin:4px -12px;padding:8px 12px 8px;border-radius:14px;background:oklch(97.6% 0.006 80);border:1px solid oklch(90% 0.006 80);">
-                    <div style="display:flex;gap:10px;">
-                      <span style="color:oklch(64% 0.16 50);font-weight:700;font-size:14.5px;line-height:1.7;flex-shrink:0;min-width:18px;padding-top:2px;font-variant-numeric:tabular-nums;">{{ ln.num }}</span>
-                      <textarea ref="{{ ln.ref }}" value="{{ ln.text }}" onChange="{{ ln.onText }}" onKeyDown="{{ ln.onKey }}" placeholder="{{ ln.placeholder }}" rows="1" style="flex:1;min-width:0;field-sizing:content;resize:none;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14.5px;line-height:1.7;color:oklch(14.8% 0.006 80);padding:2px 0;"></textarea>
+                    <div style="display:flex;gap:12px;">
+                      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(64% 0.16 50);padding-top:5px;flex-shrink:0;font-variant-numeric:tabular-nums;">{{ ln.num }}</span>
+                      <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
+                        <textarea ref="{{ ln.ref }}" value="{{ ln.text }}" onChange="{{ ln.onText }}" onKeyDown="{{ ln.onKey }}" placeholder="{{ ln.placeholder }}" rows="1" style="width:100%;field-sizing:content;resize:none;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14px;font-weight:600;letter-spacing:-0.2px;line-height:1.4;color:oklch(14.8% 0.006 80);padding:2px 0;"></textarea>
+                        <textarea ref="{{ ln.subRef }}" value="{{ ln.sub }}" onChange="{{ ln.onSub }}" onKeyDown="{{ ln.onSubKey }}" placeholder="Add a subheading (optional)" rows="1" style="width:100%;field-sizing:content;resize:none;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:12.5px;line-height:1.45;color:oklch(39.7% 0.006 80);padding:1px 0 2px;"></textarea>
+                      </div>
                     </div>
-                    <div style="padding-left:28px;">
+                    <div style="padding-left:30px;">
                       <sc-if value="{{ ln.hasLink }}" hint-placeholder-val="{{ false }}">
                         <div style="display:flex;align-items:center;gap:10px;margin-top:6px;padding:8px 4px 8px 10px;border-radius:10px;border:1px solid oklch(91.8% 0.006 80);background:oklch(99.6% 0.002 80);">
                           <span style="width:20px;height:20px;border-radius:5px;background:{{ ln.favBg }};color:oklch(99.6% 0.002 80);font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ ln.favLetter }}</span>
@@ -205,24 +204,12 @@
       </div>
 
       <div style="border:1px solid oklch(91.8% 0.006 80);border-radius:16px;padding:16px;margin-top:14px;">
-      <div style="font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(41.5% 0.006 80);margin-bottom:4px;">Tags</div>
-      <div style="font-size:12.5px;color:oklch(41.5% 0.006 80);line-height:1.45;margin-bottom:10px;">Help people find it in search. They appear at the bottom of the Stack.</div>
-      <sc-if value="{{ hasTags }}" hint-placeholder-val="{{ false }}">
-        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;">
-          <sc-for list="{{ tags }}" as="t" hint-placeholder-count="2">
-            <span style="display:flex;align-items:center;gap:4px;font-size:12.5px;font-weight:600;padding:0 4px 0 13px;height:34px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);">{{ t.name }}<span onClick="{{ t.onRemove }}" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;line-height:1;">×</span></span>
-          </sc-for>
+        <div style="font-size:15px;font-weight:700;color:oklch(19.4% 0.006 80);">Is this Stack about a place?</div>
+        <div style="font-size:12.5px;color:oklch(41.5% 0.006 80);line-height:1.45;margin-top:3px;margin-bottom:12px;">Add a city or area so people can find it locally.</div>
+        <div style="display:flex;align-items:center;gap:10px;height:44px;padding:0 14px;border:1px solid oklch(88.5% 0.006 80);border-radius:999px;background:oklch(99.6% 0.002 80);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex-shrink:0;"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"></path><circle cx="12" cy="10" r="2.4"></circle></svg>
+          <input value="{{ location }}" onChange="{{ onLocation }}" placeholder="e.g. Mexico City, or Brooklyn, NY" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14px;color:oklch(19.4% 0.006 80);" />
         </div>
-      </sc-if>
-      <input value="{{ tagInput }}" onChange="{{ onTagInput }}" onKeyDown="{{ onTagKey }}" placeholder="Type a tag and press Enter" style="width:100%;height:44px;padding:0 14px;border:1px solid oklch(88.5% 0.006 80);border-radius:999px;background:oklch(99.6% 0.002 80);font-family:Inter,sans-serif;font-size:14px;color:oklch(19.4% 0.006 80);outline:none;" style-focus="border-color:oklch(64% 0.16 50);" />
-      <sc-if value="{{ hasTagSugg }}" hint-placeholder-val="{{ true }}">
-        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;">
-          <sc-for list="{{ tagSugg }}" as="t" hint-placeholder-count="4">
-            <span onClick="{{ t.onAdd }}" style="display:flex;align-items:center;height:34px;font-size:12.5px;font-weight:600;padding:0 13px;border-radius:999px;border:1px solid oklch(88.5% 0.006 80);color:oklch(24.9% 0.006 80);cursor:pointer;">+ {{ t.name }}</span>
-          </sc-for>
-        </div>
-      </sc-if>
-
       </div>
       <sc-if value="{{ cantPublish }}" hint-placeholder-val="{{ false }}">
         <div style="font-size:12.5px;color:oklch(41.5% 0.006 80);margin-top:12px;text-align:center;">Add a line with some text to publish.</div>
@@ -237,57 +224,57 @@
   <sc-if value="{{ isPreview }}" hint-placeholder-val="{{ false }}">
     <div style="padding:54px 20px 0;flex-shrink:0;">
       <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:44px;">
-        <div style="display:flex;"><span onClick="{{ showArrange }}" style="height:44px;display:flex;align-items:center;gap:2px;font-size:14px;font-weight:600;color:{{ thText }};cursor:pointer;margin-left:-6px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>Back</span></div>
-        <span style="font-size:12px;font-weight:600;color:{{ thMuted }};">Preview · {{ visLabel }}</span>
+        <div style="display:flex;"><span onClick="{{ showArrange }}" style="height:44px;display:flex;align-items:center;gap:2px;font-size:14px;font-weight:600;color:oklch(19.4% 0.006 80);cursor:pointer;margin-left:-6px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>Back</span></div>
+        <span style="font-size:12px;font-weight:600;color:oklch(41.5% 0.006 80);">Preview · {{ visLabel }}</span>
         <div style="display:flex;justify-content:flex-end;"><span onClick="{{ publish }}" style="height:36px;padding:0 18px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);display:flex;align-items:center;font-size:14px;font-weight:700;cursor:pointer;opacity:{{ publishOp }};">Publish</span></div>
       </div>
     </div>
-    <div style="flex:1;min-height:0;overflow-y:auto;padding:10px 20px 20px;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-        <div style="width:30px;height:30px;border-radius:50%;background:{{ thAccent }};color:{{ thBg }};font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">Y</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-weight:600;font-size:13px;color:{{ thText }};">You</div>
-          <div style="font-size:12px;color:{{ thMuted }};">@you · just now</div>
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;padding:6px 12px 34px;">
+      <div style="flex:1;min-height:0;display:flex;flex-direction:column;background:oklch(99.6% 0.002 80);border:1px solid oklch(90.7% 0.006 80);border-radius:24px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,0.04),0 8px 24px rgba(0,0,0,0.05);">
+        <div style="flex-shrink:0;height:52px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid oklch(91.2% 0.006 80);">
+          <span style="font-weight:800;font-size:19px;letter-spacing:-0.6px;color:oklch(14.8% 0.006 80);">stack<span style="color:oklch(64% 0.16 50);">.</span></span>
+          <span style="font-size:12px;color:oklch(47.1% 0.006 80);white-space:nowrap;">{{ updatedLabel }}</span>
         </div>
-      </div>
-      <div style="font-weight:800;font-size:21px;line-height:1.25;color:{{ thText }};text-wrap:pretty;">{{ reviewTitle }}</div>
-      <sc-if value="{{ description }}" hint-placeholder-val="{{ false }}">
-        <div style="font-size:14.5px;line-height:1.5;color:{{ thMuted }};margin-top:8px;text-wrap:pretty;">{{ description }}</div>
-      </sc-if>
-      <div style="font-size:12px;color:{{ thMuted }};margin-top:8px;padding-bottom:12px;border-bottom:1px solid {{ thLine }};">{{ countLabel }}</div>
-      <div style="padding-top:10px;">
-        <sc-for list="{{ pvSections }}" as="sec" hint-placeholder-count="1">
-          <div>
-            <sc-if value="{{ sec.headed }}" hint-placeholder-val="{{ false }}">
-              <div style="font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:{{ thMuted }};margin:16px 0 6px;">{{ sec.label }}</div>
-            </sc-if>
-            <sc-for list="{{ sec.lines }}" as="ln" hint-placeholder-count="3">
-              <div style="display:flex;gap:10px;padding:3px 0;">
-                <span style="color:{{ thAccent }};font-weight:700;font-size:14.5px;line-height:1.7;flex-shrink:0;min-width:18px;font-variant-numeric:tabular-nums;">{{ ln.num }}</span>
-                <div style="flex:1;min-width:0;">
-                  <div style="font-size:14.5px;line-height:1.7;color:{{ thText }};text-wrap:pretty;">{{ ln.text }}</div>
-                  <sc-if value="{{ ln.hasLink }}" hint-placeholder-val="{{ false }}">
-                    <div style="display:flex;align-items:center;gap:10px;margin:4px 0 4px;padding:8px 10px;border-radius:10px;background:{{ thChip }};">
-                      <span style="width:20px;height:20px;border-radius:5px;background:{{ ln.favBg }};color:oklch(99.6% 0.002 80);font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ ln.favLetter }}</span>
-                      <div style="flex:1;min-width:0;">
-                        <div style="font-size:13px;font-weight:600;color:{{ thText }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ln.linkTitle }}</div>
-                        <div style="font-size:11.5px;color:{{ thMuted }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ln.domain }}</div>
-                      </div>
-                      <span style="color:{{ thAccent }};font-size:14px;font-weight:700;flex-shrink:0;">↗</span>
-                    </div>
-                  </sc-if>
+        <div style="flex:1;min-height:0;overflow-y:auto;padding:18px 18px 22px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+            <div style="width:32px;height:32px;border-radius:50%;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">Y</div>
+            <span style="font-weight:600;font-size:14px;color:oklch(19.4% 0.006 80);">You</span>
+            <span style="font-size:13px;color:oklch(47.1% 0.006 80);">@you</span>
+          </div>
+          <div style="font-size:21px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.25;letter-spacing:-0.4px;margin-bottom:8px;text-wrap:pretty;">{{ reviewTitle }}</div>
+          <sc-if value="{{ description }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:13.5px;color:oklch(39.7% 0.006 80);line-height:1.5;text-wrap:pretty;">{{ description }}</div>
+          </sc-if>
+          <div style="height:22px;"></div>
+          <sc-for list="{{ pvSections }}" as="sec" hint-placeholder-count="1">
+            <div>
+              <sc-if value="{{ sec.headed }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:oklch(64% 0.16 50);padding:{{ sec.headPad }};border-bottom:1px solid oklch(91.2% 0.006 80);">{{ sec.label }}</div>
+              </sc-if>
+              <sc-for list="{{ sec.lines }}" as="ln" hint-placeholder-count="3">
+                <div style="display:flex;gap:12px;padding:12px 0 13px;border-bottom:{{ ln.divider }};">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(64% 0.16 50);padding-top:1px;flex-shrink:0;font-variant-numeric:tabular-nums;">{{ ln.num }}</span>
+                  <div style="display:flex;flex-direction:column;gap:2px;min-width:0;">
+                    <div style="font-size:14px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.3;letter-spacing:-0.2px;text-wrap:pretty;">{{ ln.text }}</div>
+                    <sc-if value="{{ ln.hasSub }}" hint-placeholder-val="{{ false }}">
+                      <div style="font-size:12.5px;color:oklch(39.7% 0.006 80);line-height:1.45;text-wrap:pretty;">{{ ln.sub }}</div>
+                    </sc-if>
+                    <sc-if value="{{ ln.hasLink }}" hint-placeholder-val="{{ false }}">
+                      <a href="{{ ln.link }}" target="_blank" style="font-size:12px;font-weight:500;margin-top:3px;color:oklch(64% 0.16 50);text-decoration:none;">Visit site ↗</a>
+                    </sc-if>
+                  </div>
                 </div>
-              </div>
-            </sc-for>
-          </div>
-        </sc-for>
-        <sc-if value="{{ pv.hasTags }}" hint-placeholder-val="{{ false }}">
-          <div style="display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:22px;padding-top:14px;border-top:1px solid {{ thLine }};">
-            <sc-for list="{{ pv.tagItems }}" as="tg" hint-placeholder-count="2">
-              <span style="font-family:Inter,sans-serif;font-size:12.5px;font-weight:500;color:{{ thMuted }};"><span style="color:{{ thAccent }};font-weight:700;margin-right:2px;">#</span>{{ tg.name }}</span>
-            </sc-for>
-          </div>
-        </sc-if>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+        <div style="flex-shrink:0;height:52px;padding:0 10px 0 8px;display:flex;align-items:center;gap:2px;border-top:1px solid oklch(91.2% 0.006 80);">
+          <span style="width:40px;height:44px;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;color:oklch(41.5% 0.006 80);">♡</span>
+          <span style="width:40px;height:44px;display:flex;align-items:center;justify-content:center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg></span>
+          <span style="width:40px;height:44px;display:flex;align-items:center;justify-content:center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 2l4 4-4 4"></path><path d="M3 11V9a3 3 0 0 1 3-3h15"></path><path d="M7 22l-4-4 4-4"></path><path d="M21 13v2a3 3 0 0 1-3 3H3"></path></svg></span>
+          <span style="flex:1;"></span>
+          <span style="height:44px;padding:0 8px;display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:oklch(41.5% 0.006 80);">Share<svg width="16" height="16" viewBox="0 0 24 24" fill="oklch(41.5% 0.006 80)" stroke="oklch(41.5% 0.006 80)" strokeWidth="1" strokeLinejoin="round"><path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z"></path></svg></span>
+        </div>
       </div>
     </div>
   </sc-if>
@@ -380,30 +367,30 @@ class Component extends DCLogic {
     let h = 0; for (const c of domain) h = (h * 31 + c.charCodeAt(0)) >>> 0;
     return { link: url, domain, linkTitle: title, favLetter: title.charAt(0).toUpperCase(), favBg: this.FAVBG[h % this.FAVBG.length], fetching: false };
   }
-  _L(text, link) { return { id: this._id(), text, ...(link ? this._meta(link) : { link: '' }) }; }
+  _L(text, link, sub) { return { id: this._id(), text, sub: sub || '', ...(link ? this._meta(link) : { link: '' }) }; }
   _empty() { return { title: '', description: '', theme: 'default', tags: [], visibility: 'public', sections: [{ id: this._id(), headed: false, label: '', lines: [] }] }; }
   _sample() {
     return { title: 'Tokyo ramen worth the line', description: 'Five bowls from a week of eating nothing else, and one rule for all of them.', theme: 'default', tags: ['Food & Drink', 'Travel'], visibility: 'public', sections: [
       { id: this._id(), headed: false, label: '', lines: [
-        this._L('Fuunji — the tsukemen broth is thick enough to coat a spoon. Go at 11:00 sharp.', 'https://fuunji.jp'),
-        this._L('Skip the famous chain by the station. The line is for tourists, not the broth.'),
-        this._L('Nakiryu — Michelin-starred tantanmen for under ¥1,500.', 'https://tabelog.com/tokyo/A1323/A132301/13141542/'),
+        this._L('Fuunji', 'https://fuunji.jp', 'The tsukemen broth is thick enough to coat a spoon. Go at 11:00 sharp.'),
+        this._L('Skip the famous chain by the station', '', 'The line is for tourists, not the broth.'),
+        this._L('Nakiryu', 'https://tabelog.com/tokyo/A1323/A132301/13141542/', 'Michelin-starred tantanmen for under ¥1,500.'),
       ] },
       { id: this._id(), headed: true, label: 'If you only have one night', lines: [
-        this._L('Afuri in Ebisu — yuzu shio, light enough for a 1 a.m. bowl.', 'https://afuri.com'),
-        this._L("Bring cash. Half of these places don't take cards."),
+        this._L('Afuri in Ebisu', 'https://afuri.com', 'Yuzu shio, light enough for a 1 a.m. bowl.'),
+        this._L('Bring cash', '', "Half of these places don't take cards."),
       ] },
     ] };
   }
   _fromApp(a) {
-    const secs = (a.sections || []).map(sec => ({ id: this._id(), headed: !!(sec.label && String(sec.label).trim()), label: sec.label || '', lines: (sec.lines || []).map(ln => this._L(ln.text || '', ln.link || '')) }));
+    const secs = (a.sections || []).map(sec => ({ id: this._id(), headed: !!(sec.label && String(sec.label).trim()), label: sec.label || '', lines: (sec.lines || []).map(ln => this._L(ln.text || '', ln.link || '', ln.sub || '')) }));
     if (!secs.length) secs.push({ id: this._id(), headed: false, label: '', lines: [this._L('')] });
-    return { title: a.title || '', description: a.description || '', theme: 'default', tags: [...(a.tags || [])], visibility: a.visibility || 'public', forkedFromId: a.forkedFromId || null, sections: secs };
+    return { title: a.title || '', description: a.description || '', theme: 'default', tags: [], visibility: a.visibility || 'public', location: a.location || '', forkedFromId: a.forkedFromId || null, sections: secs };
   }
   _toApp(d) {
     const st = this.state && this.state.step;
-    return { step: ['title', 'description', 'build', 'review'].includes(st) ? st : 'build', title: d.title, description: d.description, tags: d.tags || [], visibility: d.visibility || 'public', forkedFromId: d.forkedFromId || null,
-      sections: d.sections.map(sec => ({ label: sec.headed ? sec.label : '', lines: sec.lines.map(ln => ({ text: ln.text, link: ln.link || '' })) })) };
+    return { step: ['title', 'description', 'build', 'review'].includes(st) ? st : 'build', title: d.title, description: d.description, tags: [], visibility: d.visibility || 'public', location: d.location || '', forkedFromId: d.forkedFromId || null,
+      sections: d.sections.map(sec => ({ label: sec.headed ? sec.label : '', lines: sec.lines.map(ln => ({ text: ln.text, sub: ln.sub || '', link: ln.link || '' })) })) };
   }
   addTag(name) {
     const t = (name || '').trim().replace(/^#/, '').replace(/,$/, '');
@@ -417,7 +404,7 @@ class Component extends DCLogic {
     else if (start === 'build-draft') { st.step = 'build'; st.draft = this._sample(); st.save = 'saved'; }
     else if (start === 'build-editing') {
       st.step = 'build'; st.draft = this._sample(); st.save = 'saving';
-      const l = { id: this._id(), text: 'Tsuta — truffle shoyu. Worth one visit, even if you queue alone.', link: 'https://tsuta.world', domain: 'tsuta.world', linkTitle: '', favLetter: '', favBg: 'oklch(88.5% 0.006 80)', fetching: true };
+      const l = { id: this._id(), text: 'Tsuta', sub: 'Truffle shoyu. Worth one visit, even if you queue alone.', link: 'https://tsuta.world', domain: 'tsuta.world', linkTitle: '', favLetter: '', favBg: 'oklch(88.5% 0.006 80)', fetching: true };
       st.draft.sections[1].lines.push(l); st.sel = { kind: 'line', id: l.id }; this._pending = l.id; this._scrollSel = true;
     }
     else if (start === 'review') { st.step = 'review'; st.draft = this._sample(); st.save = 'saved'; }
@@ -536,7 +523,7 @@ class Component extends DCLogic {
   }
   renderVals() {
     const s = this.state, d = s.draft;
-    const th = this.THEMES.find(t => t.id === d.theme) || this.THEMES[0];
+    const th = this.THEMES[0];
     const { n, k } = this._counts(d);
     const countLabel = n === 0 ? 'No lines yet' : n + (n === 1 ? ' line' : ' lines') + (k ? ' · ' + k + (k === 1 ? ' link' : ' links') : '');
     const sel = s.sel;
@@ -559,23 +546,28 @@ class Component extends DCLogic {
         const isSel = !!(sel && sel.kind === 'line' && sel.id === ln.id);
         const linkOpen = s.linkOpen === ln.id;
         return {
-          key: ln.id, num: String(num).padStart(2, '0'), text: ln.text,
+          key: ln.id, num: String(num).padStart(2, '0'), text: ln.text, sub: ln.sub || '', hasSub: !!(ln.sub || '').trim(),
+          divider: ln.id === sec.lines[sec.lines.length - 1].id ? 'none' : '1px solid oklch(91.2% 0.006 80)',
+          linkLabel: ln.fetching ? 'Fetching link…' : 'Visit site ↗',
+          subRef: this._ref('sub-' + ln.id),
+          onSub: (e) => { const v = e.target.value; this.upd(dd => this._mapLine(dd, ln.id, x => ({ ...x, sub: v }))); },
+          onSubKey: (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.addLine(sec.id, ln.id); } },
           display: ln.text || 'Empty line — tap to write', textColor: ln.text ? 'oklch(14.8% 0.006 80)' : 'oklch(58% 0.006 80)',
           isSel, notSel: !isSel,
           hasLink: !!ln.link && !linkOpen,
           linkTitle: ln.fetching ? 'Fetching title…' : ln.linkTitle, linkTitleColor: ln.fetching ? 'oklch(50.8% 0.006 80)' : 'oklch(19.4% 0.006 80)',
           domain: ln.domain, favLetter: ln.favLetter, favBg: ln.favBg,
           showLinkInput: isSel && linkOpen, showAddLink: isSel && !ln.link && !linkOpen,
-          placeholder: num === 1 ? 'Write your first line' : 'Write a line',
+          placeholder: num === 1 ? 'Heading for your first line' : 'Heading',
           ref: this._ref(ln.id), linkRef: this._ref('link-' + ln.id),
           onSelect: () => { this._focus = ln.id; this.setState({ sel: { kind: 'line', id: ln.id }, linkOpen: null }); },
           onText: (e) => { const v = e.target.value; this.upd(dd => this._mapLine(dd, ln.id, x => ({ ...x, text: v }))); },
-          onKey: (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.addLine(sec.id, ln.id); } },
+          onKey: (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this._focus = 'sub-' + ln.id; this.forceUpdate(); } },
           onOpenLink: () => { this._focus = 'link-' + ln.id; this.setState({ linkOpen: ln.id, linkDraft: '' }); },
           onLinkPaste: (e) => { const t = (e.clipboardData && e.clipboardData.getData('text')) || ''; if (t.trim()) { e.preventDefault(); this.submitLink(ln.id, t); } },
           onLinkKey: (e) => { if (e.key === 'Enter') { e.preventDefault(); this.submitLink(ln.id, this.state.linkDraft); } },
           onLinkDone: () => this.submitLink(ln.id, this.state.linkDraft),
-          onRemoveLink: () => this.upd(dd => this._mapLine(dd, ln.id, x => ({ id: x.id, text: x.text, link: '' }))),
+          onRemoveLink: () => this.upd(dd => this._mapLine(dd, ln.id, x => ({ id: x.id, text: x.text, sub: x.sub || '', link: '' }))),
           onUp: () => this.moveLine(ln.id, -1), onDown: () => this.moveLine(ln.id, 1),
           upOp: ln.id === firstId ? 0.35 : 1, downOp: ln.id === lastId ? 0.35 : 1,
           onDelete: () => this.deleteLine(ln.id),
@@ -594,14 +586,18 @@ class Component extends DCLogic {
       })),
     }));
     let pn = 0;
-    const pvSections = d.sections.map(sec => ({
-      key: sec.id, headed: sec.headed && !!sec.label.trim(), label: sec.label,
-      lines: sec.lines.filter(l => l.text.trim() || l.link).map(ln => ({ key: ln.id, num: String(++pn).padStart(2, '0'), text: ln.text, hasLink: !!ln.link && !ln.fetching, linkTitle: ln.linkTitle, domain: ln.domain, favLetter: ln.favLetter, favBg: ln.favBg })),
-    }));
+    const pvSections = d.sections.map(sec => {
+      const ls = sec.lines.filter(l => l.text.trim() || l.link);
+      const headed = sec.headed && !!sec.label.trim();
+      const headPad = pn === 0 ? '0 0 8px' : '18px 0 8px';
+      return { key: sec.id, headed, label: sec.label, headPad,
+        lines: ls.map((ln, i) => ({ key: ln.id, num: String(++pn).padStart(2, '0'), text: ln.text || ln.linkTitle || ln.domain, sub: ln.sub || '', hasSub: !!(ln.sub || '').trim(), hasLink: !!ln.link && !ln.fetching, link: ln.link, divider: i === ls.length - 1 ? 'none' : '1px solid oklch(91.2% 0.006 80)' })) };
+    });
     const isPreview = s.step === 'review' && s.mode === 'preview';
     const hasDraft = this._hasContent(d);
     return {
-      screenBg: isPreview ? th.bg : 'oklch(99.6% 0.002 80)',
+      screenBg: isPreview ? 'oklch(96.5% 0.004 80)' : 'oklch(99.6% 0.002 80)',
+      updatedLabel: 'Updated ' + new Date().toLocaleString('en-US', { month: 'short', year: 'numeric' }) + (n ? ' · ' + n + (n === 1 ? ' line' : ' lines') : ''),
       showHeader: ['title', 'description', 'build'].includes(s.step) || (s.step === 'review' && !isPreview),
       statusText: s.save === 'saving' ? 'Saving…' : s.save === 'saved' ? 'Saved just now' : 'New draft',
       statusDot: s.save === 'saving' ? 'oklch(76% 0.12 80)' : s.save === 'saved' ? 'oklch(62% 0.12 150)' : 'oklch(80% 0.006 80)',
@@ -650,10 +646,11 @@ class Component extends DCLogic {
       newStack: () => this.setState({ ...this._seed('title'), toast: '' }),
       reopen: () => this.setState({ step: 'build', sel: null, mode: 'arrange' }),
       hasDraft, noDraft: !hasDraft,
+      location: d.location || '', onLocation: (e) => { const v = e.target.value; this.upd(dd => ({ ...dd, location: v })); },
       toast: s.toast,
-      visOptions: [['public', 'Public', 'Anyone can find it on your profile and in search'], ['unlisted', 'Unlisted', 'Only people with the link'], ['private', 'Private', 'Only you']].map(([k, label, desc], i) => { const on = (d.visibility || 'public') === k; return { key: k, label, desc, onPick: () => this.upd(dd => ({ ...dd, visibility: k })), ring: on ? 'oklch(64% 0.16 50)' : 'oklch(80% 0.006 80)', dot: on ? 'oklch(64% 0.16 50)' : 'transparent', weight: on ? 700 : 600, divider: i ? '1px solid oklch(93% 0.006 80)' : 'none' }; }),
+      visOptions: [['public', 'Public', 'Anyone can find it on your profile and in search'], ['unlisted', 'Invite Only', 'Only people you invite or share the link with'], ['private', 'Private', 'Only you']].map(([k, label, desc], i) => { const on = (d.visibility || 'public') === k; return { key: k, label, desc, onPick: () => this.upd(dd => ({ ...dd, visibility: k })), ring: on ? 'oklch(64% 0.16 50)' : 'oklch(80% 0.006 80)', dot: on ? 'oklch(64% 0.16 50)' : 'transparent', weight: on ? 700 : 600, divider: i ? '1px solid oklch(93% 0.006 80)' : 'none' }; }),
       pv: { hasTags: (d.tags || []).length > 0, tagItems: (d.tags || []).map(t => ({ key: t, name: t })) },
-      visLabel: { public: 'Public', unlisted: 'Unlisted', private: 'Private' }[d.visibility || 'public'],
+      visLabel: { public: 'Public', unlisted: 'Invite Only', private: 'Private' }[d.visibility || 'public'],
       stepNum: ({ title: 1, description: 2, build: 3, review: 4 })[s.step] || 1, stepName: ({ title: 'Title', description: 'Description', build: 'Build', review: 'Finalize' })[s.step] || 'Title',
       progSegs: [1, 2, 3, 4].map(i => ({ key: i, bg: i <= (({ title: 1, description: 2, build: 3, review: 4 })[s.step] || 1) ? 'oklch(64% 0.16 50)' : 'oklch(91.8% 0.006 80)' })),
       visHint: { public: 'Shows on your profile, in search, and to anyone with the link.', unlisted: 'Only people with the link can open it.', private: 'Only you can see it.' }[d.visibility || 'public'],
