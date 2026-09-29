@@ -134,8 +134,15 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
         };
         const sb = createClient();
         let { data, error } = await sb.rpc("save_stack", { ...args, p_location: w.location.trim() });
-        // Before the line_notes_location migration runs, save_stack has no p_location (notes are dropped too).
-        if (error?.code === "PGRST202") ({ data, error } = await sb.rpc("save_stack", args));
+        // Before the line_notes_location migration runs, save_stack has no p_location and the database drops
+        // line notes. Keep them by writing "Line — note", which stacks show as the same head and gray note.
+        if (error?.code === "PGRST202") {
+          const folded = w.sections.map((sec) => ({
+            label: sec.headed ? sec.label : "",
+            lines: sec.lines.map((l) => ({ text: (l.note.trim() && l.text.trim() ? `${l.text.trim()} — ${l.note.trim()}` : l.text).slice(0, MAX_LINE), link: l.link || null })),
+          }));
+          ({ data, error } = await sb.rpc("save_stack", { ...args, p_sections: folded }));
+        }
         if (error) return error.message;
         idRef.current = data as string;
         return null;
