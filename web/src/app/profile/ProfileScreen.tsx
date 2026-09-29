@@ -6,7 +6,6 @@ import { useState } from "react";
 import { useAuth, useToast } from "@/components/AppProviders";
 import { SearchIcon } from "@/components/icons";
 import { ProfileShareButton } from "@/components/ProfileShare";
-import { ListCard } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
 import cards from "@/components/Cards.module.css";
 import { plural } from "@/lib/format";
@@ -19,7 +18,7 @@ import MyStacks from "./MyStacks";
 import { ProfileBar, ProfileFooter, ProfileHero } from "./ProfileHead";
 import p from "./Profile.module.css";
 
-export type ProfileTab = "mine" | "saved" | "forked" | "reposts" | "drafts";
+export type ProfileTab = "mine" | "saved" | "reposts" | "drafts";
 type Data = { mine: Stack[]; saved: Stack[]; reposts: MyRepost[]; drafts: StackRow[]; counts: { followers: number; following: number } };
 
 export default function ProfileScreen({ data, initialTab }: { data: Data | null; initialTab: ProfileTab }) {
@@ -36,8 +35,8 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
     return (
       <main className={`${shell.screen} ${p.gate}`}>
         <h1 className={p.gateTitle}>Sign in to see your profile</h1>
-        <div className={p.gateText}>Create a free account to save your lists, follow people, and track your forks.</div>
-        <button className={p.gateButton} onClick={() => requireAuth(null, "Create a free account to save your lists, follow people, and track your forks.")}>
+        <div className={p.gateText}>Create a free account to save your lists and follow people.</div>
+        <button className={p.gateButton} onClick={() => requireAuth(null, "Create a free account to save your lists and follow people.")}>
           Sign in / Create account
         </button>
       </main>
@@ -48,7 +47,6 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
     color: tab === t ? "var(--text)" : "var(--muted-56)",
     borderBottomColor: tab === t ? "var(--accent)" : "transparent",
   });
-  const forked = data.mine.filter((x) => x.forked_from_id);
   const hasContact = !!(viewer.featured_link_label && viewer.featured_link_url);
 
   return (
@@ -82,7 +80,6 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
               [
                 ["mine", "Stacks"],
                 ["saved", "Saved"],
-                ["forked", "Forked"],
                 ["reposts", "Reposts"],
                 ["drafts", "Drafts" + (data.drafts.length ? ` · ${data.drafts.length}` : "")],
               ] as const
@@ -98,14 +95,6 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
           {tab === "saved" && <Saved saved={data.saved} />}
           {tab === "mine" && <MyStacks profile={viewer} stacks={data.mine} />}
           {tab === "reposts" && <Reposts reposts={data.reposts} />}
-          {tab === "forked" && (
-            <>
-              {forked.map((st) => (
-                <ListCard key={st.id} stack={st} />
-              ))}
-              {forked.length === 0 && <div className={cards.empty}>Nothing here yet.</div>}
-            </>
-          )}
         </div>
         <ProfileFooter />
       </div>

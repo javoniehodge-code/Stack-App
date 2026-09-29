@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useStackActions } from "@/lib/useStackActions";
 import { useAuth, useToast } from "./AppProviders";
 import CommentBody from "./CommentBody";
-import { BookmarkIcon, ForkIcon, RepostIcon } from "./icons";
+import { BookmarkIcon, RepostIcon } from "./icons";
 import { MentionList, useMentions } from "./Mentions";
 import { RepostButton, RepostGlyph } from "./Repost";
 import { ShareButton } from "./Share";
@@ -45,7 +45,7 @@ function AuthorRow({ stack }: { stack: Stack }) {
   );
 }
 
-/** Like · save · fork · [extra] · share. The feed's bar (`feed`) is like · save · repost · Share, with no fork. */
+/** Like · save · [extra] · share. The feed's bar (`feed`) is like · save · repost · Share. */
 export function ActionRow({ stack, extra, feed }: { stack: Stack; extra?: React.ReactNode; feed?: boolean }) {
   const e = useEngagement(stack);
   const a = useStackActions();
@@ -61,14 +61,7 @@ export function ActionRow({ stack, extra, feed }: { stack: Stack; extra?: React.
         <BookmarkIcon size={feed ? 16 : 13} color={saveColor} filled={e.saved} />
         {fmtCount(e.saves)}
       </button>
-      {feed ? (
-        <RepostButton stack={stack} className={s.action} size={16} count={fmtCount} />
-      ) : (
-        <button className={s.action} style={{ color: "var(--muted-66)" }} onClick={() => a.fork(stack.id)} aria-label="Fork">
-          <ForkIcon size={13} />
-          {fmtCount(stack.forks_count)}
-        </button>
-      )}
+      {feed && <RepostButton stack={stack} className={s.action} size={16} count={fmtCount} />}
       {extra}
       <ShareButton stack={stack} className={s.copy} size={16} label={feed ? "Share" : undefined} />
     </div>
@@ -348,10 +341,6 @@ export function ListCard({ stack, following = false }: { stack: Stack; following
           <span style={{ fontSize: 14, lineHeight: 1 }}>{e.liked ? "♥" : "♡"}</span>
           {fmtCount(e.likes)}
         </button>
-        <span className={s.lcAction} style={{ color: "var(--muted-66)" }}>
-          <span style={{ fontSize: 13, lineHeight: 1 }}>⑂</span>
-          {fmtCount(stack.forks_count)}
-        </span>
         <span style={{ flex: 1 }} />
         <button className={s.lcAction} style={{ color: saveColor }} onClick={() => a.toggleSave(stack.id, e)} aria-pressed={e.saved} aria-label={e.saved ? "Unsave" : "Save"}>
           <span style={{ fontSize: 13, lineHeight: 1 }}>{e.saved ? "◆" : "◇"}</span>
@@ -398,10 +387,6 @@ export function GridCard({ stack, pinned = false }: { stack: Stack; pinned?: boo
         <span className={s.gridStat}>
           <BookmarkIcon size={11} color="var(--muted-66)" filled={false} width={2.2} />
           {fmtCount(e.saves)}
-        </span>
-        <span className={s.gridStat}>
-          <ForkIcon size={11} width={2.2} />
-          {fmtCount(stack.forks_count)}
         </span>
         <VisibilityBadge value={visibility} />
       </div>

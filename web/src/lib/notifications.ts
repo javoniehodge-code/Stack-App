@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export type NotificationType = "comment" | "reply" | "mention" | "like" | "save" | "fork" | "follow" | "repost";
 
 /** Filter chips; "comment" also covers replies and mentions. */
-export type NotificationFilter = "comment" | "like" | "save" | "fork" | "repost";
+export type NotificationFilter = "comment" | "like" | "save" | "repost";
 
 export type Notification = {
   id: string;
@@ -37,7 +37,8 @@ const missingTable = (code?: string) => code === "42P01" || code === "PGRST205";
 
 /** One page, newest first. `before` is the last row of the previous page. */
 export async function fetchNotifications(sb: SupabaseClient, opts: { type: NotificationFilter | null; before: Cursor | null }) {
-  let q = sb.from("notifications").select(SELECT);
+  // Forking has been removed from the app, so older fork notifications stay hidden.
+  let q = sb.from("notifications").select(SELECT).neq("type", "fork");
   if (opts.type === "comment") q = q.in("type", ["comment", "reply", "mention"]);
   else if (opts.type) q = q.eq("type", opts.type);
   if (opts.before) {
@@ -53,7 +54,7 @@ export async function fetchNotifications(sb: SupabaseClient, opts: { type: Notif
 }
 
 export async function fetchUnreadCount(sb: SupabaseClient) {
-  const { count, error } = await sb.from("notifications").select("id", { count: "exact", head: true }).is("read_at", null);
+  const { count, error } = await sb.from("notifications").select("id", { count: "exact", head: true }).is("read_at", null).neq("type", "fork");
   return error ? 0 : (count ?? 0);
 }
 

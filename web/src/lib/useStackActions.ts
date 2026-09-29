@@ -1,13 +1,11 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useAuth, useToast } from "@/components/AppProviders";
 import { createClient } from "./supabase/client";
 import { setEngagement, setFollowing, type Engagement } from "./store";
 import type { Author } from "./types";
 
 export function useStackActions() {
-  const router = useRouter();
   const { viewer, requireAuth } = useAuth();
   const toast = useToast();
   const sb = createClient();
@@ -72,7 +70,6 @@ export function useStackActions() {
           }
         });
       }, "Sign in to follow people and build your own feed."),
-    fork: (id: string) => router.push(`/create?fork=${id}`),
     authorHref: (a: Author) => (viewer && a.id === viewer.id ? "/profile" : `/u/${a.handle}`),
   };
 }
