@@ -159,6 +159,13 @@
   color: var(--warn);
 }
 
+.promptFooter {
+  padding: 10px 20px calc(20px + var(--safe-bottom));
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 /* ── Step 3: build, edit in place ── */
 .scroll {
   flex: 1;
@@ -627,23 +634,55 @@
 }
 
 /* ── Step 4: finalize ── */
-.backLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  height: 36px;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--muted-72);
-  margin-left: -4px;
-}
-
 .finalHeading {
   font-size: 22px;
   font-weight: 800;
   color: var(--text);
   letter-spacing: -0.3px;
-  margin: 6px 0 20px;
+  margin: 16px 0;
+}
+
+.previewCard {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: oklch(96.5% 0.02 60);
+  border: 1px solid oklch(90% 0.04 60);
+  margin-bottom: 14px;
+  text-align: left;
+}
+
+.previewIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.previewText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.previewTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.previewSub {
+  font-size: 12.5px;
+  color: var(--muted-66);
+  margin-top: 1px;
 }
 
 .card {

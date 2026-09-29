@@ -520,6 +520,16 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
           </button>
         </div>
       )}
+      {step === "description" && (
+        <footer className={s.promptFooter}>
+          <button className={s.back} onClick={() => setStep("title")}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M14.5 5.5L8 12l6.5 6.5" />
+            </svg>
+            Back
+          </button>
+        </footer>
+      )}
 
       {step === "build" && (
         <>
@@ -785,13 +795,22 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
       {step === "review" && !preview && (
         <>
           <div className={s.scroll} style={{ paddingTop: 10 }}>
-            <button className={s.backLink} onClick={() => setStep("build")}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M14.5 5.5L8 12l6.5 6.5" />
-              </svg>
-              Back to editing
-            </button>
             <h1 className={s.finalHeading}>Finalize</h1>
+            <button className={s.previewCard} onClick={() => setPreview(true)}>
+              <span className={s.previewIcon}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </span>
+              <span className={s.previewText}>
+                <span className={s.previewTitle}>Preview your Stack</span>
+                <span className={s.previewSub}>See exactly what visitors will see</span>
+              </span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted-66)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M9.5 5.5L16 12l-6.5 6.5" />
+              </svg>
+            </button>
 
             <div className={s.card} style={{ paddingBottom: 8 }}>
               <div className={s.cardLabel}>Privacy</div>
@@ -861,8 +880,11 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
             {!n && <div className={s.cantPublish}>Add a line with some text to publish.</div>}
           </div>
           <footer className={s.footer}>
-            <button className={s.secondary} style={{ flex: 1 }} onClick={() => setPreview(true)}>
-              Preview
+            <button className={s.back} onClick={() => setStep("build")}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M14.5 5.5L8 12l6.5 6.5" />
+              </svg>
+              Back
             </button>
             <button className={s.primary} style={{ flex: 1 }} aria-disabled={!n} disabled={busy} onClick={publish}>
               {busy ? "Publishing…" : "Publish"}
