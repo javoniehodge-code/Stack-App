@@ -401,7 +401,8 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
           <button className={s.primary} onClick={() => share(published)}>
             Share
           </button>
-          <Link href={`/s/${published}`} className={s.secondary}>
+          {/* Replace, so leaving the stack page doesn't land back in the finished create flow. */}
+          <Link href={`/s/${published}?from=create`} replace className={s.secondary}>
             View your Stack
           </Link>
           <button className={s.quiet} onClick={startOver}>

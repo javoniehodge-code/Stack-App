@@ -24,7 +24,18 @@ import s from "./Detail.module.css";
 const noCount = () => "";
 
 /** A stack as a paper card, with its actions in the card's bottom bar and comments in a sheet. */
-export default function DetailScreen({ stack, following, openComposer }: { stack: Stack; following: boolean; openComposer: boolean }) {
+export default function DetailScreen({
+  stack,
+  following,
+  openComposer,
+  fromCreate = false,
+}: {
+  stack: Stack;
+  following: boolean;
+  openComposer: boolean;
+  /** Opened from "View your Stack" after publishing: show Exit (to your profile) instead of Back. */
+  fromCreate?: boolean;
+}) {
   const back = useBack();
   const { viewer, requireAuth } = useAuth();
   const toast = useToast();
@@ -138,10 +149,19 @@ export default function DetailScreen({ stack, following, openComposer }: { stack
   return (
     <main className={`${shell.screen} ${s.page}`}>
       <div className={s.topRow}>
-        <button onClick={back} className={s.back}>
-          <BackIcon />
-          Back
-        </button>
+        {fromCreate ? (
+          <button onClick={() => router.replace("/profile")} className={s.back}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+              <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />
+            </svg>
+            Exit
+          </button>
+        ) : (
+          <button onClick={back} className={s.back}>
+            <BackIcon />
+            Back
+          </button>
+        )}
         {mine && <VisibilityPill value={visibility} onClick={() => vis.open(stack)} />}
       </div>
 
