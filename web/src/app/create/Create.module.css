@@ -968,10 +968,19 @@
 
 /* ── Published ── */
 .done {
+  position: relative;
   align-items: center;
   justify-content: center;
   padding: 0 32px;
   text-align: center;
+}
+
+/* Exit on the "Your Stack is live" screen goes to your profile */
+.doneExit {
+  position: absolute;
+  top: calc(var(--safe-top) + 8px);
+  left: 8px;
+  z-index: 5;
 }
 
 .doneIcon {

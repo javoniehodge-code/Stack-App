@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useAuth, useToast } from "@/components/AppProviders";
-import sheet from "@/components/Sheet.module.css";
 import { GridCard } from "@/components/StackCards";
 import { VIS } from "@/components/Visibility";
 import { plural, timeAgo } from "@/lib/format";
@@ -11,8 +10,6 @@ import { fetchProfile } from "@/lib/queries";
 import { useVisibility } from "@/lib/store";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile, Stack } from "@/lib/types";
-import Featured from "./Featured";
-import f from "./Featured.module.css";
 import m from "./MyStacks.module.css";
 
 const meta = (st: Stack) => {
@@ -20,7 +17,7 @@ const meta = (st: Stack) => {
   return `${plural(st.line_count, "line")} · Updated ${when === "just now" ? when : `${when} ago`}`;
 };
 
-/** Your own Stacks tab: featured stack, then all stacks as a grid (a list with controls while reordering). */
+/** Your own Stacks tab: all stacks as a grid (a list with controls while reordering). */
 export default function MyStacks({ profile, stacks }: { profile: Profile; stacks: Stack[] }) {
   const toast = useToast();
   const { setViewer } = useAuth();
@@ -34,9 +31,6 @@ export default function MyStacks({ profile, stacks }: { profile: Profile; stacks
   const rows = order.map((id) => byId.get(id)).filter((s): s is Stack => !!s);
 
   const [reordering, setReordering] = useState(false);
-  const [sheetOpen, setSheetOpen] = useState<null | "pin">(null);
-  const [pinDraft, setPinDraft] = useState<string | null>(null);
-  const [noteDraft, setNoteDraft] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function updateProfile(fields: Partial<Profile>) {
@@ -68,18 +62,10 @@ export default function MyStacks({ profile, stacks }: { profile: Profile; stacks
     }
   }
 
-  function openPin() {
-    setPinDraft(profile.pinned_stack_id ?? rows[0]?.id ?? null);
-    setNoteDraft(profile.pin_note);
-    setSheetOpen("pin");
-  }
-
   return (
     <div className={m.wrap}>
-      <Featured profile={profile} stacks={stacks} onChange={openPin} />
-
       <div className={m.listHead}>
-        <span className={f.sectionLabel} style={{ margin: 0 }}>
+        <span className={m.sectionLabel} style={{ margin: 0 }}>
           All stacks
         </span>
         {rows.length > 0 && (
@@ -117,8 +103,8 @@ export default function MyStacks({ profile, stacks }: { profile: Profile; stacks
                   className={m.control}
                   disabled={busy}
                   onClick={() => updateProfile({ pinned_stack_id: pinned ? null : st.id })}
-                  title={pinned ? "Unpin" : "Pin to featured"}
-                  aria-label={pinned ? "Unpin" : "Pin to featured"}
+                  title={pinned ? "Unpin" : "Pin"}
+                  aria-label={pinned ? "Unpin" : "Pin"}
                   aria-pressed={pinned}
                   style={pinned ? { background: "oklch(91.8% 0.03 60)", borderColor: "oklch(60% 0.03 60)" } : undefined}
                 >
@@ -141,49 +127,9 @@ export default function MyStacks({ profile, stacks }: { profile: Profile; stacks
             </div>
           );
         })}
-      {reordering && <div className={m.hint}>Use the arrows to set the order visitors see. Tap the pin to feature a stack.</div>}
+      {reordering && <div className={m.hint}>Use the arrows to set the order visitors see. Tap the pin to highlight a stack.</div>}
       {rows.length === 0 && <div className={m.empty}>No stacks yet.</div>}
 
-      {sheetOpen === "pin" && (
-        <div className={sheet.scrim} onClick={() => setSheetOpen(null)}>
-          <div className={sheet.sheet} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="pin-title">
-            <div className={sheet.grabber} />
-            <div id="pin-title" className={m.sheetTitle}>
-              Pin a stack
-            </div>
-            <div className={m.sheetText}>Shows at the top of your profile. Change it anytime.</div>
-            {rows.map((st) => {
-              const on = st.id === pinDraft;
-              return (
-                <button key={st.id} className={m.choice} onClick={() => setPinDraft(st.id)} aria-pressed={on} style={{ background: on ? "oklch(91.8% 0.03 60)" : "transparent" }}>
-                  <span className={m.rowMain}>
-                    <span className={m.choiceTitle}>{st.title}</span>
-                    <span className={m.choiceMeta}>{meta(st)}</span>
-                  </span>
-                  <span className={m.radio} style={{ borderColor: on ? "var(--accent)" : "var(--handle)" }}>
-                    <span style={{ background: on ? "var(--accent)" : "transparent" }} />
-                  </span>
-                </button>
-              );
-            })}
-            {rows.length === 0 && <div className={m.sheetText}>Publish a stack first, then pin it here.</div>}
-            <label className={m.fieldLabel} htmlFor="pin-note" style={{ margin: "16px 0 6px" }}>
-              Caption
-            </label>
-            <input id="pin-note" className={m.field} value={noteDraft} maxLength={60} onChange={(e) => setNoteDraft(e.target.value)} placeholder="One line on why this one" />
-            <button
-              className={sheet.primary}
-              style={{ marginTop: 16 }}
-              disabled={busy}
-              onClick={async () => {
-                if (await updateProfile({ pinned_stack_id: pinDraft, pin_note: noteDraft.trim() })) setSheetOpen(null);
-              }}
-            >
-              Save
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

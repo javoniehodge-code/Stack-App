@@ -111,7 +111,6 @@ export default function DetailScreen({
     mentions.close();
   }
 
-  const first = comments[0];
   const author = (
     <div className={s.authorRow}>
       <Link href={a.authorHref(stack.author)} className={s.authorLink}>
@@ -132,6 +131,18 @@ export default function DetailScreen({
         <BookmarkIcon size={17} color={saveColor} filled={e.saved} />
       </button>
       <RepostButton stack={stack} className={s.barButton} size={17} count={noCount} />
+      <button
+        className={s.commentsButton}
+        style={{ color: sheetOpen ? "var(--accent)" : "var(--muted-66)" }}
+        onClick={() => setSheetOpen((o) => !o)}
+        aria-expanded={sheetOpen}
+        aria-label={comments.length ? `Comments, ${comments.length}` : "Comments"}
+      >
+        <svg width="17" height="17" viewBox="0 0 24 24" fill={sheetOpen ? "oklch(64% 0.16 50 / 0.15)" : "none"} stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden>
+          <path d="M20.5 11.5a8 8 0 0 1-11.6 7.1L3.5 20l1.4-4.6A8 8 0 1 1 20.5 11.5z" />
+        </svg>
+        {comments.length > 0 && comments.length}
+      </button>
       <span style={{ flex: 1 }} />
       <ShareButton
         stack={stack}
@@ -170,17 +181,6 @@ export default function DetailScreen({
         lines={lines}
         footer={footer}
       />
-
-      <button className={s.commentsPill} onClick={() => setSheetOpen(true)}>
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--muted-66)" strokeWidth="2" strokeLinejoin="round" aria-hidden style={{ flexShrink: 0 }}>
-          <path d="M20.5 11.5a8 8 0 0 1-11.6 7.1L3.5 20l1.4-4.6A8 8 0 1 1 20.5 11.5z" />
-        </svg>
-        <span className={s.pillLabel}>{comments.length ? `Show comments · ${comments.length}` : "Add a comment"}</span>
-        <span className={s.pillPreview}>{first ? `@${first.author?.handle ?? "deleted"}: ${first.body}` : ""}</span>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--muted-66)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={{ flexShrink: 0 }}>
-          <path d="M6 14.5l6-6 6 6" />
-        </svg>
-      </button>
 
       {sheetOpen && (
         <div className={s.scrim} onClick={() => setSheetOpen(false)}>

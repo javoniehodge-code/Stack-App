@@ -37,7 +37,8 @@ export default function TabBar() {
   const router = useRouter();
   const { viewer, requireAuth } = useAuth();
   const unread = useUnreadCount(path);
-  if (path.startsWith("/create")) return null;
+  // The create flow and stack pages are full screen.
+  if (path.startsWith("/create") || path.startsWith("/s/")) return null;
   const c = (active: boolean) => (active ? ON : OFF);
   return (
     <nav className={styles.tabBar} aria-label="Main">

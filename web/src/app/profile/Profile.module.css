@@ -309,131 +309,199 @@
   overflow-y: auto;
 }
 
+/* Profile header: avatar beside the names and counts */
 .hero {
-  padding: 28px 24px 4px;
+  padding: 18px 20px 4px;
+}
+
+.heroTop {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
+  gap: 14px;
 }
 
 .heroAvatar {
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background: var(--accent);
   color: var(--on-accent);
   font-weight: 700;
-  font-size: 28px;
+  font-size: 21px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+
+.heroNames {
+  flex: 1;
+  min-width: 0;
 }
 
 .heroName {
-  margin: 14px 0 0;
+  margin: 0;
   font-weight: 700;
-  font-size: 21px;
-  color: oklch(17.5% 0.006 80);
-  letter-spacing: -0.2px;
-  overflow-wrap: anywhere;
-}
-
-.heroHandle {
-  font-size: 13px;
-  color: oklch(43.4% 0.006 80);
-  margin-top: 3px;
-}
-
-.heroBio {
-  font-size: 14px;
-  color: var(--text-2);
-  line-height: 1.5;
-  margin-top: 12px;
-  max-width: 300px;
-  text-wrap: pretty;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.actions {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  max-width: 330px;
-  margin-top: 18px;
-}
-
-.actionButton,
-.contact,
-.contactMine,
-.addContact {
-  flex: 1;
-  min-width: 0;
-  height: 46px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 0 12px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.actionButton {
-  max-width: 160px;
-}
-
-.editProfile {
-  border: 1px solid var(--handle);
-  color: var(--text);
-}
-
-.contact {
-  border: 1px solid var(--handle);
-  color: var(--text);
-}
-
-.contactMine {
-  background: var(--accent);
-  color: var(--on-accent);
-}
-
-.contact span,
-.contactMine span {
+  font-size: 18px;
+  line-height: 1.2;
+  color: var(--text-bright);
+  letter-spacing: -0.3px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.addContact {
-  border: 1.5px dashed var(--line-4);
-  font-size: 13.5px;
-  font-weight: 400;
-  color: oklch(43.4% 0.006 80);
+.heroHandle {
+  font-size: 12.5px;
+  color: var(--muted-60);
+  margin-top: 1px;
 }
 
 .heroStats {
   display: flex;
-  justify-content: center;
-  gap: 18px;
-  margin-top: 18px;
-  font-size: 12.5px;
-  color: var(--muted-72);
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted-66);
 }
 
 .heroStats strong {
   color: var(--text);
+  font-weight: 700;
 }
 
-.featured {
-  padding: 26px 20px 0;
+.heroBio {
+  font-size: 13.5px;
+  color: var(--text-2);
+  line-height: 1.5;
+  margin-top: 12px;
+  text-wrap: pretty;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Edit profile / Follow, and Connect */
+.actions {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.actionButton {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.outline {
+  border: 1px solid var(--handle);
+  color: var(--text);
+}
+
+.chevron,
+.chevronOpen {
+  transition: transform 0.15s;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.connectScrim {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+}
+
+.connectMenu {
+  position: absolute;
+  top: 44px;
+  left: 0;
+  right: 0;
+  z-index: 31;
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.14);
+  overflow: hidden;
+}
+
+.connectItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 50px;
+  padding: 0 14px;
+  border-top: 1px solid oklch(91.2% 0.006 80);
+}
+
+.connectItem:first-child {
+  border-top-color: transparent;
+}
+
+.connectItem:hover,
+.connectEdit:hover {
+  background: oklch(96.5% 0.004 80);
+}
+
+.connectLabel {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: oklch(17.5% 0.006 80);
+}
+
+.connectSub {
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+  font-size: 12.5px;
+  color: var(--muted-60);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.connectArrow {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--muted-60);
+}
+
+.connectEmpty {
+  min-height: 50px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  font-size: 13.5px;
+  color: var(--muted-60);
+}
+
+.connectEdit {
+  min-height: 48px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  border-top: 1px solid oklch(91.2% 0.006 80);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--accent);
+  text-align: left;
 }
 
 .tabBar {
-  padding: 22px 20px 0;
+  padding: 16px 20px 0;
   border-bottom: 1px solid var(--line);
 }
 
@@ -496,4 +564,32 @@
 .repostHandle {
   color: var(--accent);
   font-weight: 600;
+}
+
+/* "@" before the username in Edit profile */
+.handleField {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  margin-bottom: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  font-size: 14px;
+  color: var(--muted-60);
+}
+
+.handleField:focus-within {
+  border-color: var(--accent);
+}
+
+.handleField input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 0 12px 1px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text);
 }

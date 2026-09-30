@@ -15,7 +15,7 @@ import { BookmarkIcon, RepostIcon } from "./icons";
 import { MentionList, useMentions } from "./Mentions";
 import { RepostButton, RepostGlyph } from "./Repost";
 import { ShareButton } from "./Share";
-import { VisibilityBadge } from "./Visibility";
+import { VIS, VisIcon } from "./Visibility";
 import s from "./Cards.module.css";
 
 const stop = (e: React.SyntheticEvent) => e.stopPropagation();
@@ -351,17 +351,16 @@ export function ListCard({ stack, following = false }: { stack: Stack; following
   );
 }
 
-/** Your own profile's two-column grid tile: title, first 5 lines, counts, and a pin badge when featured. */
-/** Your own profile's compact card; unlisted and private stacks get a tag. */
+/** Your own profile's square tile: title, first 3 lines, line count and who can see it. Pinned stacks get a pin. */
 export function GridCard({ stack, pinned = false }: { stack: Stack; pinned?: boolean }) {
   const open = useOpen(stack.id);
-  const e = useEngagement(stack);
   const visibility = useVisibility(stack);
   const lines = flatten(stack);
+  const visColor = visibility === "public" ? "var(--muted-66)" : "var(--warn)";
   return (
     <div className={`${s.gridCard} ${pinned ? s.gridCardPinned : ""}`} {...open}>
       {pinned && (
-        <span className={s.gridPin} title="Featured" aria-label="Featured">
+        <span className={s.gridPin} title="Pinned" aria-label="Pinned">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="var(--accent)" stroke="var(--accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M12 17v5" />
             <path d="M9 10.8V4h6v6.8l3 3.2H6z" />
@@ -372,23 +371,18 @@ export function GridCard({ stack, pinned = false }: { stack: Stack; pinned?: boo
         {stack.title}
       </div>
       <div className={s.gridLines}>
-        {lines.slice(0, 5).map((l, i) => (
+        {lines.slice(0, 3).map((l, i) => (
           <div key={i} className={s.lineClip}>
             <span className={s.num}>{l.num}</span> {l.text}
           </div>
         ))}
       </div>
-      {lines.length > 5 && <div className={s.gridMore}>+ {lines.length - 5} more</div>}
       <div className={s.gridStats}>
-        <span className={s.gridStat}>
-          <span style={{ fontSize: 12, lineHeight: 1 }}>♡</span>
-          {fmtCount(e.likes)}
+        <span className={s.gridCount}>{plural(lines.length, "line")}</span>
+        <span className={s.gridVis} style={{ color: visColor }}>
+          <VisIcon value={visibility} size={11} color={visColor} />
+          {VIS[visibility].label}
         </span>
-        <span className={s.gridStat}>
-          <BookmarkIcon size={11} color="var(--muted-66)" filled={false} width={2.2} />
-          {fmtCount(e.saves)}
-        </span>
-        <VisibilityBadge value={visibility} />
       </div>
     </div>
   );

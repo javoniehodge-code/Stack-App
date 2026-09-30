@@ -101,6 +101,8 @@ Add new app-only features to this list as they ship.
   the domain. The app doesn't fetch page titles or favicons (the user chose this).
 - Forking is gone from the app: no fork buttons, counts, Forked tab or Forks notifications, even if a
   design still shows them. Old `forked_from_id` data stays in the database untouched.
+- No profile photos yet: avatars stay as initials (the user skipped the photo upload the design
+  added to Edit profile, since it needs a storage bucket and a new column).
 - You can't repost your own stack, and the Following feed shows each stack once, at its
   latest activity (published or reposted by someone you follow).
 

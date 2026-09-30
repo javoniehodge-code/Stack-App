@@ -736,10 +736,13 @@
 /* ── Own profile: two-column grid of compact cards ── */
 .gridCard {
   position: relative;
-  height: 212px;
-  border-radius: 14px;
-  background: var(--surface);
-  border: 1px solid var(--line);
+  aspect-ratio: 1 / 1;
+  border-radius: 18px;
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   padding: 12px;
@@ -787,13 +790,6 @@
   line-height: 1.85;
 }
 
-.gridMore {
-  font-size: 10.5px;
-  font-weight: 600;
-  color: var(--accent);
-  margin-top: 4px;
-}
-
 .gridStats {
   display: flex;
   align-items: center;
@@ -805,7 +801,13 @@
   color: var(--muted-66);
 }
 
-.gridStat {
+.gridCount {
+  font-weight: 600;
+  color: var(--muted-72);
+}
+
+.gridVis {
+  margin-left: auto;
   display: flex;
   align-items: center;
   gap: 4px;

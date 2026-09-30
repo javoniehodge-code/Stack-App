@@ -1,7 +1,7 @@
 /* The stack page: a paper card on a light gray page, comments below it. */
 .page {
   background: oklch(96.5% 0.004 80);
-  padding: calc(var(--safe-top) + 6px) 12px calc(12px + var(--safe-bottom));
+  padding: calc(var(--safe-top) + 6px) 12px calc(26px + var(--safe-bottom));
 }
 
 .topRow {
@@ -87,6 +87,16 @@
   color: var(--muted-66);
 }
 
+/* Comment bubble with the count; opens the comments sheet */
+.commentsButton {
+  height: 44px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+}
+
 .share {
   height: 44px;
   padding: 0 8px;
@@ -98,38 +108,6 @@
   color: var(--muted-66);
 }
 
-/* "Show comments · 3" under the card */
-.commentsPill {
-  flex-shrink: 0;
-  margin-top: 10px;
-  min-height: 52px;
-  padding: 0 14px 0 16px;
-  border-radius: 18px;
-  background: var(--bg);
-  border: 1px solid var(--line-2);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-align: left;
-}
-
-.pillLabel {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--text);
-  flex-shrink: 0;
-}
-
-.pillPreview {
-  flex: 1;
-  min-width: 0;
-  font-size: 12.5px;
-  color: var(--muted-60);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 /* Comments sheet */
 .scrim {
   position: absolute;
@@ -138,7 +116,7 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 0 12px calc(12px + var(--safe-bottom));
+  padding: 0 12px calc(26px + var(--safe-bottom));
   z-index: 35;
 }
 
