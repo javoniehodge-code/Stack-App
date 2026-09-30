@@ -1076,3 +1076,21 @@
   color: var(--muted-66);
   padding: 8px;
 }
+
+/* Shown on Build when a stack is over a size limit (usually one made before the limits) */
+.limitBanner {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: oklch(95.1% 0.03 60);
+  border: 1px solid oklch(86.3% 0.03 60);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.limitBanner ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: var(--text-2);
+}

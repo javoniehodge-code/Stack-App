@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MAX_DESCRIPTION } from "@/lib/format";
+import { MAX_REPOST_NOTE } from "@/lib/format";
 import { useEngagement, type Engagement } from "@/lib/store";
 import type { Stack } from "@/lib/types";
 import { useStackActions } from "@/lib/useStackActions";
@@ -112,15 +112,15 @@ function RepostSheet({ stack, e, onClose }: { stack: Stack; e: Engagement; onClo
                   <textarea
                     className={r.note}
                     value={note}
-                    maxLength={MAX_DESCRIPTION}
+                    maxLength={MAX_REPOST_NOTE}
                     rows={2}
                     autoFocus
                     onChange={(ev) => setNote(ev.target.value)}
                     placeholder="What makes this one good?"
                     aria-label="Note"
                   />
-                  <div className={r.count} style={{ color: note.length >= MAX_DESCRIPTION - 30 ? "oklch(54% 0.16 45)" : undefined }}>
-                    {note.length} / {MAX_DESCRIPTION}
+                  <div className={r.count} style={{ color: note.length >= MAX_REPOST_NOTE - 30 ? "oklch(54% 0.16 45)" : undefined }}>
+                    {note.length} / {MAX_REPOST_NOTE}
                   </div>
                 </>
               )}
