@@ -71,13 +71,14 @@
                 </div>
               </sc-if>
               <div onClick="{{ card.onOpen }}" style="cursor:pointer;">
+                <div data-feed-body="{{ card.cardId }}" style="max-height:392px;overflow:hidden;position:relative;">
                 <div style="font-size:19px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.25;letter-spacing:-0.4px;margin-bottom:6px;text-wrap:pretty;">{{ card.title }}</div>
                 <sc-if value="{{ card.description }}" hint-placeholder-val="{{ true }}">
                   <div style="font-size:13.5px;color:oklch(39.7% 0.006 80);line-height:1.45;text-wrap:pretty;">{{ card.description }}</div>
                 </sc-if>
                 <div style="height:16px;"></div>
                 <div style="position:relative;">
-                  <sc-for list="{{ card.shortLines }}" as="pl" hint-placeholder-count="4">
+                  <sc-for list="{{ card.bodyLines }}" as="pl" hint-placeholder-count="4">
                     <sc-if value="{{ pl.label }}" hint-placeholder-val="{{ false }}">
                       <div style="font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:oklch(64% 0.16 50);padding:{{ pl.labelPad }};border-bottom:1px solid oklch(91.2% 0.006 80);">{{ pl.label }}</div>
                     </sc-if>
@@ -89,11 +90,12 @@
                       </div>
                     </div>
                   </sc-for>
-                  <sc-if value="{{ card.hasMoreShort }}" hint-placeholder-val="{{ false }}">
-                    <div style="position:absolute;left:0;right:0;bottom:0;height:56px;background:linear-gradient(to bottom, oklch(99.6% 0.002 80 / 0), oklch(99.6% 0.002 80) 90%);pointer-events:none;"></div>
-                  </sc-if>
                 </div>
-                <sc-if value="{{ card.hasMoreShort }}" hint-placeholder-val="{{ false }}">
+                <sc-if value="{{ card.overflows }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;left:0;right:0;bottom:0;height:64px;background:linear-gradient(to bottom, oklch(99.6% 0.002 80 / 0), oklch(99.6% 0.002 80) 90%);pointer-events:none;"></div>
+                </sc-if>
+                </div>
+                <sc-if value="{{ card.overflows }}" hint-placeholder-val="{{ false }}">
                   <div style="height:40px;margin-top:6px;border-radius:12px;background:oklch(96.5% 0.004 80);border:1px solid oklch(91.2% 0.006 80);display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:600;color:oklch(24.9% 0.006 80);" style-hover="background:oklch(94.5% 0.006 80);"><span>See all {{ card.totalCount }} lines</span><span style="color:oklch(64% 0.16 50);">→</span></div>
                 </sc-if>
                 <div style="height:14px;"></div>
@@ -626,14 +628,14 @@
           </sc-if>
         </sc-if>
         <sc-if value="{{ isMineTab }}" hint-placeholder-val="{{ true }}">
-          <div style="padding:16px 20px 28px;font-family:Inter,sans-serif;background:oklch(96.5% 0.004 80);min-height:100%;box-sizing:border-box;">
+          <div style="padding:16px 20px 28px;font-family:Inter,sans-serif;">
             
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
               <span style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:oklch(45.2% 0.006 80);">All stacks</span>
               <div style="display:flex;align-items:center;gap:16px;"><span onClick="{{ openManage }}" style="font-size:12.5px;font-weight:600;color:oklch(64% 0.16 50);cursor:pointer;padding:4px 0;">Manage</span><span onClick="{{ toggleReorder }}" style="font-size:12.5px;font-weight:600;color:{{ reorderColor }};cursor:pointer;padding:4px 0;">{{ reorderLabel }}</span></div>
             </div>
             <sc-if value="{{ showMyGrid }}" hint-placeholder-val="{{ false }}">
-              <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;padding-top:12px;border-top:1px solid oklch(91.8% 0.006 80);">
+              <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin:8px -20px -28px;padding:14px 20px 28px;background:oklch(96.5% 0.004 80);border-top:1px solid oklch(91.8% 0.006 80);">
                 <sc-for list="{{ mineGrid }}" as="g" hint-placeholder-count="4">
                   <div onClick="{{ g.onOpen }}" style="aspect-ratio:1 / 1;border-radius:18px;background:oklch(99.6% 0.002 80);box-shadow:0 1px 2px rgba(0,0,0,0.04),0 8px 24px rgba(0,0,0,0.05);border:1px solid {{ g.border }};display:flex;flex-direction:column;padding:12px;cursor:pointer;overflow:hidden;position:relative;">
                     <sc-if value="{{ g.isPinned }}" hint-placeholder-val="{{ false }}">
@@ -1370,7 +1372,12 @@ class Component extends DCLogic {
   }
   PERSIST = ['signedIn', 'followedHandles', 'drafts', 'myOrder', 'pinnedId', 'pinNote', 'myBio', 'mySocials', 'lists', 'notifs', 'myReposts', 'recentSearches', 'blockedHandles', 'privateAccount', 'allowForks'];
   STORE_KEY = 'stack-app-state-v1';
+  _measureFeed() {
+    const ids = Array.from(document.querySelectorAll('[data-feed-body]')).filter(el => el.scrollHeight > el.clientHeight + 2).map(el => el.getAttribute('data-feed-body')).join(',');
+    if (ids !== (this.state.feedOverflow || '')) this.setState({ feedOverflow: ids });
+  }
   componentDidMount() {
+    this._feedTimer = setInterval(() => this._measureFeed(), 400);
     this._initial = {}; this.PERSIST.forEach(k => { this._initial[k] = this.state[k]; });
     try {
       const saved = JSON.parse(localStorage.getItem(this.STORE_KEY) || 'null');
@@ -1422,7 +1429,9 @@ class Component extends DCLogic {
       noComments: !(l.comments && l.comments.length),
       onOpen: () => this.openList(l.id, screen),
       feedLines, feedHasMore: p.lines.length > FEED_MAX, feedMoreCount: p.lines.length - FEED_MAX,
-      shortLines: p.lines.slice(0, p.lines.length > 4 ? 4 : 4).map((x, i, arr) => ({ ...x, labelPad: i === 0 ? '0 0 8px' : '14px 0 8px', divider: (i === arr.length - 1 || arr[i + 1].label) ? 'none' : '1px solid oklch(91.2% 0.006 80)' })),
+      cardId: l.id, overflows: (this.state.feedOverflow || '').split(',').includes(l.id),
+      shortLines: p.lines.slice(0, 4).map((x, i, arr) => ({ ...x, labelPad: i === 0 ? '0 0 8px' : '14px 0 8px', divider: (i === arr.length - 1 || arr[i + 1].label) ? 'none' : '1px solid oklch(91.2% 0.006 80)' })),
+      bodyLines: p.lines.slice(0, 14).map((x, i, arr) => ({ ...x, labelPad: i === 0 ? '0 0 8px' : '14px 0 8px', divider: (i === arr.length - 1 || arr[i + 1].label) ? 'none' : '1px solid oklch(91.2% 0.006 80)' })),
       metaLabel: l.timeAgo + ' · ' + total + (total === 1 ? ' line' : ' lines'),
       hasMoreShort: p.lines.length > 4,
       moreShortLabel: '+ ' + (p.lines.length - 4) + ' more \u00b7 tap to see all',
@@ -1446,7 +1455,7 @@ class Component extends DCLogic {
     clearTimeout(this._toastTimer);
     this._toastTimer = setTimeout(() => this.setState({ toast: null }), 1800);
   }
-  componentWillUnmount() { clearTimeout(this._toastTimer); }
+  componentWillUnmount() { clearTimeout(this._toastTimer); clearInterval(this._feedTimer); }
   submitSearch(term) {
     const t = (term || '').trim();
     if (!t) return;
