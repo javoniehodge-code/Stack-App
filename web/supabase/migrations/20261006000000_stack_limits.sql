@@ -1,7 +1,8 @@
 -- Stack size limits.
 --
 -- * Title: 120 characters (unchanged).
--- * Description: up to 1,000 characters (was 500).
+-- * Description: up to 300 characters (was 500). Checked when a stack is saved;
+--   the table still allows 500 so older, longer descriptions keep working.
 -- * Subsections: at most 20 (was 30), each title up to 100 characters (was 60).
 -- * Items: at most 100 across the stack (was 200). Each heading is up to
 --   120 characters (was 500); each optional note stays at 500.
@@ -114,11 +115,7 @@ create trigger stacks_before_write
   before insert or update of title, description, sections, status on public.stacks
   for each row execute function public.stacks_before_write();
 
--- Descriptions can be up to 1,000 characters.
-alter table public.stacks drop constraint if exists stacks_description_check;
-alter table public.stacks add constraint stacks_description_check check (char_length(description) <= 1000);
-
--- save_stack: same as before, with the description limit raised to 1,000.
+-- save_stack: same as before, with descriptions limited to 300 characters.
 create or replace function public.save_stack(
   p_id          uuid,
   p_title       text,
@@ -152,8 +149,8 @@ begin
   if p_visibility is not null and p_visibility not in ('public', 'unlisted', 'private') then
     raise exception 'invalid visibility' using errcode = '22023';
   end if;
-  if char_length(descr) > 1000 then
-    raise exception 'descriptions are limited to 1,000 characters' using errcode = '22023';
+  if char_length(descr) > 300 then
+    raise exception 'descriptions are limited to 300 characters' using errcode = '22023';
   end if;
   if char_length(loc) > 80 then
     raise exception 'locations are limited to 80 characters' using errcode = '22023';

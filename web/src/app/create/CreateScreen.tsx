@@ -553,8 +553,8 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
             className={s.promptDesc}
             value={work.description}
             rows={1}
-            maxLength={MAX_DESCRIPTION}
-            onChange={(e) => edit((w) => ({ ...w, description: e.target.value.slice(0, MAX_DESCRIPTION) }))}
+            maxLength={Math.max(MAX_DESCRIPTION, work.description.length)}
+            onChange={(e) => edit((w) => ({ ...w, description: e.target.value.slice(0, Math.max(MAX_DESCRIPTION, w.description.length)) }))}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
@@ -605,8 +605,8 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
               data-empty={!work.description || undefined}
               value={work.description}
               rows={1}
-              maxLength={MAX_DESCRIPTION}
-              onChange={(e) => edit((w) => ({ ...w, description: e.target.value.slice(0, MAX_DESCRIPTION) }))}
+              maxLength={Math.max(MAX_DESCRIPTION, work.description.length)}
+              onChange={(e) => edit((w) => ({ ...w, description: e.target.value.slice(0, Math.max(MAX_DESCRIPTION, w.description.length)) }))}
               onFocus={clearSel}
               placeholder="Add a description (optional)"
               aria-label="Description"

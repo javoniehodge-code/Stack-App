@@ -93,7 +93,7 @@ Add new app-only features to this list as they ship.
   handle `--muted-56`, comments `--muted-56`/`--text-2`. Sizes can follow the design.
 - Stack size limits (set by the user; the database enforces them in `save_stack` and the
   stacks trigger, and `web/src/lib/format.ts` has the same numbers): title 120, description
-  1,000, subsection title 100, at most 20 subsections and 100 items, item heading 120, item
+  300, subsection title 100, at most 20 subsections and 100 items, item heading 120, item
   note 500, and 25,000 characters of visible text in all. Keep these even where the design
   shows other numbers. Comments and repost notes stay at 500 (not 140).
 - "Unlisted" is called "Invite Only" in the UI, but the description stays "Only people with

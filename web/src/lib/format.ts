@@ -80,7 +80,7 @@ export const DEFAULT_DOT = "oklch(64% 0.16 50)";
 
 // Stack size limits. The database's save function enforces the same numbers.
 export const MAX_TITLE = 120;
-export const MAX_DESCRIPTION = 1000;
+export const MAX_DESCRIPTION = 300;
 export const MAX_LABEL = 100; // subsection title
 export const MAX_SECTIONS = 20;
 export const MAX_ITEMS = 100;
