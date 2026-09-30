@@ -70,6 +70,11 @@
                   <div style="font-family:Inter,sans-serif;font-size:13.5px;color:oklch(19.4% 0.006 80);line-height:1.45;text-wrap:pretty;">{{ card.repostNote }}</div>
                 </div>
               </sc-if>
+              <sc-if value="{{ card.hasUpdate }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:baseline;flex-wrap:wrap;column-gap:8px;row-gap:2px;padding:9px 12px;border-radius:12px;background:oklch(94.5% 0.035 150);margin-bottom:14px;">
+                  <span style="font-size:13.5px;line-height:1.4;color:oklch(30% 0.07 150);text-wrap:pretty;"><strong style="font-weight:700;color:oklch(40% 0.1 150);">{{ card.updateLabel }}<sc-if value="{{ card.updateNote }}" hint-placeholder-val="{{ false }}">:</sc-if></strong><sc-if value="{{ card.updateNote }}" hint-placeholder-val="{{ false }}"> {{ card.updateNote }}</sc-if></span>
+                </div>
+              </sc-if>
               <div onClick="{{ card.onOpen }}" style="cursor:pointer;">
                 <div data-feed-body="{{ card.cardId }}" style="max-height:392px;overflow:hidden;position:relative;">
                 <div style="font-size:19px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.25;letter-spacing:-0.4px;margin-bottom:6px;text-wrap:pretty;">{{ card.title }}</div>
@@ -281,7 +286,12 @@
                 <span onClick="{{ activeCard.onToggleFollow }}" style="font-size:12px;font-weight:700;padding:7px 15px;border-radius:999px;cursor:pointer;flex-shrink:0;background:{{ activeCard.followBg }};color:{{ activeCard.followColor }};border:1px solid {{ activeCard.followBorder }};">{{ activeCard.followLabel }}</span>
               </sc-if>
             </div>
-            <div style="font-size:21px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.25;letter-spacing:-0.4px;margin-bottom:8px;text-wrap:pretty;">{{ activeCard.title }}</div>
+            <sc-if value="{{ activeCard.hasUpdate }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:baseline;flex-wrap:wrap;column-gap:8px;row-gap:2px;padding:9px 12px;border-radius:12px;background:oklch(94.5% 0.035 150);margin-bottom:14px;">
+                  <span style="font-size:13.5px;line-height:1.4;color:oklch(30% 0.07 150);text-wrap:pretty;"><strong style="font-weight:700;color:oklch(40% 0.1 150);">{{ activeCard.updateLabel }}<sc-if value="{{ activeCard.updateNote }}" hint-placeholder-val="{{ false }}">:</sc-if></strong><sc-if value="{{ activeCard.updateNote }}" hint-placeholder-val="{{ false }}"> {{ activeCard.updateNote }}</sc-if></span>
+                </div>
+              </sc-if>
+              <div style="font-size:21px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.25;letter-spacing:-0.4px;margin-bottom:8px;text-wrap:pretty;">{{ activeCard.title }}</div>
             <sc-if value="{{ activeCard.description }}" hint-placeholder-val="{{ false }}">
               <div style="font-size:13.5px;color:oklch(39.7% 0.006 80);line-height:1.5;text-wrap:pretty;">{{ activeCard.description }}</div>
             </sc-if>
@@ -462,7 +472,7 @@
                 <span onClick="{{ m.onDelete }}" style="font-size:12px;color:oklch(41.5% 0.006 80);cursor:pointer;">Delete</span>
               </div>
             </sc-if>
-            <sc-if value="{{ m.isStack }}" hint-placeholder-val="{{ true }}"><span onClick="{{ m.onVis }}" style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;border:1px solid oklch(88.5% 0.006 80);font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:oklch(23.1% 0.006 80);cursor:pointer;flex-shrink:0;"><sc-if value="{{ m.vis.is_public }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M3.5 12h17"></path><ellipse cx="12" cy="12" rx="3.8" ry="8.5"></ellipse></svg></sc-if><sc-if value="{{ m.vis.is_unlisted }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></sc-if><sc-if value="{{ m.vis.is_private }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg></sc-if>{{ m.vis.label }}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span></sc-if>
+            <sc-if value="{{ m.isStack }}" hint-placeholder-val="{{ true }}"><span onClick="{{ m.onVis }}" style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:999px;border:1px solid oklch(88.5% 0.006 80);font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:oklch(23.1% 0.006 80);cursor:pointer;flex-shrink:0;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 19.5h4l10-10-4-4-10 10v4z"></path><path d="M13 7l4 4"></path></svg>Edit<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span></sc-if>
           </div>
         </sc-for>
         <sc-if value="{{ manageEmpty }}" hint-placeholder-val="{{ false }}">
@@ -541,7 +551,7 @@
             <div style="flex:1;min-width:0;">
               <div style="font-weight:700;font-size:18px;color:oklch(14.8% 0.006 80);letter-spacing:-0.3px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ myName }}</div>
               <div style="font-size:12.5px;color:oklch(47.1% 0.006 80);margin-top:1px;">@{{ myHandle }}</div>
-              <div style="display:flex;gap:12px;margin-top:6px;font-size:12px;color:oklch(41.5% 0.006 80);"><span><strong style="color:oklch(19.4% 0.006 80);font-weight:700;">{{ mineCount }}</strong> Stacks</span><span><strong style="color:oklch(19.4% 0.006 80);font-weight:700;">128</strong> Followers</span><span><strong style="color:oklch(19.4% 0.006 80);font-weight:700;">{{ followingCount }}</strong> Following</span></div>
+              <div style="display:flex;gap:12px;margin-top:6px;font-size:12px;color:oklch(41.5% 0.006 80);"><span><strong style="color:oklch(19.4% 0.006 80);font-weight:700;">{{ mineCount }}</strong> Stacks</span><sc-if value="{{ showFollowCounts }}" hint-placeholder-val="{{ true }}"><span><strong style="color:oklch(19.4% 0.006 80);font-weight:700;">128</strong> Followers</span><span><strong style="color:oklch(19.4% 0.006 80);font-weight:700;">{{ followingCount }}</strong> Following</span></sc-if></div>
             </div>
           </div>
           <div style="font-size:13.5px;color:oklch(24.9% 0.006 80);line-height:1.5;margin-top:12px;text-wrap:pretty;white-space:pre-wrap;">{{ myBio }}</div>
@@ -699,7 +709,7 @@
 
     <sc-if value="{{ isCreate }}" hint-placeholder-val="{{ false }}">
       <div style="flex:1;min-height:0;position:relative;">
-        <dc-import name="Create Flow Screen" start="{{ createStart }}" initial="{{ createInitial }}" on-exit="{{ createExit }}" on-save="{{ createSave }}" on-publish="{{ createPublish }}" hint-size="100%,100%" style="position:absolute;inset:0;"></dc-import>
+        <dc-import name="Create Flow Screen" start="{{ createStart }}" initial="{{ createInitial }}" on-exit="{{ createExit }}" on-save="{{ createSave }}" on-publish="{{ createPublish }}" edit="{{ createEditVM }}" on-save-edit="{{ createSaveEdit }}" on-share-update="{{ createShareUpdate }}" hint-size="100%,100%" style="position:absolute;inset:0;"></dc-import>
       </div>
     </sc-if>
 
@@ -837,9 +847,14 @@
       <div onClick="{{ closeVis }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:flex-end;z-index:46;">
         <div onClick="{{ stopClick }}" style="width:100%;background:oklch(94.5% 0.006 80);border-radius:22px 22px 0 0;padding:14px 16px 32px;box-sizing:border-box;font-family:Inter,sans-serif;display:flex;flex-direction:column;gap:10px;">
           <div style="width:36px;height:4px;border-radius:2px;background:oklch(86.3% 0.006 80);margin:0 auto 4px;"></div>
+          <sc-if value="{{ visSheet.canEdit }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:15px;font-weight:700;color:oklch(17.5% 0.006 80);padding:0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ visSheet.title }}</div>
+            <div onClick="{{ visEdit }}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);font-size:15px;font-weight:700;cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(99.6% 0.002 80)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 19.5h4l10-10-4-4-10 10v4z"></path><path d="M13 7l4 4"></path></svg>Edit stack</div>
+            <div style="height:1px;background:oklch(90.7% 0.006 80);margin:6px 4px 2px;"></div>
+          </sc-if>
           <div style="font-size:15px;font-weight:700;color:oklch(17.5% 0.006 80);padding:0 4px;">Who can see this stack?</div>
           <sc-if value="{{ visSheet.note }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:oklch(54% 0.16 45);padding:0 4px;line-height:1.45;">{{ visSheet.note }}</div></sc-if>
-          <div style="font-size:12.5px;color:oklch(45.2% 0.006 80);padding:0 4px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ visSheet.title }}</div>
+          <sc-if value="{{ visSheet.showSubTitle }}" hint-placeholder-val="{{ true }}"><div style="font-size:12.5px;color:oklch(45.2% 0.006 80);padding:0 4px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ visSheet.title }}</div></sc-if>
           <div onClick="{{ visPick_public }}" style="display:flex;align-items:center;gap:14px;padding:13px 14px;border-radius:14px;border:1px solid {{ visSheet.publicBorder }};background:{{ visSheet.publicBg }};cursor:pointer;">
             <div style="width:40px;height:40px;border-radius:12px;background:oklch(91.8% 0.03 60);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(54% 0.16 45)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M3.5 12h17"></path><ellipse cx="12" cy="12" rx="3.8" ry="8.5"></ellipse></svg></div>
             <div style="flex:1;min-width:0;"><div style="font-size:15px;font-weight:600;color:oklch(17.5% 0.006 80);">Public</div><div style="font-size:12.5px;color:oklch(43.4% 0.006 80);margin-top:2px;line-height:1.4;">On your profile, in search, and anyone with the link</div></div>
@@ -1091,6 +1106,10 @@
             <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:{{ bioCountColor }};">{{ bioCount }}</span>
           </div>
           <textarea value="{{ bioDraft }}" onChange="{{ onBioChange }}" placeholder="A line about what you collect" rows="3" style="width:100%;box-sizing:border-box;resize:none;padding:12px;border-radius:12px;background:oklch(99.6% 0.002 80);border:1px solid oklch(90.7% 0.006 80);outline:none;font-family:Inter,sans-serif;font-size:14px;line-height:1.45;color:oklch(19.4% 0.006 80);"></textarea>
+          <div onClick="{{ toggleFollowCountsDraft }}" style="display:flex;align-items:center;gap:12px;margin-top:18px;padding:12px 14px;border-radius:12px;background:oklch(99.6% 0.002 80);border:1px solid oklch(90.7% 0.006 80);cursor:pointer;font-family:Inter,sans-serif;">
+            <span style="flex:1;font-size:14px;color:oklch(17.5% 0.006 80);">Show followers and following<div style="font-size:12px;color:oklch(43.4% 0.006 80);margin-top:2px;line-height:1.4;">Your stack count stays visible either way.</div></span>
+            <span style="width:44px;height:26px;border-radius:13px;background:{{ followCountsToggle.track }};position:relative;flex-shrink:0;"><span style="position:absolute;top:3px;left:{{ followCountsToggle.knob }};width:20px;height:20px;border-radius:50%;background:oklch(13.8% 0.006 80);"></span></span>
+          </div>
         </div>
       </div>
     </sc-if>
@@ -1182,7 +1201,7 @@
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;stacksLayout&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;grid&quot;,&quot;list&quot;],&quot;default&quot;:&quot;grid&quot;,&quot;tsType&quot;:&quot;'grid' | 'list'&quot;,&quot;section&quot;:&quot;Profile&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;stacksLayout&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;grid&quot;,&quot;list&quot;],&quot;default&quot;:&quot;grid&quot;,&quot;tsType&quot;:&quot;'grid' | 'list'&quot;,&quot;section&quot;:&quot;Profile&quot;},&quot;simulateCooldown&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Editing&quot;}}">
 class Component extends DCLogic {
   state = {
     screen: 'feed',
@@ -1195,6 +1214,7 @@ class Component extends DCLogic {
     toast: null,
     editingDraftId: null,
     showEditProfile: false,
+    showFollowCounts: false, followCountsDraft: false,
     myOrder: ['m2', 'm3', 'l5', 'm4'],
     pinnedId: 'm2', pinNote: 'Start with my favorite reads', pinDraft: null, pinNoteDraft: '',
     featuredLink: { label: 'Get in touch', url: 'mailto:you@example.com' },
@@ -1263,7 +1283,7 @@ class Component extends DCLogic {
         ],
       },
       {
-        id: 'l2', author: { name: 'Marcus Webb', handle: '@marcus.reads', initials: 'MW' }, timeAgo: '5d',
+        id: 'l2', author: { name: 'Marcus Webb', handle: '@marcus.reads', initials: 'MW' }, timeAgo: '5d', updatedAt: Date.now() - 86400000, sharedAt: Date.now() - 86400000, updateNote: 'Added two new picks for fall',
         title: 'Books That Actually Changed How I Think', description: "Not the usual self-help list. These rewired how I make decisions.", tags: ['Books'], style: 'bulleted',
         sections: [
           { label: null, lines: [
@@ -1366,6 +1386,42 @@ class Component extends DCLogic {
   scrollRail(dir) {
     const el = this.railRef.current;
     if (el) el.scrollBy({ top: dir * el.clientHeight, behavior: 'smooth' });
+  }
+  _agoMs(t) { if (!t || t === 'just now') return 0; const n = parseInt(t, 10) || 0; const u = t.replace(/[0-9\s]/g, ''); return n * ({ m: 60000, h: 3600000, d: 86400000, w: 604800000 }[u] || 0); }
+  _ago(ms) { const d = Date.now() - ms; if (d < 3600000) return 'just now'; if (d < 86400000) return Math.floor(d / 3600000) + 'h ago'; if (d < 604800000) return Math.floor(d / 86400000) + 'd ago'; return Math.floor(d / 604800000) + 'w ago'; }
+  _dfmt(ms) { return new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
+  _pubAt(l) { return l.publishedAt || (Date.now() - this._agoMs(l.timeAgo)); }
+  _shareInfo(l) {
+    const WEEK = 604800000, now = Date.now();
+    let last = l.sharedAt || 0;
+    if (this.props.simulateCooldown && l.isMine) last = Math.max(last, now - 3 * 86400000);
+    if ((l.visibility || 'public') !== 'public') return { stackId: l.id, canShare: false, blocked: 'private', hint: 'Only public stacks can share updates to the feed.' };
+    if (last && now - last < WEEK) { const days = Math.ceil((last + WEEK - now) / 86400000); return { stackId: l.id, canShare: false, blocked: 'cooldown', hint: 'Share again in ' + days + (days === 1 ? ' day' : ' days') + '. Updates can be shared once every 7 days.' }; }
+    return { stackId: l.id, canShare: true, blocked: null, hint: 'Puts your stack back in the feed. You can share an update once every 7 days.', nextShareDate: this._dfmt(now + WEEK) };
+  }
+  openStackForEdit(id, draftId) {
+    this.setState(s => {
+      const src = draftId ? s.drafts.find(d => d.id === draftId) : s.lists.find(l => l.id === id);
+      const l = s.lists.find(x => x.id === id);
+      if (!src || !l) return null;
+      const init = { step: 'build', title: src.title, description: src.description || '', tags: src.tags || [], visibility: l.visibility || 'public', location: src.location || '',
+        sections: src.sections.map(sec => ({ label: sec.label || '', lines: sec.lines.map(ln => ({ text: ln.text, sub: ln.sub || '', link: ln.link || '' })) })) };
+      return { visTarget: null, visDelArmed: false, draft: null, createStart: 'build', createInitial: init, createEdit: { stackId: id }, editingDraftId: draftId || null, screen: 'create', createKey: (s.createKey || 0) + 1 };
+    });
+  }
+  _applyEdit(out, share, note) {
+    const id = this.state.createEdit && this.state.createEdit.stackId; if (!id) return;
+    const sections = (out.sections || []).map(sec => ({ label: (sec.label || '').trim() || null, lines: sec.lines.map(ln => ({ text: (ln.text || '').trim(), sub: (ln.sub || '').trim() || undefined, link: (ln.link || '').trim() || undefined })).filter(ln => ln.text) })).filter(sec => sec.lines.length);
+    if (!sections.length) { this.showToast('Add a line with some text to save.'); return; }
+    this.setState(s => {
+      const now = Date.now();
+      let lists = s.lists.map(l => l.id !== id ? l : { ...l, publishedAt: this._pubAt(l), title: (out.title || '').trim() || l.title, description: (out.description || '').trim(), sections, updatedAt: now, ...(share ? { sharedAt: now, updateNote: (note || '').trim() } : {}) });
+      if (share) { const i = lists.findIndex(l => l.id === id); const [x] = lists.splice(i, 1); lists = [x, ...lists]; }
+      const drafts = s.editingDraftId ? s.drafts.filter(d => d.id !== s.editingDraftId) : s.drafts;
+      const pin = s.pinnedId && s.pinnedId !== id ? s.pinnedId : null;
+      const myOrder = share ? [...(pin ? [pin] : []), id, ...(s.myOrder || []).filter(x => x !== id && x !== pin)] : s.myOrder;
+      return { lists, drafts, myOrder, editingDraftId: null, draft: null, createEdit: null, screen: 'manage' };
+    }, () => { this.openList(id, 'manage'); this.showToast(share ? 'Update shared to the feed' : 'Changes saved'); });
   }
   _fmt(n) {
     if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.0', '') + 'M';
@@ -1521,6 +1577,7 @@ class Component extends DCLogic {
       shortLines: p.lines.slice(0, 4).map((x, i, arr) => ({ ...x, labelPad: i === 0 ? '0 0 8px' : '14px 0 8px', divider: (i === arr.length - 1 || arr[i + 1].label) ? 'none' : '1px solid oklch(91.2% 0.006 80)' })),
       bodyLines: p.lines.slice(0, 14).map((x, i, arr) => ({ ...x, labelPad: i === 0 ? '0 0 8px' : '14px 0 8px', divider: (i === arr.length - 1 || arr[i + 1].label) ? 'none' : '1px solid oklch(91.2% 0.006 80)' })),
       metaLabel: l.timeAgo + ' · ' + total + (total === 1 ? ' line' : ' lines'),
+      hasUpdate: !!l.sharedAt, updateNote: l.updateNote || '', updateLabel: 'Updated',
       hasMoreShort: p.lines.length > 4,
       moreShortLabel: '+ ' + (p.lines.length - 4) + ' more \u00b7 tap to see all',
       commentCountLabel: (l.comments && l.comments.length) ? l.comments.length + (l.comments.length === 1 ? ' comment' : ' comments') : 'No comments',
@@ -1573,7 +1630,7 @@ class Component extends DCLogic {
   }
   VIS = { public: { label: 'Public', short: 'Profile, search and link' }, unlisted: { label: 'Invite Only', short: 'Only people you invite' }, private: { label: 'Private', short: 'Only you' } };
   _visVM(v) { v = v || 'public'; return { key: v, label: this.VIS[v].label, short: this.VIS[v].short, is_public: v === 'public', is_unlisted: v === 'unlisted', is_private: v === 'private', notPublic: v !== 'public' }; }
-  openVis(target, note) { this.setState({ visTarget: target, visNote: note || '', visDelArmed: false }); }
+  openVis(target, note, fromManage) { this.setState({ visTarget: target, visNote: note || '', visDelArmed: false, visFromManage: !!fromManage }); }
   setVis(v) {
     const t = this.state.visTarget; if (!t) return;
     this.setState({ visDelArmed: false });
@@ -1664,19 +1721,23 @@ class Component extends DCLogic {
   _upsertDraft(out) {
     const s = this.state;
     const id = s.editingDraftId || ('d' + Date.now());
-    const entry = { id, step: out.step || 'build', title: (out.title || '').trim() || 'Untitled draft', description: (out.description || '').trim(), tags: out.tags || [], visibility: out.visibility || 'public', forkedFromId: out.forkedFromId || null,
+    const entry = { id, step: out.step || 'build', title: (out.title || '').trim() || 'Untitled draft', description: (out.description || '').trim(), tags: out.tags || [], visibility: out.visibility || 'public', forkedFromId: out.forkedFromId || null, editOf: (s.createEdit && s.createEdit.stackId) || null,
       sections: out.sections.map(sec => ({ label: (sec.label || '').trim() || null, lines: sec.lines.map(ln => ({ text: ln.text.trim(), sub: (ln.sub || '').trim() || undefined, link: (ln.link || '').trim() || undefined })).filter(ln => ln.text) })).filter(sec => sec.lines.length) };
     const drafts = s.editingDraftId ? s.drafts.map(d => d.id === id ? entry : d) : [entry, ...s.drafts];
     this.setState({ drafts, editingDraftId: id });
   }
   createSave(out) { this.requireAuth(() => this._upsertDraft(out), 'Sign in to save this stack as a draft.'); }
   createExit(out, has) {
+    if (this.state.createEdit) {
+      if (!has) { this.setState({ draft: null, editingDraftId: null, createEdit: null, screen: 'manage' }); return; }
+      this._upsertDraft(out); this.setState({ draft: null, editingDraftId: null, createEdit: null, screen: 'manage', manageFilter: 'drafts' }); this.showToast('Changes saved as a draft'); return;
+    }
     if (!has) { this.setState({ draft: null, editingDraftId: null, screen: 'feed' }); return; }
     this.requireAuth(() => { this._upsertDraft(out); this.setState({ draft: null, editingDraftId: null, screen: 'profile', profileTab: 'drafts' }); this.showToast('Draft saved'); }, 'Sign in to keep this draft.');
   }
   createPublish(out) { this.setState({ draft: out }, () => this.publishDraft()); }
   goNewLegacy() { this.setState({ draft: { title: '', description: '', tags: [], sections: [{ label: '', lines: [{ text: '', link: '' }] }] }, linkInputOpen: {}, tagInput: '', editingDraftId: null, screen: 'create' }); }
-  goNew() { this.setState({ draft: null, createStart: 'title', createInitial: null, editingDraftId: null, screen: 'create' }); }
+  goNew() { this.setState({ createEdit: null, draft: null, createStart: 'title', createInitial: null, editingDraftId: null, screen: 'create' }); }
   signIn() { this.setState({ signedIn: true }); }
   requireAuth(action, message) {
     if (this.state.signedIn) { action(); return; }
@@ -1688,11 +1749,13 @@ class Component extends DCLogic {
     if (action) action();
   }
   openDraftForEdit(id) {
+    const ed = this.state.drafts.find(x => x.id === id);
+    if (ed && ed.editOf && this.state.lists.some(l => l.id === ed.editOf)) { this.openStackForEdit(ed.editOf, id); return; }
     this.setState(s => {
       const d = s.drafts.find(x => x.id === id);
       if (!d) return null;
       const dd = { step: d.step || 'build', title: d.title === 'Untitled draft' ? '' : d.title, description: d.description || '', tags: d.tags || [], sections: d.sections, forkedFromId: d.forkedFromId || null, visibility: d.visibility || 'public' };
-      return { draft: dd, createInitial: dd, createStart: 'build', editingDraftId: id, linkInputOpen: {}, tagInput: '', screen: 'create' };
+      return { draft: dd, createInitial: dd, createStart: 'build', createEdit: null, createKey: (s.createKey || 0) + 1, editingDraftId: id, linkInputOpen: {}, tagInput: '', screen: 'create' };
     });
   }
   deleteDraft(id, e) { if (e) e.stopPropagation(); this.setState(s => ({ drafts: s.drafts.filter(d => d.id !== id) })); }
@@ -1747,7 +1810,7 @@ class Component extends DCLogic {
       const sections = src.sections.map(sec => ({ label: sec.label || '', lines: sec.lines.map(ln => ({ text: ln.text, sub: ln.sub || '', link: ln.link || '' })) }));
       return {
         lists: s.lists.map(l => l.id === src.id ? { ...l, forks: l.forks + 1 } : l),
-        draft: null, createStart: 'build', editingDraftId: null,
+        draft: null, createStart: 'build', editingDraftId: null, createEdit: null,
         createInitial: { title: src.title + ' (remix)', description: src.description || '', tags: [...(src.tags || [])], sections, forkedFromId: src.id },
         linkInputOpen: {}, tagInput: '',
         screen: 'create',
@@ -1792,7 +1855,7 @@ class Component extends DCLogic {
       if (sections.length === 0) return null;
       const id = 'u' + Date.now();
       const newList = {
-        id, author: { name: 'You', handle: '@you', initials: 'Y' }, timeAgo: 'just now', title, description: (s.draft.description || '').trim(), tags: s.draft.tags || [],
+        id, author: { name: 'You', handle: '@you', initials: 'Y' }, timeAgo: 'just now', publishedAt: Date.now(), title, description: (s.draft.description || '').trim(), tags: s.draft.tags || [],
         sections, likes: 0, forks: 0, saves: 0, likedByUser: false, savedByUser: false, isMine: true, visibility: s.draft.visibility || 'public',
         forkedFromId: s.draft.forkedFromId || null,
       };
@@ -1893,9 +1956,9 @@ class Component extends DCLogic {
     const profileCards = profileFiltered.map(cardVM);
     const mineAll = list.filter(l => l.isMine);
     const orderIdx = (id) => { const i = s.myOrder.indexOf(id); return i < 0 ? -1 : i; };
-    const mineOrdered = [...mineAll].sort((a, b) => orderIdx(a.id) - orderIdx(b.id));
+    const mineOrdered = [...mineAll].sort((a, b) => ((b.id === s.pinnedId) - (a.id === s.pinnedId)) || (orderIdx(a.id) - orderIdx(b.id)));
     const unitFor = (l) => { const t = l.tags || []; return t.includes('Travel') || t.includes('Food & Drink') ? 'places' : t.includes('Books') ? 'books' : 'lines'; };
-    const metaFor = (l) => this._flatten(l).length + ' ' + unitFor(l) + ' · ' + (l.timeAgo === 'just now' ? 'Updated just now' : 'Updated ' + l.timeAgo + ' ago');
+    const metaFor = (l) => this._flatten(l).length + ' ' + unitFor(l) + ' · ' + (l.updatedAt ? 'Updated ' + this._ago(l.updatedAt) : l.timeAgo === 'just now' ? 'Updated just now' : 'Updated ' + l.timeAgo + ' ago');
     const pinnedList = mineAll.find(l => l.id === s.pinnedId) || null;
     const moveMine = (id, dir) => this.setState(st => {
       const ids = [...mineOrdered.map(l => l.id)];
@@ -1982,7 +2045,7 @@ class Component extends DCLogic {
     const activeList = list.find(l => l.id === s.activeListId);
     const activeFlat = activeList ? this._flatten(activeList) : [];
     const activeCard = activeList ? cardVM(activeList) : {};
-    const activeUpdated = activeList ? 'Updated ' + (activeList.timeAgo === 'just now' ? 'just now' : activeList.timeAgo + ' ago') + ' · ' + activeFlat.length + (activeFlat.length === 1 ? ' line' : ' lines') : '';
+    const activeUpdated = activeList ? 'Published ' + this._dfmt(this._pubAt(activeList)) + (activeList.updatedAt ? ' · Updated ' + this._dfmt(activeList.updatedAt) : '') : '';
     const shareList = s.shareListId ? list.find(l => l.id === s.shareListId) : null;
 
     const draftTitle = s.draft ? s.draft.title : '';
@@ -2075,7 +2138,7 @@ class Component extends DCLogic {
       logOut: () => this.logOut(),
       openSettings: () => this.openScreen('settings'),
       openBlocked: () => this.openScreen('blocked'),
-      openEditProfileFromSettings: () => this.setState(st => ({ showEditProfile: true, bioDraft: st.myBio, nameDraft: st.myName, handleDraft: st.myHandle, photoDraft: st.myPhoto })),
+      openEditProfileFromSettings: () => this.setState(st => ({ showEditProfile: true, followCountsDraft: !!st.showFollowCounts, bioDraft: st.myBio, nameDraft: st.myName, handleDraft: st.myHandle, photoDraft: st.myPhoto })),
       noop: () => {},
       isManage: s.screen === 'manage',
       openManage: () => this.openScreen('manage'),
@@ -2087,9 +2150,9 @@ class Component extends DCLogic {
         const tabs = [['all', 'All'], ['public', 'Public'], ['unlisted', 'Invite Only'], ['private', 'Private'], ['drafts', 'Drafts']].map(([key, label]) => ({
           label, count: String(counts[key]), onSelect: () => this.setState({ manageFilter: key }),
           bg: f === key ? 'oklch(19.4% 0.006 80)' : 'transparent', color: f === key ? 'oklch(99.6% 0.002 80)' : 'oklch(24.9% 0.006 80)', border: f === key ? 'oklch(19.4% 0.006 80)' : 'oklch(88.5% 0.006 80)' }));
-        const stackRow = (l) => ({ isStack: true, isDraft: false, title: l.title, meta: this._flatten(l).length + ' lines · ' + this._fmt(l.likes) + ' likes',
-          vis: this._visVM(l.visibility), onVis: (e) => { if (e) e.stopPropagation(); this.openVis(l.id); }, onOpen: () => this.openList(l.id, 'manage'), onDelete: () => {} });
-        const draftRow = (d) => ({ isStack: false, isDraft: true, title: d.title || 'Untitled stack', meta: d.sections.reduce((n, sec) => n + sec.lines.length, 0) + ' lines · publishes as ' + this.VIS[d.visibility || 'public'].label.toLowerCase(),
+        const stackRow = (l) => ({ isStack: true, isDraft: false, title: l.title, meta: this._flatten(l).length + ' lines · ' + this.VIS[l.visibility || 'public'].label + (l.updatedAt ? ' · Updated ' + this._dfmt(l.updatedAt) : ''),
+          vis: this._visVM(l.visibility), onVis: (e) => { if (e) e.stopPropagation(); this.openVis(l.id, '', true); }, onOpen: () => this.openList(l.id, 'manage'), onDelete: () => {} });
+        const draftRow = (d) => ({ isStack: false, isDraft: true, title: d.title || 'Untitled stack', meta: d.editOf ? 'Unsaved edits to a published stack' : d.sections.reduce((n, sec) => n + sec.lines.length, 0) + ' lines · publishes as ' + this.VIS[d.visibility || 'public'].label.toLowerCase(),
           vis: this._visVM(d.visibility), onVis: () => {}, onOpen: () => this.openDraftForEdit(d.id), onDelete: (e) => this.deleteDraft(d.id, e) });
         const rows = f === 'drafts' ? s.drafts.map(draftRow) : f === 'all' ? [...mine.map(stackRow), ...s.drafts.map(draftRow)] : by(f).map(stackRow);
         const hints = { all: "Everything you've made. Tap a visibility pill to change who can see a stack.", public: 'Shown on your profile, in search, and to anyone with the link.', unlisted: 'Only people with the link can view. Good for itineraries and one-off recommendations.', private: 'Only you can see these. Use them to collect ideas for yourself.', drafts: 'Unfinished stacks. Only you can see them until you publish.' };
@@ -2104,12 +2167,17 @@ class Component extends DCLogic {
         if (wasOpen) this.goBack();
         this.showToast('Stack deleted');
       },
+      visEdit: () => this.openStackForEdit(s.visTarget),
+      createEditVM: (() => { const e = s.createEdit && s.lists.find(l => l.id === s.createEdit.stackId); return e ? this._shareInfo(e) : null; })(),
+      createSaveEdit: (out) => this._applyEdit(out, false),
+      createShareUpdate: (out, note) => this._applyEdit(out, true, note),
       visPick_public: () => this.setVis('public'), visPick_unlisted: () => this.setVis('unlisted'), visPick_private: () => this.setVis('private'),
       visSheet: (() => {
         const t = s.visTarget;
         const cur = t === 'draft' ? (s.draft && s.draft.visibility) || 'public' : ((s.lists.find(l => l.id === t) || {}).visibility || 'public');
         const title = t === 'draft' ? ((s.draft && s.draft.title) || 'Untitled stack') : ((s.lists.find(l => l.id === t) || {}).title || '');
-        const o = { title, note: s.visNote, canDelete: !!t && t !== 'draft', delLabel: s.visDelArmed ? 'Tap again to delete' : 'Delete stack', delBg: s.visDelArmed ? 'oklch(92.3% 0.03 60)' : 'transparent' };
+        const canEdit = !!s.visFromManage && !!t && t !== 'draft';
+        const o = { title, note: s.visNote, canEdit, showSubTitle: !canEdit, canDelete: !!t && t !== 'draft', delLabel: s.visDelArmed ? 'Tap again to delete' : 'Delete stack', delBg: s.visDelArmed ? 'oklch(92.3% 0.03 60)' : 'transparent' };
         ['public', 'unlisted', 'private'].forEach(k => { const on = cur === k;
           o[k + 'Border'] = on ? 'oklch(60% 0.03 60)' : 'oklch(90.7% 0.006 80)'; o[k + 'Bg'] = on ? 'oklch(95.6% 0.006 80)' : 'transparent';
           o[k + 'Ring'] = on ? 'oklch(64% 0.16 50)' : 'oklch(85.2% 0.006 80)'; o[k + 'Dot'] = on ? 'oklch(64% 0.16 50)' : 'transparent'; });
@@ -2157,7 +2225,7 @@ class Component extends DCLogic {
       closeConnect: () => this.setState({ connectOpen: null }),
       openEditProfileFromConnect: () => this.setState(st => ({ connectOpen: null, showEditLinks: true, socialDraft: { ...st.mySocials } })),
       showEditProfile: s.showEditProfile, socialDraft: s.socialDraft,
-      openEditProfile: () => this.setState(st => ({ showEditProfile: true, bioDraft: st.myBio, nameDraft: st.myName, handleDraft: st.myHandle, photoDraft: st.myPhoto })),
+      openEditProfile: () => this.setState(st => ({ showEditProfile: true, followCountsDraft: !!st.showFollowCounts, bioDraft: st.myBio, nameDraft: st.myName, handleDraft: st.myHandle, photoDraft: st.myPhoto })),
       showEditLinks: s.showEditLinks,
       closeEditLinks: () => this.setState({ showEditLinks: false }),
       saveEditLinks: () => { this.setState(st => ({ mySocials: { ...st.socialDraft }, showEditLinks: false })); this.showToast('Links updated'); },
@@ -2172,7 +2240,10 @@ class Component extends DCLogic {
       bioCountColor: s.bioDraft.length >= 150 ? 'oklch(54% 0.16 45)' : 'oklch(50.8% 0.006 80)',
       onBioChange: (e) => { const v = e.target.value.slice(0, 160); this.setState({ bioDraft: v }); },
       closeEditProfile: () => this.setState({ showEditProfile: false }),
-      saveEditProfile: () => { this.setState(st => ({ myBio: st.bioDraft.trim(), myName: st.nameDraft.trim() || st.myName, myHandle: st.handleDraft.trim() || st.myHandle, myPhoto: st.photoDraft, showEditProfile: false })); this.showToast('Profile updated'); },
+      showFollowCounts: !!s.showFollowCounts,
+      toggleFollowCountsDraft: () => this.setState(st => ({ followCountsDraft: !st.followCountsDraft })),
+      followCountsToggle: { track: s.followCountsDraft ? 'oklch(64% 0.16 50)' : 'oklch(88.5% 0.006 80)', knob: s.followCountsDraft ? '21px' : '3px' },
+      saveEditProfile: () => { this.setState(st => ({ myBio: st.bioDraft.trim(), myName: st.nameDraft.trim() || st.myName, myHandle: st.handleDraft.trim() || st.myHandle, myPhoto: st.photoDraft, showFollowCounts: st.followCountsDraft, showEditProfile: false })); this.showToast('Profile updated'); },
       onSocial_x: (e) => { const v = e.target.value; this.setState(st => ({ socialDraft: { ...st.socialDraft, x: v } })); },
       onSocial_instagram: (e) => { const v = e.target.value; this.setState(st => ({ socialDraft: { ...st.socialDraft, instagram: v } })); },
       onSocial_tiktok: (e) => { const v = e.target.value; this.setState(st => ({ socialDraft: { ...st.socialDraft, tiktok: v } })); },
