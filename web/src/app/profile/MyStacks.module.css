@@ -1,8 +1,5 @@
-/* Stacks tab: square tiles on a light gray page */
 .wrap {
   padding: 16px 20px 28px;
-  background: oklch(96.5% 0.004 80);
-  min-height: 100%;
 }
 
 .sectionLabel {
@@ -43,11 +40,14 @@
   padding: 4px 0;
 }
 
+/* The tiles sit on a light gray band that runs to the screen edges */
 .grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
-  padding-top: 12px;
+  margin: 8px -20px -28px;
+  padding: 14px 20px 28px;
+  background: oklch(96.5% 0.004 80);
   border-top: 1px solid var(--line);
 }
 

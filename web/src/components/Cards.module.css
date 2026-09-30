@@ -208,8 +208,14 @@
   overflow-wrap: anywhere;
 }
 
-.feedLines {
+/* Title, description and lines, cut off at a fixed height */
+.feedClip {
   position: relative;
+  max-height: 392px;
+  overflow: hidden;
+}
+
+.feedLines {
   margin-top: 16px;
   color: var(--muted-66);
 }
@@ -279,7 +285,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 56px;
+  height: 64px;
   background: linear-gradient(to bottom, oklch(99.6% 0.002 80 / 0), var(--bg) 90%);
   pointer-events: none;
 }

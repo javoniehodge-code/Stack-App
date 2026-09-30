@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { postComment, thread, threadRoot } from "@/lib/comments";
 import { flatten, fmtCount, initials, plural, timeAgo } from "@/lib/format";
 import { useEngagement, useIsFollowing, useVisibility } from "@/lib/store";
@@ -94,15 +94,27 @@ export function FeedCard({ stack }: { stack: FeedItem }) {
   );
 }
 
-/** A paper card: author and age on top, up to 4 lines (faded, with See all, when longer), the action bar, then comments that open inline. */
+/** A paper card: author and age on top, as many lines as fit (faded, with See all, when cut off), the action bar, then comments that open inline. */
 function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode }) {
   const open = useOpen(stack.id);
   const { viewer, requireAuth } = useAuth();
   const toast = useToast();
   const { authorHref } = useStackActions();
   const lines = flatten(stack);
-  const shown = lines.slice(0, 4);
-  const more = lines.length > 4;
+  const shown = lines.slice(0, 14);
+  const extra = lines.length > shown.length;
+  // The body has a fixed maximum height; the fade and See all show only when it cuts lines off.
+  const clipRef = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState(lines.length > 4);
+  useEffect(() => {
+    const el = clipRef.current;
+    if (!el) return;
+    const measure = () => setMore(extra || el.scrollHeight > el.clientHeight + 2);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [extra]);
   const [comments, setComments] = useState<Comment[]>(stack.comments ?? []);
   const [showComments, setShowComments] = useState(false);
   const [draft, setDraft] = useState("");
@@ -156,25 +168,27 @@ function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode })
       <div className={s.feedBody}>
         {note}
         <div {...open} className={s.feedOpen}>
-          <div className={s.title}>{stack.title}</div>
-          {stack.description && <div className={s.feedDescription}>{stack.description}</div>}
-          <div className={s.feedLines}>
-            {shown.map((l, i) => {
-              // A rule under each line, except before a new section and after the last line shown.
-              const divided = i < shown.length - 1 && !shown[i + 1].label;
-              return (
-                <div key={i}>
-                  {l.label && <div className={`${s.feedLabel} ${i === 0 ? s.feedLabelFirst : ""}`}>{l.label}</div>}
-                  <div className={`${s.feedLine} ${divided ? s.feedLineDivided : ""}`}>
-                    <span className={s.num}>{l.num}</span>
-                    <span className={s.feedLineText}>
-                      <span className={s.feedHead}>{l.head}</span>
-                      {l.note && <span className={s.feedNote}>{l.note}</span>}
-                    </span>
+          <div ref={clipRef} className={s.feedClip}>
+            <div className={s.title}>{stack.title}</div>
+            {stack.description && <div className={s.feedDescription}>{stack.description}</div>}
+            <div className={s.feedLines}>
+              {shown.map((l, i) => {
+                // A rule under each line, except before a new section and after the last line shown.
+                const divided = i < shown.length - 1 && !shown[i + 1].label;
+                return (
+                  <div key={i}>
+                    {l.label && <div className={`${s.feedLabel} ${i === 0 ? s.feedLabelFirst : ""}`}>{l.label}</div>}
+                    <div className={`${s.feedLine} ${divided ? s.feedLineDivided : ""}`}>
+                      <span className={s.num}>{l.num}</span>
+                      <span className={s.feedLineText}>
+                        <span className={s.feedHead}>{l.head}</span>
+                        {l.note && <span className={s.feedNote}>{l.note}</span>}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
             {more && <div className={s.feedFade} aria-hidden />}
           </div>
           {more && (
