@@ -12,6 +12,10 @@
   flex-shrink: 0;
 }
 
+.editPill {
+  padding: 0 12px;
+}
+
 /* ── Sheet ── */
 .scrim {
   position: absolute;
@@ -47,6 +51,30 @@
   font-weight: 700;
   color: oklch(17.5% 0.006 80);
   padding: 0 4px;
+}
+
+/* From Manage stacks: the stack's title and Edit stack above the visibility choices */
+.editTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: oklch(17.5% 0.006 80);
+  padding: 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.edit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .note {

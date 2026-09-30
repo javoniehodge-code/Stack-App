@@ -9,7 +9,7 @@ import { systemShare } from "@/components/Share";
 import { StackPaper } from "@/components/StackView";
 import { initials, MAX_DESCRIPTION, MAX_HEAD, MAX_ITEMS, MAX_LABEL, MAX_NOTE, MAX_SECTIONS, MAX_TITLE, MAX_TOTAL } from "@/lib/format";
 import { createClient } from "@/lib/supabase/client";
-import type { Draft, Visibility } from "@/lib/types";
+import type { Draft, EditTarget, Visibility } from "@/lib/types";
 import p from "../profile/Profile.module.css";
 import s from "./Create.module.css";
 
@@ -86,6 +86,25 @@ function limitProblems(w: Work): string[] {
   return out;
 }
 
+/** The sections as save_stack and apply_stack_edit take them. */
+const sectionsArg = (w: Work) =>
+  w.sections.map((sec) => ({ label: sec.headed ? sec.label : "", lines: sec.lines.map((l) => ({ text: l.text, note: l.note.trim() || null, link: l.link || null })) }));
+
+const WEEK = 7 * 86_400_000;
+const shortDay = (ms: number) => new Date(ms).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
+/** Whether an edited stack can share an update to the feed now: public only, once every 7 days. */
+function shareInfo(t: EditTarget, now: number) {
+  if (t.visibility !== "public") return { can: false, hint: "Only public stacks can share updates to the feed.", blocked: "Only public stacks can share updates." };
+  const last = t.sharedAt ? Date.parse(t.sharedAt) : 0;
+  if (last && now - last < WEEK) {
+    const days = Math.ceil((last + WEEK - now) / 86_400_000);
+    const wait = `Share again in ${days} ${days === 1 ? "day" : "days"}.`;
+    return { can: false, hint: `${wait} Updates can be shared once every 7 days.`, blocked: wait };
+  }
+  return { can: true, hint: "Puts your stack back in the feed. You can share an update once every 7 days.", blocked: "" };
+}
+
 const hasContent = (w: Work) => !!(w.title.trim() || w.description.trim() || w.sections.some((sec) => sec.lines.some((l) => l.text.trim() || l.link)));
 
 /** A pasted link: letter tile, site name and domain. */
@@ -115,8 +134,11 @@ function LinkCard({ link, onRemove }: { link: string; onRemove?: () => void }) {
   );
 }
 
-/** The four-step create flow: title, description, build (edit in place), finalize. Drafts save automatically. */
-export default function CreateScreen({ initial, start }: { initial: Draft; start: "title" | "build" }) {
+/**
+ * The four-step create flow: title, description, build (edit in place), finalize. Drafts save automatically.
+ * With `edit`, it edits a published stack instead: only the build step, with Save and Save and share update.
+ */
+export default function CreateScreen({ initial, start, edit: target = null }: { initial: Draft; start: "title" | "build"; edit?: EditTarget | null }) {
   const router = useRouter();
   const { viewer, requireAuth } = useAuth();
   const toast = useToast();
@@ -131,6 +153,12 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
   const [save, setSave] = useState<SaveState>(initial.id ? "saved" : "idle");
   const [published, setPublished] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Edit mode: whether anything differs from the published stack (reopened edits already do), and the share sheet.
+  const [edited, setEdited] = useState(!!(target && initial.id));
+  const [shareOpen, setShareOpen] = useState(false);
+  const [updateNote, setUpdateNote] = useState("");
+  // When the screen opened: enough precision for "share again in N days".
+  const [now] = useState(() => Date.now());
 
   // The draft's id once it has been saved, and a queue so saves never overlap (the first one creates the row).
   const idRef = useRef<string | null>(initial.id);
@@ -149,7 +177,7 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
         const args = {
           p_id: idRef.current,
           p_title: status === "draft" && !t ? UNTITLED : t,
-          p_sections: w.sections.map((sec) => ({ label: sec.headed ? sec.label : "", lines: sec.lines.map((l) => ({ text: l.text, note: l.note.trim() || null, link: l.link || null })) })),
+          p_sections: sectionsArg(w),
           p_tags: w.tags,
           p_status: status,
           p_forked_from: initial.forkedFromId,
@@ -158,6 +186,13 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
           p_visibility: w.visibility,
         };
         const sb = createClient();
+        if (target) {
+          // Edits to a published stack are kept in a draft that points at it.
+          const { data, error } = await sb.rpc("save_stack", { ...args, p_location: w.location.trim(), p_edit_of: target.stackId });
+          if (error) return error.code === "PGRST202" ? "Editing published stacks isn't available yet." : error.message;
+          idRef.current = data as string;
+          return null;
+        }
         let { data, error } = await sb.rpc("save_stack", { ...args, p_location: w.location.trim() });
         // Before the line_notes_location migration runs, save_stack has no p_location and the database drops
         // line notes. Keep them by writing "Line — note", which stacks show as the same head and gray note.
@@ -176,12 +211,13 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
       queue.current = next;
       return next;
     },
-    [initial.forkedFromId, initial.style],
+    [initial.forkedFromId, initial.style, target],
   );
 
   const edit = (fn: (w: Work) => Work) => {
     setWork(fn);
     dirty.current = true;
+    if (target) setEdited(true);
     if (viewer) setSave("saving");
   };
 
@@ -189,6 +225,8 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
   useEffect(() => {
     if (!viewer || !dirty.current || published) return;
     const t = setTimeout(async () => {
+      // Saving (or publishing) since cleared it; nothing left to autosave.
+      if (!dirty.current) return;
       if (!hasContent(workRef.current)) return setSave("idle");
       // Over a limit: nothing is saved until it's trimmed (the banner says what to change).
       if (limitProblems(workRef.current).length) return setSave("over");
@@ -333,6 +371,16 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
   };
 
   function exit() {
+    if (target) {
+      if (!edited) return router.push("/settings/stacks");
+      return requireAuth(async () => {
+        const err = await flush();
+        if (err) return toast(`Couldn't save: ${err}`);
+        toast("Changes saved as a draft");
+        router.push("/settings/stacks?filter=drafts");
+        router.refresh();
+      }, "Sign in to keep these changes.");
+    }
     if (!hasContent(work)) return router.push("/");
     requireAuth(async () => {
       const err = await flush();
@@ -349,6 +397,44 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
       const err = await flush();
       toast(err ? `Couldn't save: ${err}` : "Draft saved. Pick it up anytime from Profile › Drafts.");
     }, "Sign in to save this stack as a draft.");
+  }
+
+  /** Edit mode: writes the edits to the published stack, and with `share` puts it back in the feed with the note. */
+  async function applyEdit(share: boolean, note = "") {
+    if (!target || busy) return;
+    const w = workRef.current;
+    if (!counts(w).n) return toast("Add a line with some text to save.");
+    if (!w.title.trim()) return toast("Add a title to save.");
+    const over = limitProblems(w)[0];
+    if (over) return toast(over);
+    setBusy(true);
+    // Let any autosave finish first, so it can't recreate the edits draft after this removes it.
+    dirty.current = false;
+    await queue.current;
+    const { error } = await createClient().rpc("apply_stack_edit", {
+      p_id: target.stackId,
+      p_title: w.title.trim(),
+      p_description: w.description.trim(),
+      p_sections: sectionsArg(w),
+      p_share: share,
+      p_note: note.trim(),
+    });
+    setBusy(false);
+    if (error) return toast(error.code === "PGRST202" ? "Editing published stacks isn't available yet." : `Couldn't save: ${error.message}`);
+    setShareOpen(false);
+    toast(share ? "Update shared to the feed" : "Changes saved");
+    router.replace(`/s/${target.stackId}`);
+    router.refresh();
+  }
+
+  function openShare() {
+    if (!target) return;
+    const info = shareInfo(target, now);
+    if (!info.can) return toast(info.blocked);
+    if (!counts(work).n) return toast("Add a line with some text to save.");
+    setUpdateNote("");
+    focusId.current = "note";
+    setShareOpen(true);
   }
 
   async function doPublish(title: string) {
@@ -483,7 +569,21 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
           {step !== "title" && step !== "description" && (
             <>
               <span className={s.statusDot} data-state={save === "over" ? "error" : save} />
-              {save === "saving" ? "Saving…" : save === "saved" ? "Saved just now" : save === "error" ? "Couldn't save" : save === "over" ? "Too long to save" : "New draft"}
+              {save === "error"
+                ? "Couldn't save"
+                : save === "over"
+                  ? "Too long to save"
+                  : target
+                    ? save === "saving" && edited
+                      ? "Saving draft…"
+                      : edited
+                        ? "Unsaved changes"
+                        : "No changes yet"
+                    : save === "saving"
+                      ? "Saving…"
+                      : save === "saved"
+                        ? "Saved just now"
+                        : "New draft"}
             </>
           )}
         </div>
@@ -493,16 +593,20 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
           </button>
         </div>
       </div>
-      <div className={s.progress}>
-        <div className={s.segments}>
-          {[1, 2, 3, 4].map((i) => (
-            <span key={i} className={i <= stepNum ? s.segOn : s.seg} />
-          ))}
+      {target ? (
+        <div className={s.editingLabel}>Editing a published stack</div>
+      ) : (
+        <div className={s.progress}>
+          <div className={s.segments}>
+            {[1, 2, 3, 4].map((i) => (
+              <span key={i} className={i <= stepNum ? s.segOn : s.seg} />
+            ))}
+          </div>
+          <span className={s.stepLabel}>
+            {stepNum}/4 · {stepName}
+          </span>
         </div>
-        <span className={s.stepLabel}>
-          {stepNum}/4 · {stepName}
-        </span>
-      </div>
+      )}
     </header>
   );
 
@@ -587,7 +691,7 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
               <span className={s.avatar}>{initials(viewer.name)}</span>
               <span className={s.authorText}>
                 <span className={s.authorName}>{viewer.name}</span>
-                <span className={s.authorMeta}>@{viewer.handle} · Draft, only you can see it</span>
+                <span className={s.authorMeta}>@{viewer.handle} · {target ? "Only you see these edits until you save" : "Draft, only you can see it"}</span>
               </span>
             </div>
             <input
@@ -844,32 +948,50 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
               + Add subsection
             </button>
           </div>
-          <footer className={s.footer}>
-            <button
-              className={s.back}
-              onClick={() => {
-                setStep("description");
-                clearSel();
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M14.5 5.5L8 12l6.5 6.5" />
-              </svg>
-              Back
-            </button>
-            <button
-              className={s.primary}
-              style={{ flex: 1 }}
-              aria-disabled={!(n || k)}
-              onClick={() => {
-                if (!(n || k)) return toast("Write a line first.");
-                setStep("review");
-                clearSel();
-              }}
-            >
-              Finalize
-            </button>
-          </footer>
+          {target ? (
+            <footer className={`${s.footer} ${s.editFooter}`}>
+              <button className={s.primary} disabled={busy} onClick={() => applyEdit(false)}>
+                {busy && !shareOpen ? "Saving…" : "Save"}
+              </button>
+              <button className={s.shareUpdate} aria-disabled={!shareInfo(target, now).can} onClick={openShare}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5" />
+                  <path d="M20 4v4.5h-4.5" />
+                  <path d="M20 12a8 8 0 0 1-13.7 5.7L4 15.5" />
+                  <path d="M4 20v-4.5h4.5" />
+                </svg>
+                Save and share update
+              </button>
+              <div className={s.shareHint}>{shareInfo(target, now).hint}</div>
+            </footer>
+          ) : (
+            <footer className={s.footer}>
+              <button
+                className={s.back}
+                onClick={() => {
+                  setStep("description");
+                  clearSel();
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M14.5 5.5L8 12l6.5 6.5" />
+                </svg>
+                Back
+              </button>
+              <button
+                className={s.primary}
+                style={{ flex: 1 }}
+                aria-disabled={!(n || k)}
+                onClick={() => {
+                  if (!(n || k)) return toast("Write a line first.");
+                  setStep("review");
+                  clearSel();
+                }}
+              >
+                Finalize
+              </button>
+            </footer>
+          )}
         </>
       )}
 
@@ -1019,6 +1141,42 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
             />
           </div>
         </>
+      )}
+
+      {shareOpen && target && (
+        <div className={s.scrim} onClick={() => setShareOpen(false)}>
+          <div className={s.sheet} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="share-title">
+            <div className={s.grabber} />
+            <div id="share-title" className={s.sheetTitle}>
+              Share an update
+            </div>
+            <div className={s.sheetText}>Your stack goes back into the feed with this note. After this, you can share your next update on {shortDay(now + WEEK)}.</div>
+            <div className={s.noteLabelRow}>
+              <label htmlFor="update-note" className={s.noteLabel}>
+                Update note
+              </label>
+              <span className={s.noteCount} data-near={updateNote.length >= 36 || undefined}>
+                {updateNote.length}/40
+              </span>
+            </div>
+            <input
+              id="update-note"
+              data-fid="note"
+              className={`${s.sheetInput} ${s.noteInput}`}
+              value={updateNote}
+              maxLength={40}
+              onChange={(e) => setUpdateNote(e.target.value.slice(0, 40))}
+              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), applyEdit(true, updateNote))}
+              placeholder="What changed? (optional)"
+            />
+            <button className={s.primary} style={{ marginTop: 14, width: "100%" }} disabled={busy} onClick={() => applyEdit(true, updateNote)}>
+              {busy ? "Sharing…" : "Share update"}
+            </button>
+            <button className={s.quiet} style={{ width: "100%", marginTop: 4 }} onClick={() => setShareOpen(false)}>
+              Cancel
+            </button>
+          </div>
+        </div>
       )}
 
       {sheet && (

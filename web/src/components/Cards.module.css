@@ -855,6 +855,24 @@
   margin-bottom: 16px;
 }
 
+/* "Updated: what changed" on a stack shared back into the feed */
+.updateBanner {
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: oklch(94.5% 0.035 150);
+  margin-bottom: 14px;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: oklch(30% 0.07 150);
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.updateBanner strong {
+  font-weight: 700;
+  color: oklch(40% 0.1 150);
+}
+
 .repostNoteAvatar {
   width: 24px;
   height: 24px;

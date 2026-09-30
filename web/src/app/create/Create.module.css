@@ -98,6 +98,14 @@
   white-space: nowrap;
 }
 
+/* Edit mode shows this in place of the step progress. */
+.editingLabel {
+  padding: 0 20px 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted-66);
+}
+
 /* ── Steps 1 and 2: one centered field ── */
 .prompt {
   flex: 1;
@@ -632,6 +640,74 @@
   flex-shrink: 0;
   border-top: 1px solid var(--line);
   background: var(--bg);
+}
+
+/* Edit mode: Save, Save and share update, and when sharing is possible */
+.editFooter {
+  padding-top: 12px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.shareUpdate {
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid oklch(88.5% 0.006 80);
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.shareUpdate[aria-disabled="true"] {
+  background: oklch(95.6% 0.004 80);
+  color: oklch(58% 0.006 80);
+}
+
+.shareHint {
+  font-size: 11.5px;
+  color: var(--muted-62);
+  text-align: center;
+  line-height: 1.4;
+  text-wrap: pretty;
+  padding: 0 10px;
+}
+
+.noteLabelRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 18px 2px 6px;
+}
+
+.noteLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-60);
+}
+
+.noteCount {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: oklch(50.8% 0.006 80);
+}
+
+.noteCount[data-near] {
+  color: oklch(54% 0.16 45);
+}
+
+.sheetInput.noteInput {
+  margin-top: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-bright);
 }
 
 .back {

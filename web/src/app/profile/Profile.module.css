@@ -180,6 +180,64 @@
   color: var(--muted-56);
 }
 
+/* Edit profile: "Show followers and following" switch */
+.countsToggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 4px 0 18px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  text-align: left;
+}
+
+.countsText {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  color: oklch(17.5% 0.006 80);
+}
+
+.countsSub {
+  display: block;
+  font-size: 12px;
+  color: oklch(43.4% 0.006 80);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.switchTrack {
+  position: relative;
+  width: 44px;
+  height: 26px;
+  border-radius: 13px;
+  background: oklch(88.5% 0.006 80);
+  flex-shrink: 0;
+  transition: background 150ms ease;
+}
+
+.switchTrack[data-on] {
+  background: var(--accent);
+}
+
+.switchTrack > span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: oklch(13.8% 0.006 80);
+  transition: left 150ms ease;
+}
+
+.switchTrack[data-on] > span {
+  left: 21px;
+}
+
 .socialHint {
   font-size: 12.5px;
   color: var(--muted-62);

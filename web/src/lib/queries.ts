@@ -16,10 +16,13 @@ const PROFILE_BASICS = "id,handle,name,bio";
 const PROFILE_DEFAULTS = { socials: {}, pinned_stack_id: null, pin_note: "", featured_link_label: null, featured_link_url: null };
 
 /**
- * One profile by id or handle. Falls back to the basic columns when the
- * profile_featured migration hasn't been applied yet, so sign-in keeps working.
+ * One profile by id or handle. Falls back to fewer columns when the
+ * edit_published_stacks or profile_featured migration hasn't been applied yet,
+ * so sign-in keeps working.
  */
 export async function fetchProfile(sb: SupabaseClient, column: "id" | "handle", value: string) {
+  const withCounts = await sb.from("profiles").select(`${PROFILE_SELECT},show_follow_counts`).eq(column, value).maybeSingle();
+  if (!withCounts.error) return withCounts.data as Profile | null;
   const full = await sb.from("profiles").select(PROFILE_SELECT).eq(column, value).maybeSingle();
   if (!full.error) return full.data as Profile | null;
   const basic = await sb.from("profiles").select(PROFILE_BASICS).eq(column, value).maybeSingle();
@@ -75,12 +78,17 @@ export async function fetchFeed(sb: SupabaseClient, viewerId: string | null, opt
     if (ids.length === 0) return [];
   }
   const from = opts.page * PAGE_SIZE;
-  const { data, error } = await publicOnly((pub) => {
-    let q = sb.from("stacks").select(STACK_WITH_COMMENTS).eq("status", "published");
-    if (pub) q = q.eq("visibility", "public");
-    if (ids) q = q.in("author_id", ids);
-    return q.order("published_at", { ascending: false }).range(from, from + PAGE_SIZE - 1);
-  });
+  const run = (order: "feed_at" | "published_at") =>
+    publicOnly((pub) => {
+      let q = sb.from("stacks").select(STACK_WITH_COMMENTS).eq("status", "published");
+      if (pub) q = q.eq("visibility", "public");
+      if (ids) q = q.in("author_id", ids);
+      return q.order(order, { ascending: false }).range(from, from + PAGE_SIZE - 1);
+    });
+  // Newest first by when each stack last entered the feed (published or shared as an update).
+  // Before the edit_published_stacks migration there is no feed_at column.
+  let { data, error } = await run("feed_at");
+  if (error?.code === "42703") ({ data, error } = await run("published_at"));
   if (error) throw error;
   return withViewerState(sb, viewerId, (data ?? []) as unknown as StackRow[]);
 }

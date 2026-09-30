@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { setVisibility, useVisibility } from "@/lib/store";
 import { createClient } from "@/lib/supabase/client";
@@ -62,7 +63,40 @@ export function VisibilityPill({ value, onClick }: { value: Visibility; onClick:
   );
 }
 
-/** "Who can see this stack?" with the three options and, for published stacks, a two-tap Delete. */
+/** Manage stacks' "✎ Edit ▾" button, which opens the visibility sheet with Edit stack at the top. */
+export function EditPill({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      className={`${v.pill} ${v.editPill}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+    >
+      <EditIcon />
+      Edit
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--muted-66)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M6 9.5l6 6 6-6" />
+      </svg>
+    </button>
+  );
+}
+
+/** The pencil on Edit and Edit stack. */
+export function EditIcon({ size = 13, color = "var(--accent)" }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M4.5 19.5h4l10-10-4-4-10 10v4z" />
+      <path d="M13 7l4 4" />
+    </svg>
+  );
+}
+
+/**
+ * "Who can see this stack?" with the three options and, for published stacks, a two-tap Delete.
+ * With `onEdit` (from Manage stacks) the stack's title and an Edit stack button come first.
+ */
 export function VisibilitySheet({
   title,
   value,
@@ -70,6 +104,7 @@ export function VisibilitySheet({
   onPick,
   onClose,
   onDelete,
+  onEdit,
 }: {
   title: string;
   value: Visibility;
@@ -77,6 +112,7 @@ export function VisibilitySheet({
   onPick: (v: Visibility) => void;
   onClose: () => void;
   onDelete?: () => Promise<boolean>;
+  onEdit?: () => void;
 }) {
   const [armed, setArmed] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -95,11 +131,21 @@ export function VisibilitySheet({
     <div className={v.scrim} onClick={onClose}>
       <div className={v.sheet} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="vis-title">
         <div className={v.grabber} />
+        {onEdit && (
+          <>
+            <div className={v.editTitle}>{title}</div>
+            <button type="button" className={v.edit} onClick={onEdit}>
+              <EditIcon size={16} color="currentColor" />
+              Edit stack
+            </button>
+            <div className={v.divider} />
+          </>
+        )}
         <div id="vis-title" className={v.heading}>
           Who can see this stack?
         </div>
         {note && <div className={v.note}>{note}</div>}
-        <div className={v.stackTitle}>{title}</div>
+        {!onEdit && <div className={v.stackTitle}>{title}</div>}
         {ORDER.map((k) => {
           const on = k === value;
           return (
@@ -142,8 +188,9 @@ type Target = Pick<StackRow, "id" | "title" | "visibility">;
  * Render `sheet` somewhere in the screen. `onDeleted` runs after Delete stack succeeds.
  */
 export function useVisibilityEditor(onDeleted: (id: string) => void) {
+  const router = useRouter();
   const toast = useToast();
-  const [target, setTarget] = useState<{ stack: Target; note?: string } | null>(null);
+  const [target, setTarget] = useState<{ stack: Target; note?: string; edit?: boolean } | null>(null);
   const current = useVisibility(target?.stack ?? { id: "", visibility: "public" });
 
   async function pick(next: Visibility) {
@@ -179,7 +226,20 @@ export function useVisibilityEditor(onDeleted: (id: string) => void) {
   }
 
   const sheet = target && (
-    <VisibilitySheet title={target.stack.title} value={current} note={target.note} onPick={pick} onClose={() => setTarget(null)} onDelete={remove} />
+    <VisibilitySheet
+      title={target.stack.title}
+      value={current}
+      note={target.note}
+      onPick={pick}
+      onClose={() => setTarget(null)}
+      onDelete={remove}
+      onEdit={target.edit ? () => router.push(`/create?edit=${target.stack.id}`) : undefined}
+    />
   );
-  return { open: (stack: Target, note?: string) => setTarget({ stack, note }), sheet };
+  return {
+    open: (stack: Target, note?: string) => setTarget({ stack, note }),
+    /** Opens the sheet with Edit stack at the top. */
+    openWithEdit: (stack: Target) => setTarget({ stack, edit: true }),
+    sheet,
+  };
 }

@@ -94,6 +94,18 @@ export function FeedCard({ stack }: { stack: FeedItem }) {
   );
 }
 
+/** The green "Updated: note" line on a stack whose author shared an update to the feed. */
+export function UpdateBanner({ stack, className }: { stack: Pick<Stack, "shared_at" | "update_note">; className?: string }) {
+  if (!stack.shared_at) return null;
+  const note = stack.update_note?.trim();
+  return (
+    <div className={`${s.updateBanner} ${className ?? ""}`}>
+      <strong>Updated{note && ":"}</strong>
+      {note && ` ${note}`}
+    </div>
+  );
+}
+
 /** A paper card: author and age on top, as many lines as fit (faded, with See all, when cut off), the action bar, then comments that open inline. */
 function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode }) {
   const open = useOpen(stack.id);
@@ -167,6 +179,7 @@ function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode })
       </div>
       <div className={s.feedBody}>
         {note}
+        <UpdateBanner stack={stack} />
         <div {...open} className={s.feedOpen}>
           <div ref={clipRef} className={s.feedClip}>
             <div className={s.title}>{stack.title}</div>

@@ -15,9 +15,12 @@ export function StackPaper({
   description,
   lines,
   footer,
+  banner,
 }: {
   updated: string;
   author: React.ReactNode;
+  /** Shown between the author and the title (the "Updated: note" line). */
+  banner?: React.ReactNode;
   title: string;
   description?: string;
   lines: ViewLine[];
@@ -33,6 +36,7 @@ export function StackPaper({
       </div>
       <div className={v.body}>
         {author}
+        {banner}
         <h1 className={v.title}>{title}</h1>
         {description && <p className={v.desc}>{description}</p>}
         <div className={v.gap} />
@@ -65,7 +69,19 @@ export function StackPaper({
 }
 
 /** "Updated 3d ago · 6 lines" / "Updated just now · 1 line". */
-export function updatedLabel(ago: string, count: number) {
-  const when = !ago || ago === "just now" ? "just now" : `${ago} ago`;
-  return `Updated ${when} · ${count} ${count === 1 ? "line" : "lines"}`;
+// UTC so the server and the browser print the same day.
+const day = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+
+/** The day a published stack was last edited ("Sep 20"), or null if it hasn't been since publishing. */
+export function editedDay(publishedAt: string | null, updatedAt?: string | null) {
+  // Publishing also stamps updated_at, so only a later change counts as an edit.
+  if (!publishedAt || !updatedAt || Date.parse(updatedAt) - Date.parse(publishedAt) <= 60_000) return null;
+  return day(updatedAt);
+}
+
+/** "Published Sep 3", plus "· Updated Sep 20" once the author has edited it since. */
+export function publishedLabel(publishedAt: string | null, updatedAt?: string | null) {
+  if (!publishedAt) return "";
+  const edited = editedDay(publishedAt, updatedAt);
+  return `Published ${day(publishedAt)}${edited ? ` · Updated ${edited}` : ""}`;
 }
