@@ -78,6 +78,13 @@ export const CATEGORY_DOTS: Record<string, string> = {
 };
 export const DEFAULT_DOT = "oklch(64% 0.16 50)";
 
-export const MAX_LINE = 500;
+// Stack size limits. The database's save function enforces the same numbers.
 export const MAX_TITLE = 120;
-export const MAX_DESCRIPTION = 500;
+export const MAX_DESCRIPTION = 300;
+export const MAX_LABEL = 100; // subsection title
+export const MAX_SECTIONS = 20;
+export const MAX_ITEMS = 100;
+export const MAX_HEAD = 120; // an item's heading
+export const MAX_NOTE = 500; // an item's optional note
+export const MAX_TOTAL = 25000; // title, description, subsection titles, headings and notes together
+export const MAX_REPOST_NOTE = 500;

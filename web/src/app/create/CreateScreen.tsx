@@ -7,7 +7,7 @@ import { useAuth, useToast } from "@/components/AppProviders";
 import shell from "@/components/AppShell.module.css";
 import { systemShare } from "@/components/Share";
 import { StackPaper } from "@/components/StackView";
-import { initials, MAX_DESCRIPTION, MAX_LINE, MAX_TITLE } from "@/lib/format";
+import { initials, MAX_DESCRIPTION, MAX_HEAD, MAX_ITEMS, MAX_LABEL, MAX_NOTE, MAX_SECTIONS, MAX_TITLE, MAX_TOTAL } from "@/lib/format";
 import { createClient } from "@/lib/supabase/client";
 import type { Draft, Visibility } from "@/lib/types";
 import p from "../profile/Profile.module.css";
@@ -19,7 +19,7 @@ type Sec = { id: string; headed: boolean; label: string; lines: Line[] };
 // Tags are no longer edited here; a draft keeps the ones it already had.
 type Work = { title: string; description: string; tags: string[]; visibility: Visibility; location: string; sections: Sec[] };
 type Sel = { kind: "line" | "sec"; id: string } | null;
-type SaveState = "idle" | "saving" | "saved" | "error";
+type SaveState = "idle" | "saving" | "saved" | "error" | "over";
 
 const STEPS: Record<Step, [number, string]> = { title: [1, "Title"], description: [2, "Description"], build: [3, "Build"], review: [4, "Finalize"] };
 const PRIVACY: [Visibility, string, string][] = [
@@ -61,6 +61,31 @@ const counts = (w: Work) => {
   w.sections.forEach((sec) => sec.lines.forEach((l) => (l.text.trim() && n++, l.link && k++)));
   return { n, k };
 };
+const n0 = (x: number) => x.toLocaleString("en-US");
+
+/**
+ * What in this stack is over a size limit, in words (empty when it fits). Mirrors the database's checks, which
+ * count only items with a heading. Stacks made before the limits can be over; they save again once trimmed.
+ */
+function limitProblems(w: Work): string[] {
+  const out: string[] = [];
+  const items = w.sections.flatMap((sec) => sec.lines.filter((l) => l.text.trim()));
+  const headed = w.sections.filter((sec) => sec.headed);
+  let total = w.title.trim().length + w.description.trim().length;
+  headed.forEach((sec) => (total += sec.label.trim().length));
+  items.forEach((l) => (total += l.text.trim().length + l.note.trim().length));
+  if (w.title.trim().length > MAX_TITLE) out.push(`Shorten the title to ${MAX_TITLE} characters.`);
+  if (w.description.trim().length > MAX_DESCRIPTION) out.push(`Shorten the description to ${n0(MAX_DESCRIPTION)} characters.`);
+  if (w.sections.length > MAX_SECTIONS) out.push(`Use at most ${MAX_SECTIONS} subsections (this has ${w.sections.length}).`);
+  if (headed.some((sec) => sec.label.trim().length > MAX_LABEL)) out.push(`Keep subsection titles to ${MAX_LABEL} characters.`);
+  if (items.length > MAX_ITEMS) out.push(`Use at most ${MAX_ITEMS} items (this has ${items.length}).`);
+  const longHeads = items.filter((l) => l.text.trim().length > MAX_HEAD).length;
+  if (longHeads) out.push(`Shorten ${longHeads === 1 ? "1 item heading" : `${longHeads} item headings`} to ${MAX_HEAD} characters.`);
+  if (items.some((l) => l.note.trim().length > MAX_NOTE)) out.push(`Keep item notes to ${MAX_NOTE} characters.`);
+  if (total > MAX_TOTAL) out.push(`Trim the text to ${n0(MAX_TOTAL)} characters in all (this has ${n0(total)}).`);
+  return out;
+}
+
 const hasContent = (w: Work) => !!(w.title.trim() || w.description.trim() || w.sections.some((sec) => sec.lines.some((l) => l.text.trim() || l.link)));
 
 /** A pasted link: letter tile, site name and domain. */
@@ -139,7 +164,7 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
         if (error?.code === "PGRST202") {
           const folded = w.sections.map((sec) => ({
             label: sec.headed ? sec.label : "",
-            lines: sec.lines.map((l) => ({ text: (l.note.trim() && l.text.trim() ? `${l.text.trim()} — ${l.note.trim()}` : l.text).slice(0, MAX_LINE), link: l.link || null })),
+            lines: sec.lines.map((l) => ({ text: (l.note.trim() && l.text.trim() ? `${l.text.trim()} — ${l.note.trim()}` : l.text).slice(0, 500), link: l.link || null })),
           }));
           ({ data, error } = await sb.rpc("save_stack", { ...args, p_sections: folded }));
         }
@@ -165,6 +190,8 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
     if (!viewer || !dirty.current || published) return;
     const t = setTimeout(async () => {
       if (!hasContent(workRef.current)) return setSave("idle");
+      // Over a limit: nothing is saved until it's trimmed (the banner says what to change).
+      if (limitProblems(workRef.current).length) return setSave("over");
       dirty.current = false;
       const err = await persist("draft");
       setSave(err ? "error" : "saved");
@@ -187,6 +214,7 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
   const mapLine = (id: string, fn: (l: Line) => Line) => edit((w) => ({ ...w, sections: w.sections.map((sec) => ({ ...sec, lines: sec.lines.map((l) => (l.id === id ? fn(l) : l)) })) }));
 
   function addLine(secId: string, afterId?: string) {
+    if (work.sections.reduce((n, sec) => n + sec.lines.length, 0) >= MAX_ITEMS) return toast(`A stack can have at most ${MAX_ITEMS} items.`);
     const l = newLine();
     focusId.current = l.id;
     edit((w) => ({
@@ -226,7 +254,7 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
   }
 
   function addSection() {
-    if (work.sections.length >= 30) return toast("A stack can have at most 30 subsections.");
+    if (work.sections.length >= MAX_SECTIONS) return toast(`A stack can have at most ${MAX_SECTIONS} subsections.`);
     const sid = uid();
     focusId.current = sid;
     edit((w) => ({ ...w, sections: [...w.sections, { id: sid, headed: true, label: "", lines: [newLine()] }] }));
@@ -292,6 +320,11 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
   }
 
   const flush = async () => {
+    const over = limitProblems(workRef.current)[0];
+    if (over) {
+      setSave("over");
+      return over;
+    }
     dirty.current = false;
     setSave("saving");
     const err = await persist("draft");
@@ -332,6 +365,8 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
 
   function publish() {
     if (!counts(work).n) return toast("Add a line with some text to publish.");
+    const over = limitProblems(work)[0];
+    if (over) return toast(over);
     if (!work.title.trim()) {
       focusId.current = "sheet";
       setTitleDraft("");
@@ -382,6 +417,7 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
   }
 
   const { n, k } = counts(work);
+  const problems = limitProblems(work);
   const countLabel = n === 0 ? "No lines yet" : `${n} ${n === 1 ? "line" : "lines"}${k ? ` · ${k} ${k === 1 ? "link" : "links"}` : ""}`;
   const shownTitle = work.title.trim() || "Untitled Stack";
 
@@ -446,8 +482,8 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
         <div className={s.status}>
           {step !== "title" && step !== "description" && (
             <>
-              <span className={s.statusDot} data-state={save} />
-              {save === "saving" ? "Saving…" : save === "saved" ? "Saved just now" : save === "error" ? "Couldn't save" : "New draft"}
+              <span className={s.statusDot} data-state={save === "over" ? "error" : save} />
+              {save === "saving" ? "Saving…" : save === "saved" ? "Saved just now" : save === "error" ? "Couldn't save" : save === "over" ? "Too long to save" : "New draft"}
             </>
           )}
         </div>
@@ -517,8 +553,8 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
             className={s.promptDesc}
             value={work.description}
             rows={1}
-            maxLength={MAX_DESCRIPTION}
-            onChange={(e) => edit((w) => ({ ...w, description: e.target.value.slice(0, MAX_DESCRIPTION) }))}
+            maxLength={Math.max(MAX_DESCRIPTION, work.description.length)}
+            onChange={(e) => edit((w) => ({ ...w, description: e.target.value.slice(0, Math.max(MAX_DESCRIPTION, w.description.length)) }))}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
@@ -569,13 +605,23 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
               data-empty={!work.description || undefined}
               value={work.description}
               rows={1}
-              maxLength={MAX_DESCRIPTION}
-              onChange={(e) => edit((w) => ({ ...w, description: e.target.value.slice(0, MAX_DESCRIPTION) }))}
+              maxLength={Math.max(MAX_DESCRIPTION, work.description.length)}
+              onChange={(e) => edit((w) => ({ ...w, description: e.target.value.slice(0, Math.max(MAX_DESCRIPTION, w.description.length)) }))}
               onFocus={clearSel}
               placeholder="Add a description (optional)"
               aria-label="Description"
             />
             <div style={{ height: 14 }} />
+            {problems.length > 0 && (
+              <div className={s.limitBanner} role="alert">
+                <strong>This stack is over a size limit, so it won&apos;t save yet.</strong>
+                <ul>
+                  {problems.map((m) => (
+                    <li key={m}>{m}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {!work.sections[0]?.headed && (
               <button className={s.addSub} onClick={addTopSection}>
                 + Add subsection
@@ -592,7 +638,7 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
                         data-fid={sec.id}
                         className={s.sectionInput}
                         value={sec.label}
-                        maxLength={60}
+                        maxLength={Math.max(MAX_LABEL, sec.label.length)}
                         onChange={(e) => {
                           const v = e.target.value;
                           edit((w) => ({ ...w, sections: w.sections.map((x) => (x.id === sec.id ? { ...x, label: v } : x)) }));
@@ -669,10 +715,11 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
                             className={s.lineInput}
                             value={l.text}
                             rows={1}
-                            maxLength={MAX_LINE}
+                            // Older headings can be longer; they keep their text so it can be trimmed by hand.
+                            maxLength={Math.max(MAX_HEAD, l.text.length)}
                             // Lines are single-line: pasted line breaks become spaces; Enter adds the next line.
                             onChange={(e) => {
-                              const v = e.target.value.replace(/\s*\n\s*/g, " ").slice(0, MAX_LINE);
+                              const v = e.target.value.replace(/\s*\n\s*/g, " ").slice(0, Math.max(MAX_HEAD, l.text.length));
                               mapLine(l.id, (x) => ({ ...x, text: v }));
                             }}
                             onKeyDown={(e) => {
@@ -688,9 +735,9 @@ export default function CreateScreen({ initial, start }: { initial: Draft; start
                             className={s.noteInput}
                             value={l.note}
                             rows={1}
-                            maxLength={MAX_LINE}
+                            maxLength={Math.max(MAX_NOTE, l.note.length)}
                             onChange={(e) => {
-                              const v = e.target.value.replace(/\s*\n\s*/g, " ").slice(0, MAX_LINE);
+                              const v = e.target.value.replace(/\s*\n\s*/g, " ").slice(0, Math.max(MAX_NOTE, l.note.length));
                               mapLine(l.id, (x) => ({ ...x, note: v }));
                             }}
                             onKeyDown={(e) => {
