@@ -208,8 +208,14 @@
   overflow-wrap: anywhere;
 }
 
-.feedLines {
+/* Title, description and lines, cut off at a fixed height */
+.feedClip {
   position: relative;
+  max-height: 392px;
+  overflow: hidden;
+}
+
+.feedLines {
   margin-top: 16px;
   color: var(--muted-66);
 }
@@ -279,7 +285,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 56px;
+  height: 64px;
   background: linear-gradient(to bottom, oklch(99.6% 0.002 80 / 0), var(--bg) 90%);
   pointer-events: none;
 }
@@ -736,10 +742,13 @@
 /* ── Own profile: two-column grid of compact cards ── */
 .gridCard {
   position: relative;
-  height: 212px;
-  border-radius: 14px;
-  background: var(--surface);
-  border: 1px solid var(--line);
+  aspect-ratio: 1 / 1;
+  border-radius: 18px;
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   padding: 12px;
@@ -787,13 +796,6 @@
   line-height: 1.85;
 }
 
-.gridMore {
-  font-size: 10.5px;
-  font-weight: 600;
-  color: var(--accent);
-  margin-top: 4px;
-}
-
 .gridStats {
   display: flex;
   align-items: center;
@@ -805,7 +807,13 @@
   color: var(--muted-66);
 }
 
-.gridStat {
+.gridCount {
+  font-weight: 600;
+  color: var(--muted-72);
+}
+
+.gridVis {
+  margin-left: auto;
   display: flex;
   align-items: center;
   gap: 4px;

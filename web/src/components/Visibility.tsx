@@ -62,17 +62,6 @@ export function VisibilityPill({ value, onClick }: { value: Visibility; onClick:
   );
 }
 
-/** Amber "🔗 Invite Only" / "🔒 Private" tag for your own non-public stacks. */
-export function VisibilityBadge({ value }: { value: Visibility }) {
-  if (value === "public") return null;
-  return (
-    <span className={v.badge}>
-      <VisIcon value={value} size={11} color="var(--warn)" />
-      {VIS[value].label}
-    </span>
-  );
-}
-
 /** "Who can see this stack?" with the three options and, for published stacks, a two-tap Delete. */
 export function VisibilitySheet({
   title,

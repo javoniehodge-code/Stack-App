@@ -12,14 +12,6 @@
   flex-shrink: 0;
 }
 
-.badge {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--warn);
-}
-
 /* ── Sheet ── */
 .scrim {
   position: absolute;

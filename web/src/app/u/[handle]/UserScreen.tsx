@@ -10,7 +10,7 @@ import cards from "@/components/Cards.module.css";
 import { useIsFollowing } from "@/lib/store";
 import type { Profile, Stack } from "@/lib/types";
 import { useStackActions } from "@/lib/useStackActions";
-import { FeaturedStack, ProfileBar, ProfileFooter, ProfileHero } from "@/app/profile/ProfileHead";
+import { ConnectMenu, ProfileBar, ProfileFooter, ProfileHero } from "@/app/profile/ProfileHead";
 import p from "@/app/profile/Profile.module.css";
 import BlockSheet from "./BlockSheet";
 
@@ -36,7 +36,6 @@ export default function UserScreen({
   const followers = counts.followers - (following ? 1 : 0) + (isFollowing ? 1 : 0);
   const firstName = profile.name.split(" ")[0];
   const list = tab === "stacks" ? stacks : reposts;
-  const hasContact = !!(profile.featured_link_label && profile.featured_link_url);
   const tabStyle = (t: typeof tab) => ({
     color: tab === t ? "var(--text)" : "var(--muted-56)",
     borderBottomColor: tab === t ? "var(--accent)" : "transparent",
@@ -66,15 +65,10 @@ export default function UserScreen({
             following={isFollowing}
             label={`Follow ${firstName}`}
             onClick={() => a.toggleFollow(profile, isFollowing)}
-            style={isFollowing ? { borderColor: "var(--line-4)" } : undefined}
+            style={isFollowing ? { borderColor: "var(--handle)" } : undefined}
           />
-          {hasContact && (
-            <a className={p.contact} href={profile.featured_link_url!} target="_blank" rel="noopener noreferrer nofollow">
-              <span>{profile.featured_link_label} ↗</span>
-            </a>
-          )}
+          <ConnectMenu profile={profile} />
         </ProfileHero>
-        <FeaturedStack profile={profile} stacks={stacks} />
         <div className={p.tabs} role="tablist" style={{ padding: "24px 20px 0", borderBottom: "1px solid var(--line)" }}>
           <button role="tab" aria-selected={tab === "stacks"} className={p.tab} style={tabStyle("stacks")} onClick={() => setTab("stacks")}>
             Stacks

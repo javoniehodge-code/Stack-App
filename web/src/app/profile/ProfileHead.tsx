@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import SocialLinks from "@/components/SocialLinks";
-import { fmtCount, initials, plural } from "@/lib/format";
-import type { Profile, Stack } from "@/lib/types";
-import f from "./Featured.module.css";
+import { useEffect, useState } from "react";
+import { fmtCount, initials } from "@/lib/format";
+import { socialLinks } from "@/lib/socials";
+import type { Profile } from "@/lib/types";
 import p from "./Profile.module.css";
 
 /** The fixed bar above a profile: a wordmark or Back on the left, the share button on the right. */
@@ -20,7 +19,7 @@ export function ProfileBar({ children, right }: { children: React.ReactNode; rig
   );
 }
 
-/** Centered avatar, name, bio, socials, the two action buttons and the counts. */
+/** Avatar beside the name, handle and counts; the bio; then the two action buttons. */
 export function ProfileHero({
   profile,
   stackCount,
@@ -36,44 +35,95 @@ export function ProfileHero({
 }) {
   return (
     <div className={p.hero}>
-      <div className={p.heroAvatar}>{initials(profile.name)}</div>
-      <h1 className={p.heroName}>{profile.name}</h1>
-      <div className={p.heroHandle}>@{profile.handle}</div>
-      {profile.bio && <div className={p.heroBio}>{profile.bio}</div>}
-      <SocialLinks socials={profile.socials} />
-      <div className={p.actions}>{children}</div>
-      <div className={p.heroStats}>
-        <span>
-          <strong>{stackCount}</strong> Stacks
-        </span>
-        <Link href={`/u/${profile.handle}/followers`} className={p.statLink}>
-          <strong>{fmtCount(followers)}</strong> Followers
-        </Link>
-        <Link href={`/u/${profile.handle}/following`} className={p.statLink}>
-          <strong>{fmtCount(following)}</strong> Following
-        </Link>
+      <div className={p.heroTop}>
+        <div className={p.heroAvatar}>{initials(profile.name)}</div>
+        <div className={p.heroNames}>
+          <h1 className={p.heroName}>{profile.name}</h1>
+          <div className={p.heroHandle}>@{profile.handle}</div>
+          <div className={p.heroStats}>
+            <span>
+              <strong>{stackCount}</strong> Stacks
+            </span>
+            <Link href={`/u/${profile.handle}/followers`} className={p.statLink}>
+              <strong>{fmtCount(followers)}</strong> Followers
+            </Link>
+            <Link href={`/u/${profile.handle}/following`} className={p.statLink}>
+              <strong>{fmtCount(following)}</strong> Following
+            </Link>
+          </div>
+        </div>
       </div>
+      {profile.bio && <div className={p.heroBio}>{profile.bio}</div>}
+      <div className={p.actions}>{children}</div>
     </div>
   );
 }
 
-/** A visitor's view of the featured stack: the pinned one, or the first stack when nothing is pinned. */
-export function FeaturedStack({ profile, stacks }: { profile: Profile; stacks: Stack[] }) {
-  const router = useRouter();
-  const st = stacks.find((s) => s.id === profile.pinned_stack_id) ?? stacks[0];
-  if (!st) return null;
-  const note = (st.id === profile.pinned_stack_id && profile.pin_note) || st.description;
-  const open = () => router.push(`/s/${st.id}`);
+/** "Connect ▾": the custom link, socials and email in a menu under the action buttons. */
+export function ConnectMenu({ profile, onEditLinks }: { profile: Profile; onEditLinks?: () => void }) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  const items: { key: string; label: string; sub: string; href: string }[] = [];
+  if (profile.featured_link_label && profile.featured_link_url)
+    items.push({ key: "custom", label: profile.featured_link_label, sub: profile.featured_link_url.replace(/^(https?:\/\/|mailto:)/i, ""), href: profile.featured_link_url });
+  for (const l of socialLinks(profile.socials)) {
+    const raw = (profile.socials?.[l.key] ?? "").trim();
+    const sub = l.key === "email" ? raw.replace(/^mailto:/i, "") : /^https?:\/\//i.test(raw) ? raw.replace(/^https?:\/\/(www\.)?/i, "") : "@" + raw.replace(/^@/, "");
+    items.push({ key: l.key, label: l.label, sub, href: l.href });
+  }
+
   return (
-    <section className={p.featured}>
-      <div className={f.sectionLabel}>Featured</div>
-      <div className={f.card} role="link" tabIndex={0} onClick={open} onKeyDown={(e) => e.key === "Enter" && open()} style={{ cursor: "pointer" }}>
-        <span className={f.kicker}>Featured stack · {plural(st.line_count, "line")}</span>
-        <div className={f.title}>{st.title}</div>
-        {note && <div className={f.note}>{note}</div>}
-        <div className={f.explore}>Explore this stack →</div>
-      </div>
-    </section>
+    <>
+      <button className={`${p.actionButton} ${p.outline}`} style={open ? { background: "oklch(96.5% 0.004 80)" } : undefined} onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open}>
+        Connect
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted-72)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden className={open ? p.chevronOpen : p.chevron}>
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+      {open && (
+        <>
+          <div className={p.connectScrim} onClick={() => setOpen(false)} aria-hidden />
+          <div className={p.connectMenu} role="menu" aria-label="Connect">
+            {items.map((it) => (
+              <a
+                key={it.key}
+                role="menuitem"
+                className={p.connectItem}
+                href={it.href}
+                target={it.key === "email" ? undefined : "_blank"}
+                rel="noopener noreferrer nofollow"
+                onClick={() => setOpen(false)}
+              >
+                <span className={p.connectLabel}>{it.label}</span>
+                <span className={p.connectSub}>{it.sub}</span>
+                <span className={p.connectArrow} aria-hidden>
+                  ↗
+                </span>
+              </a>
+            ))}
+            {items.length === 0 && <div className={p.connectEmpty}>No links added yet</div>}
+            {onEditLinks && (
+              <button
+                role="menuitem"
+                className={p.connectEdit}
+                onClick={() => {
+                  setOpen(false);
+                  onEditLinks();
+                }}
+              >
+                Edit links
+              </button>
+            )}
+          </div>
+        </>
+      )}
+    </>
   );
 }
 

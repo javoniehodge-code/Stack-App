@@ -15,7 +15,7 @@ import type { MyRepost, Stack, StackRow } from "@/lib/types";
 import { useStackActions } from "@/lib/useStackActions";
 import EditProfileSheet from "./EditProfileSheet";
 import MyStacks from "./MyStacks";
-import { ProfileBar, ProfileFooter, ProfileHero } from "./ProfileHead";
+import { ConnectMenu, ProfileBar, ProfileFooter, ProfileHero } from "./ProfileHead";
 import p from "./Profile.module.css";
 
 export type ProfileTab = "mine" | "saved" | "reposts" | "drafts";
@@ -24,7 +24,7 @@ type Data = { mine: Stack[]; saved: Stack[]; reposts: MyRepost[]; drafts: StackR
 export default function ProfileScreen({ data, initialTab }: { data: Data | null; initialTab: ProfileTab }) {
   const { viewer, requireAuth } = useAuth();
   const [tab, setTab] = useState<ProfileTab>(initialTab);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState<null | "profile" | "links">(null);
   const [prevTab, setPrevTab] = useState(initialTab);
   if (initialTab !== prevTab) {
     setPrevTab(initialTab);
@@ -47,7 +47,6 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
     color: tab === t ? "var(--text)" : "var(--muted-56)",
     borderBottomColor: tab === t ? "var(--accent)" : "transparent",
   });
-  const hasContact = !!(viewer.featured_link_label && viewer.featured_link_url);
 
   return (
     <main className={shell.screen}>
@@ -58,21 +57,10 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
       </ProfileBar>
       <div className={p.scroll}>
         <ProfileHero profile={viewer} stackCount={data.mine.length} followers={data.counts.followers} following={data.counts.following}>
-          <button className={`${p.actionButton} ${p.editProfile}`} style={{ maxWidth: "none" }} onClick={() => setEditing(true)}>
+          <button className={`${p.actionButton} ${p.outline}`} onClick={() => setEditing("profile")}>
             Edit profile
           </button>
-          {hasContact ? (
-            <button className={p.contactMine} onClick={() => setEditing(true)} title="Edit custom link">
-              <span>{viewer.featured_link_label} ↗</span>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(92.9% 0.03 60)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }} aria-hidden>
-                <path d="M4 20h4L19 9l-4-4L4 16z" />
-              </svg>
-            </button>
-          ) : (
-            <button className={p.addContact} onClick={() => setEditing(true)}>
-              + Add custom link
-            </button>
-          )}
+          <ConnectMenu profile={viewer} onEditLinks={() => setEditing("links")} />
         </ProfileHero>
         <div className={p.tabBar}>
           <div className={p.tabs} role="tablist">
@@ -98,7 +86,7 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
         </div>
         <ProfileFooter />
       </div>
-      {editing && <EditProfileSheet onClose={() => setEditing(false)} />}
+      {editing && <EditProfileSheet mode={editing} onClose={() => setEditing(null)} />}
     </main>
   );
 }

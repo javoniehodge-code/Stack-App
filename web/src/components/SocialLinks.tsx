@@ -1,6 +1,4 @@
-import { socialLinks } from "@/lib/socials";
-import type { SocialKey, Socials } from "@/lib/types";
-import s from "./SocialLinks.module.css";
+import type { SocialKey } from "@/lib/types";
 
 export function SocialIcon({ name, size = 15 }: { name: SocialKey; size?: number }) {
   return (
@@ -67,18 +65,3 @@ const ICONS: Record<SocialKey, React.ReactNode> = {
     </>
   ),
 };
-
-/** The row of social icons under a bio. Renders nothing when none are filled in. */
-export default function SocialLinks({ socials }: { socials: Socials | null | undefined }) {
-  const links = socialLinks(socials);
-  if (links.length === 0) return null;
-  return (
-    <div className={s.row}>
-      {links.map((l) => (
-        <a key={l.key} className={s.link} href={l.href} target={l.key === "email" ? undefined : "_blank"} rel="noopener noreferrer nofollow" title={l.label} aria-label={l.label}>
-          <SocialIcon name={l.key} />
-        </a>
-      ))}
-    </div>
-  );
-}
