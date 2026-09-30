@@ -26,6 +26,8 @@ export function initials(name: string) {
 export type FlatLine = {
   num: string;
   label: string | null;
+  /** The subsection this line is in (on every line, unlike `label`). */
+  section: string | null;
   text: string;
   link: string | null;
   /** The line split for display: bold head, gray note (the saved note, or "Name — details"). */
@@ -52,6 +54,7 @@ export function flatten(stack: Pick<Stack, "sections" | "style">): FlatLine[] {
       out.push({
         num: bulleted ? "•" : String(n).padStart(2, "0"),
         label: i === 0 ? sec.label : null,
+        section: sec.label,
         text: ln.text,
         link: ln.link,
         ...splitLine(ln.text, ln.note),

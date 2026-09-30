@@ -946,34 +946,76 @@
 
     <sc-if value="{{ showShareSheet }}" hint-placeholder-val="{{ false }}">
       <div onClick="{{ closeShare }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;flex-direction:column;justify-content:flex-end;z-index:40;">
-        <div onClick="{{ closeShare }}" style="flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:54px 20px 14px;box-sizing:border-box;">
-          <div onClick="{{ stopClick }}" style="height:100%;max-width:100%;aspect-ratio:9 / 16;border-radius:16px;background:oklch(99.6% 0.002 80);box-shadow:0 20px 50px rgba(0,0,0,0.5);font-family:Inter,sans-serif;display:flex;flex-direction:column;padding:22px 22px 18px;box-sizing:border-box;overflow:hidden;position:relative;">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <span style="font-weight:800;font-size:15px;color:oklch(14.8% 0.006 80);letter-spacing:-0.5px;">stack<span style="color:oklch(64% 0.16 50);">.</span></span>
-              <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(41.5% 0.006 80);">{{ shareCard.handle }}</span>
-            </div>
-            <div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;">
-              <div style="font-weight:800;font-size:25px;color:oklch(14.8% 0.006 80);line-height:1.15;letter-spacing:-0.5px;text-wrap:balance;">{{ shareCard.title }}</div>
-              <div style="display:flex;flex-direction:column;gap:12px;margin-top:20px;">
-                <sc-for list="{{ shareCard.lines }}" as="ln" hint-placeholder-count="5">
-                  <div style="display:flex;gap:11px;font-size:17px;font-weight:600;color:oklch(17.5% 0.006 80);line-height:1.3;">
-                    <span style="color:oklch(64% 0.16 50);font-weight:800;flex-shrink:0;min-width:20px;font-variant-numeric:tabular-nums;">{{ ln.num }}</span><span style="flex:1;min-width:0;text-wrap:pretty;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">{{ ln.text }}</span>
+        <div onClick="{{ closeShare }}" style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;padding:54px 0 14px;box-sizing:border-box;">
+          <div onClick="{{ stopClick }}" style="display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 calc(50% - 138px);scrollbar-width:none;">
+            <sc-for list="{{ story.pages }}" as="pg" hint-placeholder-count="1">
+              <div style="width:275px;height:489px;flex-shrink:0;position:relative;scroll-snap-align:center;border-radius:13px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.5);">
+                <div style="position:absolute;left:0;top:0;width:393px;height:699px;transform:scale(0.7);transform-origin:0 0;background:oklch(96.5% 0.004 80);display:flex;flex-direction:column;padding:92px 16px 110px;font-family:Inter,sans-serif;">
+                  <div style="flex-shrink:0;max-height:437px;background:oklch(99.6% 0.002 80);border:1px solid oklch(90.7% 0.006 80);border-radius:24px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,0.04),0 8px 24px rgba(0,0,0,0.05);display:flex;flex-direction:column;">
+                    <div style="height:48px;flex-shrink:0;padding:0 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid oklch(91.2% 0.006 80);">
+                      <div style="width:28px;height:28px;border-radius:50%;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);font-weight:700;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ story.initials }}</div>
+                      <sc-if value="{{ pg.isCover }}" hint-placeholder-val="{{ true }}">
+                        <span style="font-weight:600;font-size:13.5px;color:oklch(19.4% 0.006 80);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ story.authorName }}</span>
+                        <span style="font-size:12.5px;color:oklch(47.1% 0.006 80);white-space:nowrap;flex-shrink:0;">{{ story.handle }}</span>
+                      </sc-if>
+                      <sc-if value="{{ pg.isCont }}" hint-placeholder-val="{{ false }}">
+                        <span style="font-weight:600;font-size:13.5px;color:oklch(19.4% 0.006 80);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ story.title }}</span>
+                      </sc-if>
+                      <span style="flex:1;"></span>
+                      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(47.1% 0.006 80);white-space:nowrap;flex-shrink:0;">{{ pg.counter }}</span>
+                    </div>
+                    <div style="padding:{{ pg.bodyPad }};position:relative;">
+                      <sc-if value="{{ pg.isCover }}" hint-placeholder-val="{{ true }}">
+                        <div style="font-size:19px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.25;letter-spacing:-0.4px;margin-bottom:6px;text-wrap:pretty;">{{ story.title }}</div>
+                        <sc-if value="{{ story.desc }}" hint-placeholder-val="{{ false }}">
+                          <div style="font-size:13.5px;color:oklch(39.7% 0.006 80);line-height:1.45;text-wrap:pretty;">{{ story.desc }}</div>
+                        </sc-if>
+                        <div style="height:16px;"></div>
+                      </sc-if>
+                      <sc-for list="{{ pg.items }}" as="it" hint-placeholder-count="4">
+                        <sc-if value="{{ it.isLabel }}" hint-placeholder-val="{{ false }}">
+                          <div style="display:flex;align-items:baseline;gap:6px;font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:oklch(64% 0.16 50);padding:{{ it.pad }};border-bottom:1px solid oklch(91.2% 0.006 80);">{{ it.label }}<sc-if value="{{ it.cont }}" hint-placeholder-val="{{ false }}"><span style="font-weight:500;letter-spacing:0.02em;text-transform:none;color:oklch(47.1% 0.006 80);">cont.</span></sc-if></div>
+                        </sc-if>
+                        <sc-if value="{{ it.isLine }}" hint-placeholder-val="{{ true }}">
+                          <div data-sh="{{ it.key }}" style="display:flex;gap:12px;padding:11px 0 12px;border-bottom:{{ it.divider }};">
+                            <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(64% 0.16 50);padding-top:1px;font-variant-numeric:tabular-nums;flex-shrink:0;">{{ it.num }}</span>
+                            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+                              <span style="font-size:14px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.3;letter-spacing:-0.2px;text-wrap:pretty;">{{ it.head }}</span>
+                              <sc-if value="{{ it.sub }}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:oklch(39.7% 0.006 80);line-height:1.45;text-wrap:pretty;">{{ it.sub }}</span></sc-if>
+                            </div>
+                          </div>
+                        </sc-if>
+                      </sc-for>
+                      <sc-if value="{{ pg.hasMore }}" hint-placeholder-val="{{ false }}">
+                        <div style="position:absolute;left:0;right:0;bottom:60px;height:64px;background:linear-gradient(to bottom, oklch(99.6% 0.002 80 / 0), oklch(99.6% 0.002 80) 90%);pointer-events:none;"></div>
+                        <div style="height:40px;margin-top:6px;border-radius:12px;background:oklch(96.5% 0.004 80);border:1px solid oklch(91.2% 0.006 80);display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:600;color:oklch(24.9% 0.006 80);"><span>See all {{ story.total }} lines</span><span style="color:oklch(64% 0.16 50);">→</span></div>
+                      </sc-if>
+                    </div>
+                    <sc-if value="{{ pg.isLast }}" hint-placeholder-val="{{ false }}">
+                      <div style="height:48px;flex-shrink:0;padding:0 18px 0 16px;display:flex;align-items:center;gap:16px;border-top:1px solid oklch(91.2% 0.006 80);font-size:12.5px;color:oklch(41.5% 0.006 80);">
+                        <span style="display:flex;align-items:center;gap:5px;"><span style="font-size:17px;line-height:1;">♡</span>{{ story.likes }}</span>
+                        <span style="display:flex;align-items:center;gap:5px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ story.saves }}</span>
+                        <span style="display:flex;align-items:center;gap:5px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 2l4 4-4 4"></path><path d="M3 11V9a3 3 0 0 1 3-3h15"></path><path d="M7 22l-4-4 4-4"></path><path d="M21 13v2a3 3 0 0 1-3 3H3"></path></svg>{{ story.reposts }}</span>
+                      </div>
+                    </sc-if>
                   </div>
-                </sc-for>
-                <sc-if value="{{ shareCard.hasMore }}" hint-placeholder-val="{{ false }}">
-                  <div style="font-size:13px;font-weight:600;color:oklch(36% 0.006 80);">+ {{ shareCard.moreCount }} more on Stack</div>
-                </sc-if>
+                  <div style="flex:1;min-height:16px;"></div>
+                  <div style="height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 4px;">
+                    <span style="font-weight:800;font-size:19px;color:oklch(14.8% 0.006 80);letter-spacing:-0.6px;">stack<span style="color:oklch(64% 0.16 50);">.</span></span>
+                    <sc-if value="{{ pg.isLast }}" hint-placeholder-val="{{ true }}">
+                      <span style="height:40px;padding:0 16px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);font-size:14px;font-weight:700;display:flex;align-items:center;">Make your own stack →</span>
+                    </sc-if>
+                    <sc-if value="{{ pg.notLast }}" hint-placeholder-val="{{ false }}">
+                      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(41.5% 0.006 80);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">{{ story.url }}</span>
+                    </sc-if>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;padding-top:14px;border-top:1px solid oklch(91.8% 0.006 80);">
-              <div style="width:28px;height:28px;border-radius:50%;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);font-weight:700;font-size:10.5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ shareCard.initials }}</div>
-              <div style="flex:1;min-width:0;">
-                <div style="font-size:12px;color:oklch(24.9% 0.006 80);">Curated by <span style="font-weight:700;color:oklch(14.8% 0.006 80);">{{ shareCard.handle }}</span></div>
-                <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(64% 0.16 50);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ shareCard.url }}</div>
-              </div>
-              <span style="font-weight:800;font-size:15px;color:oklch(14.8% 0.006 80);letter-spacing:-0.5px;flex-shrink:0;">stack<span style="color:oklch(64% 0.16 50);">.</span></span>
-            </div>
+            </sc-for>
           </div>
+          <sc-if value="{{ story.multi }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:12px;text-align:center;font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:oklch(92% 0.004 80);">{{ story.pageCountLabel }} · swipe to preview</div>
+          </sc-if>
         </div>
         <div onClick="{{ stopClick }}" style="width:100%;background:oklch(94.5% 0.006 80);border-radius:22px 22px 0 0;padding:14px 20px 28px;box-sizing:border-box;font-family:Inter,sans-serif;flex-shrink:0;">
           <div style="width:36px;height:4px;border-radius:2px;background:oklch(86.3% 0.006 80);margin:0 auto 14px;"></div>
@@ -983,7 +1025,7 @@
             <span style="font-size:13px;font-weight:700;color:oklch(64% 0.16 50);flex-shrink:0;">Copy</span>
           </div>
           <div style="display:flex;gap:10px;margin-top:10px;">
-            <div onClick="{{ saveShareImage }}" style="flex:1;height:48px;border-radius:12px;border:1px solid oklch(86.3% 0.006 80);color:oklch(19.4% 0.006 80);font-size:14.5px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer;">Save image</div>
+            <div onClick="{{ saveShareImage }}" style="flex:1;height:48px;border-radius:12px;border:1px solid oklch(86.3% 0.006 80);color:oklch(19.4% 0.006 80);font-size:14.5px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer;">{{ story.saveLabel }}</div>
             <div onClick="{{ shareToApps }}" style="flex:1;height:48px;border-radius:12px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);font-size:14.5px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;">Share…</div>
           </div>
         </div>
@@ -1345,6 +1387,49 @@ class Component extends DCLogic {
     });
     return out;
   }
+  _storyPages(l) {
+    const flat = this._flatten(l), H = (this.state && this.state.storyH) || {};
+    const rows = (t, c) => Math.max(1, Math.ceil((t || '').length / c));
+    const lineH = (f, key) => H[key] || (25 + rows(f.head, 36) * 18.2 + (f.sub ? 2 + rows(f.sub, 42) * 18.1 : 0));
+    const CARD = 433, HEAD = 49, FOOT = 49, MORE = 46, LF = 23, LB = 37, MAX = 5;
+    const coverH = HEAD + 16 + rows(l.title, 28) * 23.75 + 6 + (l.description ? rows(l.description, 44) * 19.6 : 0) + 30;
+    const secOf = []; l.sections.forEach(s => s.lines.forEach((_, i) => secOf.push({ label: s.label, first: i === 0 })));
+    const run = (breaks, cap) => {
+      const pages = []; let cur, shown = 0;
+      const open = (cover) => { cur = { cover, items: [], used: cover ? coverH : HEAD + 18, lines: 0 }; pages.push(cur); };
+      const pushLabel = (label, cont) => { cur.items.push({ isLabel: true, label, cont, pad: cur.items.length ? '14px 0 8px' : (cur.cover ? '0 0 8px' : '6px 0 8px') }); cur.used += cur.items.length > 1 ? LB : LF; };
+      open(true);
+      for (let i = 0; i < flat.length; i++) {
+        const f = flat[i], sc = secOf[i], key = l.id + '-' + f.num, capped = cap && pages.length === MAX;
+        const labelNeed = sc.label && sc.first ? (cur.items.length ? LB : LF) : 0;
+        const need = labelNeed + lineH(f, key) + (i === flat.length - 1 ? FOOT : (capped ? MORE + FOOT : 0));
+        if ((cur.used + need > CARD && cur.lines > 0) || (breaks.has(i) && cur.lines > 0)) {
+          if (capped) break;
+          open(false);
+          if (sc.label && !sc.first) pushLabel(sc.label, true);
+        }
+        if (sc.label && sc.first) pushLabel(sc.label, false);
+        cur.items.push({ isLine: true, num: f.num, head: f.head, sub: f.sub, key, idx: i });
+        cur.used += lineH(f, key); cur.lines++; shown++;
+      }
+      return { pages, shown };
+    };
+    const breaks = new Set();
+    let r = run(breaks, false);
+    if (r.pages.length > MAX) r = run(breaks, true);
+    else for (let k = 0; k < 3; k++) {
+      const last = r.pages[r.pages.length - 1], prev = r.pages[r.pages.length - 2];
+      if (!prev || last.lines >= 2 || prev.lines < 3) break;
+      const pl = prev.items.filter(x => x.isLine); breaks.add(pl[pl.length - 1].idx); r = run(breaks, false);
+    }
+    const P = r.pages.length, more = flat.length - r.shown;
+    return r.pages.map((p, i) => ({
+      isCover: p.cover, isCont: !p.cover, isLast: i === P - 1, notLast: i !== P - 1,
+      counter: P > 1 ? (i + 1) + ' / ' + P : '', bodyPad: p.cover ? '16px 18px 14px' : '4px 18px 14px',
+      hasMore: more > 0 && i === P - 1,
+      items: p.items.map((it, j) => ({ ...it, divider: j === p.items.length - 1 ? 'none' : '1px solid oklch(91.2% 0.006 80)' })),
+    }));
+  }
   _preview(l, max = 4) {
     const flat = this._flatten(l);
     return { lines: flat.slice(0, max), hasMore: flat.length > max, moreCount: flat.length - max };
@@ -1375,6 +1460,9 @@ class Component extends DCLogic {
   _measureFeed() {
     const ids = Array.from(document.querySelectorAll('[data-feed-body]')).filter(el => el.scrollHeight > el.clientHeight + 2).map(el => el.getAttribute('data-feed-body')).join(',');
     if (ids !== (this.state.feedOverflow || '')) this.setState({ feedOverflow: ids });
+    const sh = { ...(this.state.storyH || {}) }; let ch = false;
+    document.querySelectorAll('[data-sh]').forEach(el => { const k = el.getAttribute('data-sh'), v = el.offsetHeight; if (v && Math.abs((sh[k] || 0) - v) > 0.5) { sh[k] = v; ch = true; } });
+    if (ch) this.setState({ storyH: sh });
   }
   componentDidMount() {
     this._feedTimer = setInterval(() => this._measureFeed(), 400);
@@ -2152,9 +2240,18 @@ class Component extends DCLogic {
         const more = activeFlat.length - lines.length;
         return { title: activeList.title, lines, hasMore: more > 0, moreCount: more, initials: a.initials || '', handle: '@' + user, url: 'stack.app/' + user + '/' + slug, unlisted: activeList.visibility === 'unlisted' };
       })(),
+      story: (() => {
+        const l = shareList; if (!l) return { pages: [] };
+        const a = l.author || {}, user = String(a.handle || '').replace(/^@/, '');
+        const slug = String(l.title || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        const pages = this._storyPages(l), n = pages.length, fmt = (v) => Number(v || 0).toLocaleString();
+        return { pages, multi: n > 1, pageCountLabel: n + ' pages', saveLabel: n > 1 ? 'Save ' + n + ' images' : 'Save image',
+          title: l.title, desc: l.description || '', authorName: a.name || '', handle: '@' + user, initials: a.initials || '', url: 'stack.app/' + user + '/' + slug,
+          total: this._flatten(l).length, likes: fmt(l.likes), saves: fmt(l.saves), reposts: fmt(l.reposts ?? l.forks) };
+      })(),
       closeShare: () => this.setState({ shareListId: null }),
       copyShareLink: () => { this.setState({ shareListId: null }); this.showToast('Link copied to clipboard'); },
-      saveShareImage: () => { this.setState({ shareListId: null }); this.showToast('Image saved to Photos'); },
+      saveShareImage: () => { const n = shareList ? this._storyPages(shareList).length : 1; this.setState({ shareListId: null }); this.showToast(n > 1 ? n + ' images saved to Photos' : 'Image saved to Photos'); },
       shareToApps: () => { this.setState({ shareListId: null }); this.showToast('Opening share sheet…'); },
       toastVisible: !!s.toast, toastMessage: s.toast || '',
       followingCount: s.followedHandles.length,

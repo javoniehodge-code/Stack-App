@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { flatten, initials } from "@/lib/format";
-import { useVisibility } from "@/lib/store";
+import { useEffect, useRef, useState } from "react";
+import { useEngagement, useVisibility } from "@/lib/store";
 import type { Stack } from "@/lib/types";
 import { useToast } from "./AppProviders";
 import { ShareIcon } from "./icons";
+import { drawPage, layoutStory, PAGE_H, PAGE_W, pagePng, type Story } from "./StoryPages";
 import { VisIcon } from "./Visibility";
 import sh from "./Share.module.css";
 
@@ -29,15 +29,26 @@ export function ShareButton({ stack, className, size = 16, onPrivate, label }: {
   );
 }
 
-/** A preview card of the stack above a sheet with Copy, Save image and Share…. */
+/** The stack's story pages in a swipeable row above a sheet with Copy, Save image(s) and Share…. */
 function ShareSheet({ stack, onClose }: { stack: Stack; onClose: () => void }) {
   const toast = useToast();
   const unlisted = useVisibility(stack) === "unlisted";
-  const lines = flatten(stack);
-  const shown = lines.slice(0, 4);
-  const more = lines.length - shown.length;
+  const e = useEngagement(stack);
+  const [story, setStory] = useState<Story | null>(null);
   const url = stackUrl(stack.id);
   const shortUrl = url.replace(/^https?:\/\//, "");
+  const { likes, saves, reposts } = e;
+
+  // Pages are measured with the page fonts, so wait for them first.
+  useEffect(() => {
+    let live = true;
+    document.fonts.ready.then(() => {
+      if (live) setStory(layoutStory(stack, shortUrl, { likes, saves, reposts }));
+    });
+    return () => {
+      live = false;
+    };
+  }, [stack, shortUrl, likes, saves, reposts]);
 
   const done = (message: string) => {
     onClose();
@@ -60,48 +71,31 @@ function ShareSheet({ stack, onClose }: { stack: Stack; onClose: () => void }) {
     else if (r === "shared") onClose();
   }
 
-  async function saveImage() {
+  async function saveImages() {
+    if (!story) return;
+    const n = story.pages.length;
+    const base = slug(stack.title) || "stack";
     try {
-      const r = await saveImageFile(await renderCard(stack, shortUrl), `${slug(stack.title) || "stack"}.png`);
-      if (r === "downloaded") done("Image saved");
+      const blobs = await Promise.all(story.pages.map((_, i) => pagePng(story, i)));
+      const r = await saveImageFiles(blobs, blobs.map((_, i) => (n > 1 ? `${base}-${i + 1}.png` : `${base}.png`)));
+      if (r === "downloaded") done(n > 1 ? `${n} images saved` : "Image saved");
       else if (r === "shared") onClose();
-      else if (r === "failed") toast("Couldn't save the image");
+      else if (r === "failed") toast(n > 1 ? "Couldn't save the images" : "Couldn't save the image");
     } catch {
-      toast("Couldn't save the image");
+      toast(n > 1 ? "Couldn't save the images" : "Couldn't save the image");
     }
   }
 
+  const n = story?.pages.length ?? 1;
   return (
     <div className={sh.scrim} onClick={onClose}>
-      <div className={sh.preview} onClick={(e) => e.stopPropagation()}>
-        <div className={sh.card}>
-          <div className={sh.cardBody}>
-            <div className={sh.title}>{stack.title}</div>
-            <div className={sh.lines}>
-              {shown.map((l, i) => (
-                <div key={i} className={sh.line}>
-                  <span className={sh.num}>{l.num}</span>
-                  <span className={sh.text}>{l.text}</span>
-                </div>
-              ))}
-              {more > 0 && <div className={sh.more}>+ {more} more</div>}
-            </div>
-          </div>
-          <div className={sh.footer}>
-            <span className={sh.avatar}>{initials(stack.author.name)}</span>
-            <span className={sh.credit}>
-              <span className={sh.curated}>
-                Curated by <strong>@{stack.author.handle}</strong> on Stack
-              </span>
-              <span className={sh.url}>{shortUrl}</span>
-            </span>
-            <span className={sh.brand}>
-              stack<span className={sh.brandDot}>.</span>
-            </span>
-          </div>
+      <div className={sh.stage}>
+        <div className={sh.pages} onClick={(ev) => ev.stopPropagation()}>
+          {story ? story.pages.map((_, i) => <StoryCanvas key={i} story={story} index={i} />) : <div className={sh.page} />}
         </div>
+        {n > 1 && <div className={sh.pageCount}>{n} pages · swipe to preview</div>}
       </div>
-      <div className={sh.sheet} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Share stack">
+      <div className={sh.sheet} onClick={(ev) => ev.stopPropagation()} role="dialog" aria-modal="true" aria-label="Share stack">
         <div className={sh.grabber} />
         {unlisted && (
           <div className={sh.unlisted}>
@@ -114,8 +108,8 @@ function ShareSheet({ stack, onClose }: { stack: Stack; onClose: () => void }) {
           <span className={sh.copyLabel}>Copy</span>
         </button>
         <div className={sh.buttons}>
-          <button className={sh.secondary} onClick={saveImage}>
-            Save image
+          <button className={sh.secondary} onClick={saveImages} disabled={!story}>
+            {n > 1 ? `Save ${n} images` : "Save image"}
           </button>
           <button className={sh.primary} onClick={share}>
             Share…
@@ -124,6 +118,21 @@ function ShareSheet({ stack, onClose }: { stack: Stack; onClose: () => void }) {
       </div>
     </div>
   );
+}
+
+/** One story page, drawn at the screen's pixel density. */
+function StoryCanvas({ story, index }: { story: Story; index: number }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const w = Math.round(canvas.clientWidth * (window.devicePixelRatio || 1));
+    canvas.width = w;
+    canvas.height = Math.round((w * PAGE_H) / PAGE_W);
+    drawPage(canvas, story, index);
+  }, [story, index]);
+  const p = story.pages[index];
+  return <canvas ref={ref} className={sh.page} role="img" aria-label={p.counter ? `Page ${p.counter}` : "Story image"} />;
 }
 
 type ShareResult = "shared" | "cancelled" | "failed" | "unsupported";
@@ -151,6 +160,21 @@ export async function saveImageFile(blob: Blob, name: string): Promise<ShareResu
   return "downloaded";
 }
 
+/** Several images: one share sheet with all of them on phones, otherwise a download each. */
+async function saveImageFiles(blobs: Blob[], names: string[]): Promise<ShareResult | "downloaded"> {
+  if (blobs.length === 1) return saveImageFile(blobs[0], names[0]);
+  const files = blobs.map((b, i) => new File([b], names[i], { type: "image/png" }));
+  if (navigator.canShare?.({ files })) return systemShare({ files });
+  blobs.forEach((b, i) => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(b);
+    a.download = names[i];
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+  return "downloaded";
+}
+
 const slug = (t: string) =>
   t
     .toLowerCase()
@@ -158,105 +182,6 @@ const slug = (t: string) =>
     .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
-
-/** Draws the preview card to a PNG, matching the sheet's card. */
-async function renderCard(stack: Stack, shortUrl: string): Promise<Blob> {
-  const W = 360;
-  const PAD = 20;
-  const scale = 3;
-  const font = getComputedStyle(document.body).fontFamily;
-  const lines = flatten(stack);
-  const shown = lines.slice(0, 4);
-  const more = lines.length - shown.length;
-
-  const measure = document.createElement("canvas").getContext("2d")!;
-  measure.font = `800 19px ${font}`;
-  const titleLines = wrap(measure, stack.title, W - PAD * 2).slice(0, 4);
-  const bodyH = PAD + titleLines.length * 24 + 12 + shown.length * 20 + (more > 0 ? 22 : 0) + 16;
-  const footH = 52;
-  const H = bodyH + footH;
-
-  const canvas = document.createElement("canvas");
-  canvas.width = W * scale;
-  canvas.height = H * scale;
-  const c = canvas.getContext("2d")!;
-  c.scale(scale, scale);
-  c.textBaseline = "alphabetic";
-
-  roundRect(c, 0, 0, W, H, 18);
-  c.fillStyle = "oklch(98.4% 0.006 80)";
-  c.fill();
-  c.save();
-  roundRect(c, 0, 0, W, H, 18);
-  c.clip();
-
-  let y = PAD + 18;
-  c.fillStyle = "oklch(17.5% 0.006 80)";
-  c.font = `800 19px ${font}`;
-  for (const t of titleLines) {
-    c.fillText(t, PAD, y);
-    y += 24;
-  }
-  y += 10;
-  for (const l of shown) {
-    c.font = `700 13px ${font}`;
-    c.fillStyle = "oklch(64% 0.16 50)";
-    c.fillText(l.num, PAD, y);
-    const numW = Math.max(c.measureText(l.num).width, 16) + 9;
-    c.font = `400 13px ${font}`;
-    c.fillStyle = "oklch(23.1% 0.006 80)";
-    c.fillText(ellipsize(c, l.text, W - PAD * 2 - numW), PAD + numW, y);
-    y += 20;
-  }
-  if (more > 0) {
-    c.font = `400 12px ${font}`;
-    c.fillStyle = "oklch(45.2% 0.006 80)";
-    c.fillText(`+ ${more} more`, PAD, y + 2);
-  }
-
-  // Footer: dashed rule, darker band, avatar, credit, url, wordmark.
-  c.fillStyle = "oklch(99% 0.006 80)";
-  c.fillRect(0, bodyH, W, footH);
-  c.strokeStyle = "oklch(90.7% 0.006 80)";
-  c.setLineDash([4, 3]);
-  c.beginPath();
-  c.moveTo(0, bodyH + 0.5);
-  c.lineTo(W, bodyH + 0.5);
-  c.stroke();
-  c.setLineDash([]);
-
-  const cy = bodyH + footH / 2;
-  c.beginPath();
-  c.arc(PAD + 13, cy, 13, 0, Math.PI * 2);
-  c.fillStyle = "oklch(64% 0.16 50)";
-  c.fill();
-  c.fillStyle = "oklch(99.6% 0.002 80)";
-  c.font = `700 10px ${font}`;
-  c.textAlign = "center";
-  c.fillText(initials(stack.author.name), PAD + 13, cy + 3.5);
-  c.textAlign = "left";
-
-  c.font = `800 13px ${font}`;
-  // Wordmark: "stack" in ink with an orange dot.
-  const brandW = c.measureText("stack.").width;
-  const bx = W - PAD - brandW;
-  c.fillStyle = "oklch(14.8% 0.006 80)";
-  c.fillText("stack", bx, cy + 4);
-  c.fillStyle = "oklch(64% 0.16 50)";
-  c.fillText(".", bx + c.measureText("stack").width, cy + 4);
-
-  const tx = PAD + 36;
-  const maxW = W - tx - PAD - brandW - 10;
-  c.font = `400 12px ${font}`;
-  c.fillStyle = "oklch(30.5% 0.006 80)";
-  c.fillText(ellipsize(c, `Curated by @${stack.author.handle} on Stack`, maxW), tx, cy - 3);
-  c.font = `400 10.5px ${getComputedStyle(document.body).getPropertyValue("--mono") || "monospace"}`;
-  c.fillStyle = "oklch(64% 0.16 50)";
-  c.fillText(ellipsize(c, shortUrl, maxW), tx, cy + 12);
-  c.restore();
-
-  return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png"));
-}
 
 export function roundRect(c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   c.beginPath();

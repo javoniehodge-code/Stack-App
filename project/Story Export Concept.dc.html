@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; background: oklch(93% 0.004 80); }
+    * { box-sizing: border-box; }
+    a { color: oklch(64% 0.16 50); } a:hover { color: oklch(54% 0.16 45); }
+  </style>
+</helmet>
+<section data-screen-label="Story export pagination" style="padding:56px;display:flex;gap:48px;align-items:flex-start;font-family:Inter,sans-serif;color:oklch(17.5% 0.006 80);">
+  <div style="width:360px;flex-shrink:0;display:flex;flex-direction:column;gap:20px;">
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <span style="font-weight:800;font-size:19px;letter-spacing:-0.6px;color:oklch(14.8% 0.006 80);">stack<span style="color:oklch(64% 0.16 50);">.</span></span>
+      <div style="font-weight:800;font-size:30px;letter-spacing:-0.6px;line-height:1.1;">Story export pagination</div>
+      <div style="font-size:14.5px;line-height:1.5;color:oklch(36% 0.006 80);text-wrap:pretty;">Every page is the stack exactly as it looks in the app, shown at real phone size. Viewers recognize the product, and the text is as easy to read as in the feed. A long stack continues across pages instead of shrinking.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;border-radius:16px;background:oklch(99.6% 0.002 80);border:1px solid oklch(90.7% 0.006 80);overflow:hidden;">
+      <sc-for list="{{ rules }}" as="r" hint-placeholder-count="9">
+        <div style="display:flex;gap:12px;padding:14px 16px;border-top:1px solid {{ r.divider }};">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(64% 0.16 50);min-width:18px;padding-top:2px;">{{ r.num }}</span>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;">
+            <span style="font-weight:700;font-size:14px;">{{ r.title }}</span>
+            <span style="font-size:13px;line-height:1.45;color:oklch(36% 0.006 80);text-wrap:pretty;">{{ r.body }}</span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:48px;min-width:0;">
+    <sc-for list="{{ examples }}" as="ex" hint-placeholder-count="3">
+      <div id="{{ ex.id }}" style="display:flex;flex-direction:column;gap:14px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:oklch(99.6% 0.002 80);background:oklch(19.4% 0.006 80);border-radius:6px;padding:3px 7px;">{{ ex.id }}</span>
+          <span style="font-weight:700;font-size:16px;">{{ ex.name }}</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(41.5% 0.006 80);">{{ ex.stat }}</span>
+        </div>
+        <div style="display:flex;gap:20px;">
+          <sc-for list="{{ ex.pages }}" as="pg" hint-placeholder-count="3">
+            <div style="width:393px;height:699px;flex-shrink:0;border-radius:18px;background:oklch(96.5% 0.004 80);box-shadow:0 1px 2px rgba(0,0,0,0.05),0 16px 40px rgba(0,0,0,0.10);display:flex;flex-direction:column;padding:92px 16px 110px;position:relative;overflow:hidden;font-family:Inter,sans-serif;">
+              <div style="flex-shrink:0;max-height:437px;background:oklch(99.6% 0.002 80);border:1px solid oklch(90.7% 0.006 80);border-radius:24px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,0.04),0 8px 24px rgba(0,0,0,0.05);display:flex;flex-direction:column;">
+                <div style="height:48px;flex-shrink:0;padding:0 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid oklch(91.2% 0.006 80);">
+                  <div style="width:28px;height:28px;border-radius:50%;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);font-weight:700;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ ex.initials }}</div>
+                  <sc-if value="{{ pg.isCover }}" hint-placeholder-val="{{ true }}">
+                    <span style="font-weight:600;font-size:13.5px;color:oklch(19.4% 0.006 80);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ex.authorName }}</span>
+                    <span style="font-size:12.5px;color:oklch(47.1% 0.006 80);white-space:nowrap;flex-shrink:0;">{{ ex.handle }}</span>
+                  </sc-if>
+                  <sc-if value="{{ pg.isCont }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-weight:600;font-size:13.5px;color:oklch(19.4% 0.006 80);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ex.title }}</span>
+                  </sc-if>
+                  <span style="flex:1;"></span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(47.1% 0.006 80);white-space:nowrap;flex-shrink:0;">{{ pg.counter }}</span>
+                </div>
+                <div style="padding:{{ pg.bodyPad }};position:relative;">
+                  <sc-if value="{{ pg.isCover }}" hint-placeholder-val="{{ true }}">
+                    <div style="font-size:19px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.25;letter-spacing:-0.4px;margin-bottom:6px;text-wrap:pretty;">{{ ex.title }}</div>
+                    <sc-if value="{{ ex.desc }}" hint-placeholder-val="{{ true }}">
+                      <div style="font-size:13.5px;color:oklch(39.7% 0.006 80);line-height:1.45;text-wrap:pretty;">{{ ex.desc }}</div>
+                    </sc-if>
+                    <div style="height:16px;"></div>
+                  </sc-if>
+                  <sc-for list="{{ pg.items }}" as="it" hint-placeholder-count="5">
+                    <sc-if value="{{ it.isLabel }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;align-items:baseline;gap:6px;font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:oklch(64% 0.16 50);padding:{{ it.pad }};border-bottom:1px solid oklch(91.2% 0.006 80);">{{ it.label }}<sc-if value="{{ it.cont }}" hint-placeholder-val="{{ false }}"><span style="font-weight:500;letter-spacing:0.02em;text-transform:none;color:oklch(47.1% 0.006 80);">cont.</span></sc-if></div>
+                    </sc-if>
+                    <sc-if value="{{ it.isLine }}" hint-placeholder-val="{{ true }}">
+                      <div data-h="{{ it.key }}" style="display:flex;gap:12px;padding:11px 0 12px;border-bottom:{{ it.divider }};">
+                        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(64% 0.16 50);padding-top:1px;font-variant-numeric:tabular-nums;flex-shrink:0;">{{ it.num }}</span>
+                        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+                          <span style="font-size:14px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.3;letter-spacing:-0.2px;text-wrap:pretty;">{{ it.head }}</span>
+                          <sc-if value="{{ it.sub }}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:oklch(39.7% 0.006 80);line-height:1.45;text-wrap:pretty;">{{ it.sub }}</span></sc-if>
+                        </div>
+                      </div>
+                    </sc-if>
+                  </sc-for>
+                  <sc-if value="{{ pg.hasMore }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;left:0;right:0;bottom:60px;height:64px;background:linear-gradient(to bottom, oklch(99.6% 0.002 80 / 0), oklch(99.6% 0.002 80) 90%);pointer-events:none;"></div>
+                    <div style="height:40px;margin:6px 18px 0;border-radius:12px;background:oklch(96.5% 0.004 80);border:1px solid oklch(91.2% 0.006 80);display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:600;color:oklch(24.9% 0.006 80);"><span>See all {{ ex.total }} lines</span><span style="color:oklch(64% 0.16 50);">→</span></div>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ pg.isLast }}" hint-placeholder-val="{{ false }}">
+                  <div style="height:48px;flex-shrink:0;padding:0 18px 0 16px;display:flex;align-items:center;gap:16px;border-top:1px solid oklch(91.2% 0.006 80);font-size:12.5px;color:oklch(41.5% 0.006 80);">
+                    <span style="display:flex;align-items:center;gap:5px;"><span style="font-size:17px;line-height:1;">♡</span>{{ ex.likes }}</span>
+                    <span style="display:flex;align-items:center;gap:5px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ ex.saves }}</span>
+                    <span style="display:flex;align-items:center;gap:5px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 2l4 4-4 4"></path><path d="M3 11V9a3 3 0 0 1 3-3h15"></path><path d="M7 22l-4-4 4-4"></path><path d="M21 13v2a3 3 0 0 1-3 3H3"></path></svg>{{ ex.reposts }}</span>
+                  </div>
+                </sc-if>
+              </div>
+              <div style="flex:1;min-height:16px;"></div>
+              <div style="height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 4px;">
+                <span style="font-weight:800;font-size:19px;color:oklch(14.8% 0.006 80);letter-spacing:-0.6px;">stack<span style="color:oklch(64% 0.16 50);">.</span></span>
+                <sc-if value="{{ pg.isLast }}" hint-placeholder-val="{{ false }}">
+                  <span style="height:40px;padding:0 16px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px;">Make your own stack →</span>
+                </sc-if>
+                <sc-if value="{{ pg.notLast }}" hint-placeholder-val="{{ true }}">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(41.5% 0.006 80);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">{{ ex.url }}</span>
+                </sc-if>
+              </div>
+              <sc-if value="{{ showSafe }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;left:0;right:0;top:0;height:84px;background:repeating-linear-gradient(135deg, oklch(64% 0.16 50 / 0.12) 0 6px, transparent 6px 12px);border-bottom:1px dashed oklch(64% 0.16 50 / 0.6);display:flex;align-items:flex-end;padding:0 12px 5px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(50% 0.14 45);pointer-events:none;">platform UI</div>
+                <div style="position:absolute;left:0;right:0;bottom:0;height:100px;background:repeating-linear-gradient(135deg, oklch(64% 0.16 50 / 0.12) 0 6px, transparent 6px 12px);border-top:1px dashed oklch(64% 0.16 50 / 0.6);display:flex;align-items:flex-start;padding:5px 12px 0;font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(50% 0.14 45);pointer-events:none;">reply bar · link sticker goes here</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;maxPages&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:5,&quot;min&quot;:2,&quot;max&quot;:10,&quot;tsType&quot;:&quot;number&quot;},&quot;showSafeZones&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;widowControl&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  STACKS = [
+    { id: '1a', name: 'Long stack with sections', authorName: 'Renata Díaz', handle: '@renata.diaz', initials: 'RD', url: 'stack.app/renata.diaz/mexico-city-bars', likes: 842, saves: 310, reposts: 96,
+      title: 'Mexico City Bars', desc: 'Where I actually drink after three trips — mezcal dens, rooftop spots, and one very loud cantina.',
+      sections: [
+        { label: 'Roma Norte', lines: ['Licorería Limantour — no menu, just tell them what you like', 'Departamento — rooftop, arrive before 8pm or wait an hour', 'Baltra Bar — unmarked door, ring the bell twice', 'Café de Nadie — vinyl only, cash only', 'Bar Las Brujas — tiny, candlelit, great margaritas'] },
+        { label: 'Condesa', lines: ['Bling Bling Bar — natural wine, seats six people max', 'Mono — mezcal flights, go on a Tuesday', 'Pulquería Los Insurgentes — three floors of pulque', 'Salón Malafama — pool tables and cold beer'] },
+        { label: 'Juárez', lines: ['Hanky Panky — speakeasy behind a taxidermy shop', 'Fifty Mils — hotel bar, worth the splurge', 'Tokyo Music Bar — listening bar, whisper only'] },
+        { label: 'Centro', lines: ['Salón Cielito Lindo — cheap micheladas, plastic chairs, perfect', 'La Ópera — bullet hole in the ceiling, ask about it', 'Bósforo — mezcal and a DJ in a doorway', 'Tío Pepe — oldest cantina, zero renovations'] },
+        { label: 'San Rafael', lines: ['Salón París — Sunday dancing', 'Kinky — neon, karaoke, no shame'] },
+      ] },
+    { id: '1b', name: 'Medium stack, no sections', authorName: 'Marcus Webb', handle: '@marcus.reads', initials: 'MW', url: 'stack.app/marcus.reads/books-that-changed', likes: 1204, saves: 588, reposts: 141,
+      title: 'Books That Actually Changed How I Think', desc: 'Not the usual self-help list. These rewired how I make decisions.',
+      sections: [{ label: null, lines: ['Meditations — Marcus Aurelius', 'The Selfish Gene — Richard Dawkins', "Man's Search for Meaning — Viktor Frankl", 'Thinking, Fast and Slow — Daniel Kahneman', 'The Beginning of Infinity — David Deutsch', 'Antifragile — Nassim Taleb', 'Seeing Like a State — James C. Scott', 'The Courage to Be Disliked — Kishimi & Koga', 'Poor Charlie\u2019s Almanack — Charlie Munger'] }] },
+    { id: '1c', name: 'Short stack', authorName: 'Kenji Mori', handle: '@kenji.eats', initials: 'KM', url: 'stack.app/kenji.eats/tokyo-ramen', likes: 316, saves: 122, reposts: 18,
+      title: 'Tokyo Ramen', desc: 'Three bowls worth the line.',
+      sections: [{ label: null, lines: ['Fuunji — tsukemen, the line moves fast', 'Afuri — yuzu shio, go late', 'Nakiryu — tantanmen, Michelin but $10'] }] },
+    { id: '1d', name: 'Very long stack that hits the page cap', authorName: 'June Park', handle: '@junehome', initials: 'JP', url: 'stack.app/junehome/every-record', likes: 2310, saves: 904, reposts: 211,
+      title: 'Every Record I Own on Vinyl', desc: 'Ranked by how often it actually gets played.',
+      sections: [{ label: null, lines: ['Blue — Joni Mitchell', 'Pink Moon — Nick Drake', 'Kind of Blue — Miles Davis', 'Rumours — Fleetwood Mac', 'Voodoo — D\u2019Angelo', 'Moon Safari — Air', 'Bossanova — Pixies', 'Hounds of Love — Kate Bush', 'Remain in Light — Talking Heads', 'Songs in the Key of Life — Stevie Wonder', 'Illmatic — Nas', 'Loveless — My Bloody Valentine', 'Blonde — Frank Ocean', 'In Rainbows — Radiohead', 'Horses — Patti Smith', 'Aja — Steely Dan', 'Maggot Brain — Funkadelic', 'Heaven or Las Vegas — Cocteau Twins', 'Sound of Silver — LCD Soundsystem', 'Harvest — Neil Young', 'Mama\u2019s Gun — Erykah Badu', 'Clube da Esquina — Milton Nascimento', 'Spirit of Eden — Talk Talk', 'Blue Lines — Massive Attack', 'Pet Sounds — The Beach Boys', 'Ágætis byrjun — Sigur Rós', 'Carrie & Lowell — Sufjan Stevens', 'Currents — Tame Impala', 'Donuts — J Dilla', 'Tapestry — Carole King', 'Innervisions — Stevie Wonder', 'Hejira — Joni Mitchell', 'Endtroducing — DJ Shadow', 'Blackstar — David Bowie', 'Titanic Rising — Weyes Blood', 'Madvillainy — Madvillain'] }] },
+  ];
+  CARD = 433;
+  state = { h: {} };
+  componentDidMount() { this._t = setInterval(() => this._measure(), 300); }
+  componentWillUnmount() { clearInterval(this._t); }
+  _measure() {
+    const h = { ...this.state.h }; let changed = false;
+    document.querySelectorAll('[data-h]').forEach(el => { const k = el.getAttribute('data-h'), v = el.offsetHeight; if (Math.abs((h[k] || 0) - v) > 0.5) { h[k] = v; changed = true; } });
+    if (changed) this.setState({ h });
+  }
+  _rows(t, cpr) { return Math.max(1, Math.ceil((t || '').length / cpr)); }
+  _split(t) { const i = t.indexOf(' — '); return i < 0 ? { head: t, sub: '' } : { head: t.slice(0, i), sub: t.slice(i + 3) }; }
+  _lineH(t, key) { const m = this.state.h[key]; if (m) return m; const p = this._split(t); return 25 + this._rows(p.head, 36) * 18.2 + (p.sub ? 2 + this._rows(p.sub, 42) * 18.1 : 0); }
+  _run(st, o) {
+    const HEAD = 49, FOOT = 49, MORE = 46, LABEL_FIRST = 23, LABEL = 37;
+    const coverH = HEAD + 16 + this._rows(st.title, 28) * 23.75 + 6 + (st.desc ? this._rows(st.desc, 44) * 19.6 : 0) + 16 + 14;
+    const contH = HEAD + 4 + 14;
+    const flat = []; let n = 0;
+    st.sections.forEach(s => s.lines.forEach((t, li) => flat.push({ num: ++n, text: t, label: s.label, first: li === 0 })));
+    const pages = []; let cur;
+    const open = (cover) => { cur = { cover, items: [], used: cover ? coverH : contH, lines: 0 }; pages.push(cur); };
+    const pushLabel = (label, cont) => { const pad = cur.items.length ? '14px 0 8px' : (cur.cover ? '0 0 8px' : '6px 0 8px'); cur.items.push({ isLabel: true, label, cont, pad }); cur.used += cur.items.length > 1 ? LABEL : LABEL_FIRST; };
+    open(true);
+    let shown = 0;
+    for (let i = 0; i < flat.length; i++) {
+      const f = flat[i], isEnd = i === flat.length - 1;
+      const capped = o.cap && pages.length === o.maxPages;
+      const labelNeed = f.label && f.first ? (cur.items.length ? LABEL : LABEL_FIRST) : 0;
+      const tail = isEnd ? FOOT : (capped ? MORE + FOOT : 0);
+      const key = st.id + '-' + f.num;
+      const need = labelNeed + this._lineH(f.text, key) + tail;
+      const forced = o.breaks.has(f.num) && cur.lines > 0;
+      if ((cur.used + need > this.CARD && cur.lines > 0) || forced) {
+        if (capped) break;
+        open(false);
+        if (f.label && !f.first) pushLabel(f.label, true);
+      }
+      if (f.label && f.first) pushLabel(f.label, false);
+      const p = this._split(f.text);
+      cur.items.push({ isLine: true, num: f.num, head: p.head, sub: p.sub, key });
+      cur.used += this._lineH(f.text, key); cur.lines++; shown++;
+    }
+    return { pages, total: flat.length, shown };
+  }
+  paginate(st, maxPages, widow) {
+    const breaks = new Set();
+    let r = this._run(st, { breaks, cap: false, maxPages });
+    if (r.pages.length > maxPages) r = this._run(st, { breaks, cap: true, maxPages });
+    else if (widow) {
+      for (let k = 0; k < 3; k++) {
+        const last = r.pages[r.pages.length - 1], prev = r.pages[r.pages.length - 2];
+        if (!prev || last.lines >= 2 || prev.lines < 3) break;
+        const pl = prev.items.filter(x => x.isLine);
+        breaks.add(pl[pl.length - 1].num);
+        r = this._run(st, { breaks, cap: false, maxPages });
+      }
+    }
+    const P = r.pages.length, more = r.total - r.shown;
+    return {
+      total: r.total,
+      stat: r.total + ' lines → ' + P + (P === 1 ? ' page' : ' pages') + (more ? ' · ' + more + ' behind the link' : ''),
+      pages: r.pages.map((p, i) => {
+        const lastLine = p.items.length - 1;
+        return {
+          isCover: p.cover, isCont: !p.cover, isLast: i === P - 1, notLast: i !== P - 1,
+          counter: P > 1 ? (i + 1) + ' / ' + P : '',
+          bodyPad: p.cover ? '16px 18px 14px' : '4px 18px 14px',
+          hasMore: more > 0 && i === P - 1,
+          items: p.items.map((it, j) => ({ ...it, divider: j === lastLine ? 'none' : '1px solid oklch(91.2% 0.006 80)' })),
+        };
+      }),
+    };
+  }
+  renderVals() {
+    const maxPages = Math.max(2, this.props.maxPages ?? 5);
+    const widow = this.props.widowControl ?? true;
+    const rules = [
+      ['Looks like the app', 'Each page is the feed card at real size, 393pt wide on a 9:16 canvas (1080×1920 export). Text is the same size as in the app, and viewers recognize the product.'],
+      ['Split by measured height', 'Pages fill by the actual height of each line. A line is never cut in half, and type never shrinks to fit.'],
+      ['Page 1 is the full card top', 'Author, title and description, then as many lines as fit. Later pages use a slim header with the stack title and a \u201c2 / 4\u201d counter.'],
+      ['Sections stay together', 'A section header never sits alone at the bottom of a page. A page that starts mid-section repeats the header with \u201ccont.\u201d'],
+      ['No single leftover line', 'If the last page would hold one line, a line from the previous page moves over with it.'],
+      ['Numbering continues', 'Line numbers keep counting across pages.'],
+      ['Page cap: ' + maxPages, 'Past ' + maxPages + ' pages, the last page fades out with the app\u2019s own \u201cSee all N lines \u2192\u201d, pointing to the link.'],
+      ['Ends like a real post', 'The last page closes the card with its real likes, saves and reposts, plus a \u201cMake your own stack\u201d button. Earlier pages show the stack link.'],
+      ['Stay clear of platform UI', 'The top ~12% and bottom ~14% stay empty background. That\u2019s where the platform\u2019s own UI sits and where the link sticker goes.'],
+    ].map(([title, body], i) => ({ num: String(i + 1).padStart(2, '0'), title, body, divider: i ? 'oklch(91.2% 0.006 80)' : 'transparent' }));
+    return {
+      rules,
+      showSafe: this.props.showSafeZones ?? false,
+      examples: this.STACKS.map(st => ({ ...st, likes: st.likes.toLocaleString(), saves: st.saves.toLocaleString(), reposts: st.reposts.toLocaleString(), ...this.paginate(st, maxPages, widow) })),
+    };
+  }
+}
+</script>
+</body>
+</html>
