@@ -23,16 +23,20 @@
 7. User publishes the Stack.
 8. At any point before publishing, the user can save the Stack as a draft and return to it later.
 
+## Visibility and Distribution
+
+- Privacy selection controls **visibility**: who may access the Stack.
+- Publishing controls whether the Stack becomes an active published version.
+- Feed distribution is a separate action from visibility and should not be implied by a visibility change alone.
+- Canonical visibility, profile-privacy, feed-distribution, and cooldown behavior is defined in [`stack-visibility.md`](./stack-visibility.md).
+
 ## Rules
 
 1. A published Stack must contain:
    - A title
    - At least one line item
 2. Only authenticated users can create Stacks.
-3. Private and invite-only Stacks do not appear:
-   - In the public feed
-   - In public search
-   - On the public version of the owner's profile
+3. Public/private visibility behavior follows [`stack-visibility.md`](./stack-visibility.md).
 4. Only the Stack owner can edit or delete the Stack.
 5. Subheadings and links associated with a line remain attached to that line when it is reordered.
 6. Drafts do not appear on public surfaces.
@@ -40,18 +44,16 @@
 
 ## Failure Cases
 
-1. A private or invite-only Stack appears in the public feed.
-2. A private or invite-only Stack appears on the public version of the owner's profile.
-3. A private or invite-only Stack appears in public search.
-4. A Stack without a title is published.
-5. A Stack without at least one line item is published.
-6. An unauthenticated user is able to create or publish a Stack.
-7. The user loses internet connectivity and loses all unsaved Stack progress.
-8. Another user is able to edit or delete the Stack.
-9. Reordering a line causes its associated subheading or links to become detached or reordered incorrectly.
-10. Publishing creates duplicate copies of the same Stack.
-11. A Stack appears successfully published to the user but was not actually saved to the database.
-12. The user deletes a draft unintentionally without being asked to confirm the deletion.
+1. A Stack's visibility or distribution does not match the rules in [`stack-visibility.md`](./stack-visibility.md).
+2. A Stack without a title is published.
+3. A Stack without at least one line item is published.
+4. An unauthenticated user is able to create or publish a Stack.
+5. The user loses internet connectivity and loses all unsaved Stack progress.
+6. Another user is able to edit or delete the Stack.
+7. Reordering a line causes its associated subheading or links to become detached or reordered incorrectly.
+8. Publishing creates duplicate copies of the same Stack.
+9. A Stack appears successfully published to the user but was not actually saved to the database.
+10. The user deletes a draft unintentionally without being asked to confirm the deletion.
 
 ## Expected Results
 
@@ -59,8 +61,7 @@
 - The Stack belongs to the authenticated user who created it.
 - Sections, lines, subheadings, links, and their ordering are saved correctly.
 - The selected privacy setting is preserved.
-- Public Stacks appear on appropriate public surfaces.
-- Private and invite-only Stacks remain hidden from unauthorized users and public surfaces.
+- Visibility and feed distribution follow [`stack-visibility.md`](./stack-visibility.md).
 - Drafts remain available to the owner and can be resumed later.
 - A user cannot publish until the minimum publication requirements are satisfied.
 - Another user cannot modify or delete the Stack.
