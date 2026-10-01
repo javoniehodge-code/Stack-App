@@ -40,7 +40,7 @@
 
 - Replaces the currently published version with the edited version.
 - Does not create a new Stack.
-- Does not send the Stack back into the feed as an update.
+- Does not create a new feed distribution event.
 - Does not change its position on the user's profile.
 - Updates the **Last Updated** date.
 
@@ -62,6 +62,13 @@
    - Continue with the stale draft and intentionally replace the current published version, or
    - Discard the stale draft and edit the latest published version instead.
 
+## Visibility and Distribution
+
+- **Publish** changes the published content without creating a new feed event.
+- **Publish & Share Update** changes the published content and creates a new feed distribution event when eligible.
+- Visibility and distribution are separate concepts.
+- Canonical visibility, profile-privacy, feed-distribution, and cooldown behavior is defined in [`stack-visibility.md`](./stack-visibility.md).
+
 ## Rules
 
 1. To **Publish** or **Publish & Share Update**, the edited Stack must contain:
@@ -79,7 +86,7 @@
 7. Publishing an edited Stack replaces the currently published version rather than creating a new Stack.
 8. A published Stack retains its original publication date.
 9. Every published edit updates the Stack's **Last Updated** date.
-10. A Stack may only be shared to the feed as an update once during any 7-day cooldown period.
+10. Feed sharing and the 7-day cooldown follow [`stack-visibility.md`](./stack-visibility.md).
 11. Regular publishing remains available during the cooldown period.
 12. Pinned Stacks retain precedence over Stacks moved upward because of **Publish & Share Update**.
 13. A Stack must contain an actual change before **Publish & Share Update** is available.
@@ -91,7 +98,7 @@
 ## Failure Cases
 
 1. The user loses internet connectivity and unsaved edits are permanently lost.
-2. A user can use **Publish & Share Update** more than once during the 7-day cooldown.
+2. A user can use **Publish & Share Update** in violation of the feed-sharing cooldown defined in [`stack-visibility.md`](./stack-visibility.md).
 3. A user makes no actual changes but is still able to use **Publish & Share Update**.
 4. Publishing an edited Stack creates a duplicate instead of replacing the existing Stack.
 5. Deleting an edited draft deletes or modifies the published Stack.
@@ -105,6 +112,7 @@
 13. A stale draft silently overwrites a newer published version without warning.
 14. Double-clicking a publishing action creates duplicate updates or duplicate Stack records.
 15. An update note continues appearing after its 7-day display period.
+16. Publishing or changing visibility produces distribution behavior that conflicts with [`stack-visibility.md`](./stack-visibility.md).
 
 ## Expected Results
 
@@ -121,7 +129,7 @@
 8. Deleting an edited draft leaves the currently published Stack unchanged.
 9. The Stack retains its original publication date after every edit.
 10. The **Last Updated** date reflects the most recent published edit.
-11. Users cannot share another feed update for the same Stack until the 7-day cooldown expires.
+11. Feed sharing and cooldown behavior follows [`stack-visibility.md`](./stack-visibility.md).
 12. Users can continue editing and publishing normally during the cooldown period.
 13. Update notes disappear after 7 days.
 14. If a draft was created from an older published version, the owner is warned before it can replace the newer version.
