@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useAuth, useToast } from "@/components/AppProviders";
+import { useAuth, useBack, useToast } from "@/components/AppProviders";
 import shell from "@/components/AppShell.module.css";
 import { systemShare } from "@/components/Share";
 import { StackPaper } from "@/components/StackView";
 import { initials, MAX_DESCRIPTION, MAX_HEAD, MAX_ITEMS, MAX_LABEL, MAX_NOTE, MAX_SECTIONS, MAX_TITLE, MAX_TOTAL } from "@/lib/format";
+import { SHOW_DRAFTS } from "@/lib/navFlags";
 import { createClient } from "@/lib/supabase/client";
 import type { Draft, EditTarget, Visibility } from "@/lib/types";
 import p from "../profile/Profile.module.css";
@@ -140,6 +141,7 @@ function LinkCard({ link, onRemove }: { link: string; onRemove?: () => void }) {
  */
 export default function CreateScreen({ initial, start, edit: target = null }: { initial: Draft; start: "title" | "build"; edit?: EditTarget | null }) {
   const router = useRouter();
+  const back = useBack();
   const { viewer, requireAuth } = useAuth();
   const toast = useToast();
   const [work, setWork] = useState<Work>(() => fromDraft(initial));
@@ -371,14 +373,18 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   };
 
   function exit() {
+    // Leaving an edit goes back to the screen it came from (Manage stacks), so its Back still leads out of it.
     if (target) {
-      if (!edited) return router.push("/settings/stacks");
+      if (!edited) return back("/settings/stacks");
       return requireAuth(async () => {
         const err = await flush();
         if (err) return toast(`Couldn't save: ${err}`);
         toast("Changes saved as a draft");
-        router.push("/settings/stacks?filter=drafts");
-        router.refresh();
+        // Manage stacks opens on Drafts with fresh data when it sees this.
+        try {
+          sessionStorage.setItem(SHOW_DRAFTS, "1");
+        } catch {}
+        back("/settings/stacks?filter=drafts");
       }, "Sign in to keep these changes.");
     }
     if (!hasContent(work)) return router.push("/");

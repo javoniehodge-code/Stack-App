@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth, useToast } from "@/components/AppProviders";
 import shell from "@/components/AppShell.module.css";
 import { editedDay } from "@/components/StackView";
 import { EditPill, VIS, useVisibilityEditor } from "@/components/Visibility";
 import { plural } from "@/lib/format";
+import { SHOW_DRAFTS } from "@/lib/navFlags";
 import { useVisibilityLookup } from "@/lib/store";
 import { createClient } from "@/lib/supabase/client";
 import type { Stack, StackRow, Visibility } from "@/lib/types";
@@ -38,7 +39,23 @@ export default function ManageScreen({ data, initialFilter = "all" }: { data: { 
   const toast = useToast();
   const { requireAuth } = useAuth();
   const visOf = useVisibilityLookup();
-  const [filter, setFilter] = useState<Filter>(initialFilter);
+  // Back from an edit whose changes were kept as a draft: open on Drafts (this screen is reached in-app then).
+  const [showDrafts] = useState(() => {
+    try {
+      return typeof window !== "undefined" && sessionStorage.getItem(SHOW_DRAFTS) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const [filter, setFilter] = useState<Filter>(showDrafts ? "drafts" : initialFilter);
+  // ...and reload so the new draft is listed.
+  useEffect(() => {
+    if (!showDrafts) return;
+    try {
+      sessionStorage.removeItem(SHOW_DRAFTS);
+    } catch {}
+    router.refresh();
+  }, [showDrafts, router]);
   const [removed, setRemoved] = useState<Set<string>>(() => new Set());
   const vis = useVisibilityEditor((id) => {
     setRemoved((r) => new Set(r).add(id));
