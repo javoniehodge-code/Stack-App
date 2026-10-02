@@ -77,21 +77,25 @@
               </sc-if>
               <div onClick="{{ card.onOpen }}" style="cursor:pointer;">
                 <div data-feed-body="{{ card.cardId }}" style="max-height:392px;overflow:hidden;position:relative;">
-                <div style="font-size:19px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.25;letter-spacing:-0.4px;margin-bottom:6px;text-wrap:pretty;">{{ card.title }}</div>
+                <div style="font-size:21px;font-weight:700;color:oklch(14.8% 0.006 80);line-height:1.18;letter-spacing:-0.025em;margin-bottom:8px;text-wrap:balance;">{{ card.title }}</div>
                 <sc-if value="{{ card.description }}" hint-placeholder-val="{{ true }}">
-                  <div style="font-size:13.5px;color:oklch(39.7% 0.006 80);line-height:1.45;text-wrap:pretty;">{{ card.description }}</div>
+                  <div style="font-size:14.5px;color:oklch(36% 0.006 80);line-height:1.5;text-wrap:pretty;">{{ card.description }}</div>
                 </sc-if>
-                <div style="height:16px;"></div>
+                <div style="height:10px;"></div>
                 <div style="position:relative;">
                   <sc-for list="{{ card.bodyLines }}" as="pl" hint-placeholder-count="4">
                     <sc-if value="{{ pl.label }}" hint-placeholder-val="{{ false }}">
-                      <div style="font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:oklch(64% 0.16 50);padding:{{ pl.labelPad }};border-bottom:1px solid oklch(91.2% 0.006 80);">{{ pl.label }}</div>
+                      <div style="display:flex;align-items:baseline;gap:9px;padding:{{ pl.labelPad }};border-bottom:1.5px solid oklch(19.4% 0.006 80);">
+                        <span style="width:3px;height:13px;border-radius:2px;background:oklch(64% 0.16 50);align-self:center;flex-shrink:0;"></span>
+                        <span style="flex:1;min-width:0;font-size:16px;font-weight:700;letter-spacing:-0.015em;line-height:1.25;color:oklch(14.8% 0.006 80);text-wrap:balance;">{{ pl.label }}</span>
+                      </div>
                     </sc-if>
-                    <div style="display:flex;gap:12px;padding:11px 0 12px;border-bottom:{{ pl.divider }};">
-                      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(64% 0.16 50);padding-top:1px;font-variant-numeric:tabular-nums;flex-shrink:0;">{{ pl.num }}</span>
-                      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
-                        <span style="font-size:14px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.3;letter-spacing:-0.2px;text-wrap:pretty;">{{ pl.head }}</span>
-                        <sc-if value="{{ pl.hasSub }}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:oklch(39.7% 0.006 80);line-height:1.45;text-wrap:pretty;">{{ pl.sub }}</span></sc-if>
+                    <div style="display:flex;gap:12px;padding:12px 0 13px;border-bottom:{{ pl.divider }};">
+                      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:21px;color:oklch(55% 0.006 80);font-variant-numeric:tabular-nums;flex-shrink:0;width:20px;">{{ pl.num }}</span>
+                      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;">
+                        <span style="font-size:15px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:21px;letter-spacing:-0.01em;text-wrap:pretty;">{{ pl.head }}</span>
+                        <sc-if value="{{ pl.hasSub }}" hint-placeholder-val="{{ false }}"><span style="font-size:13.5px;color:oklch(38% 0.006 80);line-height:1.5;text-wrap:pretty;">{{ pl.sub }}</span></sc-if>
+                        <sc-if value="{{ pl.hasLink }}" hint-placeholder-val="{{ false }}"><a href="{{ pl.link }}" target="_blank" onClick="{{ stopProp }}" style="align-self:flex-start;display:inline-flex;align-items:center;gap:5px;min-height:24px;margin-top:5px;padding:0 9px;border-radius:999px;background:oklch(95.5% 0.025 255);font-size:12px;font-weight:600;color:oklch(42% 0.17 255);text-decoration:none;" style-hover="background:oklch(92% 0.04 255);"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(42% 0.17 255)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg>{{ pl.linkDomain }}</a></sc-if>
                       </div>
                     </div>
                   </sc-for>
@@ -194,7 +198,7 @@
                   <div style="font-family:Inter,sans-serif;font-size:14px;color:oklch(24.9% 0.006 80);line-height:1.3;margin-bottom:10px;text-wrap:pretty;">{{ tc.title }}</div>
                   <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(41.5% 0.006 80);line-height:1.9;">
                     <sc-for list="{{ tc.lines3 }}" as="pl" hint-placeholder-count="3">
-                      <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(64% 0.16 50);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
+                      <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:500;color:oklch(55% 0.006 80);margin-right:4px;font-variant-numeric:tabular-nums;">{{ pl.num }}</span>{{ pl.text }}</div>
                     </sc-for>
                   </div>
                   <sc-if value="{{ tc.hasMore3 }}" hint-placeholder-val="{{ true }}">
@@ -291,24 +295,27 @@
                   <span style="font-size:13.5px;line-height:1.4;color:oklch(30% 0.07 150);text-wrap:pretty;"><strong style="font-weight:700;color:oklch(40% 0.1 150);">{{ activeCard.updateLabel }}<sc-if value="{{ activeCard.updateNote }}" hint-placeholder-val="{{ false }}">:</sc-if></strong><sc-if value="{{ activeCard.updateNote }}" hint-placeholder-val="{{ false }}"> {{ activeCard.updateNote }}</sc-if></span>
                 </div>
               </sc-if>
-              <div style="font-size:21px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.25;letter-spacing:-0.4px;margin-bottom:8px;text-wrap:pretty;">{{ activeCard.title }}</div>
+              <div style="font-size:25px;font-weight:700;color:oklch(14.8% 0.006 80);line-height:1.15;letter-spacing:-0.025em;margin-bottom:10px;text-wrap:balance;">{{ activeCard.title }}</div>
             <sc-if value="{{ activeCard.description }}" hint-placeholder-val="{{ false }}">
-              <div style="font-size:13.5px;color:oklch(39.7% 0.006 80);line-height:1.5;text-wrap:pretty;">{{ activeCard.description }}</div>
+              <div style="font-size:15px;color:oklch(36% 0.006 80);line-height:1.5;text-wrap:pretty;max-width:34em;">{{ activeCard.description }}</div>
             </sc-if>
-            <div style="height:22px;"></div>
+            <div style="height:14px;"></div>
             <sc-for list="{{ activeFlat }}" as="ln" hint-placeholder-count="5">
               <sc-if value="{{ ln.label }}" hint-placeholder-val="{{ false }}">
-                <div style="font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:oklch(64% 0.16 50);padding:{{ ln.labelPad }};border-bottom:1px solid oklch(91.2% 0.006 80);">{{ ln.label }}</div>
+                <div style="display:flex;align-items:baseline;gap:10px;padding:{{ ln.labelPad }};border-bottom:1.5px solid oklch(19.4% 0.006 80);">
+                  <span style="width:3px;height:15px;border-radius:2px;background:oklch(64% 0.16 50);align-self:center;flex-shrink:0;"></span>
+                  <span style="flex:1;min-width:0;font-size:18px;font-weight:700;letter-spacing:-0.015em;line-height:1.25;color:oklch(14.8% 0.006 80);text-wrap:balance;">{{ ln.label }}</span>
+                </div>
               </sc-if>
-              <div style="display:flex;gap:12px;padding:12px 0 13px;border-bottom:{{ ln.divider }};">
-                <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(64% 0.16 50);padding-top:1px;flex-shrink:0;font-variant-numeric:tabular-nums;">{{ ln.num }}</span>
-                <div style="display:flex;flex-direction:column;gap:2px;min-width:0;">
-                  <div style="font-size:14px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.3;letter-spacing:-0.2px;text-wrap:pretty;">{{ ln.head }}</div>
+              <div style="display:flex;gap:12px;padding:13px 0 14px;border-bottom:{{ ln.divider }};">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:22px;color:oklch(55% 0.006 80);flex-shrink:0;width:20px;font-variant-numeric:tabular-nums;">{{ ln.num }}</span>
+                <div style="display:flex;flex-direction:column;gap:3px;min-width:0;">
+                  <div style="font-size:15.5px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:22px;letter-spacing:-0.01em;text-wrap:pretty;">{{ ln.head }}</div>
                   <sc-if value="{{ ln.hasSub }}" hint-placeholder-val="{{ false }}">
-                    <div style="font-size:12.5px;color:oklch(39.7% 0.006 80);line-height:1.45;text-wrap:pretty;">{{ ln.sub }}</div>
+                    <div style="font-size:14px;color:oklch(38% 0.006 80);line-height:1.5;text-wrap:pretty;max-width:36em;">{{ ln.sub }}</div>
                   </sc-if>
                   <sc-if value="{{ ln.hasLink }}" hint-placeholder-val="{{ false }}">
-                    <a href="{{ ln.link }}" target="_blank" style="font-size:12px;font-weight:500;margin-top:3px;color:oklch(64% 0.16 50);text-decoration:none;">Visit site ↗</a>
+                    <a href="{{ ln.link }}" target="_blank" style="align-self:flex-start;display:inline-flex;align-items:center;gap:5px;min-height:26px;margin-top:5px;padding:0 10px;border-radius:999px;background:oklch(95.5% 0.025 255);font-size:12.5px;font-weight:600;color:oklch(42% 0.17 255);text-decoration:none;" style-hover="background:oklch(92% 0.04 255);"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(42% 0.17 255)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg>{{ ln.linkDomain }}</a>
                   </sc-if>
                 </div>
               </div>
@@ -425,7 +432,7 @@
               <div style="font-family:Inter,sans-serif;font-weight:400;font-size:14px;color:oklch(24.9% 0.006 80);line-height:1.3;margin-bottom:12px;text-wrap:pretty;">{{ uc.card.title }}</div>
               <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(41.5% 0.006 80);line-height:1.9;">
                 <sc-for list="{{ uc.card.shortLines }}" as="pl" hint-placeholder-count="4">
-                  <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(64% 0.16 50);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
+                  <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:500;color:oklch(55% 0.006 80);margin-right:4px;font-variant-numeric:tabular-nums;">{{ pl.num }}</span>{{ pl.text }}</div>
                 </sc-for>
               </div>
               <sc-if value="{{ uc.card.hasMoreShort }}" hint-placeholder-val="{{ false }}">
@@ -651,10 +658,10 @@
                     <sc-if value="{{ g.isPinned }}" hint-placeholder-val="{{ false }}">
                       <span style="position:absolute;top:10px;right:10px;width:20px;height:20px;border-radius:6px;background:oklch(91.8% 0.03 60);display:flex;align-items:center;justify-content:center;"><svg width="11" height="11" viewBox="0 0 24 24" fill="oklch(64% 0.16 50)" stroke="oklch(64% 0.16 50)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 17v5"></path><path d="M9 10.8V4h6v6.8l3 3.2H6z"></path></svg></span>
                     </sc-if>
-                    <div style="font-family:Inter,sans-serif;font-size:13.5px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.3;margin-bottom:8px;padding-right:{{ g.titlePad }};display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ g.title }}</div>
-                    <div style="flex:1;min-height:0;overflow:hidden;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(36% 0.006 80);line-height:1.85;">
+                    <div style="font-family:Inter,sans-serif;font-size:15px;font-weight:700;letter-spacing:-0.02em;color:oklch(14.8% 0.006 80);line-height:1.2;margin-bottom:9px;text-wrap:balance;padding-right:{{ g.titlePad }};display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ g.title }}</div>
+                    <div style="flex:1;min-height:0;overflow:hidden;font-family:Inter,sans-serif;font-size:12px;font-weight:500;color:oklch(24% 0.006 80);line-height:1.75;">
                       <sc-for list="{{ g.lines }}" as="pl" hint-placeholder-count="4">
-                        <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(64% 0.16 50);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
+                        <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:500;color:oklch(55% 0.006 80);margin-right:4px;font-variant-numeric:tabular-nums;">{{ pl.num }}</span>{{ pl.text }}</div>
                       </sc-for>
                     </div>
                                         <div style="display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid oklch(91.8% 0.006 80);font-family:Inter,sans-serif;font-size:10.5px;color:oklch(41.5% 0.006 80);">
@@ -1257,6 +1264,33 @@ class Component extends DCLogic {
     feedCommentDrafts: {},
     lists: [
       {
+        id: 'td1', author: { name: 'Maya Okafor', handle: '@maya.reads', initials: 'MO' }, timeAgo: '1d', title: 'Everything I wish I knew before renovating a 1920s kitchen', tags: ['Home'],
+        description: 'Eighteen months, two contractors, one very patient partner. These are the decisions that mattered most, in the order you will have to make them, with what I would do differently.',
+        sections: [
+          { label: 'Before you hire anyone', lines: [
+            { text: 'Get the walls opened first — budget for surprises', sub: 'Old houses hide knob-and-tube wiring, galvanized pipes and sistered joists. A $400 exploratory demo saved us from a quote that would have doubled halfway through.' },
+            { text: 'Ask for three references from jobs older than two years', sub: 'Anyone can show off a fresh kitchen. You want to hear how the grout, drawer slides and caulk lines held up after a couple of winters.' },
+            { text: 'Permit history lookup', sub: 'Your city probably has a public portal. Ours showed an unpermitted addition from 1987 that changed the whole electrical plan.', link: 'https://www.permits.example.gov/lookup' },
+          ]},
+          { label: 'Layout and storage', lines: [
+            { text: 'Drawers over doors in every base cabinet', sub: 'Deep drawers for pots, shallow ones for utensils. You will never crouch and dig through a dark cabinet again.' },
+            { text: 'Keep the work triangle under 26 feet total', sub: 'Sink, stove and fridge. Anything bigger and you spend the evening walking instead of cooking.' },
+            { text: 'Plan outlets before cabinets, not after', sub: 'Inside the appliance garage, at the end of the island, and one low near the floor for a robot vacuum dock.' },
+            { text: 'The Kitchen Planning Guide — free PDF from NKBA', sub: 'Dry, but the clearance tables alone are worth it.', link: 'https://nkba.org/guidelines' },
+          ]},
+          { label: 'Materials that held up', lines: [
+            { text: 'Quartzite, not marble, if you actually cook', sub: 'It looks like marble but shrugs off lemon juice and red wine. Seal it once a year and forget about it.' },
+            { text: 'Unlacquered brass hardware', sub: 'It patinas fast where hands touch it, which turned out to be the best part. Ours came from a small foundry in Pennsylvania.', link: 'https://www.rejuvenation.com/hardware' },
+            { text: 'Zellige tile — order 15% extra', sub: 'Every piece is different, and the setter will cull the ones that do not sit right. We ran short and waited six weeks for a second batch that did not match.' },
+          ]},
+          { label: 'What I would skip', lines: [
+            { text: 'Pot filler over the range', sub: 'Used it maybe four times. The sink is two steps away and the filler is one more thing that can leak inside a wall.' },
+            { text: 'Open shelving for everyday dishes', sub: 'Beautiful in photos, dusty in real life. Keep one short shelf for things you use daily and put the rest behind doors.' },
+          ]},
+        ],
+        likes: 842, forks: 61, saves: 1290, likedByUser: false, savedByUser: false, isMine: false, forkedFromId: null,
+      },
+      {
         id: 'l1', author: { name: 'Renata Díaz', handle: '@renata.diaz', initials: 'RD' }, timeAgo: '2d',
         title: 'Mexico City Bars', description: "Where I actually drink after three trips — mezcal dens, rooftop spots, and one very loud cantina.", tags: ['Travel', 'Food & Drink'],
         sections: [
@@ -1437,7 +1471,7 @@ class Component extends DCLogic {
         let head = ln.text || '', sub = ln.sub || '';
         if (!sub) { const m = head.split(/\s+[—–]\s+/); if (m.length > 1) { head = m.shift(); sub = m.join(' — '); sub = sub.charAt(0).toUpperCase() + sub.slice(1); } }
         const label = i === 0 ? sec.label : null;
-        out.push({ num: String(n).padStart(2, '0'), label, labelPad: n === 1 ? '0 0 8px' : '18px 0 8px', text: ln.text, head, sub, hasSub: !!sub, hasLink: !!ln.link, link: ln.link || null, divider: i === sec.lines.length - 1 ? 'none' : '1px solid oklch(91.2% 0.006 80)' });
+        out.push({ num: String(n).padStart(2, '0'), label, labelPad: n === 1 ? '8px 0 8px' : '34px 0 8px', text: ln.text, head, sub, hasSub: !!sub, hasLink: !!ln.link, link: ln.link || null, linkDomain: (ln.link || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0], divider: i === sec.lines.length - 1 ? 'none' : '1px solid oklch(91.2% 0.006 80)' });
         n++;
       });
     });
@@ -1512,7 +1546,7 @@ class Component extends DCLogic {
     this.showToast('Repost removed');
   }
   PERSIST = ['signedIn', 'followedHandles', 'drafts', 'myOrder', 'pinnedId', 'pinNote', 'myBio', 'mySocials', 'lists', 'notifs', 'myReposts', 'recentSearches', 'blockedHandles', 'privateAccount', 'allowForks'];
-  STORE_KEY = 'stack-app-state-v1';
+  STORE_KEY = 'stack-app-typography-v1';
   _measureFeed() {
     const ids = Array.from(document.querySelectorAll('[data-feed-body]')).filter(el => el.scrollHeight > el.clientHeight + 2).map(el => el.getAttribute('data-feed-body')).join(',');
     if (ids !== (this.state.feedOverflow || '')) this.setState({ feedOverflow: ids });
@@ -1525,7 +1559,7 @@ class Component extends DCLogic {
     this._initial = {}; this.PERSIST.forEach(k => { this._initial[k] = this.state[k]; });
     try {
       const saved = JSON.parse(localStorage.getItem(this.STORE_KEY) || 'null');
-      if (saved) { const pick = {}; this.PERSIST.forEach(k => { if (saved[k] !== undefined) pick[k] = saved[k]; }); this.setState(pick); }
+      if (saved) { const pick = {}; this.PERSIST.forEach(k => { if (saved[k] !== undefined) pick[k] = saved[k]; }); if (pick.lists && !pick.lists.some(l => l.id === 'td1')) pick.lists = [this._initial.lists[0], ...pick.lists]; this.setState(pick); }
     } catch (e) {}
   }
   componentDidUpdate() {
@@ -1575,7 +1609,7 @@ class Component extends DCLogic {
       feedLines, feedHasMore: p.lines.length > FEED_MAX, feedMoreCount: p.lines.length - FEED_MAX,
       cardId: l.id, overflows: (this.state.feedOverflow || '').split(',').includes(l.id),
       shortLines: p.lines.slice(0, 4).map((x, i, arr) => ({ ...x, labelPad: i === 0 ? '0 0 8px' : '14px 0 8px', divider: (i === arr.length - 1 || arr[i + 1].label) ? 'none' : '1px solid oklch(91.2% 0.006 80)' })),
-      bodyLines: p.lines.slice(0, 14).map((x, i, arr) => ({ ...x, labelPad: i === 0 ? '0 0 8px' : '14px 0 8px', divider: (i === arr.length - 1 || arr[i + 1].label) ? 'none' : '1px solid oklch(91.2% 0.006 80)' })),
+      bodyLines: p.lines.slice(0, 14).map((x, i, arr) => ({ ...x, labelPad: i === 0 ? '8px 0 8px' : '26px 0 8px', divider: (i === arr.length - 1 || arr[i + 1].label) ? 'none' : '1px solid oklch(91.2% 0.006 80)' })),
       metaLabel: l.timeAgo + ' · ' + total + (total === 1 ? ' line' : ' lines'),
       hasUpdate: !!l.sharedAt, updateNote: l.updateNote || '', updateLabel: 'Updated',
       hasMoreShort: p.lines.length > 4,
@@ -2091,6 +2125,7 @@ class Component extends DCLogic {
       .map(name => ({ name, onAdd: () => this.addTag(name) }));
 
     return {
+      stopProp: (e) => e.stopPropagation(),
       isFeed: s.screen === 'feed',
       isSearch: s.screen === 'search',
       isDetail: s.screen === 'detail', activeUpdated,

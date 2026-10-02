@@ -16,11 +16,14 @@ type AuthCtx = {
 };
 const AuthContext = createContext<AuthCtx | null>(null);
 const ToastContext = createContext<(msg: string) => void>(() => {});
-const BackContext = createContext<() => void>(() => {});
+const BackContext = createContext<(fallback?: unknown) => void>(() => {});
 
 export const useAuth = () => useContext(AuthContext)!;
 export const useToast = () => useContext(ToastContext);
-/** Retraces in-app navigation, or goes to the feed when the viewer arrived from elsewhere. */
+/**
+ * Retraces in-app navigation, or goes to the feed (or `fallback`, a path) when the viewer arrived from elsewhere.
+ * It can be passed straight to onClick; anything but a string is ignored.
+ */
 export const useBack = () => useContext(BackContext);
 
 export default function AppProviders({ initialViewer, children }: { initialViewer: Profile | null; children: React.ReactNode }) {
@@ -37,10 +40,13 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
   useEffect(() => {
     depth.current++;
   }, [pathname]);
-  const back = useCallback(() => {
-    if (depth.current > 1) router.back();
-    else router.push("/");
-  }, [router]);
+  const back = useCallback(
+    (fallback?: unknown) => {
+      if (depth.current > 1) router.back();
+      else router.push(typeof fallback === "string" ? fallback : "/");
+    },
+    [router],
+  );
 
   useEffect(() => {
     const { data } = createClient().auth.onAuthStateChange((event) => {

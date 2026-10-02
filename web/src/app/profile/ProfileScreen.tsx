@@ -116,7 +116,7 @@ function Drafts({ drafts }: { drafts: StackRow[] }) {
     <div key={d.id} className={p.draftRow} role="link" tabIndex={0} onClick={() => router.push(`/create?draft=${d.id}`)} onKeyDown={(e) => e.key === "Enter" && router.push(`/create?draft=${d.id}`)}>
       <div style={{ minWidth: 0 }}>
         <div className={p.draftTitle}>{d.title || "Untitled draft"}</div>
-        <div className={p.draftMeta}>Draft · {d.line_count} lines</div>
+        <div className={p.draftMeta}>{d.edit_of ? "Unsaved edits to a published stack" : `Draft · ${d.line_count} lines`}</div>
       </div>
       <button
         className={p.draftDelete}

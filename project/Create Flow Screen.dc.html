@@ -33,6 +33,10 @@
           <span onClick="{{ saveDraft }}" style="height:44px;padding:0 12px;display:flex;align-items:center;font-size:13.5px;font-weight:600;color:oklch(19.4% 0.006 80);cursor:pointer;">Save draft</span>
         </div>
       </div>
+      <sc-if value="{{ isEditing }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:0 20px 8px;font-size:11.5px;font-weight:600;color:oklch(41.5% 0.006 80);">Editing a published stack</div>
+      </sc-if>
+      <sc-if value="{{ notEditing }}" hint-placeholder-val="{{ true }}">
       <div style="display:flex;align-items:center;gap:10px;padding:0 12px 8px;">
         <div style="flex:1;display:flex;gap:4px;">
           <sc-for list="{{ progSegs }}" as="p" hint-placeholder-count="4">
@@ -41,6 +45,7 @@
         </div>
         <span style="font-size:11.5px;font-weight:600;color:oklch(41.5% 0.006 80);font-variant-numeric:tabular-nums;white-space:nowrap;">{{ stepNum }}/4 · {{ stepName }}</span>
       </div>
+      </sc-if>
     </div>
   </sc-if>
 
@@ -172,10 +177,19 @@
         <div onClick="{{ addSection }}" style="display:flex;align-items:center;gap:8px;min-height:44px;margin-top:8px;border-top:1px dashed oklch(88.5% 0.006 80);font-size:13px;font-weight:600;color:oklch(41.5% 0.006 80);cursor:pointer;">+ Add subsection</div>
       </div>
     </div>
+    <sc-if value="{{ isEditing }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:12px 20px 30px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;border-top:1px solid oklch(91.8% 0.006 80);background:oklch(99.6% 0.002 80);">
+        <span onClick="{{ saveEdit }}" style="height:48px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;">Save</span>
+        <span onClick="{{ openShare }}" style="height:44px;border-radius:999px;border:1px solid oklch(88.5% 0.006 80);background:{{ shareBg }};color:{{ shareColor }};display:flex;align-items:center;justify-content:center;gap:7px;font-size:14px;font-weight:600;cursor:{{ shareCursor }};"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5"></path><path d="M20 4v4.5h-4.5"></path><path d="M20 12a8 8 0 0 1-13.7 5.7L4 15.5"></path><path d="M4 20v-4.5h4.5"></path></svg>Save and share update</span>
+        <div style="font-size:11.5px;color:oklch(45.2% 0.006 80);text-align:center;line-height:1.4;text-wrap:pretty;padding:0 10px;">{{ shareHint }}</div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ notEditing }}" hint-placeholder-val="{{ true }}">
     <div style="padding:10px 20px 34px;display:flex;align-items:center;gap:10px;flex-shrink:0;border-top:1px solid oklch(91.8% 0.006 80);background:oklch(99.6% 0.002 80);">
       <span onClick="{{ backToDesc }}" style="height:48px;padding:0 6px;display:flex;align-items:center;gap:2px;font-size:14px;font-weight:600;color:oklch(36% 0.006 80);cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>Back</span>
       <span onClick="{{ goReview }}" style="flex:1;height:48px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:700;cursor:pointer;opacity:{{ reviewOp }};">Finalize</span>
     </div>
+    </sc-if>
   </sc-if>
 
   <sc-if value="{{ isArrange }}" hint-placeholder-val="{{ false }}">
@@ -338,6 +352,23 @@
     </div>
   </sc-if>
 
+  <sc-if value="{{ shareSheet }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeShare }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.42);display:flex;align-items:flex-end;z-index:20;">
+      <div onClick="{{ stop }}" style="width:100%;background:oklch(99.6% 0.002 80);border-radius:22px 22px 0 0;padding:12px 20px 34px;">
+        <div style="width:36px;height:4px;border-radius:2px;background:oklch(86.3% 0.006 80);margin:0 auto 18px;"></div>
+        <div style="font-size:19px;font-weight:800;color:oklch(19.4% 0.006 80);">Share an update</div>
+        <div style="font-size:13.5px;color:oklch(41.5% 0.006 80);line-height:1.45;margin-top:6px;text-wrap:pretty;">Your stack goes back into the feed with this note. After this, you can share your next update on {{ nextShareDate }}.</div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin:18px 2px 6px;">
+          <span style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(47.1% 0.006 80);">Update note</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:{{ noteCountColor }};">{{ noteCount }}</span>
+        </div>
+        <input ref="{{ noteRef }}" value="{{ noteDraft }}" onChange="{{ onNote }}" onKeyDown="{{ onNoteKey }}" maxLength="40" placeholder="What changed? (optional)" style="width:100%;height:50px;border:1.5px solid oklch(64% 0.16 50);border-radius:12px;outline:none;background:oklch(99.6% 0.002 80);font-family:Inter,sans-serif;font-size:15px;font-weight:500;color:oklch(14.8% 0.006 80);padding:0 14px;" />
+        <span onClick="{{ confirmShare }}" style="margin-top:14px;height:48px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;">Share update</span>
+        <span onClick="{{ closeShare }}" style="height:44px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:oklch(36% 0.006 80);cursor:pointer;margin-top:4px;">Cancel</span>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
     <div style="position:absolute;left:20px;right:20px;bottom:104px;display:flex;justify-content:center;pointer-events:none;z-index:30;">
       <div style="background:oklch(19.4% 0.006 80);color:oklch(99.6% 0.002 80);font-size:13px;font-weight:500;padding:11px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.2);text-align:center;line-height:1.4;">{{ toast }}</div>
@@ -430,7 +461,7 @@ class Component extends DCLogic {
     this.setState({ save: 'saving' });
     clearTimeout(this._st); this._st = setTimeout(() => this.setState({ save: 'saved' }), 700);
   }
-  upd(fn) { this.setState(s => ({ draft: fn(s.draft) })); this.dirty(); }
+  upd(fn) { this._edited = true; this.setState(s => ({ draft: fn(s.draft) })); this.dirty(); }
   showToast(msg) { this.setState({ toast: msg }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: '' }), 2400); }
   _mapLine(d, id, fn) { return { ...d, sections: d.sections.map(sec => ({ ...sec, lines: sec.lines.map(ln => ln.id === id ? fn(ln) : ln) })) }; }
   _ref(id) { return (el) => { if (el && this._focus === id) { this._focus = null; requestAnimationFrame(() => { try { el.focus({ preventScroll: true }); const v = el.value || ''; el.setSelectionRange && el.setSelectionRange(v.length, v.length); } catch (e) {} }); } }; }
@@ -600,13 +631,29 @@ class Component extends DCLogic {
     });
     const isPreview = s.step === 'review' && s.mode === 'preview';
     const hasDraft = this._hasContent(d);
+    const ed = this.props.edit || null;
+    const editOut = () => this._toApp(d);
+    const noteDraft = s.noteDraft || '';
     return {
+      isEditing: !!ed, notEditing: !ed,
+      shareHint: ed ? ed.hint : '', nextShareDate: (ed && ed.nextShareDate) || '',
+      shareBg: ed && ed.canShare ? 'oklch(99.6% 0.002 80)' : 'oklch(95.6% 0.004 80)',
+      shareColor: ed && ed.canShare ? 'oklch(19.4% 0.006 80)' : 'oklch(58% 0.006 80)',
+      shareCursor: ed && ed.canShare ? 'pointer' : 'not-allowed',
+      saveEdit: () => { if (!n) { this.showToast('Add a line with some text to save.'); return; } if (this.props.onSaveEdit) this.props.onSaveEdit(editOut()); },
+      openShare: () => { if (!ed || !ed.canShare) { if (ed) this.showToast(ed.blocked === 'private' ? 'Only public stacks can share updates.' : ed.hint.split('.')[0] + '.'); return; } if (!n) { this.showToast('Add a line with some text to save.'); return; } this._focus = 'note'; this.setState({ shareSheet: true, noteDraft: '' }); },
+      shareSheet: !!s.shareSheet, closeShare: () => this.setState({ shareSheet: false }),
+      noteDraft, noteCount: noteDraft.length + '/40', noteCountColor: noteDraft.length >= 36 ? 'oklch(54% 0.16 45)' : 'oklch(50.8% 0.006 80)',
+      noteRef: this._ref('note'),
+      onNote: (e) => this.setState({ noteDraft: e.target.value.slice(0, 40) }),
+      onNoteKey: (e) => { if (e.key === 'Enter') { e.preventDefault(); this.setState({ shareSheet: false }); if (this.props.onShareUpdate) this.props.onShareUpdate(editOut(), this.state.noteDraft || ''); } },
+      confirmShare: () => { this.setState({ shareSheet: false }); if (this.props.onShareUpdate) this.props.onShareUpdate(editOut(), noteDraft); },
       screenBg: isPreview ? 'oklch(96.5% 0.004 80)' : 'oklch(99.6% 0.002 80)',
       updatedLabel: 'Updated ' + new Date().toLocaleString('en-US', { month: 'short', year: 'numeric' }) + (n ? ' · ' + n + (n === 1 ? ' line' : ' lines') : ''),
       showHeader: ['title', 'description', 'build'].includes(s.step) || (s.step === 'review' && !isPreview),
-      statusText: s.save === 'saving' ? 'Saving…' : s.save === 'saved' ? 'Saved just now' : 'New draft',
+      statusText: ed ? (this._edited ? (s.save === 'saving' ? 'Saving draft…' : 'Unsaved changes') : 'No changes yet') : s.save === 'saving' ? 'Saving…' : s.save === 'saved' ? 'Saved just now' : 'New draft',
       statusDot: s.save === 'saving' ? 'oklch(76% 0.12 80)' : s.save === 'saved' ? 'oklch(62% 0.12 150)' : 'oklch(80% 0.006 80)',
-      exit: () => { if (this.props.onExit) { this.props.onExit(this._toApp(d), hasDraft); return; } this.setState({ step: 'drafts', sel: null, sheet: false, linkOpen: null, toast: '' }, () => { if (hasDraft) this.showToast('Draft saved'); }); },
+      exit: () => { if (this.props.onExit) { this.props.onExit(this._toApp(d), ed ? !!this._edited : hasDraft); return; } this.setState({ step: 'drafts', sel: null, sheet: false, linkOpen: null, toast: '' }, () => { if (hasDraft) this.showToast('Draft saved'); }); },
       saveDraft: () => { if (this.props.onSave) this.props.onSave(this._toApp(d)); clearTimeout(this._st); this.setState({ save: 'saved' }); this.showToast('Draft saved. Pick it up anytime from Profile › Drafts.'); },
       isTitle: s.step === 'title', isDesc: s.step === 'description', isBuild: s.step === 'build',
       isArrange: s.step === 'review' && !isPreview, isPreview, isPublished: s.step === 'published', isDrafts: s.step === 'drafts',
