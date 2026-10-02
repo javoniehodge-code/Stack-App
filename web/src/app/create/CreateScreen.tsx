@@ -94,8 +94,18 @@ const sectionsArg = (w: Work) =>
 const WEEK = 7 * 86_400_000;
 const shortDay = (ms: number) => new Date(ms).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
-/** Whether an edited stack can share an update to the feed now: public only, once every 7 days. */
-function shareInfo(t: EditTarget, now: number) {
+/** What decides whether an edit changed the stack: the visible text and links, ignoring blank lines and spacing. */
+const contentKey = (w: Work) =>
+  JSON.stringify([
+    w.title.trim(),
+    w.description.trim(),
+    w.sections
+      .map((sec) => [sec.headed ? sec.label.trim() : "", sec.lines.filter((l) => l.text.trim()).map((l) => [l.text.trim(), l.note.trim(), l.link])] as const)
+      .filter(([, lines]) => lines.length),
+  ]);
+
+/** Whether an edited stack can share an update to the feed now: public only, once every 7 days, and only with a change. */
+function shareInfo(t: EditTarget, now: number, changed: boolean) {
   if (t.visibility !== "public") return { can: false, hint: "Only public stacks can share updates to the feed.", blocked: "Only public stacks can share updates." };
   const last = t.sharedAt ? Date.parse(t.sharedAt) : 0;
   if (last && now - last < WEEK) {
@@ -103,6 +113,7 @@ function shareInfo(t: EditTarget, now: number) {
     const wait = `Share again in ${days} ${days === 1 ? "day" : "days"}.`;
     return { can: false, hint: `${wait} Updates can be shared once every 7 days.`, blocked: wait };
   }
+  if (!changed) return { can: false, hint: "Change something to share it as an update. You can share an update once every 7 days.", blocked: "Change something first, then share it as an update." };
   return { can: true, hint: "Puts your stack back in the feed. You can share an update once every 7 days.", blocked: "" };
 }
 
@@ -137,7 +148,7 @@ function LinkCard({ link, onRemove }: { link: string; onRemove?: () => void }) {
 
 /**
  * The four-step create flow: title, description, build (edit in place), finalize. Drafts save automatically.
- * With `edit`, it edits a published stack instead: only the build step, with Save and Save and share update.
+ * With `edit`, it edits a published stack instead: only the build step, with Publish and Publish & Share Update.
  */
 export default function CreateScreen({ initial, start, edit: target = null }: { initial: Draft; start: "title" | "build"; edit?: EditTarget | null }) {
   const router = useRouter();
@@ -161,6 +172,9 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const [updateNote, setUpdateNote] = useState("");
   // When the screen opened: enough precision for "share again in N days".
   const [now] = useState(() => Date.now());
+  // The published stack's content, to tell whether anything changed.
+  const [liveKey] = useState(() => (target ? contentKey(fromDraft({ ...initial, ...target.live })) : ""));
+  const shareState = target ? shareInfo(target, now, contentKey(work) !== liveKey) : null;
 
   // The draft's id once it has been saved, and a queue so saves never overlap (the first one creates the row).
   const idRef = useRef<string | null>(initial.id);
@@ -409,8 +423,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   async function applyEdit(share: boolean, note = "") {
     if (!target || busy) return;
     const w = workRef.current;
-    if (!counts(w).n) return toast("Add a line with some text to save.");
-    if (!w.title.trim()) return toast("Add a title to save.");
+    if (!counts(w).n) return toast("Add a line with some text to publish.");
+    if (!w.title.trim()) return toast("Add a title to publish.");
     const over = limitProblems(w)[0];
     if (over) return toast(over);
     setBusy(true);
@@ -426,18 +440,17 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
       p_note: note.trim(),
     });
     setBusy(false);
-    if (error) return toast(error.code === "PGRST202" ? "Editing published stacks isn't available yet." : `Couldn't save: ${error.message}`);
+    if (error) return toast(error.code === "PGRST202" ? "Editing published stacks isn't available yet." : `Couldn't publish: ${error.message}`);
     setShareOpen(false);
-    toast(share ? "Update shared to the feed" : "Changes saved");
+    toast(share ? "Update shared to the feed" : "Changes published");
     router.replace(`/s/${target.stackId}`);
     router.refresh();
   }
 
   function openShare() {
     if (!target) return;
-    const info = shareInfo(target, now);
-    if (!info.can) return toast(info.blocked);
-    if (!counts(work).n) return toast("Add a line with some text to save.");
+    if (shareState && !shareState.can) return toast(shareState.blocked);
+    if (!counts(work).n) return toast("Add a line with some text to publish.");
     setUpdateNote("");
     focusId.current = "note";
     setShareOpen(true);
@@ -697,7 +710,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               <span className={s.avatar}>{initials(viewer.name)}</span>
               <span className={s.authorText}>
                 <span className={s.authorName}>{viewer.name}</span>
-                <span className={s.authorMeta}>@{viewer.handle} · {target ? "Only you see these edits until you save" : "Draft, only you can see it"}</span>
+                <span className={s.authorMeta}>@{viewer.handle} · {target ? "Only you see these edits until you publish" : "Draft, only you can see it"}</span>
               </span>
             </div>
             <input
@@ -957,18 +970,18 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
           {target ? (
             <footer className={`${s.footer} ${s.editFooter}`}>
               <button className={s.primary} disabled={busy} onClick={() => applyEdit(false)}>
-                {busy && !shareOpen ? "Saving…" : "Save"}
+                {busy && !shareOpen ? "Publishing…" : "Publish"}
               </button>
-              <button className={s.shareUpdate} aria-disabled={!shareInfo(target, now).can} onClick={openShare}>
+              <button className={s.shareUpdate} aria-disabled={!shareState?.can} onClick={openShare}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5" />
                   <path d="M20 4v4.5h-4.5" />
                   <path d="M20 12a8 8 0 0 1-13.7 5.7L4 15.5" />
                   <path d="M4 20v-4.5h4.5" />
                 </svg>
-                Save and share update
+                Publish & Share Update
               </button>
-              <div className={s.shareHint}>{shareInfo(target, now).hint}</div>
+              <div className={s.shareHint}>{shareState?.hint}</div>
             </footer>
           ) : (
             <footer className={s.footer}>
@@ -1156,7 +1169,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
             <div id="share-title" className={s.sheetTitle}>
               Share an update
             </div>
-            <div className={s.sheetText}>Your stack goes back into the feed with this note. After this, you can share your next update on {shortDay(now + WEEK)}.</div>
+            <div className={s.sheetText}>Your stack goes back into the feed with this note, which shows for 7 days. After this, you can share your next update on {shortDay(now + WEEK)}.</div>
             <div className={s.noteLabelRow}>
               <label htmlFor="update-note" className={s.noteLabel}>
                 Update note

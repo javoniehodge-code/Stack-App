@@ -15,6 +15,7 @@ import { BookmarkIcon, RepostIcon } from "./icons";
 import { MentionList, useMentions } from "./Mentions";
 import { RepostButton, RepostGlyph } from "./Repost";
 import { ShareButton } from "./Share";
+import { LinkPill } from "./StackView";
 import { VIS, VisIcon } from "./Visibility";
 import s from "./Cards.module.css";
 
@@ -94,9 +95,12 @@ export function FeedCard({ stack }: { stack: FeedItem }) {
   );
 }
 
-/** The green "Updated: note" line on a stack whose author shared an update to the feed. */
+/** Update notes show for 7 days after the update was shared. */
+const updateIsRecent = (sharedAt: string) => Date.now() - Date.parse(sharedAt) < 7 * 86_400_000;
+
+/** The green "Updated: note" line on a stack whose author shared an update to the feed in the last 7 days. */
 export function UpdateBanner({ stack, className }: { stack: Pick<Stack, "shared_at" | "update_note">; className?: string }) {
-  if (!stack.shared_at) return null;
+  if (!stack.shared_at || !updateIsRecent(stack.shared_at)) return null;
   const note = stack.update_note?.trim();
   return (
     <div className={`${s.updateBanner} ${className ?? ""}`}>
@@ -196,6 +200,7 @@ function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode })
                       <span className={s.feedLineText}>
                         <span className={s.feedHead}>{l.head}</span>
                         {l.note && <span className={s.feedNote}>{l.note}</span>}
+                        {l.link && <LinkPill href={l.link} className={s.feedLink} size={10} />}
                       </span>
                     </div>
                   </div>

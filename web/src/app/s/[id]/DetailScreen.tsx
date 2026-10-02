@@ -170,7 +170,8 @@ export default function DetailScreen({
             Back
           </button>
         )}
-        {mine && <VisibilityPill value={visibility} onClick={() => vis.open(stack)} />}
+        {/* Your own stack: the menu has Edit stack, who can see it, and Delete. */}
+        {mine && <VisibilityPill value={visibility} onClick={() => vis.openWithEdit(stack)} />}
       </div>
 
       <StackPaper

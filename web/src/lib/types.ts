@@ -89,5 +89,8 @@ export type Draft = {
   location: string;
 };
 
-/** The published stack being edited in the create screen: whether it can share an update, and why not. */
-export type EditTarget = { stackId: string; visibility: Visibility; sharedAt: string | null };
+/**
+ * The published stack being edited in the create screen: whether it can share an update, and its live
+ * content (sharing an update needs a change from it).
+ */
+export type EditTarget = { stackId: string; visibility: Visibility; sharedAt: string | null; live: Pick<Draft, "title" | "description" | "sections"> };

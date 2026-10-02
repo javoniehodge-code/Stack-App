@@ -173,11 +173,16 @@ export async function fetchAuthorStacks(sb: SupabaseClient, viewerId: string | n
     return pub ? q.eq("visibility", "public") : q;
   };
   const run = async (pub: boolean) => {
+    // Manually ordered stacks keep their place; the rest (new or just shared as an update) come first, newest first.
     const ordered = await query(pub)
       .order("profile_position", { ascending: true, nullsFirst: true })
+      .order("feed_at", { ascending: false });
+    if (!ordered.error) return ordered;
+    // Before the edit_published_stacks migration there is no feed_at; before profile_featured, no profile_position.
+    const byPublished = await query(pub)
+      .order("profile_position", { ascending: true, nullsFirst: true })
       .order("published_at", { ascending: false });
-    // Before the profile_featured migration there is no profile_position column.
-    return ordered.error ? await query(pub).order("published_at", { ascending: false }) : ordered;
+    return byPublished.error ? await query(pub).order("published_at", { ascending: false }) : byPublished;
   };
   const { data } = own ? await run(false) : await publicOnly(run);
   return withViewerState(sb, viewerId, (data ?? []) as unknown as StackRow[]);

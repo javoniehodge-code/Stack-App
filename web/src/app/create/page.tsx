@@ -80,5 +80,6 @@ export default async function CreatePage({ searchParams }: PageProps<"/create">)
 async function editTarget(sb: Awaited<ReturnType<typeof createClient>>, viewerId: string, id: string): Promise<EditTarget | null> {
   const { data } = await sb.from("stacks").select("*").eq("id", id).eq("author_id", viewerId).eq("status", "published").maybeSingle();
   if (!data) return null;
-  return { stackId: data.id, visibility: data.visibility ?? "public", sharedAt: data.shared_at ?? null };
+  const live = toDraft(data, null, []);
+  return { stackId: data.id, visibility: data.visibility ?? "public", sharedAt: data.shared_at ?? null, live: { title: live.title, description: live.description, sections: live.sections } };
 }
