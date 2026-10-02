@@ -9,13 +9,13 @@ import { BackIcon, BookmarkIcon } from "@/components/icons";
 import { RepostButton } from "@/components/Repost";
 import { ShareButton } from "@/components/Share";
 import { publishedLabel, StackPaper } from "@/components/StackView";
-import { useVisibilityEditor, VisibilityPill } from "@/components/Visibility";
+import { EditPill, useVisibilityEditor } from "@/components/Visibility";
 import { MentionList, useMentions } from "@/components/Mentions";
 import { FollowButton, UpdateBanner } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
 import { postComment, thread, threadRoot } from "@/lib/comments";
 import { flatten, initials } from "@/lib/format";
-import { useEngagement, useIsFollowing, useVisibility } from "@/lib/store";
+import { useEngagement, useIsFollowing } from "@/lib/store";
 import { createClient } from "@/lib/supabase/client";
 import type { Comment, Stack } from "@/lib/types";
 import { useStackActions } from "@/lib/useStackActions";
@@ -52,7 +52,6 @@ export default function DetailScreen({
   const mentions = useMentions(draft, setDraft);
   const mine = viewer?.id === stack.author.id;
   const router = useRouter();
-  const visibility = useVisibility(stack);
   const vis = useVisibilityEditor(() => {
     router.replace("/profile");
     router.refresh();
@@ -170,8 +169,8 @@ export default function DetailScreen({
             Back
           </button>
         )}
-        {/* Your own stack: the menu has Edit stack, who can see it, and Delete. */}
-        {mine && <VisibilityPill value={visibility} onClick={() => vis.openWithEdit(stack)} />}
+        {/* Your own stack: Edit opens Edit stack, who can see it, and Delete (as in Manage stacks). */}
+        {mine && <EditPill onClick={() => vis.openWithEdit(stack)} />}
       </div>
 
       <StackPaper
