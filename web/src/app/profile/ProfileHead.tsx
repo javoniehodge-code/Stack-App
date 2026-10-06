@@ -44,12 +44,17 @@ export function ProfileHero({
             <span>
               <strong>{stackCount}</strong> Stacks
             </span>
-            <Link href={`/u/${profile.handle}/followers`} className={p.statLink}>
-              <strong>{fmtCount(followers)}</strong> Followers
-            </Link>
-            <Link href={`/u/${profile.handle}/following`} className={p.statLink}>
-              <strong>{fmtCount(following)}</strong> Following
-            </Link>
+            {/* Hidden unless the person turned them on in Edit profile. */}
+            {profile.show_follow_counts && (
+              <>
+                <Link href={`/u/${profile.handle}/followers`} className={p.statLink}>
+                  <strong>{fmtCount(followers)}</strong> Followers
+                </Link>
+                <Link href={`/u/${profile.handle}/following`} className={p.statLink}>
+                  <strong>{fmtCount(following)}</strong> Following
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

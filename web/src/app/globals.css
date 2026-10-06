@@ -17,6 +17,11 @@
   --muted-60: oklch(47.1% 0.006 80);
   --muted-56: oklch(50.8% 0.006 80);
   --accent: oklch(64% 0.16 50);
+  /* Item numbers, and links shown as a blue pill with their domain */
+  --num: oklch(55% 0.006 80);
+  --link: oklch(42% 0.17 255);
+  --link-bg: oklch(95.5% 0.025 255);
+  --link-bg-hover: oklch(92% 0.04 255);
   --on-accent: var(--bg);
   --danger: oklch(56% 0.18 27);
   --warn: oklch(54% 0.16 45);

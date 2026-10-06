@@ -15,6 +15,7 @@ import { BookmarkIcon, RepostIcon } from "./icons";
 import { MentionList, useMentions } from "./Mentions";
 import { RepostButton, RepostGlyph } from "./Repost";
 import { ShareButton } from "./Share";
+import { LineMarker, LinkPill } from "./StackView";
 import { VIS, VisIcon } from "./Visibility";
 import s from "./Cards.module.css";
 
@@ -94,6 +95,21 @@ export function FeedCard({ stack }: { stack: FeedItem }) {
   );
 }
 
+/** Update notes show for 7 days after the update was shared. */
+const updateIsRecent = (sharedAt: string) => Date.now() - Date.parse(sharedAt) < 7 * 86_400_000;
+
+/** The green "Updated: note" line on a stack whose author shared an update to the feed in the last 7 days. */
+export function UpdateBanner({ stack, className }: { stack: Pick<Stack, "shared_at" | "update_note">; className?: string }) {
+  if (!stack.shared_at || !updateIsRecent(stack.shared_at)) return null;
+  const note = stack.update_note?.trim();
+  return (
+    <div className={`${s.updateBanner} ${className ?? ""}`}>
+      <strong>Updated{note && ":"}</strong>
+      {note && ` ${note}`}
+    </div>
+  );
+}
+
 /** A paper card: author and age on top, as many lines as fit (faded, with See all, when cut off), the action bar, then comments that open inline. */
 function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode }) {
   const open = useOpen(stack.id);
@@ -167,6 +183,7 @@ function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode })
       </div>
       <div className={s.feedBody}>
         {note}
+        <UpdateBanner stack={stack} />
         <div {...open} className={s.feedOpen}>
           <div ref={clipRef} className={s.feedClip}>
             <div className={s.title}>{stack.title}</div>
@@ -179,10 +196,11 @@ function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode })
                   <div key={i}>
                     {l.label && <div className={`${s.feedLabel} ${i === 0 ? s.feedLabelFirst : ""}`}>{l.label}</div>}
                     <div className={`${s.feedLine} ${divided ? s.feedLineDivided : ""}`}>
-                      <span className={s.num}>{l.num}</span>
+                      <LineMarker ln={l} numClass={s.num} bulletClass={s.feedBullet} />
                       <span className={s.feedLineText}>
-                        <span className={s.feedHead}>{l.head}</span>
+                        <span className={l.format === "text" ? s.feedPara : l.format === "bold" ? s.feedBoldLine : `${s.feedHead} ${l.bold ? "" : s.feedPlain}`}>{l.head}</span>
                         {l.note && <span className={s.feedNote}>{l.note}</span>}
+                        {l.link && <LinkPill href={l.link} className={s.feedLink} size={10} />}
                       </span>
                     </div>
                   </div>
@@ -269,7 +287,8 @@ export function TrendingCard({ stack }: { stack: Stack }) {
       <div className={s.lines}>
         {lines.slice(0, 3).map((l, i) => (
           <div key={i} className={s.lineClip}>
-            <span className={s.num}>{l.num}</span> {l.text}
+            {l.num && <span className={s.num}>{l.num} </span>}
+            {l.text}
           </div>
         ))}
       </div>
@@ -297,7 +316,8 @@ export function CompactCard({ stack, repostedBy }: { stack: Stack; repostedBy?: 
         <div className={s.lines}>
           {lines.slice(0, 4).map((l, i) => (
             <div key={i} className={s.lineClip}>
-              <span className={s.num}>{l.num}</span> {l.text}
+              {l.num && <span className={s.num}>{l.num} </span>}
+            {l.text}
             </div>
           ))}
         </div>
@@ -340,7 +360,7 @@ export function ListCard({ stack, following = false }: { stack: Stack; following
         <div key={i}>
           {l.label && <div className={s.lcLabel}>{l.label}</div>}
           <div className={s.lcLine}>
-            <span className={s.lcNum}>{l.num}</span>
+            {l.num && <span className={s.lcNum}>{l.num}</span>}
             <span className={s.lcText}>{l.text}</span>
             {l.link && (
               <span className={s.linkChip} aria-label="Has a link">
@@ -387,7 +407,8 @@ export function GridCard({ stack, pinned = false }: { stack: Stack; pinned?: boo
       <div className={s.gridLines}>
         {lines.slice(0, 3).map((l, i) => (
           <div key={i} className={s.lineClip}>
-            <span className={s.num}>{l.num}</span> {l.text}
+            {l.num && <span className={s.num}>{l.num} </span>}
+            {l.text}
           </div>
         ))}
       </div>

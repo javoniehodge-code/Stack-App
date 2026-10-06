@@ -71,8 +71,10 @@
 }
 
 .num {
-  color: var(--accent);
-  font-weight: 700;
+  font-family: var(--mono);
+  font-weight: 500;
+  color: var(--num);
+  font-variant-numeric: tabular-nums;
 }
 
 .more {
@@ -192,18 +194,20 @@
 }
 
 .feedCard .title {
-  font-size: 19px;
-  font-weight: 600;
-  line-height: 1.25;
-  letter-spacing: -0.4px;
-  margin-bottom: 6px;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -0.025em;
+  color: var(--text-bright);
+  margin-bottom: 8px;
+  text-wrap: balance;
   overflow-wrap: anywhere;
 }
 
 .feedDescription {
-  font-size: 13.5px;
-  line-height: 1.45;
-  color: var(--muted-66);
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--muted-72);
   text-wrap: pretty;
   overflow-wrap: anywhere;
 }
@@ -216,20 +220,34 @@
 }
 
 .feedLines {
-  margin-top: 16px;
-  color: var(--muted-66);
+  margin-top: 10px;
+  color: var(--muted-72);
 }
 
-/* Section name in orange caps, ruled underneath */
+/* Section name: a short orange bar, the name in sentence case, a dark rule underneath */
 .feedLabel {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent);
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  color: var(--text-bright);
   padding: 14px 0 8px;
-  border-bottom: 1px solid oklch(91.2% 0.006 80);
+  border-bottom: 1.5px solid var(--text);
+  text-wrap: balance;
   overflow-wrap: anywhere;
+}
+
+.feedLabel::before {
+  content: "";
+  width: 3px;
+  height: 13px;
+  border-radius: 2px;
+  background: var(--accent);
+  align-self: center;
+  flex-shrink: 0;
 }
 
 .feedLabelFirst {
@@ -239,7 +257,7 @@
 .feedLine {
   display: flex;
   gap: 12px;
-  padding: 11px 0 12px;
+  padding: 12px 0 13px;
 }
 
 .feedLineDivided {
@@ -248,36 +266,102 @@
 
 .feedLine .num {
   flex-shrink: 0;
+  width: 20px;
   font-family: var(--mono);
   font-size: 12px;
   font-weight: 400;
-  padding-top: 1px;
+  line-height: 21px;
+  color: var(--num);
   font-variant-numeric: tabular-nums;
 }
 
-/* Bold head, then the note in gray (feed text keeps the app's gray tones). */
+/* Bold head, the note in gray, then the link as a blue pill */
 .feedLineText {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   text-wrap: pretty;
   overflow-wrap: anywhere;
 }
 
 .feedHead {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
-  line-height: 1.3;
-  letter-spacing: -0.2px;
-  color: var(--text-2);
+  line-height: 21px;
+  letter-spacing: -0.01em;
+  color: var(--text-bright);
+}
+
+/* A numbered or bulleted line whose heading isn't bold. */
+.feedPlain {
+  font-weight: 400;
+}
+
+.feedBullet {
+  flex-shrink: 0;
+  width: 20px;
+  height: 21px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feedBullet span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.feedPara {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--text-bright);
+  white-space: pre-wrap;
+}
+
+.feedBoldLine {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.35;
+  color: var(--text-bright);
 }
 
 .feedNote {
-  font-size: 12.5px;
-  line-height: 1.45;
-  color: var(--muted-66);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: oklch(38% 0.006 80);
+}
+
+.feedLink {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  min-height: 24px;
+  margin-top: 5px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: var(--link-bg);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--link);
+  text-decoration: none;
+}
+
+.feedLink:hover {
+  background: var(--link-bg-hover);
+}
+
+.feedLink span {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .feedFade {
@@ -853,6 +937,24 @@
   border-radius: 12px;
   background: oklch(92.9% 0.03 60);
   margin-bottom: 16px;
+}
+
+/* "Updated: what changed" on a stack shared back into the feed */
+.updateBanner {
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: oklch(94.5% 0.035 150);
+  margin-bottom: 14px;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: oklch(30% 0.07 150);
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.updateBanner strong {
+  font-weight: 700;
+  color: oklch(40% 0.1 150);
 }
 
 .repostNoteAvatar {

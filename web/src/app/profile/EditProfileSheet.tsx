@@ -18,6 +18,7 @@ export default function EditProfileSheet({ mode = "profile", onClose }: { mode?:
   const [name, setName] = useState(viewer?.name ?? "");
   const [handle, setHandle] = useState(viewer?.handle ?? "");
   const [bio, setBio] = useState(viewer?.bio ?? "");
+  const [showCounts, setShowCounts] = useState(!!viewer?.show_follow_counts);
   const [socials, setSocials] = useState<Socials>(viewer?.socials ?? {});
   // An older free-text button label is kept until a type is picked.
   const [contactLabel, setContactLabel] = useState(viewer?.featured_link_label ?? "");
@@ -40,6 +41,8 @@ export default function EditProfileSheet({ mode = "profile", onClose }: { mode?:
         return;
       }
       Object.assign(changes, { name: name.trim(), handle: h, bio: bio.trim() });
+      // Only sent when changed, so the rest still saves before the edit_published_stacks migration.
+      if (showCounts !== !!viewer!.show_follow_counts) changes.show_follow_counts = showCounts;
     } else {
       // Only send socials when they changed, so the rest still saves before the profile_featured migration.
       if (JSON.stringify(socials) !== JSON.stringify(viewer!.socials)) changes.socials = socials;
@@ -102,6 +105,15 @@ export default function EditProfileSheet({ mode = "profile", onClose }: { mode?:
               </span>
             </div>
             <textarea id="ep-bio" className={sheet.input} rows={3} value={bio} maxLength={160} onChange={(e) => setBio(e.target.value)} placeholder="A line about what you collect" />
+            <button type="button" role="switch" aria-checked={showCounts} className={p.countsToggle} onClick={() => setShowCounts((v) => !v)}>
+              <span className={p.countsText}>
+                Show followers and following
+                <span className={p.countsSub}>Your stack count stays visible either way.</span>
+              </span>
+              <span className={p.switchTrack} data-on={showCounts || undefined}>
+                <span />
+              </span>
+            </button>
           </>
         ) : (
           <>

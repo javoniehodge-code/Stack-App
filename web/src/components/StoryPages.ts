@@ -51,7 +51,7 @@ const C = {
 type Fonts = { sans: string; mono: string };
 type Item =
   | { kind: "label"; label: string; cont: boolean; padTop: number; h: number }
-  | { kind: "line"; num: string; head: string[]; note: string[]; h: number };
+  | { kind: "line"; num: string; head: string[]; note: string[]; h: number; weight: number };
 export type StoryPage = {
   cover: boolean;
   last: boolean;
@@ -139,12 +139,14 @@ export function layoutStory(stack: Stack, shortUrl: string, counts: Story["count
   const numW = Math.max(...lines.map((l) => c.measureText(l.num).width), 0);
   const colW = TEXT_W - numW - NUM_GAP;
   const measured = lines.map((l) => {
-    setFont(c, 600, 14, fonts.sans, -0.2);
-    const head = wrapText(c, l.head, colW);
+    // Paragraphs are regular weight and keep their line breaks; bold lines are heavier.
+    const weight = l.format === "text" ? 400 : l.format === "bold" ? 700 : l.bold ? 600 : 400;
+    setFont(c, weight, 14, fonts.sans, -0.2);
+    const head = l.head.split("\n").flatMap((p) => wrapText(c, p, colW));
     setFont(c, 400, 12.5, fonts.sans);
     const note = l.note ? wrapText(c, l.note, colW) : [];
     const h = 11 + head.length * 18.2 + (note.length ? 2 + note.length * 18.125 : 0) + 12 + 1;
-    return { ...l, head, note, h };
+    return { ...l, head, note, h, weight };
   });
 
   const run = (breaks: Set<number>, cap: boolean) => {
@@ -177,7 +179,7 @@ export function layoutStory(stack: Stack, shortUrl: string, counts: Story["count
         if (!startsSection && l.section) pushLabel(l.section, true);
       }
       if (startsSection) pushLabel(l.label!, false);
-      cur.items.push({ kind: "line", num: l.num, head: l.head, note: l.note, h: l.h });
+      cur.items.push({ kind: "line", num: l.num, head: l.head, note: l.note, h: l.h, weight: l.weight });
       cur.used += l.h;
       cur.lines++;
       shown++;
@@ -225,8 +227,13 @@ function roundRect(c: CanvasRenderingContext2D, x: number, y: number, w: number,
   c.closePath();
 }
 
-const BOOKMARK = new Path2D("M6.5 3.5h11v17l-5.5-4-5.5 4z");
-const REPOST = ["M17 2l4 4-4 4", "M3 11V9a3 3 0 0 1 3-3h15", "M7 22l-4-4 4-4", "M21 13v2a3 3 0 0 1-3 3H3"].map((d) => new Path2D(d));
+// Made on first use: the server, which also loads this file, has no Path2D.
+let paths: { bookmark: Path2D[]; repost: Path2D[] } | null = null;
+const iconPaths = () =>
+  (paths ??= {
+    bookmark: [new Path2D("M6.5 3.5h11v17l-5.5-4-5.5 4z")],
+    repost: ["M17 2l4 4-4 4", "M3 11V9a3 3 0 0 1 3-3h15", "M7 22l-4-4 4-4", "M21 13v2a3 3 0 0 1-3 3H3"].map((d) => new Path2D(d)),
+  });
 
 function icon(c: CanvasRenderingContext2D, paths: Path2D[], x: number, y: number, size: number, color: string) {
   c.save();
@@ -366,7 +373,7 @@ export function drawPage(canvas: HTMLCanvasElement, story: Story, index: number)
     c.fillText(it.num, bx, top + 11 + 13);
     const cx = bx + numW + NUM_GAP;
     let ty = top + 11;
-    setFont(c, 600, 14, sans, -0.2);
+    setFont(c, it.weight, 14, sans, -0.2);
     c.fillStyle = C.text2;
     it.head.forEach((t) => {
       c.fillText(t, cx, ty + 14);
@@ -428,11 +435,11 @@ export function drawPage(canvas: HTMLCanvasElement, story: Story, index: number)
     setFont(c, 400, 12.5, sans);
     c.fillText(fmt(story.counts.likes), fx, mid + 4.5);
     fx += c.measureText(fmt(story.counts.likes)).width + 16;
-    icon(c, [BOOKMARK], fx, mid - 8, 16, C.muted);
+    icon(c, iconPaths().bookmark, fx, mid - 8, 16, C.muted);
     fx += 21;
     c.fillText(fmt(story.counts.saves), fx, mid + 4.5);
     fx += c.measureText(fmt(story.counts.saves)).width + 16;
-    icon(c, REPOST, fx, mid - 8, 16, C.muted);
+    icon(c, iconPaths().repost, fx, mid - 8, 16, C.muted);
     fx += 21;
     c.fillText(fmt(story.counts.reposts), fx, mid + 4.5);
   }

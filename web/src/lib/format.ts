@@ -1,4 +1,4 @@
-import type { Stack } from "./types";
+import type { Line, LineFormat, Stack } from "./types";
 
 export function fmtCount(n: number) {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(".0", "") + "M";
@@ -33,7 +33,17 @@ export type FlatLine = {
   /** The line split for display: bold head, gray note (the saved note, or "Name — details"). */
   head: string;
   note: string;
+  format: LineFormat;
+  /** Whether a numbered or bulleted line's heading is bold (the default). */
+  bold: boolean;
 };
+
+/** A line's format; older lines without one follow the stack's style. */
+export const lineFormat = (ln: Pick<Line, "format">, style: Stack["style"]): LineFormat =>
+  ln.format ?? (style === "bulleted" ? "bullet" : "num");
+
+/** Numbered and bulleted lines have a heading and an optional note; paragraphs and bold lines are one block. */
+export const isListFormat = (f: LineFormat) => f === "num" || f === "bullet";
 
 /** A line's saved note, or for older lines written as "Name — details", the part after the dash. */
 function splitLine(text: string, note: string | null | undefined) {
@@ -44,22 +54,28 @@ function splitLine(text: string, note: string | null | undefined) {
   return { head: parts[0], note: rest.charAt(0).toUpperCase() + rest.slice(1) };
 }
 
-/** Every line of a stack in order, numbered "01", "02"… or bulleted. */
+/**
+ * Every line of a stack in order. Numbered lines count "01", "02"… across the stack, bulleted lines get "•", and
+ * paragraphs and bold lines have no marker.
+ */
 export function flatten(stack: Pick<Stack, "sections" | "style">): FlatLine[] {
   const out: FlatLine[] = [];
   let n = 1;
-  const bulleted = stack.style === "bulleted";
   for (const sec of stack.sections) {
     sec.lines.forEach((ln, i) => {
+      const format = lineFormat(ln, stack.style);
+      const list = isListFormat(format);
       out.push({
-        num: bulleted ? "•" : String(n).padStart(2, "0"),
+        num: format === "num" ? String(n++).padStart(2, "0") : format === "bullet" ? "•" : "",
         label: i === 0 ? sec.label : null,
         section: sec.label,
         text: ln.text,
         link: ln.link,
-        ...splitLine(ln.text, ln.note),
+        // Older lines without a format may be written as "Name — details"; newer ones keep the detail as the note.
+        ...(!list ? { head: ln.text, note: "" } : ln.format ? { head: ln.text, note: ln.note?.trim() ?? "" } : splitLine(ln.text, ln.note)),
+        format,
+        bold: !list || ln.bold !== false,
       });
-      n++;
     });
   }
   return out;
@@ -82,12 +98,13 @@ export const CATEGORY_DOTS: Record<string, string> = {
 export const DEFAULT_DOT = "oklch(64% 0.16 50)";
 
 // Stack size limits. The database's save function enforces the same numbers.
-export const MAX_TITLE = 120;
-export const MAX_DESCRIPTION = 300;
-export const MAX_LABEL = 100; // subsection title
+export const MAX_TITLE = 60;
+export const MAX_DESCRIPTION = 180;
+export const MAX_LABEL = 60; // section heading
 export const MAX_SECTIONS = 20;
 export const MAX_ITEMS = 100;
-export const MAX_HEAD = 120; // an item's heading
-export const MAX_NOTE = 500; // an item's optional note
-export const MAX_TOTAL = 25000; // title, description, subsection titles, headings and notes together
+export const MAX_HEAD = 60; // a numbered, bulleted or bold line's heading
+export const MAX_NOTE = 300; // a numbered or bulleted line's optional detail
+export const MAX_PARAGRAPH = 360; // a paragraph line
+export const MAX_TOTAL = 6000; // title, description, section headings, lines and details together
 export const MAX_REPOST_NOTE = 500;

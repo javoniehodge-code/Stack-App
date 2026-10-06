@@ -81,9 +81,12 @@ export default function MyStacks({ profile, stacks }: { profile: Profile; stacks
       </div>
       {!reordering && rows.length > 0 && (
         <div className={m.grid}>
-          {rows.map((st) => (
-            <GridCard key={st.id} stack={st} pinned={st.id === profile.pinned_stack_id} />
-          ))}
+          {/* The pinned stack comes first; the rest keep your order. */}
+          {[...rows]
+            .sort((a, b) => Number(b.id === profile.pinned_stack_id) - Number(a.id === profile.pinned_stack_id))
+            .map((st) => (
+              <GridCard key={st.id} stack={st} pinned={st.id === profile.pinned_stack_id} />
+            ))}
         </div>
       )}
       {reordering &&

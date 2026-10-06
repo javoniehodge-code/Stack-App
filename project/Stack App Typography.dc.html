@@ -291,24 +291,27 @@
                   <span style="font-size:13.5px;line-height:1.4;color:oklch(30% 0.07 150);text-wrap:pretty;"><strong style="font-weight:700;color:oklch(40% 0.1 150);">{{ activeCard.updateLabel }}<sc-if value="{{ activeCard.updateNote }}" hint-placeholder-val="{{ false }}">:</sc-if></strong><sc-if value="{{ activeCard.updateNote }}" hint-placeholder-val="{{ false }}"> {{ activeCard.updateNote }}</sc-if></span>
                 </div>
               </sc-if>
-              <div style="font-size:21px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.25;letter-spacing:-0.4px;margin-bottom:8px;text-wrap:pretty;">{{ activeCard.title }}</div>
+              <div style="font-size:25px;font-weight:700;color:oklch(14.8% 0.006 80);line-height:1.15;letter-spacing:-0.025em;margin-bottom:10px;text-wrap:balance;">{{ activeCard.title }}</div>
             <sc-if value="{{ activeCard.description }}" hint-placeholder-val="{{ false }}">
-              <div style="font-size:13.5px;color:oklch(39.7% 0.006 80);line-height:1.5;text-wrap:pretty;">{{ activeCard.description }}</div>
+              <div style="font-size:15px;color:oklch(36% 0.006 80);line-height:1.5;text-wrap:pretty;max-width:34em;">{{ activeCard.description }}</div>
             </sc-if>
-            <div style="height:22px;"></div>
+            <div style="height:14px;"></div>
             <sc-for list="{{ activeFlat }}" as="ln" hint-placeholder-count="5">
               <sc-if value="{{ ln.label }}" hint-placeholder-val="{{ false }}">
-                <div style="font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:oklch(64% 0.16 50);padding:{{ ln.labelPad }};border-bottom:1px solid oklch(91.2% 0.006 80);">{{ ln.label }}</div>
+                <div style="display:flex;align-items:baseline;gap:10px;padding:{{ ln.labelPad }};border-bottom:1.5px solid oklch(19.4% 0.006 80);">
+                  <span style="width:3px;height:15px;border-radius:2px;background:oklch(64% 0.16 50);align-self:center;flex-shrink:0;"></span>
+                  <span style="flex:1;min-width:0;font-size:18px;font-weight:700;letter-spacing:-0.015em;line-height:1.25;color:oklch(14.8% 0.006 80);text-wrap:balance;">{{ ln.label }}</span>
+                </div>
               </sc-if>
-              <div style="display:flex;gap:12px;padding:12px 0 13px;border-bottom:{{ ln.divider }};">
-                <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(64% 0.16 50);padding-top:1px;flex-shrink:0;font-variant-numeric:tabular-nums;">{{ ln.num }}</span>
-                <div style="display:flex;flex-direction:column;gap:2px;min-width:0;">
-                  <div style="font-size:14px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.3;letter-spacing:-0.2px;text-wrap:pretty;">{{ ln.head }}</div>
+              <div style="display:flex;gap:12px;padding:13px 0 14px;border-bottom:{{ ln.divider }};">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:22px;color:oklch(55% 0.006 80);flex-shrink:0;width:20px;font-variant-numeric:tabular-nums;">{{ ln.num }}</span>
+                <div style="display:flex;flex-direction:column;gap:3px;min-width:0;">
+                  <div style="font-size:15.5px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:22px;letter-spacing:-0.01em;text-wrap:pretty;">{{ ln.head }}</div>
                   <sc-if value="{{ ln.hasSub }}" hint-placeholder-val="{{ false }}">
-                    <div style="font-size:12.5px;color:oklch(39.7% 0.006 80);line-height:1.45;text-wrap:pretty;">{{ ln.sub }}</div>
+                    <div style="font-size:14px;color:oklch(38% 0.006 80);line-height:1.5;text-wrap:pretty;max-width:36em;">{{ ln.sub }}</div>
                   </sc-if>
                   <sc-if value="{{ ln.hasLink }}" hint-placeholder-val="{{ false }}">
-                    <a href="{{ ln.link }}" target="_blank" style="font-size:12px;font-weight:500;margin-top:3px;color:oklch(64% 0.16 50);text-decoration:none;">Visit site ↗</a>
+                    <a href="{{ ln.link }}" target="_blank" style="align-self:flex-start;display:inline-flex;align-items:center;gap:4px;min-height:28px;margin-top:2px;font-size:14px;font-weight:600;color:oklch(48% 0.17 255);text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:3px;text-decoration-color:oklch(48% 0.17 255 / 0.4);" style-hover="text-decoration-color:oklch(48% 0.17 255);">{{ ln.linkDomain }}<span style="font-size:12px;text-decoration:none;">↗</span></a>
                   </sc-if>
                 </div>
               </div>
@@ -1257,6 +1260,33 @@ class Component extends DCLogic {
     feedCommentDrafts: {},
     lists: [
       {
+        id: 'td1', author: { name: 'Maya Okafor', handle: '@maya.reads', initials: 'MO' }, timeAgo: '1d', title: 'Everything I wish I knew before renovating a 1920s kitchen', tags: ['Home'],
+        description: 'Eighteen months, two contractors, one very patient partner. These are the decisions that mattered most, in the order you will have to make them, with what I would do differently.',
+        sections: [
+          { label: 'Before you hire anyone', lines: [
+            { text: 'Get the walls opened first — budget for surprises', sub: 'Old houses hide knob-and-tube wiring, galvanized pipes and sistered joists. A $400 exploratory demo saved us from a quote that would have doubled halfway through.' },
+            { text: 'Ask for three references from jobs older than two years', sub: 'Anyone can show off a fresh kitchen. You want to hear how the grout, drawer slides and caulk lines held up after a couple of winters.' },
+            { text: 'Permit history lookup', sub: 'Your city probably has a public portal. Ours showed an unpermitted addition from 1987 that changed the whole electrical plan.', link: 'https://www.permits.example.gov/lookup' },
+          ]},
+          { label: 'Layout and storage', lines: [
+            { text: 'Drawers over doors in every base cabinet', sub: 'Deep drawers for pots, shallow ones for utensils. You will never crouch and dig through a dark cabinet again.' },
+            { text: 'Keep the work triangle under 26 feet total', sub: 'Sink, stove and fridge. Anything bigger and you spend the evening walking instead of cooking.' },
+            { text: 'Plan outlets before cabinets, not after', sub: 'Inside the appliance garage, at the end of the island, and one low near the floor for a robot vacuum dock.' },
+            { text: 'The Kitchen Planning Guide — free PDF from NKBA', sub: 'Dry, but the clearance tables alone are worth it.', link: 'https://nkba.org/guidelines' },
+          ]},
+          { label: 'Materials that held up', lines: [
+            { text: 'Quartzite, not marble, if you actually cook', sub: 'It looks like marble but shrugs off lemon juice and red wine. Seal it once a year and forget about it.' },
+            { text: 'Unlacquered brass hardware', sub: 'It patinas fast where hands touch it, which turned out to be the best part. Ours came from a small foundry in Pennsylvania.', link: 'https://www.rejuvenation.com/hardware' },
+            { text: 'Zellige tile — order 15% extra', sub: 'Every piece is different, and the setter will cull the ones that do not sit right. We ran short and waited six weeks for a second batch that did not match.' },
+          ]},
+          { label: 'What I would skip', lines: [
+            { text: 'Pot filler over the range', sub: 'Used it maybe four times. The sink is two steps away and the filler is one more thing that can leak inside a wall.' },
+            { text: 'Open shelving for everyday dishes', sub: 'Beautiful in photos, dusty in real life. Keep one short shelf for things you use daily and put the rest behind doors.' },
+          ]},
+        ],
+        likes: 842, forks: 61, saves: 1290, likedByUser: false, savedByUser: false, isMine: false, forkedFromId: null,
+      },
+      {
         id: 'l1', author: { name: 'Renata Díaz', handle: '@renata.diaz', initials: 'RD' }, timeAgo: '2d',
         title: 'Mexico City Bars', description: "Where I actually drink after three trips — mezcal dens, rooftop spots, and one very loud cantina.", tags: ['Travel', 'Food & Drink'],
         sections: [
@@ -1437,7 +1467,7 @@ class Component extends DCLogic {
         let head = ln.text || '', sub = ln.sub || '';
         if (!sub) { const m = head.split(/\s+[—–]\s+/); if (m.length > 1) { head = m.shift(); sub = m.join(' — '); sub = sub.charAt(0).toUpperCase() + sub.slice(1); } }
         const label = i === 0 ? sec.label : null;
-        out.push({ num: String(n).padStart(2, '0'), label, labelPad: n === 1 ? '0 0 8px' : '18px 0 8px', text: ln.text, head, sub, hasSub: !!sub, hasLink: !!ln.link, link: ln.link || null, divider: i === sec.lines.length - 1 ? 'none' : '1px solid oklch(91.2% 0.006 80)' });
+        out.push({ num: String(n).padStart(2, '0'), label, labelPad: n === 1 ? '8px 0 8px' : '34px 0 8px', text: ln.text, head, sub, hasSub: !!sub, hasLink: !!ln.link, link: ln.link || null, linkDomain: (ln.link || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0], divider: i === sec.lines.length - 1 ? 'none' : '1px solid oklch(91.2% 0.006 80)' });
         n++;
       });
     });
@@ -1512,7 +1542,7 @@ class Component extends DCLogic {
     this.showToast('Repost removed');
   }
   PERSIST = ['signedIn', 'followedHandles', 'drafts', 'myOrder', 'pinnedId', 'pinNote', 'myBio', 'mySocials', 'lists', 'notifs', 'myReposts', 'recentSearches', 'blockedHandles', 'privateAccount', 'allowForks'];
-  STORE_KEY = 'stack-app-state-v1';
+  STORE_KEY = 'stack-app-typography-v1';
   _measureFeed() {
     const ids = Array.from(document.querySelectorAll('[data-feed-body]')).filter(el => el.scrollHeight > el.clientHeight + 2).map(el => el.getAttribute('data-feed-body')).join(',');
     if (ids !== (this.state.feedOverflow || '')) this.setState({ feedOverflow: ids });
@@ -1525,8 +1555,9 @@ class Component extends DCLogic {
     this._initial = {}; this.PERSIST.forEach(k => { this._initial[k] = this.state[k]; });
     try {
       const saved = JSON.parse(localStorage.getItem(this.STORE_KEY) || 'null');
-      if (saved) { const pick = {}; this.PERSIST.forEach(k => { if (saved[k] !== undefined) pick[k] = saved[k]; }); this.setState(pick); }
+      if (saved) { const pick = {}; this.PERSIST.forEach(k => { if (saved[k] !== undefined) pick[k] = saved[k]; }); if (pick.lists && !pick.lists.some(l => l.id === 'td1')) pick.lists = [this._initial.lists[0], ...pick.lists]; this.setState(pick); }
     } catch (e) {}
+    this.openList('td1', 'feed');
   }
   componentDidUpdate() {
     if (!this._initial) return;

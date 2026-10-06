@@ -49,89 +49,113 @@
     </div>
   </sc-if>
 
-  <sc-if value="{{ isTitle }}" hint-placeholder-val="{{ false }}">
-    <div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;padding:0 32px 60px;">
-      <input value="{{ title }}" onChange="{{ onTitle }}" onKeyDown="{{ onTitleKey }}" style="width:100%;border:none;border-bottom:1.5px solid oklch(86.3% 0.006 80);outline:none;background:transparent;font-family:Inter,sans-serif;font-weight:700;font-size:22px;letter-spacing:-0.3px;text-align:center;color:oklch(14.8% 0.006 80);padding:8px 0 10px;border-radius:0;" style-focus="border-bottom-color:oklch(19.4% 0.006 80);" />
-      <div style="font-size:16px;color:oklch(41.5% 0.006 80);text-align:center;margin-top:14px;">What would you like to call this Stack?</div>
-      <div style="display:flex;justify-content:center;margin-top:6px;">
-        <span onClick="{{ nextTitle }}" style="height:44px;padding:0 18px;display:flex;align-items:center;font-size:14px;font-weight:600;color:oklch(54% 0.16 45);cursor:pointer;">{{ titleSkipLabel }}</span>
-      </div>
-    </div>
-  </sc-if>
-
-  <sc-if value="{{ isDesc }}" hint-placeholder-val="{{ false }}">
-    <div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;padding:0 32px 60px;">
-      <textarea value="{{ description }}" onChange="{{ onDesc }}" onKeyDown="{{ onDescKey }}" rows="1" style="width:100%;field-sizing:content;resize:none;border:none;border-bottom:1.5px solid oklch(86.3% 0.006 80);outline:none;background:transparent;font-family:Inter,sans-serif;font-size:17px;line-height:1.5;text-align:center;color:oklch(19.4% 0.006 80);padding:8px 0 10px;border-radius:0;display:block;" style-focus="border-bottom-color:oklch(19.4% 0.006 80);"></textarea>
-      <div style="font-size:16px;color:oklch(41.5% 0.006 80);text-align:center;margin-top:14px;">What is this Stack about?</div>
-      <div style="display:flex;justify-content:center;margin-top:6px;">
-        <span onClick="{{ goBuild }}" style="height:44px;padding:0 18px;display:flex;align-items:center;font-size:14px;font-weight:600;color:oklch(54% 0.16 45);cursor:pointer;">{{ descSkipLabel }}</span>
-      </div>
-    </div>
-    <div style="padding:10px 20px 34px;display:flex;align-items:center;flex-shrink:0;">
-      <span onClick="{{ backToTitle }}" style="height:48px;padding:0 6px;display:flex;align-items:center;gap:2px;font-size:14px;font-weight:600;color:oklch(36% 0.006 80);cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>Back</span>
-    </div>
-  </sc-if>
-
-  <sc-if value="{{ isBuild }}" hint-placeholder-val="{{ true }}">
+  <sc-if value="{{ isCompose }}" hint-placeholder-val="{{ true }}">
     <div ref="{{ buildScrollRef }}" style="flex:1;min-height:0;overflow-y:auto;padding:12px 20px 28px;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-        <div style="width:30px;height:30px;border-radius:50%;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">Y</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-weight:600;font-size:13px;color:oklch(19.4% 0.006 80);">You</div>
-          <div style="font-size:12px;color:oklch(41.5% 0.006 80);">@you · Draft, only you can see it</div>
+      <div style="height:{{ composeSpacer }};flex-shrink:0;transition:height 650ms cubic-bezier(0.22,1,0.36,1);"></div>
+      <div style="max-height:{{ tPromptH }};opacity:{{ tPromptOp }};overflow:hidden;transition:max-height 500ms cubic-bezier(0.22,1,0.36,1),opacity 250ms ease;">
+        <div style="font-size:14px;font-weight:600;color:oklch(36% 0.006 80);padding:0 2px 10px;">What would you like to call this Stack?</div>
+      </div>
+      <textarea rows="1" ref="{{ titleRef }}" value="{{ title }}" onChange="{{ onTitle }}" onKeyDown="{{ onTitleKey }}" onFocus="{{ onTitleFocus }}" placeholder="{{ tPlaceholder }}" style="width:100%;display:block;field-sizing:content;resize:none;overflow-wrap:anywhere;white-space:pre-wrap;overflow:hidden;border:1.5px solid {{ tBorder }};background:{{ tBg }};box-shadow:{{ tShadow }};border-radius:14px;padding:{{ tPad }};outline:none;font-family:Inter,sans-serif;font-weight:700;font-size:25px;line-height:1.2;letter-spacing:-0.025em;color:oklch(14.8% 0.006 80);transition:padding 550ms cubic-bezier(0.22,1,0.36,1),border-color 350ms ease,background 350ms ease,box-shadow 350ms ease;"></textarea>
+      <div style="max-height:{{ tActH }};opacity:{{ tActOp }};overflow:hidden;transition:max-height 450ms cubic-bezier(0.22,1,0.36,1),opacity 200ms ease;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:14px;">
+          <span style="font-size:12.5px;color:oklch(47.1% 0.006 80);">Press return to continue</span>
+          <span onClick="{{ nextTitle }}" style="height:44px;padding:0 20px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;cursor:pointer;background:{{ tBtnBg }};color:{{ tBtnColor }};transition:background 200ms ease,color 200ms ease;">{{ titleSkipLabel }}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
         </div>
       </div>
-      <input value="{{ title }}" onChange="{{ onTitle }}" onFocus="{{ clearSel }}" placeholder="Add a title" style="width:100%;border:none;border-bottom:1.5px dashed {{ titleBorder }};outline:none;background:transparent;font-family:Inter,sans-serif;font-weight:800;font-size:21px;line-height:1.25;color:oklch(19.4% 0.006 80);padding:2px 0 4px;border-radius:0;" />
-      <textarea value="{{ description }}" onChange="{{ onDesc }}" onFocus="{{ clearSel }}" placeholder="Add a description (optional)" rows="1" style="width:100%;field-sizing:content;resize:none;border:none;border-bottom:1.5px dashed {{ descBorder }};outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14.5px;line-height:1.5;color:oklch(36% 0.006 80);padding:4px 0;margin-top:6px;display:block;"></textarea>
-      <div style="height:14px;"></div>
-      <sc-if value="{{ showTopSub }}" hint-placeholder-val="{{ true }}">
-        <div onClick="{{ addTopSection }}" style="display:flex;align-items:center;min-height:40px;font-size:13px;font-weight:600;color:oklch(41.5% 0.006 80);cursor:pointer;">+ Add subsection</div>
-      </sc-if>
+      <div style="max-height:{{ dWrapH }};opacity:{{ dWrapOp }};transform:translateY({{ dWrapY }});overflow:hidden;pointer-events:{{ dWrapPe }};transition:max-height 600ms cubic-bezier(0.22,1,0.36,1),opacity 400ms ease 120ms,transform 600ms cubic-bezier(0.22,1,0.36,1);">
+        <div style="max-height:{{ dPromptH }};opacity:{{ dPromptOp }};overflow:hidden;transition:max-height 500ms cubic-bezier(0.22,1,0.36,1),opacity 250ms ease;">
+          <div style="display:flex;align-items:baseline;gap:8px;padding:28px 2px 10px;"><span style="font-size:14px;font-weight:600;color:oklch(36% 0.006 80);">What is this Stack about?</span><span style="font-size:12.5px;color:oklch(50.8% 0.006 80);">Optional</span></div>
+        </div>
+        <textarea ref="{{ descRef }}" value="{{ description }}" onChange="{{ onDesc }}" onKeyDown="{{ onDescKey }}" onFocus="{{ onDescFocus }}" placeholder="{{ dPlaceholder }}" rows="1" style="width:100%;display:block;field-sizing:content;min-height:{{ dMinH }};resize:none;border:1.5px solid {{ dBorder }};background:{{ dBg }};box-shadow:{{ dShadow }};border-radius:14px;padding:{{ dPad }};margin-top:{{ dTop }};outline:none;font-family:Inter,sans-serif;font-size:15px;line-height:1.5;color:oklch(36% 0.006 80);transition:padding 550ms cubic-bezier(0.22,1,0.36,1),margin 550ms cubic-bezier(0.22,1,0.36,1),min-height 550ms cubic-bezier(0.22,1,0.36,1),border-color 350ms ease,background 350ms ease,box-shadow 350ms ease;"></textarea>
+        <div style="max-height:{{ dActH }};opacity:{{ dActOp }};overflow:hidden;transition:max-height 450ms cubic-bezier(0.22,1,0.36,1),opacity 200ms ease;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:14px;">
+            <span style="font-size:12.5px;color:oklch(47.1% 0.006 80);font-variant-numeric:tabular-nums;">{{ descCount }}</span>
+            <span onClick="{{ goBuild }}" style="height:44px;padding:0 20px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;cursor:pointer;background:{{ dBtnBg }};color:{{ dBtnColor }};transition:background 200ms ease,color 200ms ease;">{{ descSkipLabel }}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ isBuild }}" hint-placeholder-val="{{ true }}">
+      <div style="opacity:{{ bodyOp }};transform:translateY({{ bodyY }});transition:opacity 450ms ease,transform 600ms cubic-bezier(0.22,1,0.36,1);">
+      <div style="height:18px;"></div>
+      
 
       <div>
         <sc-for list="{{ sections }}" as="sec" hint-placeholder-count="1">
           <div style="margin-bottom:6px;">
             <sc-if value="{{ sec.headed }}" hint-placeholder-val="{{ false }}">
-              <div style="margin-top:18px;">
-                <input ref="{{ sec.headRef }}" value="{{ sec.label }}" onChange="{{ sec.onLabel }}" onFocus="{{ sec.onSelect }}" placeholder="Subsection heading" style="width:100%;height:34px;border:none;border-bottom:1px solid oklch(91.2% 0.006 80);outline:none;background:transparent;font-family:Inter,sans-serif;font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:oklch(64% 0.16 50);padding:0;border-radius:0;" />
+              <div style="margin-top:30px;">
+                <div style="display:flex;align-items:flex-start;gap:10px;border-bottom:1.5px solid oklch(19.4% 0.006 80);">
+                  <span style="width:3px;height:15px;margin-top:13px;border-radius:2px;background:oklch(64% 0.16 50);flex-shrink:0;"></span>
+                  <textarea ref="{{ sec.headRef }}" value="{{ sec.label }}" onChange="{{ sec.onLabel }}" onFocus="{{ sec.onSelect }}" onKeyDown="{{ sec.onKey }}" placeholder="Section heading" rows="1" style="flex:1;min-width:0;field-sizing:content;resize:none;overflow-wrap:anywhere;white-space:pre-wrap;overflow:hidden;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:18px;font-weight:700;letter-spacing:-0.015em;line-height:1.3;color:oklch(14.8% 0.006 80);padding:8px 0;border-radius:0;"></textarea>
+                </div>
                 <sc-if value="{{ sec.isSel }}" hint-placeholder-val="{{ false }}">
                   <div style="display:flex;align-items:center;gap:6px;margin:8px 0 6px;">
-                    <span onClick="{{ sec.onUp }}" style="width:36px;height:36px;border-radius:10px;border:1px solid oklch(88.5% 0.006 80);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ sec.upOp }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 14.5l6-6 6 6"></path></svg></span>
-                    <span onClick="{{ sec.onDown }}" style="width:36px;height:36px;border-radius:10px;border:1px solid oklch(88.5% 0.006 80);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ sec.downOp }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span>
                     <span onClick="{{ sec.onRemove }}" style="height:36px;padding:0 10px;display:flex;align-items:center;font-size:12.5px;font-weight:600;color:oklch(41.5% 0.006 80);cursor:pointer;">Remove heading</span>
                     <span style="flex:1;"></span>
-                    <span onClick="{{ clearSel }}" style="height:36px;padding:0 4px;display:flex;align-items:center;font-size:13px;font-weight:700;color:oklch(54% 0.16 45);cursor:pointer;">Done</span>
+                    <span onClick="{{ sec.onDone }}" style="height:36px;padding:0 4px;display:flex;align-items:center;font-size:13px;font-weight:700;color:oklch(54% 0.16 45);cursor:pointer;">Done</span>
                   </div>
                 </sc-if>
               </div>
+              <sc-if value="{{ sec.rowMenu }}" hint-placeholder-val="{{ false }}">
+                <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) 30px;gap:2px;align-items:center;margin:6px 0 4px;padding:4px;border-radius:14px;border:1px solid oklch(90% 0.006 80);background:oklch(99.6% 0.002 80);box-shadow:0 4px 14px oklch(20% 0.01 80 / 0.07);">
+                  <div onMouseDown="{{ keep }}" onClick="{{ pickSection }}" style="height:50px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:oklch(22% 0.006 80);" style-hover="background:oklch(96% 0.004 80);"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><rect x="1" y="2" width="3" height="12" rx="1.5" fill="oklch(64% 0.16 50)"></rect><path d="M8 5h13M8 11h9" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"></path></svg><span style="font-size:10.5px;font-weight:600;">Section</span></div>
+                  <div onMouseDown="{{ keep }}" onClick="{{ pickText }}" style="height:50px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:oklch(22% 0.006 80);" style-hover="background:oklch(96% 0.004 80);"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><path d="M2 3h18M2 8h18M2 13h11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:10.5px;font-weight:600;">Paragraph</span></div>
+                  <div onMouseDown="{{ keep }}" onClick="{{ pickNum }}" style="height:50px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:oklch(22% 0.006 80);" style-hover="background:oklch(96% 0.004 80);"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><text x="1" y="7" fontSize="7" fontWeight="700" fill="currentColor" fontFamily="IBM Plex Mono, monospace">1</text><text x="1" y="15" fontSize="7" fontWeight="700" fill="currentColor" fontFamily="IBM Plex Mono, monospace">2</text><path d="M8 4.5h13M8 12.5h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:10.5px;font-weight:600;">Numbered</span></div>
+                  <div onMouseDown="{{ keep }}" onClick="{{ pickBullet }}" style="height:50px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:oklch(22% 0.006 80);" style-hover="background:oklch(96% 0.004 80);"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><circle cx="3" cy="4.5" r="2" fill="oklch(64% 0.16 50)"></circle><circle cx="3" cy="12.5" r="2" fill="oklch(64% 0.16 50)"></circle><path d="M8 4.5h13M8 12.5h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:10.5px;font-weight:600;">Bulleted</span></div>
+                  <div onMouseDown="{{ keep }}" onClick="{{ pickBold }}" style="height:50px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:oklch(22% 0.006 80);" style-hover="background:oklch(96% 0.004 80);"><span style="font-family:Inter,sans-serif;font-size:16px;font-weight:800;line-height:16px;">B</span><span style="font-size:10.5px;font-weight:600;">Bold</span></div>
+                  <div onMouseDown="{{ keep }}" onClick="{{ closeMenu }}" style="height:50px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-left:1px solid oklch(92% 0.006 80);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="oklch(47.1% 0.006 80)" strokeWidth="2.4" strokeLinecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"></path></svg></div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ sec.rowPlus }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;min-height:44px;margin-top:2px;"><span onMouseDown="{{ keep }}" onClick="{{ openMenu }}" title="Add" style="width:30px;height:30px;border-radius:50%;border:1.5px solid oklch(86% 0.006 80);background:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;cursor:pointer;" style-hover="border-color:oklch(64% 0.16 50);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14"></path></svg></span></div>
+              </sc-if>
             </sc-if>
 
             <sc-for list="{{ sec.lines }}" as="ln" hint-placeholder-count="3">
               <div>
                 <sc-if value="{{ ln.notSel }}" hint-placeholder-val="{{ true }}">
                   <div onClick="{{ ln.onSelect }}" style="display:flex;gap:12px;padding:12px 0 13px;border-bottom:{{ ln.divider }};cursor:pointer;">
-                    <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(64% 0.16 50);padding-top:1px;flex-shrink:0;font-variant-numeric:tabular-nums;">{{ ln.num }}</span>
-                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
-                      <div style="font-size:14px;font-weight:600;color:{{ ln.textColor }};line-height:1.3;letter-spacing:-0.2px;text-wrap:pretty;">{{ ln.display }}</div>
-                      <sc-if value="{{ ln.hasSub }}" hint-placeholder-val="{{ false }}">
-                        <div style="font-size:12.5px;color:oklch(39.7% 0.006 80);line-height:1.45;text-wrap:pretty;">{{ ln.sub }}</div>
+                    <sc-if value="{{ ln.isNum }}" hint-placeholder-val="{{ false }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:22px;padding-top:0px;color:oklch(55% 0.006 80);flex-shrink:0;width:20px;font-variant-numeric:tabular-nums;">{{ ln.num }}</span></sc-if>
+                    <sc-if value="{{ ln.isBullet }}" hint-placeholder-val="{{ false }}"><span style="flex-shrink:0;width:20px;height:22px;margin-top:0px;display:flex;align-items:center;justify-content:center;"><span style="width:6px;height:6px;border-radius:50%;background:oklch(64% 0.16 50);"></span></span></sc-if>
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;">
+                      <sc-if value="{{ ln.isText }}" hint-placeholder-val="{{ false }}">
+                        <div style="font-size:15px;font-weight:{{ ln.paraWeight }};line-height:1.55;color:{{ ln.paraColor }};text-wrap:pretty;overflow-wrap:anywhere;white-space:pre-wrap;">{{ ln.display }}</div>
+                      </sc-if>
+                      <sc-if value="{{ ln.isBoldLine }}" hint-placeholder-val="{{ false }}">
+                        <div style="font-size:16.5px;font-weight:700;letter-spacing:-0.015em;line-height:1.35;color:{{ ln.textColor }};text-wrap:pretty;overflow-wrap:anywhere;">{{ ln.display }}</div>
+                      </sc-if>
+                      <sc-if value="{{ ln.isList }}" hint-placeholder-val="{{ true }}">
+                        <div style="font-size:15.5px;font-weight:{{ ln.headWeight }};color:{{ ln.textColor }};line-height:22px;letter-spacing:-0.01em;text-wrap:pretty;overflow-wrap:anywhere;">{{ ln.display }}</div>
+                        <sc-if value="{{ ln.hasSub }}" hint-placeholder-val="{{ false }}">
+                          <div style="font-size:14px;color:oklch(38% 0.006 80);line-height:1.5;text-wrap:pretty;overflow-wrap:anywhere;">{{ ln.sub }}</div>
+                        </sc-if>
                       </sc-if>
                       <sc-if value="{{ ln.hasLink }}" hint-placeholder-val="{{ false }}">
-                        <span style="font-size:12px;font-weight:500;color:oklch(64% 0.16 50);margin-top:3px;">{{ ln.linkLabel }}</span>
+                        <span style="align-self:flex-start;display:inline-flex;align-items:center;gap:5px;min-height:26px;margin-top:5px;padding:0 10px;border-radius:999px;background:oklch(95.5% 0.025 255);font-size:12.5px;font-weight:600;color:oklch(42% 0.17 255);"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(42% 0.17 255)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg>{{ ln.linkLabel }}</span>
                       </sc-if>
                     </div>
                   </div>
                 </sc-if>
                 <sc-if value="{{ ln.isSel }}" hint-placeholder-val="{{ false }}">
-                  <div style="margin:4px -12px;padding:8px 12px 8px;border-radius:14px;background:oklch(97.6% 0.006 80);border:1px solid oklch(90% 0.006 80);">
-                    <div style="display:flex;gap:12px;">
-                      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(64% 0.16 50);padding-top:5px;flex-shrink:0;font-variant-numeric:tabular-nums;">{{ ln.num }}</span>
+                  <div data-line-box="1" style="position:relative;margin:4px -12px;padding:10px 12px 8px;border-radius:14px;background:oklch(97.6% 0.006 80);border:1px solid oklch(90% 0.006 80);">
+                    <span onMouseDown="{{ keep }}" onClick="{{ ln.onDelete }}" title="Delete line" style="position:absolute;top:4px;right:4px;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;" style-hover="background:oklch(93.5% 0.006 80);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"></path></svg></span>
+                    <div style="display:flex;gap:12px;padding-right:34px;">
+                      <sc-if value="{{ ln.isNum }}" hint-placeholder-val="{{ false }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:22px;padding-top:2px;color:oklch(55% 0.006 80);flex-shrink:0;width:20px;font-variant-numeric:tabular-nums;">{{ ln.num }}</span></sc-if>
+                    <sc-if value="{{ ln.isBullet }}" hint-placeholder-val="{{ false }}"><span style="flex-shrink:0;width:20px;height:22px;margin-top:2px;display:flex;align-items:center;justify-content:center;"><span style="width:6px;height:6px;border-radius:50%;background:oklch(64% 0.16 50);"></span></span></sc-if>
                       <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
-                        <textarea ref="{{ ln.ref }}" value="{{ ln.text }}" onChange="{{ ln.onText }}" onKeyDown="{{ ln.onKey }}" placeholder="{{ ln.placeholder }}" rows="1" style="width:100%;field-sizing:content;resize:none;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14px;font-weight:600;letter-spacing:-0.2px;line-height:1.4;color:oklch(14.8% 0.006 80);padding:2px 0;"></textarea>
-                        <textarea ref="{{ ln.subRef }}" value="{{ ln.sub }}" onChange="{{ ln.onSub }}" onKeyDown="{{ ln.onSubKey }}" placeholder="Add a subheading (optional)" rows="1" style="width:100%;field-sizing:content;resize:none;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:12.5px;line-height:1.45;color:oklch(39.7% 0.006 80);padding:1px 0 2px;"></textarea>
+                        <sc-if value="{{ ln.isText }}" hint-placeholder-val="{{ false }}">
+                          <textarea ref="{{ ln.ref }}" value="{{ ln.text }}" onChange="{{ ln.onText }}" onKeyDown="{{ ln.onKey }}" placeholder="{{ ln.textPlaceholder }}" rows="1" style="width:100%;field-sizing:content;resize:none;overflow-wrap:anywhere;white-space:pre-wrap;overflow:hidden;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:15px;font-weight:{{ ln.paraWeight }};line-height:1.55;color:oklch(14.8% 0.006 80);padding:2px 0;"></textarea>
+                        </sc-if>
+                        <sc-if value="{{ ln.isBoldLine }}" hint-placeholder-val="{{ false }}">
+                          <textarea ref="{{ ln.ref }}" value="{{ ln.text }}" onChange="{{ ln.onText }}" onKeyDown="{{ ln.onKey }}" placeholder="Bold line" rows="1" style="width:100%;field-sizing:content;resize:none;overflow-wrap:anywhere;white-space:pre-wrap;overflow:hidden;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:16.5px;font-weight:700;letter-spacing:-0.015em;line-height:1.35;color:oklch(14.8% 0.006 80);padding:2px 0;"></textarea>
+                        </sc-if>
+                        <sc-if value="{{ ln.isList }}" hint-placeholder-val="{{ true }}">
+                          <textarea ref="{{ ln.ref }}" value="{{ ln.text }}" onChange="{{ ln.onText }}" onKeyDown="{{ ln.onKey }}" placeholder="{{ ln.placeholder }}" rows="1" style="width:100%;field-sizing:content;resize:none;overflow-wrap:anywhere;white-space:pre-wrap;overflow:hidden;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:15.5px;font-weight:{{ ln.headWeight }};letter-spacing:-0.01em;line-height:22px;color:oklch(14.8% 0.006 80);padding:2px 0;"></textarea>
+                          <textarea ref="{{ ln.subRef }}" value="{{ ln.sub }}" onChange="{{ ln.onSub }}" onKeyDown="{{ ln.onSubKey }}" placeholder="Add a detail (optional)" rows="1" style="width:100%;field-sizing:content;resize:none;overflow-wrap:anywhere;white-space:pre-wrap;overflow:hidden;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14px;line-height:1.5;color:oklch(38% 0.006 80);padding:2px 0 2px;"></textarea>
+                        </sc-if>
                       </div>
                     </div>
-                    <div style="padding-left:30px;">
+                    <div style="padding-left:{{ ln.indent }};">
                       <sc-if value="{{ ln.hasLink }}" hint-placeholder-val="{{ false }}">
                         <div style="display:flex;align-items:center;gap:10px;margin-top:6px;padding:8px 4px 8px 10px;border-radius:10px;border:1px solid oklch(91.8% 0.006 80);background:oklch(99.6% 0.002 80);">
                           <span style="width:20px;height:20px;border-radius:5px;background:{{ ln.favBg }};color:oklch(99.6% 0.002 80);font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ ln.favLetter }}</span>
@@ -152,36 +176,64 @@
                           <span onClick="{{ closeLink }}" style="font-size:13px;font-weight:600;padding:9px 16px;border-radius:999px;border:1px solid oklch(88.5% 0.006 80);color:oklch(36% 0.006 80);cursor:pointer;">Cancel</span>
                         </div>
                       </sc-if>
-                      <sc-if value="{{ ln.showAddLink }}" hint-placeholder-val="{{ false }}">
-                        <span onClick="{{ ln.onOpenLink }}" style="display:inline-flex;align-items:center;margin-top:6px;font-size:14px;font-weight:500;padding:10px 18px;border-radius:14px;border:1.5px solid oklch(60% 0.03 60);color:oklch(54% 0.16 45);cursor:pointer;">+ Add link</span>
-                      </sc-if>
-                      <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
-                        <span onClick="{{ ln.onUp }}" style="width:36px;height:36px;border-radius:10px;border:1px solid oklch(88.5% 0.006 80);background:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ ln.upOp }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 14.5l6-6 6 6"></path></svg></span>
-                        <span onClick="{{ ln.onDown }}" style="width:36px;height:36px;border-radius:10px;border:1px solid oklch(88.5% 0.006 80);background:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ ln.downOp }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span>
-                        <span onClick="{{ ln.onDelete }}" style="width:36px;height:36px;border-radius:10px;border:1px solid oklch(88.5% 0.006 80);background:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"></path></svg></span>
-                        <span style="flex:1;min-width:0;font-size:11.5px;color:oklch(47.1% 0.006 80);text-align:center;white-space:nowrap;">Added by you</span>
-                        <span onClick="{{ clearSel }}" style="height:36px;padding:0 4px;display:flex;align-items:center;font-size:13px;font-weight:700;color:oklch(54% 0.16 45);cursor:pointer;">Done</span>
+                      <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                        <sc-if value="{{ ln.canBold }}" hint-placeholder-val="{{ false }}">
+                          <span onMouseDown="{{ keep }}" onClick="{{ ln.onToggleBold }}" title="Bold" style="width:34px;height:34px;border-radius:999px;border:1px solid {{ ln.boldBorder }};background:{{ ln.boldBg }};color:{{ ln.boldFg }};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;cursor:pointer;">B</span>
+                        </sc-if>
+                        <sc-if value="{{ ln.showAddLink }}" hint-placeholder-val="{{ false }}">
+                          <span onClick="{{ ln.onOpenLink }}" style="display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:999px;border:1px solid oklch(86% 0.006 80);background:oklch(99.6% 0.002 80);font-size:13px;font-weight:600;color:oklch(30% 0.006 80);cursor:pointer;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="oklch(30% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg>Add link</span>
+                        </sc-if>
+                        <span onMouseDown="{{ keep }}" onClick="{{ ln.onUp }}" style="width:34px;height:34px;border-radius:999px;border:1px solid oklch(86% 0.006 80);background:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ ln.upOp }};"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(30% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 14.5l6-6 6 6"></path></svg></span>
+                        <span onMouseDown="{{ keep }}" onClick="{{ ln.onDown }}" style="width:34px;height:34px;border-radius:999px;border:1px solid oklch(86% 0.006 80);background:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ ln.downOp }};"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(30% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span>
+                        <span style="flex:1;"></span>
+                        <sc-if value="{{ ln.showCount }}" hint-placeholder-val="{{ false }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ ln.countColor }};font-variant-numeric:tabular-nums;">{{ ln.charCount }}</span></sc-if>
+                        <span onClick="{{ ln.onDone }}" style="height:34px;padding:0 4px;display:flex;align-items:center;font-size:13.5px;font-weight:700;color:oklch(54% 0.16 45);cursor:pointer;">Done</span>
                       </div>
                     </div>
                   </div>
                 </sc-if>
+                <sc-if value="{{ ln.rowMenu }}" hint-placeholder-val="{{ false }}">
+                <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) 30px;gap:2px;align-items:center;margin:6px 0 4px;padding:4px;border-radius:14px;border:1px solid oklch(90% 0.006 80);background:oklch(99.6% 0.002 80);box-shadow:0 4px 14px oklch(20% 0.01 80 / 0.07);">
+                  <div onMouseDown="{{ keep }}" onClick="{{ pickSection }}" style="height:50px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:oklch(22% 0.006 80);" style-hover="background:oklch(96% 0.004 80);"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><rect x="1" y="2" width="3" height="12" rx="1.5" fill="oklch(64% 0.16 50)"></rect><path d="M8 5h13M8 11h9" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"></path></svg><span style="font-size:10.5px;font-weight:600;">Section</span></div>
+                  <div onMouseDown="{{ keep }}" onClick="{{ pickText }}" style="height:50px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:oklch(22% 0.006 80);" style-hover="background:oklch(96% 0.004 80);"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><path d="M2 3h18M2 8h18M2 13h11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:10.5px;font-weight:600;">Paragraph</span></div>
+                  <div onMouseDown="{{ keep }}" onClick="{{ pickNum }}" style="height:50px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:oklch(22% 0.006 80);" style-hover="background:oklch(96% 0.004 80);"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><text x="1" y="7" fontSize="7" fontWeight="700" fill="currentColor" fontFamily="IBM Plex Mono, monospace">1</text><text x="1" y="15" fontSize="7" fontWeight="700" fill="currentColor" fontFamily="IBM Plex Mono, monospace">2</text><path d="M8 4.5h13M8 12.5h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:10.5px;font-weight:600;">Numbered</span></div>
+                  <div onMouseDown="{{ keep }}" onClick="{{ pickBullet }}" style="height:50px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:oklch(22% 0.006 80);" style-hover="background:oklch(96% 0.004 80);"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><circle cx="3" cy="4.5" r="2" fill="oklch(64% 0.16 50)"></circle><circle cx="3" cy="12.5" r="2" fill="oklch(64% 0.16 50)"></circle><path d="M8 4.5h13M8 12.5h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:10.5px;font-weight:600;">Bulleted</span></div>
+                  <div onMouseDown="{{ keep }}" onClick="{{ pickBold }}" style="height:50px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:oklch(22% 0.006 80);" style-hover="background:oklch(96% 0.004 80);"><span style="font-family:Inter,sans-serif;font-size:16px;font-weight:800;line-height:16px;">B</span><span style="font-size:10.5px;font-weight:600;">Bold</span></div>
+                  <div onMouseDown="{{ keep }}" onClick="{{ closeMenu }}" style="height:50px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-left:1px solid oklch(92% 0.006 80);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="oklch(47.1% 0.006 80)" strokeWidth="2.4" strokeLinecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"></path></svg></div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ ln.rowPlus }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;min-height:44px;margin-top:2px;"><span onMouseDown="{{ keep }}" onClick="{{ openMenu }}" title="Add" style="width:30px;height:30px;border-radius:50%;border:1.5px solid oklch(86% 0.006 80);background:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;cursor:pointer;" style-hover="border-color:oklch(64% 0.16 50);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14"></path></svg></span></div>
+              </sc-if>
               </div>
             </sc-for>
 
-            <div onClick="{{ sec.onAddLine }}" style="display:flex;gap:10px;align-items:center;min-height:44px;cursor:pointer;">
-              <span style="color:oklch(64% 0.16 50);font-weight:700;font-size:17px;min-width:18px;text-align:center;">+</span>
-              <span style="font-size:14.5px;font-weight:600;color:oklch(54% 0.16 45);">Add line</span>
-            </div>
+            <sc-if value="{{ sec.endMenu }}" hint-placeholder-val="{{ false }}">
+                <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) 30px;gap:2px;align-items:center;margin:6px 0 4px;padding:4px;border-radius:14px;border:1px solid oklch(90% 0.006 80);background:oklch(99.6% 0.002 80);box-shadow:0 4px 14px oklch(20% 0.01 80 / 0.07);">
+                  <div onMouseDown="{{ keep }}" onClick="{{ pickSection }}" style="height:50px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:oklch(22% 0.006 80);" style-hover="background:oklch(96% 0.004 80);"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><rect x="1" y="2" width="3" height="12" rx="1.5" fill="oklch(64% 0.16 50)"></rect><path d="M8 5h13M8 11h9" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"></path></svg><span style="font-size:10.5px;font-weight:600;">Section</span></div>
+                  <div onMouseDown="{{ keep }}" onClick="{{ pickText }}" style="height:50px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:oklch(22% 0.006 80);" style-hover="background:oklch(96% 0.004 80);"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><path d="M2 3h18M2 8h18M2 13h11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:10.5px;font-weight:600;">Paragraph</span></div>
+                  <div onMouseDown="{{ keep }}" onClick="{{ pickNum }}" style="height:50px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:oklch(22% 0.006 80);" style-hover="background:oklch(96% 0.004 80);"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><text x="1" y="7" fontSize="7" fontWeight="700" fill="currentColor" fontFamily="IBM Plex Mono, monospace">1</text><text x="1" y="15" fontSize="7" fontWeight="700" fill="currentColor" fontFamily="IBM Plex Mono, monospace">2</text><path d="M8 4.5h13M8 12.5h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:10.5px;font-weight:600;">Numbered</span></div>
+                  <div onMouseDown="{{ keep }}" onClick="{{ pickBullet }}" style="height:50px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:oklch(22% 0.006 80);" style-hover="background:oklch(96% 0.004 80);"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><circle cx="3" cy="4.5" r="2" fill="oklch(64% 0.16 50)"></circle><circle cx="3" cy="12.5" r="2" fill="oklch(64% 0.16 50)"></circle><path d="M8 4.5h13M8 12.5h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:10.5px;font-weight:600;">Bulleted</span></div>
+                  <div onMouseDown="{{ keep }}" onClick="{{ pickBold }}" style="height:50px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:oklch(22% 0.006 80);" style-hover="background:oklch(96% 0.004 80);"><span style="font-family:Inter,sans-serif;font-size:16px;font-weight:800;line-height:16px;">B</span><span style="font-size:10.5px;font-weight:600;">Bold</span></div>
+                  <div onMouseDown="{{ keep }}" onClick="{{ closeMenu }}" style="height:50px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-left:1px solid oklch(92% 0.006 80);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="oklch(47.1% 0.006 80)" strokeWidth="2.4" strokeLinecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"></path></svg></div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ sec.endPlus }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;min-height:44px;margin-top:2px;"><span onMouseDown="{{ keep }}" onClick="{{ openMenu }}" title="Add" style="width:30px;height:30px;border-radius:50%;border:1.5px solid oklch(86% 0.006 80);background:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;cursor:pointer;" style-hover="border-color:oklch(64% 0.16 50);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14"></path></svg></span></div>
+              </sc-if>
           </div>
         </sc-for>
-        <div onClick="{{ addSection }}" style="display:flex;align-items:center;gap:8px;min-height:44px;margin-top:8px;border-top:1px dashed oklch(88.5% 0.006 80);font-size:13px;font-weight:600;color:oklch(41.5% 0.006 80);cursor:pointer;">+ Add subsection</div>
+        
       </div>
+      </div>
+      </sc-if>
     </div>
+    <sc-if value="{{ showBuildFooter }}" hint-placeholder-val="{{ true }}">
     <sc-if value="{{ isEditing }}" hint-placeholder-val="{{ false }}">
       <div style="padding:12px 20px 30px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;border-top:1px solid oklch(91.8% 0.006 80);background:oklch(99.6% 0.002 80);">
         <span onClick="{{ saveEdit }}" style="height:48px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;">Save</span>
         <span onClick="{{ openShare }}" style="height:44px;border-radius:999px;border:1px solid oklch(88.5% 0.006 80);background:{{ shareBg }};color:{{ shareColor }};display:flex;align-items:center;justify-content:center;gap:7px;font-size:14px;font-weight:600;cursor:{{ shareCursor }};"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5"></path><path d="M20 4v4.5h-4.5"></path><path d="M20 12a8 8 0 0 1-13.7 5.7L4 15.5"></path><path d="M4 20v-4.5h4.5"></path></svg>Save and share update</span>
-        <div style="font-size:11.5px;color:oklch(45.2% 0.006 80);text-align:center;line-height:1.4;text-wrap:pretty;padding:0 10px;">{{ shareHint }}</div>
+        <div style="font-size:11.5px;color:oklch(45.2% 0.006 80);text-align:center;line-height:1.4;text-wrap:pretty;overflow-wrap:anywhere;padding:0 10px;">{{ shareHint }}</div>
       </div>
     </sc-if>
     <sc-if value="{{ notEditing }}" hint-placeholder-val="{{ true }}">
@@ -189,6 +241,7 @@
       <span onClick="{{ backToDesc }}" style="height:48px;padding:0 6px;display:flex;align-items:center;gap:2px;font-size:14px;font-weight:600;color:oklch(36% 0.006 80);cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>Back</span>
       <span onClick="{{ goReview }}" style="flex:1;height:48px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:700;cursor:pointer;opacity:{{ reviewOp }};">Finalize</span>
     </div>
+    </sc-if>
     </sc-if>
   </sc-if>
 
@@ -255,26 +308,32 @@
             <span style="font-weight:600;font-size:14px;color:oklch(19.4% 0.006 80);">You</span>
             <span style="font-size:13px;color:oklch(47.1% 0.006 80);">@you</span>
           </div>
-          <div style="font-size:21px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.25;letter-spacing:-0.4px;margin-bottom:8px;text-wrap:pretty;">{{ reviewTitle }}</div>
+          <div style="font-size:25px;font-weight:700;color:oklch(14.8% 0.006 80);line-height:1.15;letter-spacing:-0.025em;margin-bottom:10px;text-wrap:balance;">{{ reviewTitle }}</div>
           <sc-if value="{{ description }}" hint-placeholder-val="{{ false }}">
-            <div style="font-size:13.5px;color:oklch(39.7% 0.006 80);line-height:1.5;text-wrap:pretty;">{{ description }}</div>
+            <div style="font-size:15px;color:oklch(36% 0.006 80);line-height:1.5;text-wrap:pretty;overflow-wrap:anywhere;">{{ description }}</div>
           </sc-if>
-          <div style="height:22px;"></div>
+          <div style="height:14px;"></div>
           <sc-for list="{{ pvSections }}" as="sec" hint-placeholder-count="1">
             <div>
               <sc-if value="{{ sec.headed }}" hint-placeholder-val="{{ false }}">
-                <div style="font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:oklch(64% 0.16 50);padding:{{ sec.headPad }};border-bottom:1px solid oklch(91.2% 0.006 80);">{{ sec.label }}</div>
+                <div style="display:flex;align-items:baseline;gap:10px;padding:{{ sec.headPad }};border-bottom:1.5px solid oklch(19.4% 0.006 80);">
+                  <span style="width:3px;height:15px;border-radius:2px;background:oklch(64% 0.16 50);align-self:center;flex-shrink:0;"></span>
+                  <span style="flex:1;min-width:0;font-size:18px;font-weight:700;letter-spacing:-0.015em;line-height:1.25;color:oklch(14.8% 0.006 80);text-wrap:balance;">{{ sec.label }}</span>
+                </div>
               </sc-if>
               <sc-for list="{{ sec.lines }}" as="ln" hint-placeholder-count="3">
-                <div style="display:flex;gap:12px;padding:12px 0 13px;border-bottom:{{ ln.divider }};">
-                  <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(64% 0.16 50);padding-top:1px;flex-shrink:0;font-variant-numeric:tabular-nums;">{{ ln.num }}</span>
-                  <div style="display:flex;flex-direction:column;gap:2px;min-width:0;">
-                    <div style="font-size:14px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.3;letter-spacing:-0.2px;text-wrap:pretty;">{{ ln.text }}</div>
+                <div style="display:flex;gap:12px;padding:13px 0 14px;border-bottom:{{ ln.divider }};">
+                  <sc-if value="{{ ln.isNum }}" hint-placeholder-val="{{ false }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:22px;padding-top:0px;color:oklch(55% 0.006 80);flex-shrink:0;width:20px;font-variant-numeric:tabular-nums;">{{ ln.num }}</span></sc-if>
+                    <sc-if value="{{ ln.isBullet }}" hint-placeholder-val="{{ false }}"><span style="flex-shrink:0;width:20px;height:22px;margin-top:0px;display:flex;align-items:center;justify-content:center;"><span style="width:6px;height:6px;border-radius:50%;background:oklch(64% 0.16 50);"></span></span></sc-if>
+                  <div style="display:flex;flex-direction:column;gap:3px;min-width:0;">
+                    <sc-if value="{{ ln.isText }}" hint-placeholder-val="{{ false }}"><div style="font-size:15px;line-height:1.55;color:oklch(14.8% 0.006 80);text-wrap:pretty;overflow-wrap:anywhere;white-space:pre-wrap;">{{ ln.text }}</div></sc-if>
+                    <sc-if value="{{ ln.isBoldLine }}" hint-placeholder-val="{{ false }}"><div style="font-size:16.5px;font-weight:700;letter-spacing:-0.015em;line-height:1.35;color:oklch(14.8% 0.006 80);text-wrap:pretty;overflow-wrap:anywhere;">{{ ln.text }}</div></sc-if>
+                    <sc-if value="{{ ln.isList }}" hint-placeholder-val="{{ true }}"><div style="font-size:15.5px;font-weight:{{ ln.headWeight }};color:oklch(14.8% 0.006 80);line-height:22px;letter-spacing:-0.01em;text-wrap:pretty;overflow-wrap:anywhere;">{{ ln.text }}</div></sc-if>
                     <sc-if value="{{ ln.hasSub }}" hint-placeholder-val="{{ false }}">
-                      <div style="font-size:12.5px;color:oklch(39.7% 0.006 80);line-height:1.45;text-wrap:pretty;">{{ ln.sub }}</div>
+                      <div style="font-size:14px;color:oklch(38% 0.006 80);line-height:1.5;text-wrap:pretty;overflow-wrap:anywhere;">{{ ln.sub }}</div>
                     </sc-if>
                     <sc-if value="{{ ln.hasLink }}" hint-placeholder-val="{{ false }}">
-                      <a href="{{ ln.link }}" target="_blank" style="font-size:12px;font-weight:500;margin-top:3px;color:oklch(64% 0.16 50);text-decoration:none;">Visit site ↗</a>
+                      <a href="{{ ln.link }}" target="_blank" style="align-self:flex-start;text-decoration:none;display:flex;"><span style="align-self:flex-start;display:inline-flex;align-items:center;gap:5px;min-height:26px;margin-top:5px;padding:0 10px;border-radius:999px;background:oklch(95.5% 0.025 255);font-size:12.5px;font-weight:600;color:oklch(42% 0.17 255);"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(42% 0.17 255)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg>{{ ln.linkDomain }}</span></a>
                     </sc-if>
                   </div>
                 </div>
@@ -357,7 +416,7 @@
       <div onClick="{{ stop }}" style="width:100%;background:oklch(99.6% 0.002 80);border-radius:22px 22px 0 0;padding:12px 20px 34px;">
         <div style="width:36px;height:4px;border-radius:2px;background:oklch(86.3% 0.006 80);margin:0 auto 18px;"></div>
         <div style="font-size:19px;font-weight:800;color:oklch(19.4% 0.006 80);">Share an update</div>
-        <div style="font-size:13.5px;color:oklch(41.5% 0.006 80);line-height:1.45;margin-top:6px;text-wrap:pretty;">Your stack goes back into the feed with this note. After this, you can share your next update on {{ nextShareDate }}.</div>
+        <div style="font-size:13.5px;color:oklch(41.5% 0.006 80);line-height:1.45;margin-top:6px;text-wrap:pretty;overflow-wrap:anywhere;">Your stack goes back into the feed with this note. After this, you can share your next update on {{ nextShareDate }}.</div>
         <div style="display:flex;align-items:baseline;justify-content:space-between;margin:18px 2px 6px;">
           <span style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(47.1% 0.006 80);">Update note</span>
           <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:{{ noteCountColor }};">{{ noteCount }}</span>
@@ -403,30 +462,89 @@ class Component extends DCLogic {
     let h = 0; for (const c of domain) h = (h * 31 + c.charCodeAt(0)) >>> 0;
     return { link: url, domain, linkTitle: title, favLetter: title.charAt(0).toUpperCase(), favBg: this.FAVBG[h % this.FAVBG.length], fetching: false };
   }
-  _L(text, link, sub) { return { id: this._id(), text, sub: sub || '', ...(link ? this._meta(link) : { link: '' }) }; }
+  _L(text, link, sub, fmt, bold) { return { id: this._id(), text, sub: sub || '', fmt: fmt || 'text', bold: bold !== false, picked: true, ...(link ? this._meta(link) : { link: '' }) }; }
+  _fmtOf(ln) { return (ln && ln.fmt) || 'text'; }
+  _prevLine(d, secId, afterId) {
+    if (afterId) { const [s, i] = this._find(d, afterId); if (s >= 0) return d.sections[s].lines[i]; }
+    const si = d.sections.findIndex(x => x.id === secId);
+    for (let k = (si < 0 ? d.sections.length - 1 : si); k >= 0; k--) { const L = d.sections[k].lines; if (L.length) return L[L.length - 1]; }
+    return null;
+  }
+  doneLine(secId, ln) {
+    const f = this._fmtOf(ln);
+    if (this._isEmpty(ln)) { this.setState(st => ({ sel: null, linkOpen: null, menu: false, draft: this._prune(st.draft, null) })); return; }
+    this.addLine(secId, ln.id, f === 'num' || f === 'bullet' ? f : 'text', true);
+  }
+  doneSec(sec) {
+    const first = sec.lines[0];
+    if (first && this._isEmpty(first)) { this.selectLine(first.id); return; }
+    this.addLine(sec.id, null, 'text', true, true);
+  }
+  _total(d) { let t = (d.title || '').length + (d.description || '').length; d.sections.forEach(sec => { if (sec.headed) t += (sec.label || '').length; sec.lines.forEach(l => { t += (l.text || '').length + (['num', 'bullet'].includes(this._fmtOf(l)) ? (l.sub || '').length : 0); }); }); return t; }
+  _lim(d, next, prev, max) { const room = 6000 - this._total(d) + (prev || '').length; const cap = Math.max(0, Math.min(max, room)); return next.length > cap ? next.slice(0, Math.max(cap, Math.min(next.length, (prev || '').length))) : next; }
+  _maxFor(fmt, field) { if (field === 'sub') return 300; return fmt === 'text' ? 360 : 60; }
+  toggleBold(id) { this._focus = id; this.upd(d => this._mapLine(d, id, x => this._fmtOf(x) === 'text' ? { ...x, textBold: !x.textBold } : { ...x, bold: x.bold === false })); }
+  _isEmpty(l) { return !l.text.trim() && !(l.sub || '').trim() && !l.link; }
+  _prune(d, exceptId) { return { ...d, sections: d.sections.map(sec => ({ ...sec, lines: sec.lines.filter(l => l.id === exceptId || !this._isEmpty(l)).map(l => l.id === exceptId || l.picked ? l : { ...l, picked: true }) })) }; }
+  _selLine() { const s = this.state; if (!s.sel || s.sel.kind !== 'line') return null; const [a, b] = this._find(s.draft, s.sel.id); return a >= 0 ? s.draft.sections[a].lines[b] : null; }
+  selectLine(id) { this._focus = id; this.setState(s => ({ draft: this._prune(s.draft, id), sel: { kind: 'line', id }, linkOpen: null, menu: false })); }
+  _splitSection(d, lineId, label, dropLine) {
+    const [s, i] = this._find(d, lineId);
+    const secs = d.sections.map(x => ({ ...x, lines: [...x.lines] }));
+    const keep = secs[s].lines.slice(0, dropLine ? i : i + 1), after = secs[s].lines.slice(i + 1);
+    if (!keep.length && !secs[s].headed) { secs[s] = { ...secs[s], headed: true, label, lines: after }; return [{ ...d, sections: secs }, secs[s].id]; }
+    const sid = this._id(); secs[s].lines = keep; secs.splice(s + 1, 0, { id: sid, headed: true, label, lines: after });
+    return [{ ...d, sections: secs }, sid];
+  }
+  _goSec(d, sid) { this._focus = sid; this.upd(() => d); this.setState({ sel: { kind: 'sec', id: sid }, linkOpen: null, menu: false }); }
+  pick(type) {
+    const d = this.state.draft, sel = this.state.sel, line = this._selLine();
+    this.setState({ menu: false });
+    if (line) {
+      const empty = this._isEmpty(line);
+      if (empty || !line.picked) {
+        if (type === 'section') { const [nd, sid] = this._splitSection(d, line.id, empty ? '' : line.text.trim(), true); this._goSec(nd, sid); return; }
+        this._focus = line.id; this.upd(dd => this._mapLine(dd, line.id, x => ({ ...x, fmt: type, picked: true }))); return;
+      }
+      if (type === 'section') { const [nd, sid] = this._splitSection(d, line.id, '', false); this._goSec(nd, sid); return; }
+      const [a] = this._find(d, line.id); this.addLine(d.sections[a].id, line.id, type, true); return;
+    }
+    if (sel && sel.kind === 'sec') {
+      if (type === 'section') { const i = d.sections.findIndex(x => x.id === sel.id); const sid = this._id(); const secs = [...d.sections]; secs.splice(i + 1, 0, { id: sid, headed: true, label: '', lines: [] }); this._goSec({ ...d, sections: secs }, sid); return; }
+      this.addLine(sel.id, null, type, true, true); return;
+    }
+    const last = d.sections[d.sections.length - 1];
+    if (type === 'section') {
+      if (d.sections.length === 1 && !last.headed && !last.lines.length) { this._goSec({ ...d, sections: [{ ...last, headed: true, label: '' }] }, last.id); return; }
+      const sid = this._id(); this._goSec({ ...d, sections: [...d.sections, { id: sid, headed: true, label: '', lines: [] }] }, sid); return;
+    }
+    this.addLine(last.id, null, type, true);
+  }
   _empty() { return { title: '', description: '', theme: 'default', tags: [], visibility: 'public', sections: [{ id: this._id(), headed: false, label: '', lines: [] }] }; }
   _sample() {
     return { title: 'Tokyo ramen worth the line', description: 'Five bowls from a week of eating nothing else, and one rule for all of them.', theme: 'default', tags: ['Food & Drink', 'Travel'], visibility: 'public', sections: [
       { id: this._id(), headed: false, label: '', lines: [
-        this._L('Fuunji', 'https://fuunji.jp', 'The tsukemen broth is thick enough to coat a spoon. Go at 11:00 sharp.'),
-        this._L('Skip the famous chain by the station', '', 'The line is for tourists, not the broth.'),
-        this._L('Nakiryu', 'https://tabelog.com/tokyo/A1323/A132301/13141542/', 'Michelin-starred tantanmen for under ¥1,500.'),
+        this._L('One rule: if there is no line, keep walking. Every great bowl here had at least a 20-minute wait, and every one was worth it.'),
+        this._L('Fuunji', 'https://fuunji.jp', 'The tsukemen broth is thick enough to coat a spoon. Go at 11:00 sharp.', 'num'),
+        this._L('Skip the famous chain by the station', '', 'The line is for tourists, not the broth.', 'num'),
+        this._L('Nakiryu', 'https://tabelog.com/tokyo/A1323/A132301/13141542/', 'Michelin-starred tantanmen for under ¥1,500.', 'num'),
       ] },
       { id: this._id(), headed: true, label: 'If you only have one night', lines: [
-        this._L('Afuri in Ebisu', 'https://afuri.com', 'Yuzu shio, light enough for a 1 a.m. bowl.'),
-        this._L('Bring cash', '', "Half of these places don't take cards."),
+        this._L('Afuri in Ebisu', 'https://afuri.com', 'Yuzu shio, light enough for a 1 a.m. bowl.', 'bullet'),
+        this._L('Bring cash', '', "Half of these places don't take cards.", 'bullet', false),
+        this._L('Order the egg. Always order the egg.', '', '', 'bold'),
       ] },
     ] };
   }
   _fromApp(a) {
-    const secs = (a.sections || []).map(sec => ({ id: this._id(), headed: !!(sec.label && String(sec.label).trim()), label: sec.label || '', lines: (sec.lines || []).map(ln => this._L(ln.text || '', ln.link || '', ln.sub || '')) }));
+    const secs = (a.sections || []).map(sec => ({ id: this._id(), headed: !!(sec.label && String(sec.label).trim()), label: sec.label || '', lines: (sec.lines || []).map(ln => this._L(ln.text || '', ln.link || '', ln.sub || '', ln.fmt || 'num', ln.bold)) }));
     if (!secs.length) secs.push({ id: this._id(), headed: false, label: '', lines: [this._L('')] });
     return { title: a.title || '', description: a.description || '', theme: 'default', tags: [], visibility: a.visibility || 'public', location: a.location || '', forkedFromId: a.forkedFromId || null, sections: secs };
   }
   _toApp(d) {
     const st = this.state && this.state.step;
     return { step: ['title', 'description', 'build', 'review'].includes(st) ? st : 'build', title: d.title, description: d.description, tags: [], visibility: d.visibility || 'public', location: d.location || '', forkedFromId: d.forkedFromId || null,
-      sections: d.sections.map(sec => ({ label: sec.headed ? sec.label : '', lines: sec.lines.map(ln => ({ text: ln.text, sub: ln.sub || '', link: ln.link || '' })) })) };
+      sections: d.sections.map(sec => ({ label: sec.headed ? sec.label : '', lines: sec.lines.map(ln => ({ text: ln.text, sub: ['num', 'bullet'].includes(this._fmtOf(ln)) ? (ln.sub || '') : '', link: ln.link || '', fmt: this._fmtOf(ln), bold: ln.bold !== false })) })) };
   }
   addTag(name) {
     const t = (name || '').trim().replace(/^#/, '').replace(/,$/, '');
@@ -434,19 +552,21 @@ class Component extends DCLogic {
     this.upd(d => (d.tags || []).some(x => x.toLowerCase() === t.toLowerCase()) ? d : { ...d, tags: [...(d.tags || []), t] });
   }
   _seed(start) {
-    const st = { step: 'title', mode: 'arrange', draft: this._empty(), sel: null, linkOpen: null, linkDraft: '', save: 'idle', toast: '', sheet: false, titleDraft: '' };
+    this._focus = 'title';
+    const st = { bodyIn: true, step: 'title', mode: 'arrange', draft: this._empty(), sel: null, linkOpen: null, linkDraft: '', save: 'idle', toast: '', sheet: false, titleDraft: '' };
     if (start === 'description') { st.step = 'description'; st.draft.title = 'Tokyo ramen worth the line'; st.save = 'saved'; }
-    else if (start === 'build-empty') { st.step = 'build'; const l = this._L(''); st.draft.sections[0].lines = [l]; st.sel = { kind: 'line', id: l.id }; st.save = 'saved'; }
+    else if (start === 'build-empty') { st.step = 'build'; st.draft.title = 'Tokyo ramen worth the line'; st.draft.description = 'Five bowls from a week of eating nothing else.'; const l = this._L(''); l.picked = false; this._focus = l.id; st.draft.sections[0].lines = [l]; st.sel = { kind: 'line', id: l.id }; st.save = 'saved'; }
     else if (start === 'build-draft') { st.step = 'build'; st.draft = this._sample(); st.save = 'saved'; }
     else if (start === 'build-editing') {
       st.step = 'build'; st.draft = this._sample(); st.save = 'saving';
-      const l = { id: this._id(), text: 'Tsuta', sub: 'Truffle shoyu. Worth one visit, even if you queue alone.', link: 'https://tsuta.world', domain: 'tsuta.world', linkTitle: '', favLetter: '', favBg: 'oklch(88.5% 0.006 80)', fetching: true };
+      const l = { id: this._id(), fmt: 'bullet', bold: true, text: 'Tsuta', sub: 'Truffle shoyu. Worth one visit, even if you queue alone.', link: 'https://tsuta.world', domain: 'tsuta.world', linkTitle: '', favLetter: '', favBg: 'oklch(88.5% 0.006 80)', fetching: true };
       st.draft.sections[1].lines.push(l); st.sel = { kind: 'line', id: l.id }; this._pending = l.id; this._scrollSel = true;
     }
     else if (start === 'review') { st.step = 'review'; st.draft = this._sample(); st.save = 'saved'; }
     else if (start === 'preview') { st.step = 'review'; st.mode = 'preview'; st.draft = this._sample(); st.save = 'saved'; }
     else if (start === 'publish-title') { st.step = 'review'; st.draft = { ...this._sample(), title: '' }; st.sheet = true; st.save = 'saved'; }
     else if (start === 'drafts') { st.step = 'drafts'; st.draft = this._sample(); st.save = 'saved'; }
+    if (st.step !== 'title' && this._focus === 'title') this._focus = null;
     return st;
   }
   componentDidMount() {
@@ -464,18 +584,18 @@ class Component extends DCLogic {
   upd(fn) { this._edited = true; this.setState(s => ({ draft: fn(s.draft) })); this.dirty(); }
   showToast(msg) { this.setState({ toast: msg }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: '' }), 2400); }
   _mapLine(d, id, fn) { return { ...d, sections: d.sections.map(sec => ({ ...sec, lines: sec.lines.map(ln => ln.id === id ? fn(ln) : ln) })) }; }
-  _ref(id) { return (el) => { if (el && this._focus === id) { this._focus = null; requestAnimationFrame(() => { try { el.focus({ preventScroll: true }); const v = el.value || ''; el.setSelectionRange && el.setSelectionRange(v.length, v.length); } catch (e) {} }); } }; }
+  _ref(id) { return (el) => { if (el && this._focus === id) { this._focus = null; requestAnimationFrame(() => { try { el.focus({ preventScroll: true }); setTimeout(() => { const c = this._scrollEl; if (c && c.contains(el)) { const r = el.getBoundingClientRect(), cr = c.getBoundingClientRect(); const box = el.closest('[data-line-box]') || el; const br = box.getBoundingClientRect(); if (br.bottom > cr.bottom - 16) c.scrollTop += br.bottom - cr.bottom + 24; else if (r.top < cr.top + 8) c.scrollTop -= cr.top - r.top + 24; } }, 80); const v = el.value || ''; el.setSelectionRange && el.setSelectionRange(v.length, v.length); } catch (e) {} }); } }; }
   _find(d, id) { for (let s = 0; s < d.sections.length; s++) { const i = d.sections[s].lines.findIndex(l => l.id === id); if (i >= 0) return [s, i]; } return [-1, -1]; }
-  addLine(secId, afterId) {
-    const l = this._L(''); this._focus = l.id;
-    this.upd(d => ({ ...d, sections: d.sections.map(sec => {
+  addLine(secId, afterId, fmt, picked, atStart) {
+    const l = this._L('', '', '', fmt || 'text', true); l.picked = !!picked; this._focus = l.id;
+    this.upd(d0 => { const d = this._prune(d0, null); return { ...d, sections: d.sections.map(sec => {
       if (sec.id !== secId) return sec;
       const lines = [...sec.lines];
       const i = afterId ? lines.findIndex(x => x.id === afterId) : -1;
-      if (i >= 0) lines.splice(i + 1, 0, l); else lines.push(l);
+      if (i >= 0) lines.splice(i + 1, 0, l); else if (atStart) lines.unshift(l); else lines.push(l);
       return { ...sec, lines };
-    }) }));
-    this.setState({ sel: { kind: 'line', id: l.id }, linkOpen: null });
+    }) }; });
+    this.setState({ sel: { kind: 'line', id: l.id }, linkOpen: null, menu: false });
   }
   moveLine(id, dir) {
     this.upd(d => {
@@ -494,7 +614,8 @@ class Component extends DCLogic {
     this.setState({ sel: null, linkOpen: null });
   }
   addSection() {
-    const l = this._L(''); const sid = this._id(); this._focus = sid;
+    const prev = this._prevLine(this.state.draft, null, null);
+    const l = this._L('', '', '', this._fmtOf(prev), prev ? prev.bold : true); const sid = this._id(); this._focus = sid;
     this.upd(d => ({ ...d, sections: [...d.sections, { id: sid, headed: true, label: '', lines: [l] }] }));
     this.setState({ sel: { kind: 'sec', id: sid }, linkOpen: null });
   }
@@ -523,7 +644,7 @@ class Component extends DCLogic {
     this.setState({ sel: null });
   }
   submitLink(id, raw) {
-    const v = (raw || '').trim();
+    const v = (raw || '').trim().slice(0, 2048);
     if (!v) { this.setState({ linkOpen: null, linkDraft: '' }); return; }
     const url = /^https?:\/\//.test(v) ? v : 'https://' + v;
     this.upd(d => this._mapLine(d, id, ln => ({ ...ln, link: url, domain: this._domain(url), linkTitle: '', favLetter: '', favBg: 'oklch(88.5% 0.006 80)', fetching: true })));
@@ -537,10 +658,11 @@ class Component extends DCLogic {
   }
   _hasContent(d) { return !!(d.title.trim() || d.description.trim() || this._counts(d).n || this._counts(d).k); }
   goBuild() {
+    clearTimeout(this._bt); this.setState({ bodyIn: false }); this._bt = setTimeout(() => this.setState({ bodyIn: true }), 420);
     this.setState(s => {
       const total = s.draft.sections.reduce((a, x) => a + x.lines.length, 0);
       if (total) return { step: 'build', sel: null };
-      const l = this._L(''); this._focus = l.id;
+      const l = this._L(''); l.picked = false; this._focus = l.id;
       const secs = s.draft.sections.map((x, i) => i === 0 ? { ...x, lines: [l] } : x);
       return { step: 'build', draft: { ...s.draft, sections: secs }, sel: { kind: 'line', id: l.id } };
     });
@@ -563,7 +685,11 @@ class Component extends DCLogic {
     const { n, k } = this._counts(d);
     const countLabel = n === 0 ? 'No lines yet' : n + (n === 1 ? ' line' : ' lines') + (k ? ' · ' + k + (k === 1 ? ' link' : ' links') : '');
     const sel = s.sel;
-    const clearSel = () => this.setState({ sel: null, linkOpen: null });
+    const clearSel = () => this.setState(st => ({ sel: null, linkOpen: null, menu: false, draft: this._prune(st.draft, null) }));
+    const selLine = this._selLine();
+    const anchorMenu = !!s.menu || !!(selLine && this._isEmpty(selLine) && !selLine.picked);
+    const lastSec = d.sections[d.sections.length - 1];
+    const totalLeft = 6000 - this._total(d);
     const allIds = []; d.sections.forEach(sec => sec.lines.forEach(l => allIds.push(l.id)));
     const firstId = allIds[0], lastId = allIds[allIds.length - 1];
     let num = 0;
@@ -571,42 +697,66 @@ class Component extends DCLogic {
       key: sec.id, headed: sec.headed, label: sec.label,
       isSel: !!(sel && sel.kind === 'sec' && sel.id === sec.id),
       headRef: this._ref(sec.id),
-      onLabel: (e) => { const v = e.target.value; this.upd(dd => ({ ...dd, sections: dd.sections.map(x => x.id === sec.id ? { ...x, label: v } : x) })); },
-      onSelect: () => this.setState({ sel: { kind: 'sec', id: sec.id }, linkOpen: null }),
+      onLabel: (e) => { const v = this._lim(this.state.draft, e.target.value.replace(/\n/g, ''), sec.label, 60); this.upd(dd => ({ ...dd, sections: dd.sections.map(x => x.id === sec.id ? { ...x, label: v } : x) })); },
+      onSelect: () => this.setState(st => ({ sel: { kind: 'sec', id: sec.id }, linkOpen: null, menu: false, draft: this._prune(st.draft, null) })),
+      onKey: (e) => { if (e.key === 'Enter') { e.preventDefault(); this.doneSec(sec); } },
+      onDone: () => this.doneSec(sec),
+      rowMenu: !!(sel && sel.kind === 'sec' && sel.id === sec.id) && anchorMenu, rowPlus: !!(sel && sel.kind === 'sec' && sel.id === sec.id) && !anchorMenu,
+      endMenu: !sel && sec.id === lastSec.id && anchorMenu, endPlus: !sel && sec.id === lastSec.id && !anchorMenu,
       onUp: () => this.moveSection(sec.id, -1), onDown: () => this.moveSection(sec.id, 1),
       upOp: si > 0 && d.sections[si - 1].headed ? 1 : 0.35, downOp: si < d.sections.length - 1 ? 1 : 0.35,
       onRemove: () => this.removeSection(sec.id),
       onAddLine: () => this.addLine(sec.id),
       lines: sec.lines.map(ln => {
-        num++;
+        const fmt = this._fmtOf(ln);
+        if (fmt === 'num') num++;
         const isSel = !!(sel && sel.kind === 'line' && sel.id === ln.id);
         const linkOpen = s.linkOpen === ln.id;
         return {
-          key: ln.id, num: String(num).padStart(2, '0'), text: ln.text, sub: ln.sub || '', hasSub: !!(ln.sub || '').trim(),
+          key: ln.id, num: String(num).padStart(2, '0'), text: ln.text, sub: ln.sub || '', hasSub: (fmt === 'num' || fmt === 'bullet') && !!(ln.sub || '').trim(),
+          isText: fmt === 'text', isBoldLine: fmt === 'bold', isList: fmt === 'num' || fmt === 'bullet', isNum: fmt === 'num', isBullet: fmt === 'bullet',
+          headWeight: ln.bold === false ? '400' : '650', indent: fmt === 'num' || fmt === 'bullet' ? '32px' : '0px',
+          rowMenu: isSel && anchorMenu, rowPlus: isSel && !anchorMenu,
+          textPlaceholder: ln.picked ? 'Write a paragraph' : 'Start writing, or pick a format below',
+          ...(() => { const on = fmt === 'text' ? !!ln.textBold : ln.bold !== false; return { boldBg: on ? 'oklch(19.4% 0.006 80)' : 'oklch(99.6% 0.002 80)', boldFg: on ? 'oklch(99.6% 0.002 80)' : 'oklch(30% 0.006 80)', boldBorder: on ? 'oklch(19.4% 0.006 80)' : 'oklch(86% 0.006 80)' }; })(),
+          onToggleBold: () => this.toggleBold(ln.id),
+          onDone: () => this.doneLine(sec.id, ln),
+          canBold: fmt !== 'bold', paraWeight: ln.textBold ? '650' : '400',
+          ...(() => { const tm = this._maxFor(fmt, 'text'), tl = (ln.text || '').length, sl = (ln.sub || '').length, isL = fmt === 'num' || fmt === 'bullet';
+            const tNear = tl >= tm * 0.8, sNear = isL && sl >= 240;
+            const label = (tNear ? tl + '/' + tm : '') + (tNear && sNear ? ' · ' : '') + (sNear ? 'note ' + sl + '/300' : '') + (totalLeft <= 500 ? ((tNear || sNear) ? ' · ' : '') + totalLeft + ' left in stack' : '');
+            return { charCount: label, showCount: !!label, countColor: (tl >= tm || sl >= 300 || totalLeft <= 0) ? 'oklch(54% 0.16 45)' : 'oklch(50.8% 0.006 80)' }; })(),
+          paraColor: ln.text ? 'oklch(22% 0.006 80)' : 'oklch(58% 0.006 80)',
           divider: ln.id === sec.lines[sec.lines.length - 1].id ? 'none' : '1px solid oklch(91.2% 0.006 80)',
-          linkLabel: ln.fetching ? 'Fetching link…' : 'Visit site ↗',
+          linkLabel: ln.fetching ? 'Fetching link…' : ((ln.domain || ln.link || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]),
           subRef: this._ref('sub-' + ln.id),
-          onSub: (e) => { const v = e.target.value; this.upd(dd => this._mapLine(dd, ln.id, x => ({ ...x, sub: v }))); },
-          onSubKey: (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.addLine(sec.id, ln.id); } },
-          display: ln.text || 'Empty line — tap to write', textColor: ln.text ? 'oklch(14.8% 0.006 80)' : 'oklch(58% 0.006 80)',
+          onSub: (e) => { const raw = e.target.value; this.upd(dd => this._mapLine(dd, ln.id, x => ({ ...x, sub: this._lim(dd, raw, x.sub, 300) }))); },
+          onSubKey: (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.doneLine(sec.id, ln); } },
+          display: ln.text || (fmt === 'text' ? 'Empty paragraph — tap to write' : 'Empty line — tap to write'), textColor: ln.text ? 'oklch(14.8% 0.006 80)' : 'oklch(58% 0.006 80)',
           isSel, notSel: !isSel,
           hasLink: !!ln.link && !linkOpen,
           linkTitle: ln.fetching ? 'Fetching title…' : ln.linkTitle, linkTitleColor: ln.fetching ? 'oklch(50.8% 0.006 80)' : 'oklch(19.4% 0.006 80)',
           domain: ln.domain, favLetter: ln.favLetter, favBg: ln.favBg,
           showLinkInput: isSel && linkOpen, showAddLink: isSel && !ln.link && !linkOpen,
-          placeholder: num === 1 ? 'Heading for your first line' : 'Heading',
+          placeholder: 'Heading',
           ref: this._ref(ln.id), linkRef: this._ref('link-' + ln.id),
-          onSelect: () => { this._focus = ln.id; this.setState({ sel: { kind: 'line', id: ln.id }, linkOpen: null }); },
-          onText: (e) => { const v = e.target.value; this.upd(dd => this._mapLine(dd, ln.id, x => ({ ...x, text: v }))); },
-          onKey: (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this._focus = 'sub-' + ln.id; this.forceUpdate(); } },
+          onSelect: () => this.selectLine(ln.id),
+          onText: (e) => { const raw = this._fmtOf(ln) === 'text' ? e.target.value : e.target.value.replace(/\n/g, ''); this.upd(dd => this._mapLine(dd, ln.id, x => ({ ...x, text: this._lim(dd, raw, x.text, this._maxFor(this._fmtOf(x), 'text')) }))); },
+          onKey: (e) => {
+            if (e.key !== 'Enter' || e.shiftKey) return;
+            e.preventDefault();
+            if (fmt === 'text' || fmt === 'bold') { if (ln.text.trim()) this.addLine(sec.id, ln.id, 'text', true); return; }
+            if (!ln.text.trim()) { this._focus = ln.id; this.upd(dd => this._mapLine(dd, ln.id, x => ({ ...x, fmt: 'text', picked: false, sub: '' }))); return; }
+            this._focus = 'sub-' + ln.id; this.forceUpdate();
+          },
           onOpenLink: () => { this._focus = 'link-' + ln.id; this.setState({ linkOpen: ln.id, linkDraft: '' }); },
           onLinkPaste: (e) => { const t = (e.clipboardData && e.clipboardData.getData('text')) || ''; if (t.trim()) { e.preventDefault(); this.submitLink(ln.id, t); } },
           onLinkKey: (e) => { if (e.key === 'Enter') { e.preventDefault(); this.submitLink(ln.id, this.state.linkDraft); } },
           onLinkDone: () => this.submitLink(ln.id, this.state.linkDraft),
-          onRemoveLink: () => this.upd(dd => this._mapLine(dd, ln.id, x => ({ id: x.id, text: x.text, sub: x.sub || '', link: '' }))),
-          onUp: () => this.moveLine(ln.id, -1), onDown: () => this.moveLine(ln.id, 1),
-          upOp: ln.id === firstId ? 0.35 : 1, downOp: ln.id === lastId ? 0.35 : 1,
+          onRemoveLink: () => this.upd(dd => this._mapLine(dd, ln.id, x => ({ id: x.id, text: x.text, sub: x.sub || '', fmt: x.fmt, bold: x.bold, picked: x.picked, link: '' }))),
           onDelete: () => this.deleteLine(ln.id),
+          onUp: () => { this._focus = ln.id; this.moveLine(ln.id, -1); }, onDown: () => { this._focus = ln.id; this.moveLine(ln.id, 1); },
+          upOp: ln.id === firstId ? 0.35 : 1, downOp: ln.id === lastId ? 0.35 : 1,
         };
       }),
     }));
@@ -621,13 +771,13 @@ class Component extends DCLogic {
         upOp: ln.id === firstId ? 0.3 : 1, downOp: ln.id === lastId ? 0.3 : 1,
       })),
     }));
-    let pn = 0;
+    let pn = 0, pvSecIdx = 0;
     const pvSections = d.sections.map(sec => {
       const ls = sec.lines.filter(l => l.text.trim() || l.link);
       const headed = sec.headed && !!sec.label.trim();
-      const headPad = pn === 0 ? '0 0 8px' : '18px 0 8px';
+      const headPad = pvSecIdx++ === 0 ? '8px 0 8px' : '34px 0 8px';
       return { key: sec.id, headed, label: sec.label, headPad,
-        lines: ls.map((ln, i) => ({ key: ln.id, num: String(++pn).padStart(2, '0'), text: ln.text || ln.linkTitle || ln.domain, sub: ln.sub || '', hasSub: !!(ln.sub || '').trim(), hasLink: !!ln.link && !ln.fetching, link: ln.link, divider: i === ls.length - 1 ? 'none' : '1px solid oklch(91.2% 0.006 80)' })) };
+        lines: ls.map((ln, i) => { const f = this._fmtOf(ln); return { key: ln.id, num: f === 'num' ? String(++pn).padStart(2, '0') : '', isText: f === 'text', isBoldLine: f === 'bold', isList: f === 'num' || f === 'bullet', isNum: f === 'num', isBullet: f === 'bullet', headWeight: ln.bold === false ? '400' : '650', text: ln.text || ln.linkTitle || ln.domain, sub: ln.sub || '', hasSub: (f === 'num' || f === 'bullet') && !!(ln.sub || '').trim(), hasLink: !!ln.link && !ln.fetching, link: ln.link, linkDomain: (ln.link || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0], divider: i === ls.length - 1 ? 'none' : '1px solid oklch(91.2% 0.006 80)' }; }), _first: false };
     });
     const isPreview = s.step === 'review' && s.mode === 'preview';
     const hasDraft = this._hasContent(d);
@@ -635,6 +785,11 @@ class Component extends DCLogic {
     const editOut = () => this._toApp(d);
     const noteDraft = s.noteDraft || '';
     return {
+      showBuildFooter: s.step === 'build',
+      keep: (e) => e.preventDefault(),
+      openMenu: () => this.setState({ menu: true }),
+      closeMenu: () => { const l = this._selLine(); this.setState({ menu: false }); if (l && !l.picked) { this._focus = l.id; this.upd(dd => this._mapLine(dd, l.id, x => ({ ...x, picked: true }))); } },
+      pickSection: () => this.pick('section'), pickText: () => this.pick('text'), pickNum: () => this.pick('num'), pickBullet: () => this.pick('bullet'), pickBold: () => this.pick('bold'),
       isEditing: !!ed, notEditing: !ed,
       shareHint: ed ? ed.hint : '', nextShareDate: (ed && ed.nextShareDate) || '',
       shareBg: ed && ed.canShare ? 'oklch(99.6% 0.002 80)' : 'oklch(95.6% 0.004 80)',
@@ -658,24 +813,49 @@ class Component extends DCLogic {
       isTitle: s.step === 'title', isDesc: s.step === 'description', isBuild: s.step === 'build',
       isArrange: s.step === 'review' && !isPreview, isPreview, isPublished: s.step === 'published', isDrafts: s.step === 'drafts',
       title: d.title, description: d.description,
-      onTitle: (e) => { const v = e.target.value; this.upd(dd => ({ ...dd, title: v })); },
-      onTitleKey: (e) => { if (e.key === 'Enter') this.setState({ step: 'description' }); },
-      onDesc: (e) => { const v = e.target.value.slice(0, 200); this.upd(dd => ({ ...dd, description: v })); },
+      onTitle: (e) => { const v = this._lim(this.state.draft, e.target.value.replace(/\n/g, ''), d.title, 60); this.upd(dd => ({ ...dd, title: v })); },
+      onTitleKey: (e) => { if (e.key === 'Enter') { e.preventDefault(); this._focus = 'desc'; this.setState({ step: 'description' }); } },
+      onDesc: (e) => { const v = this._lim(this.state.draft, e.target.value, d.description, 180); this.upd(dd => ({ ...dd, description: v })); },
       titleNextOp: d.title.trim() ? 1 : 0.4,
-      nextTitle: () => this.setState({ step: 'description' }),
+      nextTitle: () => { this._focus = 'desc'; this.setState({ step: 'description' }); },
+      ...(() => {
+        const ph = s.step, tL = ph !== 'title', dL = ph === 'build', on = 'oklch(64% 0.16 50)', off = 'oklch(93.5% 0.006 80)';
+        const hasT = !!d.title.trim(), hasD = !!d.description.trim();
+        return {
+          isCompose: ['title', 'description', 'build'].includes(ph),
+          composeSpacer: ph === 'title' ? '150px' : ph === 'description' ? '72px' : '6px',
+          titleRef: this._ref('title'), descRef: this._ref('desc'),
+          tPromptH: tL ? '0px' : '60px', tPromptOp: tL ? 0 : 1, tActH: tL ? '0px' : '80px', tActOp: tL ? 0 : 1,
+          tBorder: tL ? 'transparent' : 'oklch(19.4% 0.006 80)', tBg: tL ? 'transparent' : 'oklch(99.6% 0.002 80)',
+          tShadow: tL ? '0 0 0 0 transparent' : '0 0 0 4px oklch(64% 0.16 50 / 0.14)', tPad: tL ? '0px 0px' : '14px 16px',
+          tPlaceholder: tL ? 'Untitled Stack' : 'Name your Stack',
+          tBtnBg: hasT ? on : off, tBtnColor: hasT ? 'oklch(99.6% 0.002 80)' : 'oklch(30% 0.006 80)',
+          dWrapH: ph === 'title' ? '0px' : '600px', dWrapOp: ph === 'title' ? 0 : 1, dWrapY: ph === 'title' ? '14px' : '0px', dWrapPe: ph === 'title' ? 'none' : 'auto',
+          dPromptH: ph === 'description' ? '80px' : '0px', dPromptOp: ph === 'description' ? 1 : 0,
+          dActH: ph === 'description' ? '80px' : '0px', dActOp: ph === 'description' ? 1 : 0,
+          dBorder: dL ? 'transparent' : 'oklch(19.4% 0.006 80)', dBg: dL ? 'transparent' : 'oklch(99.6% 0.002 80)',
+          dShadow: dL ? '0 0 0 0 transparent' : '0 0 0 4px oklch(64% 0.16 50 / 0.14)', dPad: dL ? '0px 0px' : '12px 16px',
+          dMinH: dL ? '0px' : '96px', dTop: dL ? '10px' : '0px',
+          dPlaceholder: dL ? 'Add a description (optional)' : 'A sentence or two on what this is and who it’s for',
+          dBtnBg: hasD ? on : off, dBtnColor: hasD ? 'oklch(99.6% 0.002 80)' : 'oklch(30% 0.006 80)',
+          bodyOp: s.bodyIn ? 1 : 0, bodyY: s.bodyIn ? '0px' : '18px',
+          onTitleFocus: () => { if (ph === 'description') this.setState({ step: 'title' }); else if (ph === 'build') this.setState({ sel: null, linkOpen: null }); },
+          onDescFocus: () => { if (ph === 'build') this.setState({ sel: null, linkOpen: null }); },
+        };
+      })(),
       titleSkipLabel: d.title.trim() ? 'Next' : 'Skip', titleSkipColor: d.title.trim() ? 'oklch(54% 0.16 45)' : 'oklch(41.5% 0.006 80)',
       descSkipLabel: d.description.trim() ? 'Next' : 'Skip', descSkipColor: d.description.trim() ? 'oklch(54% 0.16 45)' : 'oklch(41.5% 0.006 80)',
       onDescKey: (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.goBuild(); } },
       showStatus: !['title', 'description'].includes(s.step),
       skipTitle: () => this.setState({ step: 'description' }),
       descTitle: d.title.trim() || 'Untitled Stack', descTitleColor: d.title.trim() ? 'oklch(19.4% 0.006 80)' : 'oklch(58% 0.006 80)',
-      descCount: d.description.length + '/200', descNextOp: d.description.trim() ? 1 : 0.4,
+      descCount: d.description.length + '/180', descNextOp: d.description.trim() ? 1 : 0.4,
       backToTitle: () => this.setState({ step: 'title' }),
       goBuild: () => this.goBuild(),
       backToDesc: () => this.setState({ step: 'description', sel: null, linkOpen: null }),
       titleBorder: d.title ? 'transparent' : 'oklch(80% 0.006 80)', descBorder: d.description ? 'transparent' : 'oklch(86.3% 0.006 80)',
       countLabel, sections, clearSel,
-      linkDraft: s.linkDraft, onLinkDraft: (e) => this.setState({ linkDraft: e.target.value }),
+      linkDraft: s.linkDraft, onLinkDraft: (e) => this.setState({ linkDraft: e.target.value.slice(0, 2048) }),
       closeLink: () => this.setState({ linkOpen: null, linkDraft: '' }),
       addSection: () => this.addSection(),
       showTopSub: !(d.sections[0] && d.sections[0].headed), addTopSection: () => this.addTopSection(),
@@ -699,7 +879,7 @@ class Component extends DCLogic {
       exitPublished: () => { if (this.props.onExit) { this.props.onExit(null, false); return; } this.setState({ step: 'drafts', sel: null, sheet: false, linkOpen: null, toast: '' }); },
       reopen: () => this.setState({ step: 'build', sel: null, mode: 'arrange' }),
       hasDraft, noDraft: !hasDraft,
-      location: d.location || '', onLocation: (e) => { const v = e.target.value; this.upd(dd => ({ ...dd, location: v })); },
+      location: d.location || '', onLocation: (e) => { const v = e.target.value.slice(0, 80); this.upd(dd => ({ ...dd, location: v })); },
       toast: s.toast,
       visOptions: [['public', 'Public', 'Anyone can find it on your profile and in search'], ['unlisted', 'Invite Only', 'Only people you invite or share the link with'], ['private', 'Private', 'Only you']].map(([k, label, desc], i) => { const on = (d.visibility || 'public') === k; return { key: k, label, desc, onPick: () => this.upd(dd => ({ ...dd, visibility: k })), ring: on ? 'oklch(64% 0.16 50)' : 'oklch(80% 0.006 80)', dot: on ? 'oklch(64% 0.16 50)' : 'transparent', weight: on ? 700 : 600, divider: i ? '1px solid oklch(93% 0.006 80)' : 'none' }; }),
       pv: { hasTags: (d.tags || []).length > 0, tagItems: (d.tags || []).map(t => ({ key: t, name: t })) },
@@ -714,7 +894,7 @@ class Component extends DCLogic {
       onTagKey: (e) => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); this.addTag(this.state.tagInput); } },
       tagSugg: this.TAGS.filter(n => !(d.tags || []).some(t => t.toLowerCase() === n.toLowerCase())).map(n => ({ key: n, name: n, onAdd: () => this.addTag(n) })),
       hasTagSugg: this.TAGS.some(n => !(d.tags || []).some(t => t.toLowerCase() === n.toLowerCase())),
-      buildScrollRef: (el) => { if (el && this._scrollSel) { this._scrollSel = false; setTimeout(() => { el.scrollTop = el.scrollHeight; }, 60); } },
+      buildScrollRef: (el) => { if (el) this._scrollEl = el; if (el && this._scrollSel) { this._scrollSel = false; setTimeout(() => { el.scrollTop = el.scrollHeight; }, 60); } },
     };
   }
 }
