@@ -7,19 +7,24 @@ import { useAuth, useBack, useToast } from "@/components/AppProviders";
 import shell from "@/components/AppShell.module.css";
 import { systemShare } from "@/components/Share";
 import { StackPaper } from "@/components/StackView";
-import { initials, MAX_DESCRIPTION, MAX_HEAD, MAX_ITEMS, MAX_LABEL, MAX_NOTE, MAX_SECTIONS, MAX_TITLE, MAX_TOTAL } from "@/lib/format";
+import { initials, isListFormat, MAX_DESCRIPTION, MAX_HEAD, MAX_ITEMS, MAX_LABEL, MAX_NOTE, MAX_PARAGRAPH, MAX_SECTIONS, MAX_TITLE, MAX_TOTAL } from "@/lib/format";
 import { SHOW_DRAFTS } from "@/lib/navFlags";
 import { createClient } from "@/lib/supabase/client";
-import type { Draft, EditTarget, Visibility } from "@/lib/types";
+import type { Draft, EditTarget, LineFormat, Visibility } from "@/lib/types";
 import p from "../profile/Profile.module.css";
 import s from "./Create.module.css";
 
 type Step = "title" | "description" | "build" | "review";
-type Line = { id: string; text: string; link: string; note: string };
+/**
+ * A line being edited. `picked` is false for a fresh line whose format hasn't been chosen yet (the format menu
+ * shows under it); it starts as a paragraph.
+ */
+type Line = { id: string; text: string; link: string; note: string; format: LineFormat; bold: boolean; picked: boolean };
 type Sec = { id: string; headed: boolean; label: string; lines: Line[] };
 // Tags are no longer edited here; a draft keeps the ones it already had.
 type Work = { title: string; description: string; tags: string[]; visibility: Visibility; location: string; sections: Sec[] };
 type Sel = { kind: "line" | "sec"; id: string } | null;
+type Pick = LineFormat | "section";
 type SaveState = "idle" | "saving" | "saved" | "error" | "over";
 
 const STEPS: Record<Step, [number, string]> = { title: [1, "Title"], description: [2, "Description"], build: [3, "Build"], review: [4, "Finalize"] };
@@ -28,12 +33,64 @@ const PRIVACY: [Visibility, string, string][] = [
   ["unlisted", "Invite Only", "Only people with the link"],
   ["private", "Private", "Only you"],
 ];
+/** The + menu: start a section, or a line in one of the four formats. */
+const MENU: [Pick, string, React.ReactNode][] = [
+  [
+    "section",
+    "Section",
+    <svg key="i" width="22" height="16" viewBox="0 0 22 16" fill="none" aria-hidden>
+      <rect x="1" y="2" width="3" height="12" rx="1.5" fill="var(--accent)" />
+      <path d="M8 5h13M8 11h9" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+    </svg>,
+  ],
+  [
+    "text",
+    "Paragraph",
+    <svg key="i" width="22" height="16" viewBox="0 0 22 16" fill="none" aria-hidden>
+      <path d="M2 3h18M2 8h18M2 13h11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>,
+  ],
+  [
+    "num",
+    "Numbered",
+    <svg key="i" width="22" height="16" viewBox="0 0 22 16" fill="none" aria-hidden>
+      <text x="1" y="7" fontSize="7" fontWeight="700" fill="currentColor" fontFamily="IBM Plex Mono, monospace">
+        1
+      </text>
+      <text x="1" y="15" fontSize="7" fontWeight="700" fill="currentColor" fontFamily="IBM Plex Mono, monospace">
+        2
+      </text>
+      <path d="M8 4.5h13M8 12.5h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>,
+  ],
+  [
+    "bullet",
+    "Bulleted",
+    <svg key="i" width="22" height="16" viewBox="0 0 22 16" fill="none" aria-hidden>
+      <circle cx="3" cy="4.5" r="2" fill="var(--accent)" />
+      <circle cx="3" cy="12.5" r="2" fill="var(--accent)" />
+      <path d="M8 4.5h13M8 12.5h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>,
+  ],
+  [
+    "bold",
+    "Bold",
+    <span key="i" className={s.menuBold} aria-hidden>
+      B
+    </span>,
+  ],
+];
+/** Scrolls the format menu into view when it opens, so it doesn't sit behind the footer. */
+const reveal = (el: HTMLElement | null) => el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
 const FAV_BG = ["oklch(45% 0.13 30)", "oklch(38% 0.08 250)", "oklch(40% 0.09 150)", "oklch(28% 0.01 80)", "oklch(46% 0.13 60)"];
 const UNTITLED = "Untitled draft";
 
 let nextId = 1;
 const uid = () => `k${nextId++}`;
-const newLine = (text = "", link = "", note = ""): Line => ({ id: uid(), text, link, note });
+const newLine = (format: LineFormat = "text", picked = true, bold = true): Line => ({ id: uid(), text: "", link: "", note: "", format, bold, picked });
+const isEmpty = (l: Line) => !l.text.trim() && !l.note.trim() && !l.link;
+/** Most characters a line's main text can have. */
+const maxText = (f: LineFormat) => (f === "text" ? MAX_PARAGRAPH : MAX_HEAD);
 
 /** Site name, domain and a colored letter tile for a link (no fetching). */
 function linkMeta(url: string) {
@@ -50,7 +107,7 @@ function fromDraft(d: Draft): Work {
     id: uid(),
     headed: i > 0 || !!sec.label.trim(),
     label: sec.label,
-    lines: sec.lines.map((l) => newLine(l.text, l.link, l.note ?? "")),
+    lines: sec.lines.map((l) => ({ id: uid(), text: l.text, link: l.link, note: l.note ?? "", format: l.format, bold: l.bold !== false, picked: true })),
   }));
   if (!sections.length) sections.push({ id: uid(), headed: false, label: "", lines: [] });
   return { title: d.title === UNTITLED ? "" : d.title, description: d.description, tags: d.tags, visibility: d.visibility, location: d.location, sections };
@@ -64,9 +121,29 @@ const counts = (w: Work) => {
 };
 const n0 = (x: number) => x.toLocaleString("en-US");
 
+/** Characters of text in the stack, counted like the database: title, description, headings, lines and details. */
+function textTotal(w: Work) {
+  let t = w.title.length + w.description.length;
+  w.sections.forEach((sec) => {
+    if (sec.headed) t += sec.label.length;
+    sec.lines.forEach((l) => (t += l.text.length + (isListFormat(l.format) ? l.note.length : 0)));
+  });
+  return t;
+}
+
+/**
+ * Cuts a field's new value to its own limit and to what's left of the stack's total. Text that was already
+ * there is never cut, so an older, longer value can still be trimmed by hand.
+ */
+function capText(w: Work, next: string, prev: string, max: number) {
+  const room = MAX_TOTAL - textTotal(w) + prev.length;
+  const cap = Math.max(0, Math.min(max, room));
+  return next.length > cap ? next.slice(0, Math.max(cap, Math.min(next.length, prev.length))) : next;
+}
+
 /**
  * What in this stack is over a size limit, in words (empty when it fits). Mirrors the database's checks, which
- * count only items with a heading. Stacks made before the limits can be over; they save again once trimmed.
+ * count only lines with text.
  */
 function limitProblems(w: Work): string[] {
   const out: string[] = [];
@@ -74,22 +151,33 @@ function limitProblems(w: Work): string[] {
   const headed = w.sections.filter((sec) => sec.headed);
   let total = w.title.trim().length + w.description.trim().length;
   headed.forEach((sec) => (total += sec.label.trim().length));
-  items.forEach((l) => (total += l.text.trim().length + l.note.trim().length));
+  items.forEach((l) => (total += l.text.trim().length + (isListFormat(l.format) ? l.note.trim().length : 0)));
   if (w.title.trim().length > MAX_TITLE) out.push(`Shorten the title to ${MAX_TITLE} characters.`);
   if (w.description.trim().length > MAX_DESCRIPTION) out.push(`Shorten the description to ${n0(MAX_DESCRIPTION)} characters.`);
-  if (w.sections.length > MAX_SECTIONS) out.push(`Use at most ${MAX_SECTIONS} subsections (this has ${w.sections.length}).`);
-  if (headed.some((sec) => sec.label.trim().length > MAX_LABEL)) out.push(`Keep subsection titles to ${MAX_LABEL} characters.`);
-  if (items.length > MAX_ITEMS) out.push(`Use at most ${MAX_ITEMS} items (this has ${items.length}).`);
-  const longHeads = items.filter((l) => l.text.trim().length > MAX_HEAD).length;
-  if (longHeads) out.push(`Shorten ${longHeads === 1 ? "1 item heading" : `${longHeads} item headings`} to ${MAX_HEAD} characters.`);
-  if (items.some((l) => l.note.trim().length > MAX_NOTE)) out.push(`Keep item notes to ${MAX_NOTE} characters.`);
+  if (w.sections.length > MAX_SECTIONS) out.push(`Use at most ${MAX_SECTIONS} sections (this has ${w.sections.length}).`);
+  if (headed.some((sec) => sec.label.trim().length > MAX_LABEL)) out.push(`Keep section headings to ${MAX_LABEL} characters.`);
+  if (items.length > MAX_ITEMS) out.push(`Use at most ${MAX_ITEMS} lines (this has ${items.length}).`);
+  const longParas = items.filter((l) => l.format === "text" && l.text.trim().length > MAX_PARAGRAPH).length;
+  if (longParas) out.push(`Shorten ${longParas === 1 ? "1 paragraph" : `${longParas} paragraphs`} to ${MAX_PARAGRAPH} characters.`);
+  const longHeads = items.filter((l) => l.format !== "text" && l.text.trim().length > MAX_HEAD).length;
+  if (longHeads) out.push(`Shorten ${longHeads === 1 ? "1 line" : `${longHeads} lines`} to ${MAX_HEAD} characters.`);
+  if (items.some((l) => isListFormat(l.format) && l.note.trim().length > MAX_NOTE)) out.push(`Keep details to ${MAX_NOTE} characters.`);
   if (total > MAX_TOTAL) out.push(`Trim the text to ${n0(MAX_TOTAL)} characters in all (this has ${n0(total)}).`);
   return out;
 }
 
-/** The sections as save_stack and apply_stack_edit take them. */
+/** The sections as save_stack and apply_stack_edit take them. Only numbered and bulleted lines keep a detail. */
 const sectionsArg = (w: Work) =>
-  w.sections.map((sec) => ({ label: sec.headed ? sec.label : "", lines: sec.lines.map((l) => ({ text: l.text, note: l.note.trim() || null, link: l.link || null })) }));
+  w.sections.map((sec) => ({
+    label: sec.headed ? sec.label : "",
+    lines: sec.lines.map((l) => ({
+      text: l.text,
+      note: (isListFormat(l.format) && l.note.trim()) || null,
+      link: l.link || null,
+      format: l.format,
+      ...(isListFormat(l.format) && !l.bold ? { bold: false } : {}),
+    })),
+  }));
 
 const WEEK = 7 * 86_400_000;
 const shortDay = (ms: number) => new Date(ms).toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -100,7 +188,13 @@ const contentKey = (w: Work) =>
     w.title.trim(),
     w.description.trim(),
     w.sections
-      .map((sec) => [sec.headed ? sec.label.trim() : "", sec.lines.filter((l) => l.text.trim()).map((l) => [l.text.trim(), l.note.trim(), l.link])] as const)
+      .map(
+        (sec) =>
+          [
+            sec.headed ? sec.label.trim() : "",
+            sec.lines.filter((l) => l.text.trim()).map((l) => [l.text.trim(), isListFormat(l.format) ? l.note.trim() : "", l.link, l.format, isListFormat(l.format) && l.bold]),
+          ] as const,
+      )
       .filter(([, lines]) => lines.length),
   ]);
 
@@ -159,6 +253,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const [step, setStep] = useState<Step>(start);
   const [preview, setPreview] = useState(false);
   const [sel, setSel] = useState<Sel>(null);
+  // The + menu of line formats, open under the selected line or heading (or at the end).
+  const [menu, setMenu] = useState(false);
   const [linkOpen, setLinkOpen] = useState<string | null>(null);
   const [linkDraft, setLinkDraft] = useState("");
   const [sheet, setSheet] = useState(false);
@@ -175,6 +271,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   // The published stack's content, to tell whether anything changed.
   const [liveKey] = useState(() => (target ? contentKey(fromDraft({ ...initial, ...target.live })) : ""));
   const shareState = target ? shareInfo(target, now, contentKey(work) !== liveKey) : null;
+  const selLine = sel?.kind === "line" ? (work.sections.flatMap((sec) => sec.lines).find((l) => l.id === sel.id) ?? null) : null;
 
   // The draft's id once it has been saved, and a queue so saves never overlap (the first one creates the row).
   const idRef = useRef<string | null>(initial.id);
@@ -254,7 +351,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   }, [work, viewer, persist, published]);
 
   // Focus the field that was just added or selected.
-  const focusId = useRef<string | null>(null);
+  const focusId = useRef<string | null>(start === "title" ? "title" : null);
   useEffect(() => {
     const id = focusId.current;
     if (!id) return;
@@ -265,28 +362,136 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     el.setSelectionRange(el.value.length, el.value.length);
   });
 
-  const mapLine = (id: string, fn: (l: Line) => Line) => edit((w) => ({ ...w, sections: w.sections.map((sec) => ({ ...sec, lines: sec.lines.map((l) => (l.id === id ? fn(l) : l)) })) }));
+  const mapLineIn = (w: Work, id: string, fn: (l: Line) => Line): Work => ({ ...w, sections: w.sections.map((sec) => ({ ...sec, lines: sec.lines.map((l) => (l.id === id ? fn(l) : l)) })) });
+  const mapLine = (id: string, fn: (l: Line, w: Work) => Line) => edit((w) => mapLineIn(w, id, (l) => fn(l, w)));
+  /** Drops empty lines (but not `keep`), as happens when you move off a line. */
+  const prune = (w: Work, keep: string | null): Work => ({ ...w, sections: w.sections.map((sec) => ({ ...sec, lines: sec.lines.filter((l) => l.id === keep || !isEmpty(l)) })) });
+  const lineCount = (w: Work) => w.sections.reduce((n, sec) => n + sec.lines.length, 0);
 
-  function addLine(secId: string, afterId?: string) {
-    if (work.sections.reduce((n, sec) => n + sec.lines.length, 0) >= MAX_ITEMS) return toast(`A stack can have at most ${MAX_ITEMS} items.`);
-    const l = newLine();
+  /** Selects a line or section heading (or nothing), closing the menu and link field and dropping empty lines. */
+  function select(next: Sel) {
+    setWork((w) => prune(w, next?.kind === "line" ? next.id : null));
+    if (next) focusId.current = next.id;
+    setSel(next);
+    setLinkOpen(null);
+    setMenu(false);
+  }
+
+  function addLine(secId: string, afterId: string | null, format: LineFormat, picked = true, atStart = false) {
+    if (lineCount(work) >= MAX_ITEMS) return toast(`A stack can have at most ${MAX_ITEMS} lines.`);
+    const l = newLine(format, picked);
     focusId.current = l.id;
-    edit((w) => ({
-      ...w,
-      sections: w.sections.map((sec) => {
-        if (sec.id !== secId) return sec;
-        const lines = [...sec.lines];
-        const i = afterId ? lines.findIndex((x) => x.id === afterId) : -1;
-        if (i >= 0) lines.splice(i + 1, 0, l);
-        else lines.push(l);
-        return { ...sec, lines };
-      }),
-    }));
+    edit((w0) => {
+      const w = prune(w0, null);
+      return {
+        ...w,
+        sections: w.sections.map((sec) => {
+          if (sec.id !== secId) return sec;
+          const lines = [...sec.lines];
+          const i = afterId ? lines.findIndex((x) => x.id === afterId) : -1;
+          if (i >= 0) lines.splice(i + 1, 0, l);
+          else if (atStart) lines.unshift(l);
+          else lines.push(l);
+          return { ...sec, lines };
+        }),
+      };
+    });
     setSel({ kind: "line", id: l.id });
     setLinkOpen(null);
+    setMenu(false);
+  }
+
+  /** Starts a new section at a line: after it, or in its place when `dropLine` (an empty line turned into a heading). */
+  function splitSection(w: Work, lineId: string, label: string, dropLine: boolean): [Work, string] {
+    const si = w.sections.findIndex((x) => x.lines.some((l) => l.id === lineId));
+    const secs = w.sections.map((x) => ({ ...x, lines: [...x.lines] }));
+    const i = secs[si].lines.findIndex((l) => l.id === lineId);
+    const keep = secs[si].lines.slice(0, dropLine ? i : i + 1);
+    const after = secs[si].lines.slice(i + 1);
+    if (!keep.length && !secs[si].headed) {
+      secs[si] = { ...secs[si], headed: true, label, lines: after };
+      return [{ ...w, sections: secs }, secs[si].id];
+    }
+    const sid = uid();
+    secs[si].lines = keep;
+    secs.splice(si + 1, 0, { id: sid, headed: true, label, lines: after });
+    return [{ ...w, sections: secs }, sid];
+  }
+
+  function goSection(next: Work, sid: string) {
+    focusId.current = sid;
+    edit(() => prune(next, null));
+    setSel({ kind: "sec", id: sid });
+    setLinkOpen(null);
+    setMenu(false);
+  }
+
+  /**
+   * A choice from the + menu. On a fresh line it sets that line's format (Section turns it into a heading);
+   * otherwise it adds a line of that format, or a new section, after what's selected.
+   */
+  function pick(type: Pick) {
+    const w = work;
+    setMenu(false);
+    const newSection = type === "section";
+    const fullSections = newSection && w.sections.length >= MAX_SECTIONS && !(w.sections.length === 1 && !w.sections[0].headed);
+    if (fullSections) return toast(`A stack can have at most ${MAX_SECTIONS} sections.`);
+    const line = selLine;
+    if (line) {
+      const empty = isEmpty(line);
+      if (empty || !line.picked) {
+        if (newSection) return goSection(...splitSection(w, line.id, empty ? "" : line.text.trim().slice(0, MAX_LABEL), true));
+        focusId.current = line.id;
+        return mapLine(line.id, (x) => ({ ...x, format: type, picked: true, text: (type === "text" ? x.text : x.text.replace(/\s*\n\s*/g, " ")).slice(0, maxText(type)) }));
+      }
+      if (newSection) return goSection(...splitSection(w, line.id, "", false));
+      const sec = w.sections.find((x) => x.lines.some((l) => l.id === line.id))!;
+      return addLine(sec.id, line.id, type);
+    }
+    if (sel?.kind === "sec") {
+      if (newSection) {
+        const i = w.sections.findIndex((x) => x.id === sel.id);
+        const sid = uid();
+        const secs = [...w.sections];
+        secs.splice(i + 1, 0, { id: sid, headed: true, label: "", lines: [] });
+        return goSection({ ...w, sections: secs }, sid);
+      }
+      return addLine(sel.id, null, type, true, true);
+    }
+    const last = w.sections[w.sections.length - 1];
+    if (newSection) {
+      if (w.sections.length === 1 && !last.headed && !last.lines.length) return goSection({ ...w, sections: [{ ...last, headed: true, label: "" }] }, last.id);
+      const sid = uid();
+      return goSection({ ...w, sections: [...w.sections, { id: sid, headed: true, label: "", lines: [] }] }, sid);
+    }
+    addLine(last.id, null, type);
+  }
+
+  /** Closing the menu keeps a fresh line as a paragraph. */
+  function closeMenu() {
+    setMenu(false);
+    if (selLine && !selLine.picked) {
+      focusId.current = selLine.id;
+      setWork((w) => mapLineIn(w, selLine.id, (x) => ({ ...x, picked: true })));
+    }
+  }
+
+  /** Done on a line: an empty line goes away; otherwise the next line starts (numbered and bulleted lines continue the list). */
+  function doneLine(secId: string, l: Line) {
+    if (isEmpty(l)) return select(null);
+    addLine(secId, l.id, isListFormat(l.format) ? l.format : "text");
+  }
+
+  /** Done on a heading: a new section gets its first line; one that has lines is just left. */
+  function doneSec(sec: Sec) {
+    const first = sec.lines[0];
+    if (first && isEmpty(first)) return select({ kind: "line", id: first.id });
+    if (first) return select(null);
+    addLine(sec.id, null, "text", true, true);
   }
 
   function moveLine(id: string, dir: -1 | 1) {
+    focusId.current = id;
     edit((w) => {
       const secs = w.sections.map((x) => ({ ...x, lines: [...x.lines] }));
       const si = secs.findIndex((x) => x.lines.some((l) => l.id === id));
@@ -305,35 +510,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     edit((w) => ({ ...w, sections: w.sections.map((sec) => ({ ...sec, lines: sec.lines.filter((l) => l.id !== id) })) }));
     setSel(null);
     setLinkOpen(null);
-  }
-
-  function addSection() {
-    if (work.sections.length >= MAX_SECTIONS) return toast(`A stack can have at most ${MAX_SECTIONS} subsections.`);
-    const sid = uid();
-    focusId.current = sid;
-    edit((w) => ({ ...w, sections: [...w.sections, { id: sid, headed: true, label: "", lines: [newLine()] }] }));
-    setSel({ kind: "sec", id: sid });
-    setLinkOpen(null);
-  }
-
-  function addTopSection() {
-    const first = work.sections[0];
-    if (!first || first.headed) return;
-    focusId.current = first.id;
-    edit((w) => ({ ...w, sections: w.sections.map((x, i) => (i === 0 ? { ...x, headed: true, label: "", lines: x.lines.length ? x.lines : [newLine()] } : x)) }));
-    setSel({ kind: "sec", id: first.id });
-    setLinkOpen(null);
-  }
-
-  function moveSection(id: string, dir: -1 | 1) {
-    edit((w) => {
-      const i = w.sections.findIndex((x) => x.id === id);
-      const j = i + dir;
-      if (i < 0 || j < 0 || j >= w.sections.length || !w.sections[i].headed || !w.sections[j].headed) return w;
-      const secs = [...w.sections];
-      [secs[i], secs[j]] = [secs[j], secs[i]];
-      return { ...w, sections: secs };
-    });
+    setMenu(false);
   }
 
   function removeSection(id: string) {
@@ -347,6 +524,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
       return { ...w, sections: secs };
     });
     setSel(null);
+    setMenu(false);
   }
 
   function submitLink(id: string, raw: string) {
@@ -359,16 +537,19 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     mapLine(id, (l) => ({ ...l, link: url }));
   }
 
-
+  function toStep(next: Step) {
+    focusId.current = next === "title" ? "title" : next === "description" ? "desc" : null;
+    setStep(next);
+  }
 
   function goBuild() {
     setStep("build");
     setSel(null);
-    // With nothing written yet, open the first line for typing.
-    if (work.sections.some((sec) => sec.lines.some((l) => l.text.trim() || l.link))) return;
-    const first = work.sections[0]?.lines[0];
-    const l = first ?? newLine();
-    if (!first) setWork((w) => ({ ...w, sections: w.sections.map((x, i) => (i === 0 ? { ...x, lines: [l] } : x)) }));
+    setMenu(false);
+    // With nothing written yet, start a fresh line with the format menu under it.
+    if (work.sections.some((sec) => sec.lines.some((l) => !isEmpty(l)))) return;
+    const l = newLine("text", false);
+    setWork((w) => ({ ...w, sections: w.sections.map((x, i) => (i === 0 ? { ...x, lines: [l] } : x)) }));
     focusId.current = l.id;
     setSel({ kind: "line", id: l.id });
   }
@@ -562,10 +743,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
 
   const [stepNum, stepName] = STEPS[step];
   const allIds = work.sections.flatMap((sec) => sec.lines.map((l) => l.id));
-  const clearSel = () => {
-    setSel(null);
-    setLinkOpen(null);
-  };
+  const clearSel = () => select(null);
 
   const arrow = (d: "up" | "down") => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted-72)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -631,386 +809,443 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
 
   let num = 0;
   let pn = 0;
+  const lastSec = work.sections[work.sections.length - 1];
+  // The menu shows on its own under a fresh line, until a format is picked or something is typed.
+  const anchorMenu = menu || !!(selLine && isEmpty(selLine) && !selLine.picked);
+  const left = MAX_TOTAL - textTotal(work);
+  // Keeps focus in the field while tapping the menu and line tools.
+  const keep = (e: React.MouseEvent) => e.preventDefault();
+
+  const formatMenu = (
+    <div ref={reveal} className={s.menu} role="menu" aria-label="Add">
+      {MENU.map(([type, label, icon]) => (
+        <button key={type} className={s.menuItem} role="menuitem" onMouseDown={keep} onClick={() => pick(type)}>
+          {icon}
+          <span className={s.menuLabel}>{label}</span>
+        </button>
+      ))}
+      <button className={s.menuClose} onMouseDown={keep} onClick={closeMenu} aria-label="Close">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted-60)" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
+          <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />
+        </svg>
+      </button>
+    </div>
+  );
+  const plusRow = (
+    <div className={s.plusRow}>
+      <button className={s.plus} onMouseDown={keep} onClick={() => setMenu(true)} aria-label="Add a line or section">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.6" strokeLinecap="round" aria-hidden>
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      </button>
+    </div>
+  );
+  const nextArrow = (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+  );
+  const marker = (l: Line, n2: string) =>
+    l.format === "num" ? (
+      <span className={s.num}>{n2}</span>
+    ) : l.format === "bullet" ? (
+      <span className={s.bullet} aria-hidden>
+        <span />
+      </span>
+    ) : null;
 
   return (
     <main className={`${shell.screen} ${step === "review" && preview ? s.previewMain : ""}`}>
       {header}
 
-      {step === "title" && (
-        <div className={s.prompt}>
-          <input
-            ref={(el) => {
-              if (el && !el.dataset.f) {
-                el.dataset.f = "1";
-                el.focus();
-              }
-            }}
-            className={s.promptTitle}
-            value={work.title}
-            maxLength={MAX_TITLE}
-            onChange={(e) => edit((w) => ({ ...w, title: e.target.value }))}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                setStep("description");
-              }
-            }}
-            aria-label="Title"
-          />
-          <div className={s.promptText}>What would you like to call this Stack?</div>
-          <button className={s.skip} onClick={() => setStep("description")}>
-            {work.title.trim() ? "Next" : "Skip"}
-          </button>
-        </div>
-      )}
-
-      {step === "description" && (
-        <div className={s.prompt}>
-          <textarea
-            ref={(el) => {
-              if (el && !el.dataset.f) {
-                el.dataset.f = "1";
-                el.focus();
-              }
-            }}
-            className={s.promptDesc}
-            value={work.description}
-            rows={1}
-            maxLength={Math.max(MAX_DESCRIPTION, work.description.length)}
-            onChange={(e) => edit((w) => ({ ...w, description: e.target.value.slice(0, Math.max(MAX_DESCRIPTION, w.description.length)) }))}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                goBuild();
-              }
-            }}
-            aria-label="Description"
-          />
-          <div className={s.promptText}>What is this Stack about?</div>
-          <button className={s.skip} onClick={goBuild}>
-            {work.description.trim() ? "Next" : "Skip"}
-          </button>
-        </div>
-      )}
-      {step === "description" && (
-        <footer className={s.promptFooter}>
-          <button className={s.back} onClick={() => setStep("title")}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M14.5 5.5L8 12l6.5 6.5" />
-            </svg>
-            Back
-          </button>
-        </footer>
-      )}
-
-      {step === "build" && (
+      {step !== "review" && (
         <>
           <div className={s.scroll}>
-            <div className={s.author}>
-              <span className={s.avatar}>{initials(viewer.name)}</span>
-              <span className={s.authorText}>
-                <span className={s.authorName}>{viewer.name}</span>
-                <span className={s.authorMeta}>@{viewer.handle} · {target ? "Only you see these edits until you publish" : "Draft, only you can see it"}</span>
-              </span>
-            </div>
-            <input
-              className={s.buildTitle}
-              data-empty={!work.title || undefined}
+            <div className={s.composeSpacer} style={{ height: step === "title" ? 150 : step === "description" ? 72 : 6 }} />
+            {step === "title" && <div className={s.ask}>What would you like to call this Stack?</div>}
+            <textarea
+              data-fid="title"
+              className={s.titleInput}
+              data-active={step === "title" || undefined}
+              rows={1}
               value={work.title}
-              maxLength={MAX_TITLE}
-              onChange={(e) => edit((w) => ({ ...w, title: e.target.value }))}
-              onFocus={clearSel}
-              placeholder="Add a title"
+              onChange={(e) => {
+                const v = e.target.value.replace(/\s*\n\s*/g, " ");
+                edit((w) => ({ ...w, title: capText(w, v, w.title, MAX_TITLE) }));
+              }}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter") return;
+                e.preventDefault();
+                if (step === "title") toStep("description");
+                else e.currentTarget.blur();
+              }}
+              onFocus={() => {
+                if (step === "description") setStep("title");
+                else if (step === "build") clearSel();
+              }}
+              placeholder={step === "title" ? "Name your Stack" : "Untitled Stack"}
               aria-label="Title"
             />
-            <textarea
-              className={s.buildDesc}
-              data-empty={!work.description || undefined}
-              value={work.description}
-              rows={1}
-              maxLength={Math.max(MAX_DESCRIPTION, work.description.length)}
-              onChange={(e) => edit((w) => ({ ...w, description: e.target.value.slice(0, Math.max(MAX_DESCRIPTION, w.description.length)) }))}
-              onFocus={clearSel}
-              placeholder="Add a description (optional)"
-              aria-label="Description"
-            />
-            <div style={{ height: 14 }} />
-            {problems.length > 0 && (
-              <div className={s.limitBanner} role="alert">
-                <strong>This stack is over a size limit, so it won&apos;t save yet.</strong>
-                <ul>
-                  {problems.map((m) => (
-                    <li key={m}>{m}</li>
-                  ))}
-                </ul>
+            {step === "title" && (
+              <div className={s.composeActions}>
+                <span className={s.composeHint}>Press return to continue</span>
+                <button className={s.nextBtn} data-on={!!work.title.trim() || undefined} onClick={() => toStep("description")}>
+                  {work.title.trim() ? "Next" : "Skip"}
+                  {nextArrow}
+                </button>
               </div>
             )}
-            {!work.sections[0]?.headed && (
-              <button className={s.addSub} onClick={addTopSection}>
-                + Add subsection
-              </button>
+            {step !== "title" && (
+              <>
+                {step === "description" && (
+                  <div className={s.askDesc}>
+                    <span className={s.ask} style={{ padding: 0 }}>
+                      What is this Stack about?
+                    </span>
+                    <span className={s.optional}>Optional</span>
+                  </div>
+                )}
+                <textarea
+                  data-fid="desc"
+                  className={s.descInput}
+                  data-active={step === "description" || undefined}
+                  rows={1}
+                  value={work.description}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    edit((w) => ({ ...w, description: capText(w, v, w.description, MAX_DESCRIPTION) }));
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter" || e.shiftKey) return;
+                    e.preventDefault();
+                    if (step === "description") goBuild();
+                    else e.currentTarget.blur();
+                  }}
+                  onFocus={() => step === "build" && clearSel()}
+                  placeholder={step === "description" ? "A sentence or two on what this is and who it\u2019s for" : "Add a description (optional)"}
+                  aria-label="Description"
+                />
+                {step === "description" && (
+                  <div className={s.composeActions}>
+                    <span className={s.composeHint}>
+                      {work.description.length}/{MAX_DESCRIPTION}
+                    </span>
+                    <button className={s.nextBtn} data-on={!!work.description.trim() || undefined} onClick={goBuild}>
+                      {work.description.trim() ? "Next" : "Skip"}
+                      {nextArrow}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
 
-            {work.sections.map((sec, si) => {
-              const secSel = sel?.kind === "sec" && sel.id === sec.id;
-              return (
-                <div key={sec.id} className={s.section}>
-                  {sec.headed && (
-                    <div className={s.sectionHead}>
-                      <input
-                        data-fid={sec.id}
-                        className={s.sectionInput}
-                        value={sec.label}
-                        maxLength={Math.max(MAX_LABEL, sec.label.length)}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          edit((w) => ({ ...w, sections: w.sections.map((x) => (x.id === sec.id ? { ...x, label: v } : x)) }));
-                        }}
-                        onFocus={() => {
-                          setSel({ kind: "sec", id: sec.id });
-                          setLinkOpen(null);
-                        }}
-                        placeholder="Subsection heading"
-                        aria-label="Subsection heading"
-                      />
-                      {secSel && (
-                        <div className={s.controls}>
-                          <button className={s.control} onClick={() => moveSection(sec.id, -1)} disabled={!(si > 0 && work.sections[si - 1].headed)} aria-label="Move subsection up">
-                            {arrow("up")}
-                          </button>
-                          <button className={s.control} onClick={() => moveSection(sec.id, 1)} disabled={si >= work.sections.length - 1} aria-label="Move subsection down">
-                            {arrow("down")}
-                          </button>
-                          <button className={s.textControl} onClick={() => removeSection(sec.id)}>
-                            Remove heading
-                          </button>
-                          <span style={{ flex: 1 }} />
-                          <button className={s.doneBtn} onClick={clearSel}>
-                            Done
-                          </button>
+            {step === "build" && (
+              <div className={s.buildBody}>
+                {problems.length > 0 && (
+                  <div className={s.limitBanner} role="alert">
+                    <strong>This stack is over a size limit, so it won&apos;t save yet.</strong>
+                    <ul>
+                      {problems.map((m) => (
+                        <li key={m}>{m}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {work.sections.map((sec) => {
+                  const secSel = sel?.kind === "sec" && sel.id === sec.id;
+                  return (
+                    <div key={sec.id} className={s.section}>
+                      {sec.headed && (
+                        <div className={s.sectionHead}>
+                          <div className={s.sectionRule}>
+                            <span className={s.sectionBar} />
+                            <textarea
+                              data-fid={sec.id}
+                              className={s.sectionInput}
+                              rows={1}
+                              value={sec.label}
+                              onChange={(e) => {
+                                const v = e.target.value.replace(/\s*\n\s*/g, " ");
+                                edit((w) => ({ ...w, sections: w.sections.map((x) => (x.id === sec.id ? { ...x, label: capText(w, v, x.label, MAX_LABEL) } : x)) }));
+                              }}
+                              onFocus={() => !secSel && select({ kind: "sec", id: sec.id })}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  doneSec(sec);
+                                }
+                              }}
+                              placeholder="Section heading"
+                              aria-label="Section heading"
+                            />
+                          </div>
+                          {secSel && (
+                            <div className={s.sectionTools}>
+                              <button className={s.textControl} onClick={() => removeSection(sec.id)}>
+                                Remove heading
+                              </button>
+                              <span style={{ flex: 1 }} />
+                              <button className={s.doneBtn} onClick={() => doneSec(sec)}>
+                                Done
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
-                    </div>
-                  )}
+                      {secSel && (anchorMenu ? formatMenu : plusRow)}
 
-                  {sec.lines.map((l) => {
-                    num++;
-                    const n2 = String(num).padStart(2, "0");
-                    const isSel = sel?.kind === "line" && sel.id === l.id;
-                    if (!isSel) {
-                      return (
-                        <div
-                          key={l.id}
-                          className={`${s.line} ${l.id === sec.lines[sec.lines.length - 1].id ? "" : s.lineDivided}`}
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => {
-                            focusId.current = l.id;
-                            setSel({ kind: "line", id: l.id });
-                            setLinkOpen(null);
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              focusId.current = l.id;
-                              setSel({ kind: "line", id: l.id });
-                            }
-                          }}
-                        >
-                          <span className={s.num}>{n2}</span>
-                          <div className={s.lineBody}>
-                            <div className={l.text ? s.lineText : s.lineEmpty}>{l.text || "Empty line — tap to write"}</div>
-                            {l.note.trim() && <div className={s.lineNote}>{l.note}</div>}
-                            {l.link && <span className={s.visit}>Visit site ↗</span>}
-                          </div>
-                        </div>
-                      );
-                    }
-                    const open = linkOpen === l.id;
-                    return (
-                      <div key={l.id} className={s.lineEdit}>
-                        <div className={s.lineEditRow}>
-                          <span className={s.num} style={{ paddingTop: 2 }}>
-                            {n2}
-                          </span>
-                          <div className={s.lineInputs}>
-                          <textarea
-                            data-fid={l.id}
-                            className={s.lineInput}
-                            value={l.text}
-                            rows={1}
-                            // Older headings can be longer; they keep their text so it can be trimmed by hand.
-                            maxLength={Math.max(MAX_HEAD, l.text.length)}
-                            // Lines are single-line: pasted line breaks become spaces; Enter adds the next line.
-                            onChange={(e) => {
-                              const v = e.target.value.replace(/\s*\n\s*/g, " ").slice(0, Math.max(MAX_HEAD, l.text.length));
-                              mapLine(l.id, (x) => ({ ...x, text: v }));
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                addLine(sec.id, l.id);
-                              }
-                            }}
-                            placeholder={num === 1 ? "Write your first line" : "Write a line"}
-                            aria-label={`Line ${num}`}
-                          />
-                          <textarea
-                            className={s.noteInput}
-                            value={l.note}
-                            rows={1}
-                            maxLength={Math.max(MAX_NOTE, l.note.length)}
-                            onChange={(e) => {
-                              const v = e.target.value.replace(/\s*\n\s*/g, " ").slice(0, Math.max(MAX_NOTE, l.note.length));
-                              mapLine(l.id, (x) => ({ ...x, note: v }));
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                addLine(sec.id, l.id);
-                              }
-                            }}
-                            placeholder="Add a subheading (optional)"
-                            aria-label={`Note for line ${num}`}
-                          />
-                          </div>
-                        </div>
-                        <div className={s.lineTools}>
-                          {l.link && !open && <LinkCard link={l.link} onRemove={() => mapLine(l.id, (x) => ({ ...x, link: "" }))} />}
-                          {open && (
-                            <>
-                              <div className={s.linkField}>
-                                <span className={s.linkArrowIcon}>↗</span>
-                                <input
-                                  data-fid={`link-${l.id}`}
-                                  className={s.linkInput}
-                                  type="url"
-                                  inputMode="url"
-                                  autoCapitalize="none"
-                                  autoCorrect="off"
-                                  value={linkDraft}
-                                  onChange={(e) => setLinkDraft(e.target.value)}
-                                  onPaste={(e) => {
-                                    const t = e.clipboardData.getData("text");
-                                    if (t.trim()) {
-                                      e.preventDefault();
-                                      submitLink(l.id, t);
-                                    }
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                      e.preventDefault();
-                                      submitLink(l.id, linkDraft);
-                                    }
-                                  }}
-                                  placeholder="Paste a link"
-                                  aria-label={`Link for line ${num}`}
-                                />
-                              </div>
-                              <div className={s.linkButtons}>
-                                <button className={s.pillPrimary} onClick={() => submitLink(l.id, linkDraft)}>
-                                  Add
-                                </button>
-                                <button
-                                  className={s.pillSecondary}
-                                  onClick={() => {
-                                    setLinkOpen(null);
-                                    setLinkDraft("");
-                                  }}
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </>
-                          )}
-                          {!l.link && !open && (
-                            <button
-                              className={s.addLink}
-                              onClick={() => {
-                                focusId.current = `link-${l.id}`;
-                                setLinkOpen(l.id);
-                                setLinkDraft("");
-                              }}
+                      {sec.lines.map((l) => {
+                        if (l.format === "num") num++;
+                        const n2 = String(num).padStart(2, "0");
+                        const list = isListFormat(l.format);
+                        const isSel = sel?.kind === "line" && sel.id === l.id;
+                        const lastInSec = l.id === sec.lines[sec.lines.length - 1].id;
+                        if (!isSel) {
+                          return (
+                            <div
+                              key={l.id}
+                              className={`${s.line} ${lastInSec ? "" : s.lineDivided}`}
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => select({ kind: "line", id: l.id })}
+                              onKeyDown={(e) => e.key === "Enter" && select({ kind: "line", id: l.id })}
                             >
-                              + Add link
-                            </button>
-                          )}
-                          <div className={s.controls} style={{ marginTop: 10 }}>
-                            <button className={s.control} onClick={() => moveLine(l.id, -1)} disabled={l.id === allIds[0]} aria-label="Move line up">
-                              {arrow("up")}
-                            </button>
-                            <button className={s.control} onClick={() => moveLine(l.id, 1)} disabled={l.id === allIds[allIds.length - 1]} aria-label="Move line down">
-                              {arrow("down")}
-                            </button>
-                            <button className={s.control} onClick={() => deleteLine(l.id)} aria-label="Delete line">
-                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--muted-72)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                                <path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12" />
-                              </svg>
-                            </button>
-                            <span className={s.addedBy}>Added by you</span>
-                            <button className={s.doneBtn} onClick={clearSel}>
-                              Done
-                            </button>
+                              {marker(l, n2)}
+                              <div className={s.lineBody}>
+                                <div className={l.format === "text" ? s.para : l.format === "bold" ? s.boldLine : s.head} data-plain={(list && !l.bold) || undefined} data-empty={!l.text || undefined}>
+                                  {l.text || (l.format === "text" ? "Empty paragraph \u2014 tap to write" : "Empty line \u2014 tap to write")}
+                                </div>
+                                {list && l.note.trim() && <div className={s.lineNote}>{l.note}</div>}
+                                {l.link && (
+                                  <span className={s.visit}>
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                      <path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2" />
+                                      <path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2" />
+                                    </svg>
+                                    {linkMeta(l.link).domain}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        }
+                        const open = linkOpen === l.id;
+                        const tm = maxText(l.format);
+                        const full = l.text.length >= tm || (list && l.note.length >= MAX_NOTE) || left <= 0;
+                        const count = [
+                          l.text.length >= tm * 0.8 && `${l.text.length}/${tm}`,
+                          list && l.note.length >= MAX_NOTE * 0.8 && `detail ${l.note.length}/${MAX_NOTE}`,
+                          left <= 500 && `${n0(Math.max(left, 0))} left in stack`,
+                        ]
+                          .filter(Boolean)
+                          .join(" \u00b7 ");
+                        return (
+                          <div key={l.id}>
+                            <div className={s.lineEdit}>
+                              <button className={s.lineDelete} onMouseDown={keep} onClick={() => deleteLine(l.id)} aria-label="Delete line">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted-66)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                  <path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12" />
+                                </svg>
+                              </button>
+                              <div className={s.lineEditRow}>
+                                {marker(l, n2)}
+                                <div className={s.lineInputs}>
+                                  <textarea
+                                    data-fid={l.id}
+                                    className={s.lineInput}
+                                    data-format={l.format}
+                                    data-plain={(list && !l.bold) || undefined}
+                                    value={l.text}
+                                    rows={1}
+                                    // Paragraphs keep line breaks (Shift+Enter); other lines are one line.
+                                    onChange={(e) => {
+                                      const raw = l.format === "text" ? e.target.value : e.target.value.replace(/\s*\n\s*/g, " ");
+                                      mapLine(l.id, (x, w) => ({ ...x, text: capText(w, raw, x.text, maxText(x.format)) }));
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key !== "Enter" || e.shiftKey) return;
+                                      e.preventDefault();
+                                      if (!list) return l.text.trim() ? addLine(sec.id, l.id, "text") : undefined;
+                                      // Enter on an empty list line ends the list; otherwise it moves to the detail.
+                                      if (!l.text.trim()) return mapLine(l.id, (x) => ({ ...x, format: "text", picked: false, note: "" }));
+                                      document.querySelector<HTMLTextAreaElement>(`[data-fid="note-${l.id}"]`)?.focus();
+                                    }}
+                                    placeholder={l.format === "text" ? (l.picked ? "Write a paragraph" : "Start writing, or pick a format below") : l.format === "bold" ? "Bold line" : "Heading"}
+                                    aria-label={l.format === "text" ? "Paragraph" : l.format === "bold" ? "Bold line" : "Heading"}
+                                  />
+                                  {list && (
+                                    <textarea
+                                      data-fid={`note-${l.id}`}
+                                      className={s.noteInput}
+                                      value={l.note}
+                                      rows={1}
+                                      onChange={(e) => {
+                                        const raw = e.target.value.replace(/\s*\n\s*/g, " ");
+                                        mapLine(l.id, (x, w) => ({ ...x, note: capText(w, raw, x.note, MAX_NOTE) }));
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (e.key === "Enter" && !e.shiftKey) {
+                                          e.preventDefault();
+                                          doneLine(sec.id, l);
+                                        }
+                                      }}
+                                      placeholder="Add a detail (optional)"
+                                      aria-label="Detail"
+                                    />
+                                  )}
+                                </div>
+                              </div>
+                              <div className={s.lineTools} data-list={list || undefined}>
+                                {l.link && !open && <LinkCard link={l.link} onRemove={() => mapLine(l.id, (x) => ({ ...x, link: "" }))} />}
+                                {open && (
+                                  <>
+                                    <div className={s.linkField}>
+                                      <span className={s.linkArrowIcon}>↗</span>
+                                      <input
+                                        data-fid={`link-${l.id}`}
+                                        className={s.linkInput}
+                                        type="url"
+                                        inputMode="url"
+                                        autoCapitalize="none"
+                                        autoCorrect="off"
+                                        value={linkDraft}
+                                        onChange={(e) => setLinkDraft(e.target.value)}
+                                        onPaste={(e) => {
+                                          const t = e.clipboardData.getData("text");
+                                          if (t.trim()) {
+                                            e.preventDefault();
+                                            submitLink(l.id, t);
+                                          }
+                                        }}
+                                        onKeyDown={(e) => {
+                                          if (e.key === "Enter") {
+                                            e.preventDefault();
+                                            submitLink(l.id, linkDraft);
+                                          }
+                                        }}
+                                        placeholder="Paste a link"
+                                        aria-label="Link"
+                                      />
+                                    </div>
+                                    <div className={s.linkButtons}>
+                                      <button className={s.pillPrimary} onClick={() => submitLink(l.id, linkDraft)}>
+                                        Add
+                                      </button>
+                                      <button
+                                        className={s.pillSecondary}
+                                        onClick={() => {
+                                          setLinkOpen(null);
+                                          setLinkDraft("");
+                                        }}
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
+                                <div className={s.toolRow}>
+                                  {list && (
+                                    <button
+                                      className={`${s.toolBtn} ${s.boldToggle}`}
+                                      aria-pressed={l.bold}
+                                      aria-label="Bold heading"
+                                      onMouseDown={keep}
+                                      onClick={() => {
+                                        focusId.current = l.id;
+                                        mapLine(l.id, (x) => ({ ...x, bold: !x.bold }));
+                                      }}
+                                    >
+                                      B
+                                    </button>
+                                  )}
+                                  {!l.link && !open && (
+                                    <button
+                                      className={s.addLink}
+                                      onClick={() => {
+                                        focusId.current = `link-${l.id}`;
+                                        setLinkOpen(l.id);
+                                        setLinkDraft("");
+                                      }}
+                                    >
+                                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                        <path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2" />
+                                        <path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2" />
+                                      </svg>
+                                      Add link
+                                    </button>
+                                  )}
+                                  <button className={s.toolBtn} onMouseDown={keep} onClick={() => moveLine(l.id, -1)} disabled={l.id === allIds[0]} aria-label="Move line up">
+                                    {arrow("up")}
+                                  </button>
+                                  <button className={s.toolBtn} onMouseDown={keep} onClick={() => moveLine(l.id, 1)} disabled={l.id === allIds[allIds.length - 1]} aria-label="Move line down">
+                                    {arrow("down")}
+                                  </button>
+                                  <span className={s.charCount} data-full={(count && full) || undefined}>
+                                    {count}
+                                  </span>
+                                  <button className={s.lineDone} onClick={() => doneLine(sec.id, l)}>
+                                    Done
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                            {anchorMenu ? formatMenu : plusRow}
                           </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  <button className={s.addLine} onClick={() => addLine(sec.id)}>
-                    <span className={s.addLinePlus}>+</span>
-                    Add line
-                  </button>
-                </div>
-              );
-            })}
-            <button className={s.addSubBottom} onClick={addSection}>
-              + Add subsection
-            </button>
+                        );
+                      })}
+                      {!sel && sec.id === lastSec.id && (anchorMenu ? formatMenu : plusRow)}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-          {target ? (
-            <footer className={`${s.footer} ${s.editFooter}`}>
-              <button className={s.primary} disabled={busy} onClick={() => applyEdit(false)}>
-                {busy && !shareOpen ? "Publishing…" : "Publish"}
-              </button>
-              <button className={s.shareUpdate} aria-disabled={!shareState?.can} onClick={openShare}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5" />
-                  <path d="M20 4v4.5h-4.5" />
-                  <path d="M20 12a8 8 0 0 1-13.7 5.7L4 15.5" />
-                  <path d="M4 20v-4.5h4.5" />
-                </svg>
-                Publish & Share Update
-              </button>
-              <div className={s.shareHint}>{shareState?.hint}</div>
-            </footer>
-          ) : (
-            <footer className={s.footer}>
-              <button
-                className={s.back}
-                onClick={() => {
-                  setStep("description");
-                  clearSel();
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M14.5 5.5L8 12l6.5 6.5" />
-                </svg>
-                Back
-              </button>
-              <button
-                className={s.primary}
-                style={{ flex: 1 }}
-                aria-disabled={!(n || k)}
-                onClick={() => {
-                  if (!(n || k)) return toast("Write a line first.");
-                  setStep("review");
-                  clearSel();
-                }}
-              >
-                Finalize
-              </button>
-            </footer>
-          )}
+          {step === "build" &&
+            (target ? (
+              <footer className={`${s.footer} ${s.editFooter}`}>
+                <button className={s.primary} disabled={busy} onClick={() => applyEdit(false)}>
+                  {busy && !shareOpen ? "Publishing…" : "Publish"}
+                </button>
+                <button className={s.shareUpdate} aria-disabled={!shareState?.can} onClick={openShare}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5" />
+                    <path d="M20 4v4.5h-4.5" />
+                    <path d="M20 12a8 8 0 0 1-13.7 5.7L4 15.5" />
+                    <path d="M4 20v-4.5h4.5" />
+                  </svg>
+                  Publish & Share Update
+                </button>
+                <div className={s.shareHint}>{shareState?.hint}</div>
+              </footer>
+            ) : (
+              <footer className={s.footer}>
+                <button
+                  className={s.back}
+                  onClick={() => {
+                    clearSel();
+                    toStep("description");
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M14.5 5.5L8 12l6.5 6.5" />
+                  </svg>
+                  Back
+                </button>
+                <button
+                  className={s.primary}
+                  style={{ flex: 1 }}
+                  aria-disabled={!(n || k)}
+                  onClick={() => {
+                    if (!(n || k)) return toast("Write a line first.");
+                    setStep("review");
+                    clearSel();
+                  }}
+                >
+                  Finalize
+                </button>
+              </footer>
+            ))}
         </>
       )}
 
@@ -1123,11 +1358,13 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                 sec.lines
                   .filter((l) => l.text.trim())
                   .map((l, i) => ({
-                    num: String(++pn).padStart(2, "0"),
+                    num: l.format === "num" ? String(++pn).padStart(2, "0") : l.format === "bullet" ? "•" : "",
                     label: i === 0 && sec.headed && sec.label.trim() ? sec.label : null,
                     head: l.text,
-                    note: l.note.trim(),
+                    note: isListFormat(l.format) ? l.note.trim() : "",
                     link: l.link || null,
+                    format: l.format,
+                    bold: !isListFormat(l.format) || l.bold,
                   })),
               )}
               footer={

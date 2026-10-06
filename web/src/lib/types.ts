@@ -1,5 +1,14 @@
-/** A line of a stack. `note` is missing until the line_notes_location migration has run. */
-export type Line = { text: string; link: string | null; note?: string | null };
+/**
+ * How a line shows: numbered, bulleted, a paragraph or a bold line. Lines saved before formats existed have
+ * none and follow the stack's style.
+ */
+export type LineFormat = "num" | "bullet" | "text" | "bold";
+
+/**
+ * A line of a stack. `note` is missing until the line_notes_location migration has run; `format` and `bold`
+ * (false when a numbered or bulleted heading isn't bold) until the line_formats_limits migration.
+ */
+export type Line = { text: string; link: string | null; note?: string | null; format?: LineFormat; bold?: boolean };
 export type Section = { label: string | null; lines: Line[] };
 
 export type Author = { id: string; handle: string; name: string };
@@ -75,8 +84,9 @@ export type Profile = {
 };
 
 /** A draft being edited in the create screen. */
-export type DraftLine = { text: string; link: string; note?: string; linkOpen?: boolean };
-export type DraftSection = { label: string; lines: DraftLine[] };
+export type DraftLine = { text: string; link: string; note?: string; format: LineFormat; bold?: boolean; linkOpen?: boolean };
+/** `headed` is whether the section shows a heading (the first section can go without one). */
+export type DraftSection = { label: string; headed?: boolean; lines: DraftLine[] };
 export type Draft = {
   id: string | null;
   title: string;

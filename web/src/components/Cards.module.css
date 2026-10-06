@@ -294,6 +294,42 @@
   color: var(--text-bright);
 }
 
+/* A numbered or bulleted line whose heading isn't bold. */
+.feedPlain {
+  font-weight: 400;
+}
+
+.feedBullet {
+  flex-shrink: 0;
+  width: 20px;
+  height: 21px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feedBullet span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.feedPara {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--text-bright);
+  white-space: pre-wrap;
+}
+
+.feedBoldLine {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.35;
+  color: var(--text-bright);
+}
+
 .feedNote {
   font-size: 13.5px;
   line-height: 1.5;

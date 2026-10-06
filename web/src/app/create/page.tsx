@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { createClient, getViewerId } from "@/lib/supabase/server";
+import { lineFormat } from "@/lib/format";
 import type { Draft, EditTarget, Section } from "@/lib/types";
 import CreateScreen from "./CreateScreen";
 
@@ -9,7 +10,7 @@ const blank = (): Draft => ({
   id: null,
   title: "",
   description: "",
-  sections: [{ label: "", lines: [{ text: "", link: "" }] }],
+  sections: [{ label: "", lines: [] }],
   tags: [],
   style: "numbered",
   forkedFromId: null,
@@ -17,13 +18,17 @@ const blank = (): Draft => ({
   location: "",
 });
 
-const toDraftSections = (sections: Section[]) =>
-  sections.map((sec) => ({ label: sec.label ?? "", lines: sec.lines.map((l) => ({ text: l.text, link: l.link ?? "", note: l.note ?? "" })) }));
+// Lines saved before formats existed take the stack's style (numbered or bulleted).
+const toDraftSections = (sections: Section[], style: Draft["style"]) =>
+  sections.map((sec) => ({
+    label: sec.label ?? "",
+    lines: sec.lines.map((l) => ({ text: l.text, link: l.link ?? "", note: l.note ?? "", format: lineFormat(l, style), bold: l.bold !== false })),
+  }));
 
 type Row = { id: string; title: string; description?: string; sections: Section[]; style: Draft["style"]; forked_from_id: string | null; visibility?: Draft["visibility"]; location?: string };
 
 function toDraft(d: Row, id: string | null, tags: string[]): Draft {
-  const sections = toDraftSections(d.sections);
+  const sections = toDraftSections(d.sections, d.style);
   return {
     id,
     title: d.title,
