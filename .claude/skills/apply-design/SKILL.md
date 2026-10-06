@@ -97,11 +97,17 @@ Add new app-only features to this list as they ship.
   page and feed cards, bold dark titles, sentence-case subsection titles with a short orange bar
   and a dark rule, gray item numbers (`--num`), and links as a blue pill with the domain
   (`--link`, `--link-bg`). This replaced the older rule that kept feed text gray.
-- Stack size limits (set by the user; the database enforces them in `save_stack` and the
-  stacks trigger, and `web/src/lib/format.ts` has the same numbers): title 120, description
-  300, subsection title 100, at most 20 subsections and 100 items, item heading 120, item
-  note 500, and 25,000 characters of visible text in all. Keep these even where the design
-  shows other numbers. Comments and repost notes stay at 500 (not 140).
+- Stack size limits (set by the user from the "Create Flow Screen Typography" design; the
+  database enforces them in `normalize_sections` and the stacks trigger, and
+  `web/src/lib/format.ts` has the same numbers): title 60, description 180, section heading
+  60, at most 20 sections and 100 lines, a paragraph 360, a numbered/bulleted/bold line's
+  heading 60, a numbered/bulleted line's detail 300, and 6,000 characters of visible text in
+  all. Comments and repost notes stay at 500 (not 140). Existing stacks were trimmed to these
+  when they were introduced.
+- Lines have a format: numbered, bulleted, paragraph or bold (`format` on each line; older
+  lines without one follow the stack's numbered/bulleted style). Numbered and bulleted
+  headings can turn bold off. Edit buttons stay "Publish" / "Publish & Share Update" (as
+  `docs/user-flows/edit-stack.md` says) even where the design says "Save".
 - "Unlisted" is called "Invite Only" in the UI, but the description stays "Only people with
   the link" (there are no invites). The database value is still `unlisted`.
 - Tags aren't shown or edited any more (replaced by the stack's location); existing tags stay
