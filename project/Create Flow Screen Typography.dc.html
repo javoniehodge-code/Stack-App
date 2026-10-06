@@ -441,7 +441,7 @@
 
   <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
     <div style="position:absolute;left:20px;right:20px;bottom:104px;display:flex;justify-content:center;pointer-events:none;z-index:30;">
-      <div style="display:flex;align-items:center;gap:14px;pointer-events:auto;background:oklch(19.4% 0.006 80);color:oklch(99.6% 0.002 80);font-size:13px;font-weight:500;padding:11px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.2);text-align:center;line-height:1.4;"><span>{{ toast }}</span><sc-if value="{{ toastUndo }}" hint-placeholder-val="{{ false }}"><span onMouseDown="{{ keep }}" onClick="{{ undo }}" style="font-weight:700;color:oklch(80% 0.12 55);cursor:pointer;padding:4px 0;">Undo</span></sc-if></div>
+      <div style="display:flex;align-items:center;gap:14px;pointer-events:auto;background:oklch(19.4% 0.006 80);color:oklch(99.6% 0.002 80);font-size:13px;font-weight:500;padding:11px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.2);text-align:center;line-height:1.4;"><span>{{ toast }}</span><sc-if value="{{ toastUndo }}" hint-placeholder-val="{{ false }}"><span onMouseDown="{{ keep }}" onClick="{{ toastAct }}" style="font-weight:700;color:oklch(80% 0.12 55);cursor:pointer;padding:4px 0;white-space:nowrap;">{{ toastActLabel }}</span></sc-if></div>
     </div>
   </sc-if>
 </div>
@@ -547,13 +547,15 @@ class Component extends DCLogic {
       if (empty || !line.picked) {
         if (type === 'section') { const [nd, sid] = this._splitSection(d, line.id, empty ? '' : line.text.trim(), true); this._goSec(nd, sid); return; }
         this._focus = line.id; const mid = this._mapLine(d, line.id, x => ({ ...x, fmt: type, picked: true, bold: this._fmtOf(x) === 'text' ? !!x.textBold : x.bold }));
-        if (type === 'num' || type === 'bullet') { const [a, b] = this._find(mid, line.id); const [nd, cnt] = this._reflow(mid, a, b, type); this.upd(() => nd); this._reflowToast(mid, cnt, type, line.id); return; }
+        if (type === 'num' || type === 'bullet') { const [a, b] = this._find(mid, line.id); const [nd, cnt] = this._reflow(mid, a, b, type); this.upd(() => nd); if (!this._offerParas(nd, a, b, type, line.id) && cnt) this._reflowToast(mid, cnt, type, line.id); return; }
         this.upd(() => mid); return;
       }
       if (type === 'section') { const [nd, sid] = this._splitSection(d, line.id, '', false); this._goSec(nd, sid); return; }
-      const [a, b] = this._find(d, line.id);
-      if (type === 'num' || type === 'bullet') { const [nd, cnt] = this._reflow(d, a, b + 1, type); if (cnt) { this.upd(() => nd); this._reflowToast(d, cnt, type, null); } }
-      this.addLine(d.sections[a].id, line.id, type, true); return;
+      this._focus = line.id;
+      if (this._fmtOf(line) === type) { this.forceUpdate(); return; }
+      const mid = this._mapLine(d, line.id, x => this._convert(x, type));
+      if (type === 'num' || type === 'bullet') { const [a, b] = this._find(mid, line.id); const [nd, cnt] = this._reflow(mid, a, b, type); this.upd(() => nd); if (!this._offerParas(nd, a, b, type, line.id) && cnt) this._reflowToast(mid, cnt, type, line.id); return; }
+      this.upd(() => mid); return;
     }
     if (sel && sel.kind === 'sec') {
       if (type === 'section') { const i = d.sections.findIndex(x => x.id === sel.id); const sid = this._id(); const secs = [...d.sections]; secs.splice(i + 1, 0, { id: sid, headed: true, label: '', lines: [] }); this._goSec({ ...d, sections: secs }, sid); return; }
@@ -628,7 +630,36 @@ class Component extends DCLogic {
     clearTimeout(this._st); this._st = setTimeout(() => this.setState({ save: 'saved' }), 700);
   }
   upd(fn) { this._edited = true; this.setState(s => ({ draft: fn(s.draft) })); this.dirty(); }
-  showToast(msg, undo) { this.setState({ toast: msg, toastUndo: !!undo }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: '', toastUndo: false }), undo ? 4500 : 2400); }
+  showToast(msg, act) { if (act === true) act = { label: 'Undo', fn: () => this._doUndo() }; this._toastFn = act ? act.fn : null; this.setState({ toast: msg, toastUndo: !!act, toastActLabel: act ? act.label : '' }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: '', toastUndo: false }), act ? 5000 : 2400); }
+  _doUndo() { if (!this._undoDraft) return; const dd = this._undoDraft; this._undoDraft = null; if (this._undoFocus) this._focus = this._undoFocus; clearTimeout(this._tt); this.setState({ toast: '', toastUndo: false }); this.upd(() => dd); }
+  _toList(x, type) {
+    const t = (x.text || '').replace(/\s*\n+\s*/g, ' ').trim();
+    let head = t, rest = '';
+    if (t.length > 60) { const m = t.match(/^(.{1,60}?[.!?])(\s|$)/); if (m) head = m[1]; else { const cut = t.slice(0, 60); const sp = cut.lastIndexOf(' '); head = sp > 20 ? cut.slice(0, sp) : cut; } rest = t.slice(head.length).trim(); }
+    const sub = [rest, (x.sub || '').trim()].filter(Boolean).join(' ');
+    return { ...x, fmt: type, text: head, sub, bold: !!x.textBold, picked: true };
+  }
+  _offerParas(d, s, endIdx, type, focusId) {
+    const lines = d.sections[s].lines, ids = [];
+    for (let j = endIdx + 1; j < lines.length; j++) { const l = lines[j]; if (this._fmtOf(l) !== 'text') break; if (l.text.trim() || l.link) ids.push(l.id); }
+    if (!ids.length) return false;
+    const n = ids.length, kind = type === 'num' ? 'numbered' : 'bullets';
+    this.showToast('Make the ' + (n === 1 ? 'paragraph' : n + ' paragraphs') + ' below ' + kind + ' too?', { label: 'Convert', fn: () => {
+      const before = this.state.draft; this._undoDraft = before; this._undoFocus = focusId;
+      this.upd(dd => ({ ...dd, sections: dd.sections.map(sec => ({ ...sec, lines: sec.lines.map(l => ids.includes(l.id) && this._fmtOf(l) === 'text' ? this._toList(l, type) : l) })) }));
+      if (focusId) this._focus = focusId;
+      this.showToast('Converted ' + (n === 1 ? '1 paragraph' : n + ' paragraphs') + ' to ' + kind, true);
+    } });
+    return true;
+  }
+  _convert(x, type) {
+    const f = this._fmtOf(x), isL = t => t === 'num' || t === 'bullet';
+    if (isL(type)) { if (f === 'text') return this._toList(x, type); if (f === 'bold') return { ...x, fmt: type, bold: true, sub: x.sub || '', picked: true }; return { ...x, fmt: type, picked: true }; }
+    const head = (x.text || '').trim(), sub = isL(f) ? (x.sub || '').trim() : '';
+    const joined = head + (sub ? (head ? (/[.!?]$/.test(head) ? ' ' : '. ') : '') + sub : '');
+    if (type === 'text') return { ...x, fmt: 'text', text: joined, sub: '', textBold: isL(f) ? x.bold !== false : f === 'bold' ? false : !!x.textBold, picked: true };
+    return { ...x, fmt: 'bold', text: joined.replace(/\s*\n+\s*/g, ' '), sub: '', picked: true };
+  }
   _mapLine(d, id, fn) { return { ...d, sections: d.sections.map(sec => ({ ...sec, lines: sec.lines.map(ln => ln.id === id ? fn(ln) : ln) })) }; }
   _ref(id) { return (el) => { if (el && this._focus === id) { this._focus = null; requestAnimationFrame(() => { try { el.focus({ preventScroll: true }); setTimeout(() => { if (el.isConnected && document.activeElement !== el) { try { el.focus({ preventScroll: true }); const v2 = el.value || ''; el.setSelectionRange && el.setSelectionRange(v2.length, v2.length); } catch (e) {} } }, 160); setTimeout(() => { const c = this._scrollEl; if (c && c.contains(el)) { const r = el.getBoundingClientRect(), cr = c.getBoundingClientRect(); const box = el.closest('[data-line-box]') || el; const br = box.getBoundingClientRect(); if (br.bottom > cr.bottom - 16) c.scrollTop += br.bottom - cr.bottom + 24; else if (r.top < cr.top + 8) c.scrollTop -= cr.top - r.top + 24; } }, 80); const v = el.value || ''; el.setSelectionRange && el.setSelectionRange(v.length, v.length); } catch (e) {} }); } }; }
   _find(d, id) { for (let s = 0; s < d.sections.length; s++) { const i = d.sections[s].lines.findIndex(l => l.id === id); if (i >= 0) return [s, i]; } return [-1, -1]; }
@@ -836,7 +867,7 @@ class Component extends DCLogic {
     return {
       ...mStyle,
       toastUndo: !!s.toastUndo,
-      undo: () => { if (!this._undoDraft) return; const dd = this._undoDraft; this._undoDraft = null; if (this._undoFocus) this._focus = this._undoFocus; clearTimeout(this._tt); this.setState({ toast: '', toastUndo: false }); this.upd(() => dd); },
+      toastActLabel: s.toastActLabel || '', toastAct: () => { const fn = this._toastFn; this._toastFn = null; clearTimeout(this._tt); this.setState({ toast: '', toastUndo: false }); if (fn) fn(); },
       showBuildFooter: s.step === 'build',
       keep: (e) => e.preventDefault(),
       openMenu: () => this.setState({ menu: true }),
