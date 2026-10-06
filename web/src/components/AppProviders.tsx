@@ -76,7 +76,7 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
   const showToast = useCallback((msg: string, action?: ToastAction) => {
     setToast({ msg, action });
     clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(null), action ? 4500 : 1800);
+    toastTimer.current = setTimeout(() => setToast(null), action ? 5000 : 1800);
   }, []);
   useEffect(() => () => clearTimeout(toastTimer.current), []);
 

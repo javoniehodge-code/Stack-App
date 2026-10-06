@@ -136,6 +136,37 @@ function textTotal(w: Work) {
  * Cuts a field's new value to its own limit and to what's left of the stack's total. Text that was already
  * there is never cut, so an older, longer value can still be trimmed by hand.
  */
+/**
+ * A line with text switched to another format. A paragraph becoming a list line keeps its first sentence (or
+ * the first 60 characters, at a word break) as the heading and moves the rest into the detail; a list line
+ * becoming a paragraph or bold line joins its heading and detail. Nothing is cut: anything over a limit shows
+ * in the counter until it's shortened.
+ */
+function convertLine(x: Line, type: LineFormat): Line {
+  const flat = (t: string) => t.replace(/\s*\n+\s*/g, " ").trim();
+  if (isListFormat(type)) {
+    if (x.format === "bold") return { ...x, format: type, bold: true, picked: true };
+    if (x.format !== "text") return { ...x, format: type, picked: true };
+    const t = flat(x.text);
+    let head = t;
+    if (t.length > MAX_HEAD) {
+      const m = t.match(new RegExp(`^(.{1,${MAX_HEAD}}?[.!?])(\\s|$)`));
+      if (m) head = m[1];
+      else {
+        const cut = t.slice(0, MAX_HEAD);
+        const sp = cut.lastIndexOf(" ");
+        head = sp > 20 ? cut.slice(0, sp) : cut;
+      }
+    }
+    const note = [t.slice(head.length).trim(), x.note.trim()].filter(Boolean).join(" ");
+    return { ...x, format: type, text: head, note, bold: false, picked: true };
+  }
+  const head = x.text.trim();
+  const note = isListFormat(x.format) ? x.note.trim() : "";
+  const joined = head + (note ? (head ? (/[.!?]$/.test(head) ? " " : ". ") : "") + note : "");
+  return { ...x, format: type, text: type === "bold" ? flat(joined) : joined, note: "", picked: true };
+}
+
 function capText(w: Work, next: string, prev: string, max: number) {
   const room = MAX_TOTAL - textTotal(w) + prev.length;
   const cap = Math.max(0, Math.min(max, room));
@@ -456,8 +487,9 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   }
 
   /**
-   * A choice from the + menu. On a fresh line it sets that line's format (Section turns it into a heading);
-   * otherwise it adds a line of that format, or a new section, after what's selected.
+   * A choice from the + menu. On a selected line it changes that line's format (Section on a fresh line turns it
+   * into a heading, on a line with text starts a new section after it); otherwise it adds a line of that format,
+   * or a new section, after what's selected.
    */
   function pick(type: Pick) {
     const w = work;
@@ -476,17 +508,19 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
         const mid = mapLineIn(w, line.id, (x) => ({ ...x, format: type, picked: true, text: (type === "text" ? x.text : x.text.replace(/\s*\n\s*/g, " ")).slice(0, maxText(type)) }));
         const [next, n] = isListFormat(type) ? reflow(mid, si, li, type) : [mid, 0];
         edit(() => next);
+        if (isListFormat(type) && offerParas(next, si, li, type, line.id)) return;
         return reflowToast(mid, n, type, line.id);
       }
       if (newSection) return goSection(...splitSection(w, line.id, "", false));
-      if (isListFormat(type)) {
-        const [next, n] = reflow(w, si, li + 1, type);
-        if (n) {
-          edit(() => next);
-          reflowToast(w, n, type, null);
-        }
-      }
-      return addLine(w.sections[si].id, line.id, type);
+      // A line with text changes format in place.
+      focusId.current = line.id;
+      if (line.format === type) return;
+      const mid = mapLineIn(w, line.id, (x) => convertLine(x, type));
+      if (!isListFormat(type)) return edit(() => mid);
+      const [next, n] = reflow(mid, si, li, type);
+      edit(() => next);
+      if (!offerParas(next, si, li, type, line.id)) reflowToast(mid, n, type, line.id);
+      return;
     }
     if (sel?.kind === "sec") {
       if (newSection) {
@@ -533,6 +567,38 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
         edit(() => before);
       },
     });
+  }
+
+  /**
+   * After a line becomes numbered or bulleted, offers to convert the paragraphs right below it in the same
+   * section too (Convert, then Undo). Returns whether there were any to offer.
+   */
+  function offerParas(w: Work, si: number, li: number, type: LineFormat, focus: string) {
+    const ids: string[] = [];
+    for (const l of w.sections[si].lines.slice(li + 1)) {
+      if (l.format !== "text") break;
+      if (l.text.trim() || l.link) ids.push(l.id);
+    }
+    if (!ids.length) return false;
+    const n = ids.length;
+    const kind = type === "num" ? "numbered" : "bullets";
+    const what = n === 1 ? "paragraph" : `${n} paragraphs`;
+    toast(`Make the ${what} below ${kind} too?`, {
+      label: "Convert",
+      run: () => {
+        const before = workRef.current;
+        focusId.current = focus;
+        edit((cur) => ({ ...cur, sections: cur.sections.map((sec) => ({ ...sec, lines: sec.lines.map((l) => (ids.includes(l.id) && l.format === "text" ? convertLine(l, type) : l)) })) }));
+        toast(`Converted ${n === 1 ? "1 paragraph" : `${n} paragraphs`} to ${kind}`, {
+          label: "Undo",
+          run: () => {
+            focusId.current = focus;
+            edit(() => before);
+          },
+        });
+      },
+    });
+    return true;
   }
 
   /** Closing the menu keeps a fresh line as a paragraph. */
