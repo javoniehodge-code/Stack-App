@@ -33,10 +33,46 @@ export type FlatLine = {
   /** The line split for display: bold head, gray note (the saved note, or "Name — details"). */
   head: string;
   note: string;
+  /** Web addresses typed into the heading or note, shown as pills (they're taken out of `head` and `note`). */
+  links: string[];
   format: LineFormat;
   /** Whether a numbered or bulleted line's heading is bold (the default). */
   bold: boolean;
 };
+
+// A web address typed into a line: "https://…", "www.…" or a bare domain like "fuunji.jp/menu".
+const URL_RE = /((?:https?:\/\/|www\.)[^\s]+|\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|org|net|io|co|jp|world|app|dev|me|ly|tv|uk)\b(?:\/[^\s]*)?)/gi;
+
+/** The web addresses typed into some text, and the text without them (links show as pills instead). */
+export function textLinks(text: string): { text: string; links: string[] } {
+  const links: string[] = [];
+  let rest = "";
+  let last = 0;
+  for (const m of text.matchAll(URL_RE)) {
+    const trail = m[0].match(/[.,;:!?)\]]+$/)?.[0] ?? "";
+    const u = m[0].slice(0, m[0].length - trail.length);
+    if (!u) continue;
+    rest += text.slice(last, m.index);
+    links.push(/^https?:/i.test(u) ? u : `https://${u}`);
+    last = m.index + u.length;
+  }
+  rest += text.slice(last);
+  return { text: rest.replace(/[ \t]{2,}/g, " ").replace(/ +\n/g, "\n").trim(), links };
+}
+
+const linkKey = (url: string) => url.replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, "").toLowerCase();
+
+/**
+ * How a line reads with typed web addresses taken out of its text: the heading and note without them, and the
+ * addresses (other than the line's own link) to show as pills. A line that was only an address shows just the pill.
+ */
+export function splitTextLinks(head: string, note: string, link: string | null) {
+  const h = textLinks(head);
+  const n = textLinks(note);
+  const seen = new Set(link ? [linkKey(link)] : []);
+  const links = [...h.links, ...n.links].filter((u) => !seen.has(linkKey(u)) && !!seen.add(linkKey(u)));
+  return { head: h.text || (link || links.length ? "" : head), note: n.text, links };
+}
 
 /** A line's format; older lines without one follow the stack's style. */
 export const lineFormat = (ln: Pick<Line, "format">, style: Stack["style"]): LineFormat =>
@@ -72,7 +108,10 @@ export function flatten(stack: Pick<Stack, "sections" | "style">): FlatLine[] {
         text: ln.text,
         link: ln.link,
         // Older lines without a format may be written as "Name — details"; newer ones keep the detail as the note.
-        ...(!list ? { head: ln.text, note: "" } : ln.format ? { head: ln.text, note: ln.note?.trim() ?? "" } : splitLine(ln.text, ln.note)),
+        ...(() => {
+          const parts = !list ? { head: ln.text, note: "" } : ln.format ? { head: ln.text, note: ln.note?.trim() ?? "" } : splitLine(ln.text, ln.note);
+          return splitTextLinks(parts.head, parts.note, ln.link);
+        })(),
         format,
         bold: !list || ln.bold !== false,
       });

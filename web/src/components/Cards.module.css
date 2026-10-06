@@ -336,6 +336,12 @@
   color: oklch(38% 0.006 80);
 }
 
+.feedPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
+}
+
 .feedLink {
   align-self: flex-start;
   display: inline-flex;

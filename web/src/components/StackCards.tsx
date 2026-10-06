@@ -198,9 +198,16 @@ function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode })
                     <div className={`${s.feedLine} ${divided ? s.feedLineDivided : ""}`}>
                       <LineMarker ln={l} numClass={s.num} bulletClass={s.feedBullet} />
                       <span className={s.feedLineText}>
-                        <span className={l.format === "text" ? s.feedPara : l.format === "bold" ? s.feedBoldLine : `${s.feedHead} ${l.bold ? "" : s.feedPlain}`}>{l.head}</span>
+                        {l.head && <span className={l.format === "text" ? s.feedPara : l.format === "bold" ? s.feedBoldLine : `${s.feedHead} ${l.bold ? "" : s.feedPlain}`}>{l.head}</span>}
                         {l.note && <span className={s.feedNote}>{l.note}</span>}
-                        {l.link && <LinkPill href={l.link} className={s.feedLink} size={10} />}
+                        {(l.link || l.links.length > 0) && (
+                          <span className={s.feedPills}>
+                            {l.links.map((u) => (
+                              <LinkPill key={u} href={u} className={s.feedLink} size={10} />
+                            ))}
+                            {l.link && <LinkPill href={l.link} className={s.feedLink} size={10} />}
+                          </span>
+                        )}
                       </span>
                     </div>
                   </div>

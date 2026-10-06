@@ -175,7 +175,16 @@
   font-size: 15px;
   line-height: 1.5;
   color: var(--muted-72);
-  margin-top: 10px;
+  margin-top: 2px;
+}
+
+/* Editing the description on the Build step: a light box that reaches past the text column. */
+.descInput[data-focus] {
+  width: calc(100% + 28px);
+  margin: 2px -14px 0;
+  padding: 10px 14px;
+  border-color: oklch(88% 0.006 80);
+  background: oklch(98.6% 0.003 80);
 }
 
 /* The field being asked for: boxed, with an orange glow. */
@@ -202,6 +211,18 @@
 .lineInput::placeholder,
 .noteInput::placeholder {
   color: oklch(62% 0.006 80);
+}
+
+/* The text cursor uses the accent color across the create screen. */
+.titleInput,
+.descInput,
+.sectionInput,
+.lineInput,
+.noteInput,
+.linkInput,
+.placeInput,
+.sheetInput {
+  caret-color: var(--warn);
 }
 
 .composeActions {
@@ -240,7 +261,7 @@
 }
 
 .buildBody {
-  padding-top: 18px;
+  padding-top: 4px;
   animation: buildIn 600ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -257,11 +278,11 @@
 }
 
 .sectionHead {
-  margin-top: 30px;
+  margin-top: 28px;
 }
 
 .section:first-child .sectionHead {
-  margin-top: 6px;
+  margin-top: 0;
 }
 
 .sectionRule {
@@ -414,6 +435,12 @@
   color: oklch(38% 0.006 80);
   text-wrap: pretty;
   overflow-wrap: anywhere;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
 }
 
 .visit {
@@ -636,6 +663,19 @@
   border-color: var(--accent);
 }
 
+.plusRow {
+  gap: 8px;
+}
+
+.plusLabel {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted-66);
+}
+
 .menu {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr)) 30px;
@@ -662,6 +702,13 @@
 
 .menuItem:hover {
   background: oklch(96% 0.004 80);
+}
+
+/* The format in use. */
+.menuItem[data-on] {
+  color: oklch(42% 0.15 45);
+  background: oklch(95.5% 0.03 60);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
 }
 
 .menuLabel {
@@ -712,6 +759,12 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+}
+
+.linkEdit {
+  align-items: stretch;
+  text-align: left;
+  cursor: text;
 }
 
 .linkTitle,

@@ -142,7 +142,7 @@ export function layoutStory(stack: Stack, shortUrl: string, counts: Story["count
     // Paragraphs are regular weight and keep their line breaks; bold lines are heavier.
     const weight = l.format === "text" ? 400 : l.format === "bold" ? 700 : l.bold ? 600 : 400;
     setFont(c, weight, 14, fonts.sans, -0.2);
-    const head = l.head.split("\n").flatMap((p) => wrapText(c, p, colW));
+    const head = (l.head || l.text).split("\n").flatMap((p) => wrapText(c, p, colW));
     setFont(c, 400, 12.5, fonts.sans);
     const note = l.note ? wrapText(c, l.note, colW) : [];
     const h = 11 + head.length * 18.2 + (note.length ? 2 + note.length * 18.125 : 0) + 12 + 1;
