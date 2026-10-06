@@ -15,7 +15,9 @@ type AuthCtx = {
   requireAuth: (action: (() => void) | null, message: string) => void;
 };
 const AuthContext = createContext<AuthCtx | null>(null);
-const ToastContext = createContext<(msg: string) => void>(() => {});
+/** A button on a toast, such as Undo. */
+export type ToastAction = { label: string; run: () => void };
+const ToastContext = createContext<(msg: string, action?: ToastAction) => void>(() => {});
 const BackContext = createContext<(fallback?: unknown) => void>(() => {});
 
 export const useAuth = () => useContext(AuthContext)!;
@@ -32,7 +34,7 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
   const [viewer, setViewer] = useState(initialViewer);
   const [sheet, setSheet] = useState<{ message: string } | null>(null);
   const pending = useRef<(() => void) | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ msg: string; action?: ToastAction } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // Count in-app navigations so Back knows whether there is anywhere to go back to.
@@ -70,10 +72,11 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
     [viewer],
   );
 
-  const showToast = useCallback((msg: string) => {
-    setToast(msg);
+  // A toast with an action stays up longer, so there's time to tap it.
+  const showToast = useCallback((msg: string, action?: ToastAction) => {
+    setToast({ msg, action });
     clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(null), 1800);
+    toastTimer.current = setTimeout(() => setToast(null), action ? 4500 : 1800);
   }, []);
   useEffect(() => () => clearTimeout(toastTimer.current), []);
 
@@ -93,8 +96,21 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
         <BackContext.Provider value={back}>
           {children}
           {toast && (
-            <div className={styles.toast} role="status">
-              {toast}
+            <div className={`${styles.toast} ${toast.action ? styles.toastAction : ""}`} role="status">
+              <span>{toast.msg}</span>
+              {toast.action && (
+                <button
+                  className={styles.toastButton}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    clearTimeout(toastTimer.current);
+                    setToast(null);
+                    toast.action?.run();
+                  }}
+                >
+                  {toast.action.label}
+                </button>
+              )}
             </div>
           )}
           {sheet && (

@@ -190,6 +190,13 @@
 }
 
 /* The line's link as a blue pill with its domain */
+/* A line's link pills sit side by side and wrap. */
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
+}
+
 .visit {
   align-self: flex-start;
   display: inline-flex;

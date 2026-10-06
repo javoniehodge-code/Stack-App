@@ -40,6 +40,23 @@
   z-index: 30;
 }
 
+/* A toast with a button: message on the left, button on the right. */
+.toastAction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  text-align: left;
+}
+
+.toastButton {
+  flex-shrink: 0;
+  padding: 4px 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: oklch(80% 0.12 55);
+}
+
 .tabBar {
   display: flex;
   align-items: stretch;

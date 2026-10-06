@@ -2,7 +2,17 @@ import { Fragment } from "react";
 import type { LineFormat } from "@/lib/types";
 import v from "./StackView.module.css";
 
-export type ViewLine = { num: string; label: string | null; head: string; note: string; link: string | null; format: LineFormat; bold: boolean };
+export type ViewLine = {
+  num: string;
+  label: string | null;
+  head: string;
+  note: string;
+  link: string | null;
+  /** Web addresses typed into the text, shown as pills before the line's own link. */
+  links?: string[];
+  format: LineFormat;
+  bold: boolean;
+};
 
 /** A line's marker: its number, an orange dot for a bulleted line, nothing for paragraphs and bold lines. */
 export function LineMarker({ ln, numClass, bulletClass }: { ln: Pick<ViewLine, "num" | "format">; numClass: string; bulletClass: string }) {
@@ -79,9 +89,14 @@ export function StackPaper({
               <div className={`${v.line} ${last ? "" : v.divided}`}>
                 <LineMarker ln={ln} numClass={v.num} bulletClass={v.bullet} />
                 <div className={v.lineBody}>
-                  <div className={ln.format === "text" ? v.para : ln.format === "bold" ? v.boldLine : `${v.head} ${ln.bold ? "" : v.plain}`}>{ln.head}</div>
+                  {ln.head && <div className={ln.format === "text" ? v.para : ln.format === "bold" ? v.boldLine : `${v.head} ${ln.bold ? "" : v.plain}`}>{ln.head}</div>}
                   {ln.note && <div className={v.note}>{ln.note}</div>}
-                  {ln.link && <LinkPill href={ln.link} className={v.visit} />}
+                  {(ln.link || !!ln.links?.length) && (
+                    <div className={v.pills}>
+                      {ln.links?.map((u) => <LinkPill key={u} href={u} className={v.visit} />)}
+                      {ln.link && <LinkPill href={ln.link} className={v.visit} />}
+                    </div>
+                  )}
                 </div>
               </div>
             </Fragment>

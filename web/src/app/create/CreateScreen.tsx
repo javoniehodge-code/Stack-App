@@ -7,7 +7,7 @@ import { useAuth, useBack, useToast } from "@/components/AppProviders";
 import shell from "@/components/AppShell.module.css";
 import { systemShare } from "@/components/Share";
 import { StackPaper } from "@/components/StackView";
-import { initials, isListFormat, MAX_DESCRIPTION, MAX_HEAD, MAX_ITEMS, MAX_LABEL, MAX_NOTE, MAX_PARAGRAPH, MAX_SECTIONS, MAX_TITLE, MAX_TOTAL } from "@/lib/format";
+import { initials, isListFormat, splitTextLinks, MAX_DESCRIPTION, MAX_HEAD, MAX_ITEMS, MAX_LABEL, MAX_NOTE, MAX_PARAGRAPH, MAX_SECTIONS, MAX_TITLE, MAX_TOTAL } from "@/lib/format";
 import { SHOW_DRAFTS } from "@/lib/navFlags";
 import { createClient } from "@/lib/supabase/client";
 import type { Draft, EditTarget, LineFormat, Visibility } from "@/lib/types";
@@ -87,7 +87,8 @@ const UNTITLED = "Untitled draft";
 
 let nextId = 1;
 const uid = () => `k${nextId++}`;
-const newLine = (format: LineFormat = "text", picked = true, bold = true): Line => ({ id: uid(), text: "", link: "", note: "", format, bold, picked });
+// New lines start with a regular-weight heading; the B button makes it bold.
+const newLine = (format: LineFormat = "text", picked = true, bold = false): Line => ({ id: uid(), text: "", link: "", note: "", format, bold, picked });
 const isEmpty = (l: Line) => !l.text.trim() && !l.note.trim() && !l.link;
 /** Most characters a line's main text can have. */
 const maxText = (f: LineFormat) => (f === "text" ? MAX_PARAGRAPH : MAX_HEAD);
@@ -255,6 +256,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const [sel, setSel] = useState<Sel>(null);
   // The + menu of line formats, open under the selected line or heading (or at the end).
   const [menu, setMenu] = useState(false);
+  // The description shows a light box while it's being edited on the Build step.
+  const [descFocus, setDescFocus] = useState(false);
   const [linkOpen, setLinkOpen] = useState<string | null>(null);
   const [linkDraft, setLinkDraft] = useState("");
   const [sheet, setSheet] = useState(false);
@@ -369,7 +372,15 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const lineCount = (w: Work) => w.sections.reduce((n, sec) => n + sec.lines.length, 0);
 
   /** Selects a line or section heading (or nothing), closing the menu and link field and dropping empty lines. */
+  /** A link typed but not yet added is kept when you move on. Returns whether one was. */
+  function commitLink(id: string | null) {
+    if (!id || linkOpen !== id || !linkDraft.trim()) return false;
+    submitLink(id, linkDraft);
+    return true;
+  }
+
   function select(next: Sel) {
+    commitLink(linkOpen);
     setWork((w) => prune(w, next?.kind === "line" ? next.id : null));
     if (next) focusId.current = next.id;
     setSel(next);
@@ -439,14 +450,25 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     const line = selLine;
     if (line) {
       const empty = isEmpty(line);
+      const si = w.sections.findIndex((x) => x.lines.some((l) => l.id === line.id));
+      const li = w.sections[si].lines.findIndex((l) => l.id === line.id);
       if (empty || !line.picked) {
         if (newSection) return goSection(...splitSection(w, line.id, empty ? "" : line.text.trim().slice(0, MAX_LABEL), true));
         focusId.current = line.id;
-        return mapLine(line.id, (x) => ({ ...x, format: type, picked: true, text: (type === "text" ? x.text : x.text.replace(/\s*\n\s*/g, " ")).slice(0, maxText(type)) }));
+        const mid = mapLineIn(w, line.id, (x) => ({ ...x, format: type, picked: true, text: (type === "text" ? x.text : x.text.replace(/\s*\n\s*/g, " ")).slice(0, maxText(type)) }));
+        const [next, n] = isListFormat(type) ? reflow(mid, si, li, type) : [mid, 0];
+        edit(() => next);
+        return reflowToast(mid, n, type, line.id);
       }
       if (newSection) return goSection(...splitSection(w, line.id, "", false));
-      const sec = w.sections.find((x) => x.lines.some((l) => l.id === line.id))!;
-      return addLine(sec.id, line.id, type);
+      if (isListFormat(type)) {
+        const [next, n] = reflow(w, si, li + 1, type);
+        if (n) {
+          edit(() => next);
+          reflowToast(w, n, type, null);
+        }
+      }
+      return addLine(w.sections[si].id, line.id, type);
     }
     if (sel?.kind === "sec") {
       if (newSection) {
@@ -467,6 +489,34 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     addLine(last.id, null, type);
   }
 
+  /**
+   * Starting a numbered or bulleted line right after a list of the other kind switches that list over, so a list
+   * doesn't mix numbers and bullets. Returns the stack and how many lines changed.
+   */
+  function reflow(w: Work, si: number, end: number, type: LineFormat): [Work, number] {
+    const lines = [...w.sections[si].lines];
+    let n = 0;
+    for (let j = end - 1; j >= 0 && isListFormat(lines[j].format); j--) {
+      if (lines[j].format !== type) {
+        lines[j] = { ...lines[j], format: type };
+        n++;
+      }
+    }
+    return n ? [{ ...w, sections: w.sections.map((x, i) => (i === si ? { ...x, lines } : x)) }, n] : [w, 0];
+  }
+
+  /** Says the lines above were switched, with Undo to put them back. */
+  function reflowToast(before: Work, n: number, type: LineFormat, focus: string | null) {
+    if (!n) return;
+    toast(`Switched ${n} ${n === 1 ? "line" : "lines"} above to ${type === "num" ? "numbered" : "bullets"}`, {
+      label: "Undo",
+      run: () => {
+        if (focus) focusId.current = focus;
+        edit(() => before);
+      },
+    });
+  }
+
   /** Closing the menu keeps a fresh line as a paragraph. */
   function closeMenu() {
     setMenu(false);
@@ -478,7 +528,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
 
   /** Done on a line: an empty line goes away; otherwise the next line starts (numbered and bulleted lines continue the list). */
   function doneLine(secId: string, l: Line) {
-    if (isEmpty(l)) return select(null);
+    if (!commitLink(l.id) && isEmpty(l)) return select(null);
     addLine(secId, l.id, isListFormat(l.format) ? l.format : "text");
   }
 
@@ -813,13 +863,16 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   // The menu shows on its own under a fresh line, until a format is picked or something is typed.
   const anchorMenu = menu || !!(selLine && isEmpty(selLine) && !selLine.picked);
   const left = MAX_TOTAL - textTotal(work);
+  // The menu marks the format in use: the selected line's, a heading's, or else the last line's.
+  const lastLine = work.sections.flatMap((sec) => sec.lines).at(-1);
+  const curFormat: Pick = selLine ? selLine.format : sel?.kind === "sec" ? "section" : (lastLine?.format ?? "text");
   // Keeps focus in the field while tapping the menu and line tools.
   const keep = (e: React.MouseEvent) => e.preventDefault();
 
   const formatMenu = (
     <div ref={reveal} className={s.menu} role="menu" aria-label="Add">
       {MENU.map(([type, label, icon]) => (
-        <button key={type} className={s.menuItem} role="menuitem" onMouseDown={keep} onClick={() => pick(type)}>
+        <button key={type} className={s.menuItem} data-on={type === curFormat || undefined} role="menuitem" onMouseDown={keep} onClick={() => pick(type)}>
           {icon}
           <span className={s.menuLabel}>{label}</span>
         </button>
@@ -837,6 +890,9 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.6" strokeLinecap="round" aria-hidden>
           <path d="M12 5v14M5 12h14" />
         </svg>
+      </button>
+      <button className={s.plusLabel} onMouseDown={keep} onClick={() => setMenu(true)} tabIndex={-1}>
+        Options
       </button>
     </div>
   );
@@ -909,6 +965,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                   data-fid="desc"
                   className={s.descInput}
                   data-active={step === "description" || undefined}
+                  data-focus={(step === "build" && descFocus) || undefined}
                   rows={1}
                   value={work.description}
                   onChange={(e) => {
@@ -921,7 +978,11 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                     if (step === "description") goBuild();
                     else e.currentTarget.blur();
                   }}
-                  onFocus={() => step === "build" && clearSel()}
+                  onFocus={() => {
+                    setDescFocus(true);
+                    if (step === "build") clearSel();
+                  }}
+                  onBlur={() => setDescFocus(false)}
                   placeholder={step === "description" ? "A sentence or two on what this is and who it\u2019s for" : "Add a description (optional)"}
                   aria-label="Description"
                 />
@@ -1002,6 +1063,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                         const isSel = sel?.kind === "line" && sel.id === l.id;
                         const lastInSec = l.id === sec.lines[sec.lines.length - 1].id;
                         if (!isSel) {
+                          // Web addresses typed into the text show as link pills, like on the stack page.
+                          const view = splitTextLinks(l.text, list ? l.note : "", l.link || null);
                           return (
                             <div
                               key={l.id}
@@ -1013,18 +1076,24 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                             >
                               {marker(l, n2)}
                               <div className={s.lineBody}>
-                                <div className={l.format === "text" ? s.para : l.format === "bold" ? s.boldLine : s.head} data-plain={(list && !l.bold) || undefined} data-empty={!l.text || undefined}>
-                                  {l.text || (l.format === "text" ? "Empty paragraph \u2014 tap to write" : "Empty line \u2014 tap to write")}
-                                </div>
-                                {list && l.note.trim() && <div className={s.lineNote}>{l.note}</div>}
-                                {l.link && (
-                                  <span className={s.visit}>
+                                {(view.head || !(l.link || view.links.length)) && (
+                                  <div className={l.format === "text" ? s.para : l.format === "bold" ? s.boldLine : s.head} data-plain={(list && !l.bold) || undefined} data-empty={!view.head || undefined}>
+                                    {view.head || (l.format === "text" ? "Empty paragraph \u2014 tap to write" : "Empty line \u2014 tap to write")}
+                                  </div>
+                                )}
+                                {list && view.note && <div className={s.lineNote}>{view.note}</div>}
+                                {(view.links.length > 0 || !!l.link) && (
+                                  <div className={s.pills}>
+                                {[...view.links, ...(l.link ? [l.link] : [])].map((u) => (
+                                  <span key={u} className={s.visit}>
                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                                       <path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2" />
                                       <path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2" />
                                     </svg>
-                                    {linkMeta(l.link).domain}
+                                    {linkMeta(u).domain}
                                   </span>
+                                ))}
+                                  </div>
                                 )}
                               </div>
                             </div>
@@ -1360,8 +1429,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                   .map((l, i) => ({
                     num: l.format === "num" ? String(++pn).padStart(2, "0") : l.format === "bullet" ? "•" : "",
                     label: i === 0 && sec.headed && sec.label.trim() ? sec.label : null,
-                    head: l.text,
-                    note: isListFormat(l.format) ? l.note.trim() : "",
+                    ...splitTextLinks(l.text, isListFormat(l.format) ? l.note.trim() : "", l.link || null),
                     link: l.link || null,
                     format: l.format,
                     bold: !isListFormat(l.format) || l.bold,
