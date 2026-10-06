@@ -215,17 +215,35 @@ function shareInfo(t: EditTarget, now: number, changed: boolean) {
 const hasContent = (w: Work) => !!(w.title.trim() || w.description.trim() || w.sections.some((sec) => sec.lines.some((l) => l.text.trim() || l.link)));
 
 /** A pasted link: letter tile, site name and domain. */
-function LinkCard({ link, onRemove }: { link: string; onRemove?: () => void }) {
+function LinkCard({ link, onRemove, onEdit }: { link: string; onRemove?: () => void; onEdit?: () => void }) {
   const m = linkMeta(link);
+  const text = (
+    <>
+      <span className={s.linkTitle}>{m.name}</span>
+      <span className={s.linkDomain}>{m.domain}</span>
+    </>
+  );
   return (
     <div className={s.linkCard}>
       <span className={s.fav} style={{ background: m.bg }}>
         {m.letter}
       </span>
-      <span className={s.linkText}>
-        <span className={s.linkTitle}>{m.name}</span>
-        <span className={s.linkDomain}>{m.domain}</span>
-      </span>
+      {/* Tapping the link opens it for editing, so a typo can be fixed without starting over. */}
+      {onEdit ? (
+        <button className={`${s.linkText} ${s.linkEdit}`} onClick={onEdit} aria-label={`Edit link ${m.domain}`}>
+          {text}
+        </button>
+      ) : (
+        <span className={s.linkText}>{text}</span>
+      )}
+      {onEdit && (
+        <button className={s.linkRemove} onClick={onEdit} aria-label="Edit link" tabIndex={-1}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted-60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M4 20h4L19 9l-4-4L4 16z" />
+            <path d="M13.5 6.5l4 4" />
+          </svg>
+        </button>
+      )}
       {onRemove ? (
         <button className={s.linkRemove} onClick={onRemove} aria-label="Remove link">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted-60)" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
@@ -579,12 +597,16 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
 
   function submitLink(id: string, raw: string) {
     const v = raw.trim();
+    const url = /^https?:\/\//i.test(v) ? v : `https://${v}`;
+    // Something that isn't a link stays in the field, so it can be fixed.
+    if (v && (!/^https?:\/\/[^\s.]+\.\S+$/i.test(url) || url.length > 2048)) {
+      setLinkOpen(id);
+      setLinkDraft(raw);
+      return toast("That doesn't look like a link.");
+    }
     setLinkOpen(null);
     setLinkDraft("");
-    if (!v) return;
-    const url = /^https?:\/\//i.test(v) ? v : `https://${v}`;
-    if (!/^https?:\/\/[^\s.]+\.\S+$/i.test(url) || url.length > 2048) return toast("That doesn't look like a link.");
-    mapLine(id, (l) => ({ ...l, link: url }));
+    if (v) mapLine(id, (l) => ({ ...l, link: url }));
   }
 
   function toStep(next: Step) {
@@ -1166,7 +1188,17 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                                 </div>
                               </div>
                               <div className={s.lineTools} data-list={list || undefined}>
-                                {l.link && !open && <LinkCard link={l.link} onRemove={() => mapLine(l.id, (x) => ({ ...x, link: "" }))} />}
+                                {l.link && !open && (
+                                  <LinkCard
+                                    link={l.link}
+                                    onRemove={() => mapLine(l.id, (x) => ({ ...x, link: "" }))}
+                                    onEdit={() => {
+                                      focusId.current = `link-${l.id}`;
+                                      setLinkOpen(l.id);
+                                      setLinkDraft(l.link);
+                                    }}
+                                  />
+                                )}
                                 {open && (
                                   <>
                                     <div className={s.linkField}>
@@ -1182,7 +1214,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                                         onChange={(e) => setLinkDraft(e.target.value)}
                                         onPaste={(e) => {
                                           const t = e.clipboardData.getData("text");
-                                          if (t.trim()) {
+                                          // Pasting into an empty field adds the link right away; into a link being edited, it just pastes.
+                                          if (t.trim() && !linkDraft.trim()) {
                                             e.preventDefault();
                                             submitLink(l.id, t);
                                           }
@@ -1199,7 +1232,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                                     </div>
                                     <div className={s.linkButtons}>
                                       <button className={s.pillPrimary} onClick={() => submitLink(l.id, linkDraft)}>
-                                        Add
+                                        {l.link ? "Save" : "Add"}
                                       </button>
                                       <button
                                         className={s.pillSecondary}
