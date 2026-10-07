@@ -143,7 +143,8 @@ function fromDraft(d: Draft): Work {
 const counts = (w: Work) => {
   let n = 0;
   let k = 0;
-  w.sections.forEach((sec) => sec.lines.forEach((l) => (plainText(l.text).trim() && n++, l.link && k++)));
+  // A line counts when it has text or a link (a line can be just a link, shown as its pill).
+  w.sections.forEach((sec) => sec.lines.forEach((l) => (!isEmpty(l) && n++, l.link && k++)));
   return { n, k };
 };
 const n0 = (x: number) => x.toLocaleString("en-US");
@@ -179,11 +180,11 @@ function capText(w: Work, next: string, prev: string, max: number) {
 
 /**
  * What in this stack is over a size limit, in words (empty when it fits). Mirrors the database's checks, which
- * count only lines with text.
+ * count only lines with text or a link.
  */
 function limitProblems(w: Work): string[] {
   const out: string[] = [];
-  const items = w.sections.flatMap((sec) => sec.lines.filter((l) => plainText(l.text).trim()));
+  const items = w.sections.flatMap((sec) => sec.lines.filter((l) => !isEmpty(l)));
   const headed = w.sections.filter((sec) => sec.headed);
   let total = w.title.trim().length + w.description.trim().length;
   headed.forEach((sec) => (total += sec.label.trim().length));
@@ -237,7 +238,7 @@ const contentKey = (w: Work) =>
         (sec) =>
           [
             sec.headed ? sec.label.trim() : "",
-            sec.lines.filter((l) => plainText(l.text).trim()).map((l) => [l.text.trim(), l.link, l.format, l.link ? l.linkName.trim() : "", textLinkNames(l)]),
+            sec.lines.filter((l) => !isEmpty(l)).map((l) => [l.text.trim(), l.link, l.format, l.link ? l.linkName.trim() : "", textLinkNames(l)]),
           ] as const,
       )
       .filter(([, lines]) => lines.length),
@@ -701,8 +702,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
    * it ends the list instead, turning the line back into a fresh paragraph.
    */
   function enterLine(secId: string, l: Line) {
-    if (!isListFormat(l.format)) return plainText(l.text).trim() ? addLine(secId, l.id, "text") : undefined;
-    if (!plainText(l.text).trim()) return mapLine(l.id, (x) => ({ ...x, format: "text", picked: false }));
+    if (!isListFormat(l.format)) return !isEmpty(l) ? addLine(secId, l.id, "text") : undefined;
+    if (isEmpty(l)) return mapLine(l.id, (x) => ({ ...x, format: "text", picked: false }));
     addLine(secId, l.id, l.format);
   }
 
@@ -927,7 +928,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   async function applyEdit(share: boolean, note = "") {
     if (!target || busy) return;
     const w = workRef.current;
-    if (!counts(w).n) return toast("Add a line with some text to publish.");
+    if (!counts(w).n) return toast("Add a line to publish.");
     if (!w.title.trim()) return toast("Add a title to publish.");
     const over = limitProblems(w)[0];
     if (over) return toast(over);
@@ -954,7 +955,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   function openShare() {
     if (!target) return;
     if (shareState && !shareState.can) return toast(shareState.blocked);
-    if (!counts(work).n) return toast("Add a line with some text to publish.");
+    if (!counts(work).n) return toast("Add a line to publish.");
     setUpdateNote("");
     focusId.current = "note";
     setShareOpen(true);
@@ -973,7 +974,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   }
 
   function publish() {
-    if (!counts(work).n) return toast("Add a line with some text to publish.");
+    if (!counts(work).n) return toast("Add a line to publish.");
     const over = limitProblems(work)[0];
     if (over) return toast(over);
     if (!work.title.trim()) {
@@ -1641,7 +1642,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                 />
               </label>
             </div>
-            {!n && <div className={s.cantPublish}>Add a line with some text to publish.</div>}
+            {!n && <div className={s.cantPublish}>Add a line to publish.</div>}
           </div>
           <footer className={s.footer}>
             <button className={s.back} onClick={() => setStep("build")}>
@@ -1687,7 +1688,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               description={work.description.trim()}
               lines={work.sections.flatMap((sec) =>
                 sec.lines
-                  .filter((l) => plainText(l.text).trim())
+                  .filter((l) => !isEmpty(l))
                   .map((l, i) => ({
                     num: l.format === "num" ? String(++pn).padStart(2, "0") : l.format === "bullet" ? "•" : "",
                     label: i === 0 && sec.headed && sec.label.trim() ? sec.label : null,
