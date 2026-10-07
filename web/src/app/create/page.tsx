@@ -22,7 +22,7 @@ const blank = (): Draft => ({
 const toDraftSections = (sections: Section[], style: Draft["style"]) =>
   sections.map((sec) => ({
     label: sec.label ?? "",
-    lines: sec.lines.map((l) => ({ text: l.text, link: l.link ?? "", note: l.note ?? "", format: lineFormat(l, style), bold: l.bold !== false })),
+    lines: sec.lines.map((l) => ({ text: l.text, link: l.link ?? "", note: l.note ?? "", format: lineFormat(l, style), linkName: l.linkName ?? "", linkNames: l.linkNames ?? {} })),
   }));
 
 type Row = { id: string; title: string; description?: string; sections: Section[]; style: Draft["style"]; forked_from_id: string | null; visibility?: Draft["visibility"]; location?: string };

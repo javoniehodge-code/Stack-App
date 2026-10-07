@@ -100,20 +100,23 @@ Add new app-only features to this list as they ship.
 - Stack size limits (set by the user from the "Create Flow Screen Typography" design; the
   database enforces them in `normalize_sections` and the stacks trigger, and
   `web/src/lib/format.ts` has the same numbers): title 60, description 180, section heading
-  60, at most 20 sections and 100 lines, a paragraph 360, a numbered/bulleted/bold line's
-  heading 60, a numbered/bulleted line's detail 300, and 6,000 characters of visible text in
-  all. Comments and repost notes stay at 500 (not 140). Existing stacks were trimmed to these
-  when they were introduced.
-- Lines have a format: numbered, bulleted, paragraph or bold (`format` on each line; older
-  lines without one follow the stack's numbered/bulleted style). Numbered and bulleted
-  headings can turn bold off. Edit buttons stay "Publish" / "Publish & Share Update" (as
-  `docs/user-flows/edit-stack.md` says) even where the design says "Save".
+  60, at most 20 sections and 100 lines, a paragraph, numbered or bulleted line 360, a bold
+  line 60, and 6,000 characters of visible text in all (`**` bold marks don't count). A link
+  name is 40. Comments and repost notes stay at 500 (not 140). Older lines may still have a
+  separate detail (note, up to 300); it shows under the line and joins the text when edited.
+- Lines have a format: numbered, bulleted, paragraph or bold line (`format` on each line; older
+  lines without one follow the stack's numbered/bulleted style). Numbered, bulleted and
+  paragraph lines are one text where selected words can be bold (saved between `**` marks;
+  the per-line bold toggle is gone). A line's link can have a name shown on its pill
+  (`linkName`), and so can web addresses typed into the text (`linkNames`). Edit buttons stay
+  "Publish" / "Publish & Share Update" (as `docs/user-flows/edit-stack.md` says) even where the
+  design says "Save".
 - "Unlisted" is called "Invite Only" in the UI, but the description stays "Only people with
   the link" (there are no invites). The database value is still `unlisted`.
 - Tags aren't shown or edited any more (replaced by the stack's location); existing tags stay
   in the database and still count for search.
-- Link cards in the create flow show a letter tile, the site name taken from the domain and
-  the domain. The app doesn't fetch page titles or favicons (the user chose this).
+- Links show as blue pills with the link's name, or its domain when it has none. The app doesn't
+  fetch page titles or favicons (the user chose this).
 - Forking is gone from the app: no fork buttons, counts, Forked tab or Forks notifications, even if a
   design still shows them. Old `forked_from_id` data stays in the database untouched.
 - No profile photos yet: avatars stay as initials (the user skipped the photo upload the design
