@@ -56,6 +56,14 @@ const PRIVACY: [Visibility, string, string][] = [
 /** The formats in the toolbar, then Section. */
 const FORMATS: [Pick, string, React.ReactNode][] = [
   [
+    "section",
+    "Section",
+    <svg key="i" width="22" height="16" viewBox="0 0 22 16" fill="none" aria-hidden>
+      <rect x="1" y="2" width="3" height="12" rx="1.5" fill="var(--accent)" />
+      <path d="M8 5h13M8 11h9" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+    </svg>,
+  ],
+  [
     "text",
     "Paragraph",
     <svg key="i" width="22" height="16" viewBox="0 0 22 16" fill="none" aria-hidden>
@@ -82,14 +90,6 @@ const FORMATS: [Pick, string, React.ReactNode][] = [
       <circle cx="3" cy="4.5" r="2" fill="var(--accent)" />
       <circle cx="3" cy="12.5" r="2" fill="var(--accent)" />
       <path d="M8 4.5h13M8 12.5h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>,
-  ],
-  [
-    "section",
-    "Section",
-    <svg key="i" width="22" height="16" viewBox="0 0 22 16" fill="none" aria-hidden>
-      <rect x="1" y="2" width="3" height="12" rx="1.5" fill="var(--accent)" />
-      <path d="M8 5h13M8 11h9" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
     </svg>,
   ],
 ];
@@ -391,6 +391,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const [sel, setSel] = useState<Sel>(null);
   // Edit mode on the Build step: every line and heading in a box with move buttons, nothing editable.
   const [arranging, setArranging] = useState(false);
+  // The formatting toolbar under the selected line or heading can be tucked away (and brought back).
+  const [toolsHidden, setToolsHidden] = useState(false);
   // Whether the text at the cursor is bold, for the toolbar's Bold button.
   const [boldOn, setBoldOn] = useState(false);
   // The description shows a light box while it's being edited on the Build step.
@@ -867,9 +869,9 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   function goBuild() {
     setStep("build");
     setSel(null);
-    // With nothing written yet, start a fresh line, ready for a format from the toolbar.
+    // With nothing written yet, start with a numbered line, ready to type into.
     if (work.sections.some((sec) => sec.lines.some((l) => !isEmpty(l)))) return;
-    const l = newLine("text", false);
+    const l = newLine("num");
     setWork((w) => ({ ...w, sections: w.sections.map((x, i) => (i === 0 ? { ...x, lines: [l] } : x)) }));
     focusId.current = l.id;
     setSel({ kind: "line", id: l.id });
@@ -1135,11 +1137,10 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const curFormat: Pick | null = selLine ? selLine.format : sel?.kind === "sec" ? "section" : null;
   // Keeps focus in the text while tapping the toolbar and line tools.
   const keep = (e: React.MouseEvent) => e.preventDefault();
-  const writing = step === "build" && !!sel && !arranging;
   const canArrange = arranging || work.sections.some((sec) => sec.headed || sec.lines.some((l) => !isEmpty(l)));
 
-  const toolbar = (
-    <div className={s.toolbar}>
+  const toolbar = toolsHidden ? null : (
+    <div className={s.toolbar} onMouseDown={keep}>
       <div className={s.toolbarRow} role="toolbar" aria-label="Format">
         {FORMATS.map(([type, label, icon]) => (
           <button key={type} className={s.tool} data-on={type === curFormat || undefined} onMouseDown={keep} onClick={() => pick(type)}>
@@ -1152,7 +1153,15 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
           {linkIcon(16)}
           <span className={s.toolLabel}>Link</span>
         </button>
-        <button className={s.tool} data-pressed={(boldOn && !!selLine && selLine.format !== "bold") || undefined} disabled={!selLine || selLine.format === "bold"} onMouseDown={keep} onClick={toolBold} aria-pressed={boldOn} aria-label="Bold">
+        <button
+          className={s.tool}
+          data-pressed={(boldOn && !!selLine && selLine.format !== "bold") || undefined}
+          disabled={!selLine || selLine.format === "bold"}
+          onMouseDown={keep}
+          onClick={toolBold}
+          aria-pressed={boldOn}
+          aria-label="Bold"
+        >
           <span className={s.toolB} aria-hidden>
             B
           </span>
@@ -1165,6 +1174,9 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
           <span className={s.toolLabel}>Bold line</span>
         </button>
       </div>
+      <button className={s.toolHide} onMouseDown={keep} onClick={() => setToolsHidden(true)} aria-label="Hide toolbar">
+        {arrow("down")}
+      </button>
     </div>
   );
   const nextArrow = (
@@ -1286,6 +1298,12 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                 {canArrange ? (
                   <div className={s.arrangeRow}>
                     <button className={s.arrangeBtn} data-on={arranging || undefined} onMouseDown={keep} onClick={toggleArrange}>
+                      {!arranging && (
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                          <path d="M4.5 19.5h4l10-10-4-4-10 10v4z" />
+                          <path d="M13 7l4 4" />
+                        </svg>
+                      )}
                       {arranging ? "Done" : "Edit"}
                     </button>
                   </div>
@@ -1345,11 +1363,14 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                               )}
                             </div>
                             {secSel && (
-                              <div className={s.headDoneRow}>
-                                <button className={s.doneBtn} onMouseDown={keep} onClick={() => doneSec(sec)}>
-                                  Done
-                                </button>
-                              </div>
+                              <>
+                                <div className={s.headDoneRow}>
+                                  <button className={s.doneBtn} onMouseDown={keep} onClick={() => doneSec(sec)}>
+                                    Done
+                                  </button>
+                                </div>
+                                {toolbar}
+                              </>
                             )}
                           </div>
                         </div>
@@ -1475,6 +1496,12 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                                 </button>
                               )}
                               <div className={s.toolRow}>
+                                {toolsHidden && (
+                                  <button className={s.showTools} onMouseDown={keep} onClick={() => setToolsHidden(false)}>
+                                    {arrow("up")}
+                                    Formatting
+                                  </button>
+                                )}
                                 <span className={s.charCount} data-full={(count && full) || undefined}>
                                   {count}
                                 </span>
@@ -1482,6 +1509,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                                   Done
                                 </button>
                               </div>
+                              {toolbar}
                             </div>
                           </div>
                         );
@@ -1502,9 +1530,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               </div>
             )}
           </div>
-          {writing && toolbar}
           {step === "build" &&
-            !writing &&
             (target ? (
               <footer className={`${s.footer} ${s.editFooter}`}>
                 <button className={s.primary} disabled={busy} onClick={() => applyEdit(false)}>

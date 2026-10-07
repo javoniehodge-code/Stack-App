@@ -1096,16 +1096,23 @@
 }
 
 .arrangeBtn {
-  height: 36px;
-  padding: 0 2px 0 10px;
-  font-size: 13.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  margin: 3px 0;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid oklch(88.5% 0.006 80);
+  font-size: 12px;
   font-weight: 600;
-  color: var(--text);
+  color: oklch(23.1% 0.006 80);
 }
 
 .arrangeBtn[data-on] {
-  font-weight: 700;
-  color: var(--warn);
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 .sectionBox[data-arranging] {
@@ -1196,27 +1203,52 @@
   justify-content: center;
 }
 
-/* ── The formatting toolbar, in place of the footer while writing ── */
+/* ── The formatting toolbar, under the selected line or heading ── */
 .toolbar {
-  flex-shrink: 0;
-  padding: 6px 10px calc(10px + var(--safe-bottom));
+  display: flex;
+  align-items: stretch;
+  margin-top: 8px;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid oklch(90% 0.006 80);
   background: var(--bg);
+  box-shadow: 0 4px 14px oklch(20% 0.01 80 / 0.08);
 }
 
 .toolbarRow {
+  flex: 1;
+  min-width: 0;
   display: flex;
   gap: 2px;
   padding: 4px;
   overflow-x: auto;
   scrollbar-width: none;
-  border-radius: 16px;
-  border: 1px solid oklch(90% 0.006 80);
-  background: var(--bg);
-  box-shadow: 0 6px 20px oklch(20% 0.01 80 / 0.1);
 }
 
 .toolbarRow::-webkit-scrollbar {
   display: none;
+}
+
+.toolHide {
+  flex-shrink: 0;
+  width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid oklch(91% 0.006 80);
+}
+
+/* Brings a hidden toolbar back. */
+.showTools {
+  height: 34px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted-66);
+  margin-right: auto;
 }
 
 .tool {
