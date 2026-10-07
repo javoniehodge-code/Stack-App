@@ -11,7 +11,7 @@ import v from "./Visibility.module.css";
 export const VIS: Record<Visibility, { label: string; short: string; long: string; toast: string }> = {
   public: { label: "Public", short: "Profile, search and link", long: "On your profile, in search, and anyone with the link", toast: "Now public" },
   unlisted: { label: "Invite Only", short: "Anyone with the link", long: "Only people with the link. Hidden from your profile and search", toast: "Now invite only · link only" },
-  private: { label: "Private", short: "Only you", long: "Only you. Great for personal notes and collecting ideas", toast: "Now private · only you" },
+  private: { label: "Private", short: "Only you", long: "Only you. Great for personal notes and collecting ideas", toast: "Now private · shared links no longer work" },
 };
 const ORDER: Visibility[] = ["public", "unlisted", "private"];
 

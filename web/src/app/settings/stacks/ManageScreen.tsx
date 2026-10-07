@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth, useToast } from "@/components/AppProviders";
 import shell from "@/components/AppShell.module.css";
+import { ShareSheet } from "@/components/Share";
 import { editedDay } from "@/components/StackView";
 import { EditPill, VIS, useVisibilityEditor } from "@/components/Visibility";
 import { plural } from "@/lib/format";
@@ -57,6 +58,8 @@ export default function ManageScreen({ data, initialFilter = "all" }: { data: { 
     router.refresh();
   }, [showDrafts, router]);
   const [removed, setRemoved] = useState<Set<string>>(() => new Set());
+  // The stack whose share sheet is open (from a row's link button).
+  const [sharing, setSharing] = useState<Stack | null>(null);
   const vis = useVisibilityEditor((id) => {
     setRemoved((r) => new Set(r).add(id));
     router.refresh();
@@ -127,6 +130,23 @@ export default function ManageScreen({ data, initialFilter = "all" }: { data: { 
                   {edited && ` · Updated ${edited}`}
                 </div>
               </div>
+              {visOf(st) !== "private" && (
+                <button
+                  type="button"
+                  className={s.share}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSharing(st);
+                  }}
+                  aria-label={`Share ${st.title}`}
+                  title="Share link"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2" />
+                    <path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2" />
+                  </svg>
+                </button>
+              )}
               <EditPill onClick={() => vis.openWithEdit(st)} />
             </div>
           );
@@ -156,6 +176,7 @@ export default function ManageScreen({ data, initialFilter = "all" }: { data: { 
         {empty && <div className={s.empty}>{filter === "drafts" ? "No drafts." : `No ${filter === "all" ? "" : `${filter} `}stacks yet.`}</div>}
       </div>
       {vis.sheet}
+      {sharing && <ShareSheet stack={sharing} onClose={() => setSharing(null)} />}
     </main>
   );
 }
