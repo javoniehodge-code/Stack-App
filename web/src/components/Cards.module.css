@@ -651,34 +651,14 @@
   color: var(--muted-66);
 }
 
-/* ── Creator profile list ── */
-.userList {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px 20px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.userItem {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.repostLabel {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding-left: 4px;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--muted-66);
-}
-
-.commentCount {
-  font-size: 10.5px;
+/* ── Someone's profile: their stacks and reposts as a two-column grid of square tiles (GridCard) ── */
+.userGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  padding: 14px 20px 28px;
+  background: oklch(96.5% 0.004 80);
+  border-top: 1px solid var(--line);
 }
 
 /* ── List card (search results, own profile) ── */
@@ -906,6 +886,40 @@
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+/* Reposts on someone's profile: the original author above the title */
+.gridRepost {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--muted-66);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.gridRepost svg {
+  flex-shrink: 0;
+}
+
+.gridRepost span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gridSave {
+  margin: -4px -4px -4px auto;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
 }
 
 /* ── Shared ── */
