@@ -338,18 +338,13 @@
   </sc-if>
 
   <sc-if value="{{ isPublished }}" hint-placeholder-val="{{ false }}">
-    <div style="position:absolute;top:54px;left:8px;height:44px;display:flex;align-items:center;z-index:5;">
-      <span onClick="{{ exitPublished }}" style="height:44px;padding:0 10px;display:flex;align-items:center;gap:4px;cursor:pointer;font-size:13.5px;font-weight:500;color:oklch(36% 0.006 80);">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.006 80)" strokeWidth="2" strokeLinecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"></path></svg>Exit
-      </span>
-    </div>
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 32px;text-align:center;">
       <div style="width:56px;height:56px;border-radius:50%;background:oklch(92.9% 0.03 60);display:flex;align-items:center;justify-content:center;margin-bottom:18px;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="oklch(54% 0.16 45)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></div>
       <div style="font-size:22px;font-weight:800;color:oklch(19.4% 0.006 80);letter-spacing:-0.3px;">Your Stack is live</div>
       <div style="font-size:14px;color:oklch(41.5% 0.006 80);margin-top:6px;line-height:1.45;text-wrap:balance;">{{ reviewTitle }} · {{ countLabel }}</div>
       <div style="display:flex;flex-direction:column;gap:10px;width:100%;margin-top:28px;">
-        <span onClick="{{ copyLink }}" style="height:48px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;">Share</span>
-        <span onClick="{{ newStack }}" style="height:48px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:oklch(36% 0.006 80);cursor:pointer;">Start another Stack</span>
+        <span onClick="{{ copyLink }}" style="height:48px;border-radius:999px;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;">Share your Stack</span>
+        <span onClick="{{ exitPublished }}" style="height:48px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:oklch(36% 0.006 80);cursor:pointer;">Exit</span>
       </div>
     </div>
   </sc-if>
@@ -610,14 +605,14 @@ class Component extends DCLogic {
     ] };
   }
   _fromApp(a) {
-    const secs = (a.sections || []).map(sec => ({ id: this._id(), headed: !!(sec.label && String(sec.label).trim()), label: sec.label || '', lines: (sec.lines || []).map(ln => this._L(ln.text || '', ln.link || '', ln.sub || '', ln.fmt || 'num', ln.bold)) }));
+    const secs = (a.sections || []).map(sec => ({ id: this._id(), headed: !!(sec.label && String(sec.label).trim()), label: sec.label || '', lines: (sec.lines || []).map(ln => Object.assign(this._L(ln.text || '', ln.link || '', ln.sub || '', ln.fmt || 'num', ln.bold), ln.linkName ? { linkName: ln.linkName } : {}, ln.linkNames ? { linkNames: { ...ln.linkNames } } : {})) }));
     if (!secs.length) secs.push({ id: this._id(), headed: false, label: '', lines: [Object.assign(this._L('', '', '', 'num'), { picked: true })] });
     return { title: a.title || '', description: a.description || '', theme: 'default', tags: [], visibility: a.visibility || 'public', location: a.location || '', forkedFromId: a.forkedFromId || null, sections: secs };
   }
   _toApp(d) {
     const st = this.state && this.state.step;
     return { step: ['title', 'description', 'build', 'review'].includes(st) ? st : 'build', title: d.title, description: d.description, tags: [], visibility: d.visibility || 'public', location: d.location || '', forkedFromId: d.forkedFromId || null,
-      sections: d.sections.map(sec => ({ label: sec.headed ? sec.label : '', lines: sec.lines.map(ln => ({ text: ln.text, sub: ['num', 'bullet'].includes(this._fmtOf(ln)) ? (ln.sub || '') : '', link: ln.link || '', fmt: this._fmtOf(ln), bold: ln.bold !== false })) })) };
+      sections: d.sections.map(sec => ({ label: sec.headed ? sec.label : '', lines: sec.lines.map(ln => ({ text: ln.text, sub: ['num', 'bullet'].includes(this._fmtOf(ln)) ? (ln.sub || '') : '', link: ln.link || '', fmt: this._fmtOf(ln), bold: ln.bold !== false, linkName: ln.linkName || '', linkNames: ln.linkNames || null })) })) };
   }
   addTag(name) {
     const t = (name || '').trim().replace(/^#/, '').replace(/,$/, '');
@@ -821,12 +816,12 @@ class Component extends DCLogic {
     const d = this.state.draft;
     if (!this._counts(d).n) { this.showToast('Add a line with some text to publish.'); return; }
     if (!d.title.trim()) { this._focus = 'sheet'; this.setState({ sheet: true, titleDraft: '' }); return; }
-    if (this.props.onPublish) { this.setState({ sheet: false }); this.props.onPublish(this._toApp(d)); return; }
+    if (this.props.onPublish) { this.setState({ sheet: false, step: 'published' }); this.props.onPublish(this._toApp(d)); return; }
     this.setState({ step: 'published', sheet: false });
   }
   confirmTitle() {
     const t = this.state.titleDraft.trim(); if (!t) return;
-    if (this.props.onPublish) { this.setState({ sheet: false }); this.props.onPublish(this._toApp({ ...this.state.draft, title: t })); return; }
+    if (this.props.onPublish) { this.setState({ sheet: false, step: 'published', draft: { ...this.state.draft, title: t } }); this.props.onPublish(this._toApp({ ...this.state.draft, title: t })); return; }
     this.setState(s => ({ draft: { ...s.draft, title: t }, sheet: false, step: 'published' }));
   }
   renderVals() {
@@ -906,7 +901,7 @@ class Component extends DCLogic {
           onKey: (e) => {
             if (e.key !== 'Enter' || e.shiftKey) return;
             e.preventDefault();
-            if (fmt === 'text' || fmt === 'bold') { if (ln.text.trim()) this.addLine(sec.id, ln.id, 'text', true); return; }
+            if (fmt === 'text' || fmt === 'bold') { if (ln.text.trim()) this.addLine(sec.id, ln.id, 'text', true); else { this._commitLink(ln.id); this.setState(st => ({ sel: null, linkOpen: null, menu: false, draft: this._prune(st.draft, null) })); } return; }
             if (!ln.text.trim()) { this._focus = ln.id; this.upd(dd => this._mapLine(dd, ln.id, x => ({ ...x, fmt: 'text', picked: false, sub: '' }))); return; }
             this.addLine(sec.id, ln.id, fmt, true);
           },
@@ -1061,7 +1056,7 @@ class Component extends DCLogic {
       onSheetKey: (e) => { if (e.key === 'Enter') this.confirmTitle(); },
       confirmTitle: () => this.confirmTitle(), sheetOp: s.titleDraft.trim() ? 1 : 0.4,
       closeSheet: () => this.setState({ sheet: false }), stop: (e) => e.stopPropagation(),
-      copyLink: () => this.showToast('Link copied'),
+      copyLink: () => { if (this.props.onShareNew) this.props.onShareNew(); else this.showToast('Link copied'); },
       newStack: () => this.setState({ ...this._seed('title'), toast: '' }),
       exitPublished: () => { if (this.props.onExit) { this.props.onExit(null, false); return; } this.setState({ step: 'drafts', sel: null, sheet: false, linkOpen: null, toast: '' }); },
       reopen: () => this.setState({ step: 'build', sel: null, mode: 'arrange' }),

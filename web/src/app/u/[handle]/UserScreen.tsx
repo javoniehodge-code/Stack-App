@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuth, useBack } from "@/components/AppProviders";
 import { BackIcon } from "@/components/icons";
 import { ProfileShareButton } from "@/components/ProfileShare";
-import { CompactCard, FollowButton } from "@/components/StackCards";
+import { FollowButton, GridCard } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
 import cards from "@/components/Cards.module.css";
 import { useIsFollowing } from "@/lib/store";
@@ -77,12 +77,15 @@ export default function UserScreen({
             Reposts
           </button>
         </div>
-        <div className={cards.userList} style={{ overflow: "visible" }}>
-          {list.map((st) => (
-            <CompactCard key={st.id} stack={st} repostedBy={tab === "reposts" ? firstName : undefined} />
-          ))}
-          {list.length === 0 && <div className={cards.empty}>{tab === "reposts" ? "No reposts yet." : "No stacks yet."}</div>}
-        </div>
+        {list.length > 0 ? (
+          <div className={cards.userGrid}>
+            {list.map((st) => (
+              <GridCard key={st.id} stack={st} visitor repost={tab === "reposts"} />
+            ))}
+          </div>
+        ) : (
+          <div className={cards.empty}>{tab === "reposts" ? "No reposts yet." : "No stacks yet."}</div>
+        )}
         <ProfileFooter />
       </div>
       {blocking && <BlockSheet profile={profile} onClose={() => setBlocking(false)} />}

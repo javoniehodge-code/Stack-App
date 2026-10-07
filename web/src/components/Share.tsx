@@ -30,7 +30,7 @@ export function ShareButton({ stack, className, size = 16, onPrivate, label }: {
 }
 
 /** The stack's story pages in a swipeable row above a sheet with Copy, Save image(s) and Share…. */
-function ShareSheet({ stack, onClose }: { stack: Stack; onClose: () => void }) {
+export function ShareSheet({ stack, onClose }: { stack: Stack; onClose: () => void }) {
   const toast = useToast();
   const unlisted = useVisibility(stack) === "unlisted";
   const e = useEngagement(stack);

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useAuth, useBack, useToast } from "@/components/AppProviders";
 import shell from "@/components/AppShell.module.css";
-import { systemShare } from "@/components/Share";
+import { ShareSheet, systemShare } from "@/components/Share";
 import { RichText, StackPaper } from "@/components/StackView";
 import {
   initials,
@@ -27,7 +27,10 @@ import {
 } from "@/lib/format";
 import { SHOW_DRAFTS } from "@/lib/navFlags";
 import { createClient } from "@/lib/supabase/client";
-import type { Draft, EditTarget, LineFormat, Visibility } from "@/lib/types";
+import { fetchStack } from "@/lib/queries";
+import { useVisibility } from "@/lib/store";
+import { useVisibilityEditor } from "@/components/Visibility";
+import type { Draft, EditTarget, LineFormat, Stack, Visibility } from "@/lib/types";
 import p from "../profile/Profile.module.css";
 import s from "./Create.module.css";
 
@@ -403,6 +406,12 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const [titleDraft, setTitleDraft] = useState("");
   const [save, setSave] = useState<SaveState>(initial.id ? "saved" : "idle");
   const [published, setPublished] = useState<string | null>(null);
+  // The just-published stack, loaded for the share sheet's story images; and whether that sheet is open.
+  const [publishedStack, setPublishedStack] = useState<Stack | null>(null);
+  const [shareSheet, setShareSheet] = useState(false);
+  const publishedVis = useVisibility({ id: published ?? "", visibility: work.visibility });
+  // A private stack can't be shared: Share offers the visibility sheet instead, as on the stack page.
+  const vis = useVisibilityEditor(() => router.replace("/profile"));
   const [busy, setBusy] = useState(false);
   // Edit mode: whether anything differs from the published stack (reopened edits already do), and the share sheet.
   const [edited, setEdited] = useState(!!(target && initial.id));
@@ -702,7 +711,12 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
    * it ends the list instead, turning the line back into a fresh paragraph.
    */
   function enterLine(secId: string, l: Line) {
-    if (!isListFormat(l.format)) return !isEmpty(l) ? addLine(secId, l.id, "text") : undefined;
+    if (!isListFormat(l.format)) {
+      if (!isEmpty(l)) return addLine(secId, l.id, "text");
+      // Return on an empty paragraph finishes writing (the empty line is removed).
+      (document.activeElement as HTMLElement | null)?.blur?.();
+      return select(null);
+    }
     if (isEmpty(l)) return mapLine(l.id, (x) => ({ ...x, format: "text", picked: false }));
     addLine(secId, l.id, l.format);
   }
@@ -981,8 +995,10 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     if (err) return toast(err.includes("sign in") ? "Sign in to continue." : `Couldn't publish: ${err}`);
     setSheet(false);
     setWork((w) => ({ ...w, title }));
-    setPublished(idRef.current);
+    const id = idRef.current;
+    setPublished(id);
     router.refresh();
+    if (id) setPublishedStack(await fetchStack(createClient(), viewer?.id ?? null, id));
   }
 
   function publish() {
@@ -996,18 +1012,6 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
       return;
     }
     requireAuth(() => doPublish(work.title.trim()), "Sign in to publish this stack and share it with others.");
-  }
-
-  function startOver() {
-    idRef.current = null;
-    dirty.current = false;
-    setWork(fromDraft({ ...initial, id: null, title: "", description: "", tags: [], sections: [], forkedFromId: null, visibility: "public", location: "" }));
-    setStep("title");
-    setPreview(false);
-    setSel(null);
-    setPublished(null);
-    setSave("idle");
-    router.replace("/create");
   }
 
   async function share(id: string) {
@@ -1046,12 +1050,6 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   if (published) {
     return (
       <main className={`${shell.screen} ${s.done}`}>
-        <button className={`${s.exit} ${s.doneExit}`} onClick={() => router.replace("/profile")}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-            <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />
-          </svg>
-          Exit
-        </button>
         <div className={s.doneIcon}>
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M5 12.5l4.5 4.5L19 7.5" />
@@ -1062,17 +1060,26 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
           {shownTitle} · {countLabel}
         </div>
         <div className={s.doneActions}>
-          <button className={s.primary} onClick={() => share(published)}>
-            Share
+          <button
+            className={s.primary}
+            onClick={() => {
+              if (publishedVis === "private") vis.open({ id: published, title: shownTitle, visibility: publishedVis }, "This stack is private. Make it public or invite only to share it.");
+              else if (publishedStack) setShareSheet(true);
+              else share(published);
+            }}
+          >
+            Share your Stack
           </button>
           {/* Replace, so leaving the stack page doesn't land back in the finished create flow. */}
           <Link href={`/s/${published}?from=create`} replace className={s.secondary}>
             View your Stack
           </Link>
-          <button className={s.quiet} onClick={startOver}>
-            Start another Stack
+          <button className={s.quiet} onClick={() => router.replace("/profile")}>
+            Exit
           </button>
         </div>
+        {shareSheet && publishedStack && <ShareSheet stack={publishedStack} onClose={() => setShareSheet(false)} />}
+        {vis.sheet}
       </main>
     );
   }

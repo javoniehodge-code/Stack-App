@@ -88,9 +88,12 @@
                       <div style="font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:oklch(64% 0.16 50);padding:{{ pl.labelPad }};border-bottom:1px solid oklch(91.2% 0.006 80);">{{ pl.label }}</div>
                     </sc-if>
                     <div style="display:flex;gap:12px;padding:11px 0 12px;border-bottom:{{ pl.divider }};">
-                      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(64% 0.16 50);padding-top:1px;font-variant-numeric:tabular-nums;flex-shrink:0;">{{ pl.num }}</span>
+                      <sc-if value="{{ pl.isNum }}" hint-placeholder-val="{{ true }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:20px;color:oklch(64% 0.16 50);font-variant-numeric:tabular-nums;flex-shrink:0;">{{ pl.num }}</span></sc-if>
+                      <sc-if value="{{ pl.isBullet }}" hint-placeholder-val="{{ false }}"><span style="flex-shrink:0;width:15px;height:20px;display:flex;align-items:center;justify-content:center;"><span style="width:5px;height:5px;border-radius:50%;background:oklch(64% 0.16 50);"></span></span></sc-if>
                       <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
-                        <span style="font-size:14px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.3;letter-spacing:-0.2px;text-wrap:pretty;">{{ pl.head }}</span>
+                        <sc-if value="{{ pl.isText }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;line-height:1.45;color:oklch(14.8% 0.006 80);text-wrap:pretty;overflow-wrap:anywhere;white-space:pre-wrap;"><sc-for list="{{ pl.parts }}" as="pt" hint-placeholder-count="1"><span style="font-weight:{{ pt.w }};">{{ pt.t }}</span></sc-for></div></sc-if>
+                        <sc-if value="{{ pl.isBoldLine }}" hint-placeholder-val="{{ false }}"><div style="font-size:15px;font-weight:700;letter-spacing:-0.015em;line-height:1.35;color:oklch(14.8% 0.006 80);text-wrap:pretty;overflow-wrap:anywhere;"><sc-for list="{{ pl.parts }}" as="pt" hint-placeholder-count="1"><span style="font-weight:{{ pt.w }};">{{ pt.t }}</span></sc-for></div></sc-if>
+                        <sc-if value="{{ pl.isList }}" hint-placeholder-val="{{ true }}"><div style="font-size:14px;font-weight:{{ pl.headWeight }};color:oklch(14.8% 0.006 80);line-height:1.45;letter-spacing:-0.2px;text-wrap:pretty;overflow-wrap:anywhere;"><sc-for list="{{ pl.parts }}" as="pt" hint-placeholder-count="1"><span style="font-weight:{{ pt.w }};">{{ pt.t }}</span></sc-for></div></sc-if>
                         <sc-if value="{{ pl.hasSub }}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:oklch(39.7% 0.006 80);line-height:1.45;text-wrap:pretty;">{{ pl.sub }}</span></sc-if>
                       </div>
                     </div>
@@ -298,17 +301,28 @@
             <div style="height:22px;"></div>
             <sc-for list="{{ activeFlat }}" as="ln" hint-placeholder-count="5">
               <sc-if value="{{ ln.label }}" hint-placeholder-val="{{ false }}">
-                <div style="font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:oklch(64% 0.16 50);padding:{{ ln.labelPad }};border-bottom:1px solid oklch(91.2% 0.006 80);">{{ ln.label }}</div>
+                <div style="display:flex;align-items:baseline;gap:10px;padding:{{ ln.headPad }};border-bottom:1.5px solid oklch(19.4% 0.006 80);">
+                  <span style="width:3px;height:15px;border-radius:2px;background:oklch(64% 0.16 50);align-self:center;flex-shrink:0;"></span>
+                  <span style="flex:1;min-width:0;font-size:18px;font-weight:700;letter-spacing:-0.015em;line-height:1.25;color:oklch(14.8% 0.006 80);text-wrap:balance;">{{ ln.label }}</span>
+                </div>
               </sc-if>
-              <div style="display:flex;gap:12px;padding:12px 0 13px;border-bottom:{{ ln.divider }};">
-                <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(64% 0.16 50);padding-top:1px;flex-shrink:0;font-variant-numeric:tabular-nums;">{{ ln.num }}</span>
-                <div style="display:flex;flex-direction:column;gap:2px;min-width:0;">
-                  <div style="font-size:14px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.3;letter-spacing:-0.2px;text-wrap:pretty;">{{ ln.head }}</div>
+              <div style="display:flex;gap:12px;padding:13px 0 14px;border-bottom:{{ ln.divider }};">
+                <sc-if value="{{ ln.isNum }}" hint-placeholder-val="{{ true }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:22px;color:oklch(55% 0.006 80);flex-shrink:0;width:20px;font-variant-numeric:tabular-nums;">{{ ln.num }}</span></sc-if>
+                <sc-if value="{{ ln.isBullet }}" hint-placeholder-val="{{ false }}"><span style="flex-shrink:0;width:20px;height:22px;display:flex;align-items:center;justify-content:center;"><span style="width:6px;height:6px;border-radius:50%;background:oklch(64% 0.16 50);"></span></span></sc-if>
+                <div style="display:flex;flex-direction:column;gap:3px;min-width:0;">
+                  <sc-if value="{{ ln.isText }}" hint-placeholder-val="{{ false }}"><div style="font-size:15px;line-height:1.55;color:oklch(14.8% 0.006 80);text-wrap:pretty;overflow-wrap:anywhere;white-space:pre-wrap;"><sc-for list="{{ ln.parts }}" as="pt" hint-placeholder-count="1"><span style="font-weight:{{ pt.w }};">{{ pt.t }}</span></sc-for></div></sc-if>
+                  <sc-if value="{{ ln.isBoldLine }}" hint-placeholder-val="{{ false }}"><div style="font-size:16.5px;font-weight:700;letter-spacing:-0.015em;line-height:1.35;color:oklch(14.8% 0.006 80);text-wrap:pretty;overflow-wrap:anywhere;"><sc-for list="{{ ln.parts }}" as="pt" hint-placeholder-count="1"><span style="font-weight:{{ pt.w }};">{{ pt.t }}</span></sc-for></div></sc-if>
+                  <sc-if value="{{ ln.isList }}" hint-placeholder-val="{{ true }}"><div style="font-size:15px;font-weight:{{ ln.headWeight }};color:oklch(14.8% 0.006 80);line-height:1.55;text-wrap:pretty;overflow-wrap:anywhere;white-space:pre-wrap;"><sc-for list="{{ ln.parts }}" as="pt" hint-placeholder-count="1"><span style="font-weight:{{ pt.w }};">{{ pt.t }}</span></sc-for></div></sc-if>
                   <sc-if value="{{ ln.hasSub }}" hint-placeholder-val="{{ false }}">
-                    <div style="font-size:12.5px;color:oklch(39.7% 0.006 80);line-height:1.45;text-wrap:pretty;">{{ ln.sub }}</div>
+                    <div style="font-size:14px;color:oklch(38% 0.006 80);line-height:1.5;text-wrap:pretty;overflow-wrap:anywhere;">{{ ln.sub }}</div>
+                  </sc-if>
+                  <sc-if value="{{ ln.hasTextLinks }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:{{ ln.tlTop }};">
+                      <sc-for list="{{ ln.textLinks }}" as="tl" hint-placeholder-count="1"><a href="{{ tl.href }}" target="_blank" style="text-decoration:none;display:flex;"><span style="display:inline-flex;align-items:center;gap:5px;min-height:26px;padding:0 10px;border-radius:999px;background:oklch(95.5% 0.025 255);font-size:12.5px;font-weight:600;color:oklch(42% 0.17 255);"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(42% 0.17 255)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg>{{ tl.label }}</span></a></sc-for>
+                    </div>
                   </sc-if>
                   <sc-if value="{{ ln.hasLink }}" hint-placeholder-val="{{ false }}">
-                    <a href="{{ ln.link }}" target="_blank" style="font-size:12px;font-weight:500;margin-top:3px;color:oklch(64% 0.16 50);text-decoration:none;">Visit site ↗</a>
+                    <a href="{{ ln.link }}" target="_blank" style="align-self:flex-start;text-decoration:none;display:flex;"><span style="display:inline-flex;align-items:center;gap:5px;min-height:26px;padding:0 10px;border-radius:999px;background:oklch(95.5% 0.025 255);font-size:12.5px;font-weight:600;color:oklch(42% 0.17 255);margin-top:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(42% 0.17 255)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg>{{ ln.linkLabel }}</span></a>
                   </sc-if>
                 </div>
               </div>
@@ -408,43 +422,28 @@
           <span onClick="{{ selectUserStacks }}" style="padding-bottom:10px;font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:{{ userStacksColor }};border-bottom:2px solid {{ userStacksBorder }};cursor:pointer;">Stacks</span>
           <span onClick="{{ selectUserReposts }}" style="padding-bottom:10px;font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:{{ userRepostsColor }};border-bottom:2px solid {{ userRepostsBorder }};cursor:pointer;">Reposts</span>
         </div>
-      <div style="padding:16px 20px 24px;display:flex;flex-direction:column;gap:14px;">
-        <sc-for list="{{ userCards }}" as="uc" hint-placeholder-count="2">
-          <div style="display:flex;flex-direction:column;gap:7px;">
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;padding:14px 20px 28px;background:oklch(96.5% 0.004 80);border-top:1px solid oklch(91.8% 0.006 80);">
+        <sc-for list="{{ userCards }}" as="uc" hint-placeholder-count="4">
+          <div onClick="{{ uc.card.onOpen }}" style="aspect-ratio:1 / 1;border-radius:18px;background:oklch(99.6% 0.002 80);box-shadow:0 1px 2px rgba(0,0,0,0.04),0 8px 24px rgba(0,0,0,0.05);border:1px solid oklch(90.7% 0.006 80);display:flex;flex-direction:column;padding:12px;cursor:pointer;overflow:hidden;">
             <sc-if value="{{ uc.isRepost }}" hint-placeholder-val="{{ false }}">
-              <div style="display:flex;align-items:center;gap:6px;padding-left:4px;font-family:Inter,sans-serif;font-size:11.5px;font-weight:600;color:oklch(41.5% 0.006 80);">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 2l4 4-4 4"></path><path d="M3 11V9a3 3 0 0 1 3-3h15"></path><path d="M7 22l-4-4 4-4"></path><path d="M21 13v2a3 3 0 0 1-3 3H3"></path></svg>{{ uc.repostLabel }}
-              </div>
+              <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px;font-family:Inter,sans-serif;font-size:10.5px;font-weight:600;color:oklch(41.5% 0.006 80);white-space:nowrap;overflow:hidden;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style="flex-shrink:0;"><path d="M17 2l4 4-4 4"></path><path d="M3 11V9a3 3 0 0 1 3-3h15"></path><path d="M7 22l-4-4 4-4"></path><path d="M21 13v2a3 3 0 0 1-3 3H3"></path></svg><span style="overflow:hidden;text-overflow:ellipsis;">{{ uc.card.authorHandle }}</span></div>
             </sc-if>
-            <div onClick="{{ uc.card.onOpen }}" style="border-radius:16px;background:oklch(94.5% 0.006 80);border:1px solid oklch(91.8% 0.006 80);display:flex;flex-direction:column;padding:18px;cursor:pointer;">
-              <div onClick="{{ uc.card.onOpenAuthor }}" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;align-self:flex-start;max-width:100%;cursor:pointer;">
-                <div style="width:26px;height:26px;border-radius:50%;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);font-family:Inter,sans-serif;font-weight:700;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ uc.card.initials }}</div>
-                <span style="font-family:Inter,sans-serif;font-weight:600;font-size:12px;color:oklch(19.4% 0.006 80);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ uc.card.authorName }}</span>
-                <span style="font-family:Inter,sans-serif;font-size:11px;color:oklch(50.8% 0.006 80);white-space:nowrap;flex-shrink:0;">{{ uc.card.authorHandle }}</span>
-              </div>
-              <div style="font-family:Inter,sans-serif;font-weight:400;font-size:14px;color:oklch(24.9% 0.006 80);line-height:1.3;margin-bottom:12px;text-wrap:pretty;">{{ uc.card.title }}</div>
-              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(41.5% 0.006 80);line-height:1.9;">
-                <sc-for list="{{ uc.card.shortLines }}" as="pl" hint-placeholder-count="4">
-                  <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(64% 0.16 50);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
-                </sc-for>
-              </div>
-              <sc-if value="{{ uc.card.hasMoreShort }}" hint-placeholder-val="{{ false }}">
-                <div style="font-family:Inter,sans-serif;font-size:11.5px;font-weight:600;color:oklch(64% 0.16 50);margin-top:6px;">{{ uc.card.moreShortLabel }}</div>
-              </sc-if>
-              <div style="display:flex;align-items:center;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid oklch(91.8% 0.006 80);font-family:Inter,sans-serif;font-size:11px;color:oklch(50.8% 0.006 80);">
-                  <span onClick="{{ uc.card.onToggleLike }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ uc.card.likeColor }};"><span style="font-size:13px;line-height:1;">{{ uc.card.likeGlyph }}</span>{{ uc.card.likesLabel }}</span>
-                  <span onClick="{{ uc.card.onToggleSave }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ uc.card.saveColor }};"><svg width="13" height="13" viewBox="0 0 24 24" fill="{{ uc.card.saveFill }}" stroke="{{ uc.card.saveColor }}" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ uc.card.savesLabel }}</span>
-                  <span onClick="{{ uc.card.onFork }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:oklch(41.5% 0.006 80);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.2"></circle><circle cx="18" cy="5" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle><path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2"></path><path d="M12 12v4.8"></path></svg>{{ uc.card.forksLabel }}</span>
-                  <span style="font-size:10.5px;">{{ uc.card.commentCountLabel }}</span>
-                  <span onClick="{{ uc.card.onCopyLink }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;margin-left:auto;padding:2px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="oklch(41.5% 0.006 80)" stroke="oklch(41.5% 0.006 80)" strokeWidth="1" strokeLinejoin="round"><path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z"></path></svg></span>
-              </div>
+            <div style="font-family:Inter,sans-serif;font-size:13.5px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.3;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ uc.card.title }}</div>
+            <div style="flex:1;min-height:0;overflow:hidden;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(36% 0.006 80);line-height:1.85;">
+              <sc-for list="{{ uc.gLines }}" as="pl" hint-placeholder-count="3">
+                <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(64% 0.16 50);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
+              </sc-for>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid oklch(91.8% 0.006 80);font-family:Inter,sans-serif;font-size:10.5px;color:oklch(41.5% 0.006 80);">
+              <span style="font-weight:600;color:oklch(36% 0.006 80);">{{ uc.gCount }}</span>
+              <span onClick="{{ uc.card.onToggleSave }}" style="margin-left:auto;display:flex;align-items:center;gap:4px;cursor:pointer;color:{{ uc.card.saveColor }};"><svg width="12" height="12" viewBox="0 0 24 24" fill="{{ uc.card.saveFill }}" stroke="{{ uc.card.saveColor }}" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ uc.card.savesLabel }}</span>
             </div>
           </div>
         </sc-for>
+      </div>
         <sc-if value="{{ userCardsEmpty }}" hint-placeholder-val="{{ false }}">
           <div style="padding:40px 20px;text-align:center;font-family:Inter,sans-serif;font-size:13px;color:oklch(41.5% 0.006 80);">{{ userEmptyLabel }}</div>
         </sc-if>
-      </div>
         <div style="margin-top:12px;padding:22px 20px 28px;border-top:1px solid oklch(91.8% 0.006 80);text-align:center;font-family:Inter,sans-serif;font-size:12px;color:oklch(48.9% 0.006 80);">Explore the internet, curated by people · <span style="color:oklch(64% 0.16 50);font-weight:600;">Stack</span></div>
       </div>
     </sc-if>
@@ -709,7 +708,7 @@
 
     <sc-if value="{{ isCreate }}" hint-placeholder-val="{{ false }}">
       <div style="flex:1;min-height:0;position:relative;">
-        <dc-import name="Create Flow Screen" start="{{ createStart }}" initial="{{ createInitial }}" on-exit="{{ createExit }}" on-save="{{ createSave }}" on-publish="{{ createPublish }}" edit="{{ createEditVM }}" on-save-edit="{{ createSaveEdit }}" on-share-update="{{ createShareUpdate }}" hint-size="100%,100%" style="position:absolute;inset:0;"></dc-import>
+        <dc-import name="Create Flow Screen" start="{{ createStart }}" initial="{{ createInitial }}" on-exit="{{ createExit }}" on-save="{{ createSave }}" on-publish="{{ createPublish }}" edit="{{ createEditVM }}" on-save-edit="{{ createSaveEdit }}" on-share-update="{{ createShareUpdate }}" on-share-new="{{ createShareNew }}" hint-size="100%,100%" style="position:absolute;inset:0;"></dc-import>
       </div>
     </sc-if>
 
@@ -1405,13 +1404,13 @@ class Component extends DCLogic {
       const l = s.lists.find(x => x.id === id);
       if (!src || !l) return null;
       const init = { step: 'build', title: src.title, description: src.description || '', tags: src.tags || [], visibility: l.visibility || 'public', location: src.location || '',
-        sections: src.sections.map(sec => ({ label: sec.label || '', lines: sec.lines.map(ln => ({ text: ln.text, sub: ln.sub || '', link: ln.link || '' })) })) };
+        sections: src.sections.map(sec => ({ label: sec.label || '', lines: sec.lines.map(ln => this._lnIn(ln, src)) })) };
       return { visTarget: null, visDelArmed: false, draft: null, createStart: 'build', createInitial: init, createEdit: { stackId: id }, editingDraftId: draftId || null, screen: 'create', createKey: (s.createKey || 0) + 1 };
     });
   }
   _applyEdit(out, share, note) {
     const id = this.state.createEdit && this.state.createEdit.stackId; if (!id) return;
-    const sections = (out.sections || []).map(sec => ({ label: (sec.label || '').trim() || null, lines: sec.lines.map(ln => ({ text: (ln.text || '').trim(), sub: (ln.sub || '').trim() || undefined, link: (ln.link || '').trim() || undefined })).filter(ln => ln.text) })).filter(sec => sec.lines.length);
+    const sections = (out.sections || []).map(sec => ({ label: (sec.label || '').trim() || null, lines: sec.lines.map(ln => this._lnOut(ln)).filter(ln => ln.text || ln.link) })).filter(sec => sec.lines.length);
     if (!sections.length) { this.showToast('Add a line with some text to save.'); return; }
     this.setState(s => {
       const now = Date.now();
@@ -1428,16 +1427,39 @@ class Component extends DCLogic {
     if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'K';
     return String(n);
   }
+  _splitLegacy(ln) { let head = ln.text || '', sub = ln.sub || ''; if (!sub) { const m = head.split(/\s+[—–]\s+/); if (m.length > 1) { head = m.shift(); sub = m.join(' — '); sub = sub.charAt(0).toUpperCase() + sub.slice(1); } } return { head, sub }; }
+  _lnIn(ln, src) {
+    if (ln.fmt) return { text: ln.text || '', sub: ln.sub || '', link: ln.link || '', fmt: ln.fmt, bold: ln.bold === true, linkName: ln.linkName || '', linkNames: ln.linkNames || undefined };
+    const { head, sub } = this._splitLegacy(ln), h = head.trim();
+    const text = h ? '**' + h + '**' + (sub ? (/[.!?]$/.test(h) ? ' ' : '. ') + sub : '') : sub;
+    return { text, sub: '', link: ln.link || '', fmt: src && src.style === 'bulleted' ? 'bullet' : 'num', bold: false };
+  }
+  _lnOut(ln) { return { text: (ln.text || '').trim(), sub: (ln.sub || '').trim() || undefined, link: (ln.link || '').trim() || undefined, fmt: ln.fmt || undefined, bold: ln.bold === true || undefined, linkName: ln.linkName || undefined, linkNames: ln.linkNames && Object.keys(ln.linkNames).length ? ln.linkNames : undefined }; }
+  _domainOf(u) { return String(u || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[/?#]/)[0]; }
+  _rich(t) { const out = []; const re = /\*\*([\s\S]+?)\*\*/g; let last = 0, m, k = 0; while ((m = re.exec(t))) { if (m.index > last) out.push({ key: k++, t: t.slice(last, m.index), w: 'inherit' }); out.push({ key: k++, t: m[1], w: '700' }); last = m.index + m[0].length; } if (last < t.length) out.push({ key: k++, t: t.slice(last), w: 'inherit' }); return out; }
+  _urls(t) { const re = /((?:https?:\/\/|www\.)[^\s]+|\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|org|net|io|co|jp|world|app|dev|me|ly|tv|uk)\b(?:\/[^\s]*)?)/gi; const out = []; let m; while ((m = re.exec(t))) { const u = m[0].replace(/[.,;:!?)\]*]+$/, ''); if (u) out.push(u); } return out; }
+  _stripUrls(t) { let s = t || ''; this._urls(s).forEach(u => { s = s.split(u).join(''); }); return s.replace(/[ \t]{2,}/g, ' ').replace(/ +\n/g, '\n').replace(/\*\*\s*\*\*/g, '').trim(); }
   _flatten(l) {
     const out = [];
     let n = 1;
     const bulleted = l.style === 'bulleted';
     l.sections.forEach(sec => {
       sec.lines.forEach((ln, i) => {
-        let head = ln.text || '', sub = ln.sub || '';
-        if (!sub) { const m = head.split(/\s+[—–]\s+/); if (m.length > 1) { head = m.shift(); sub = m.join(' — '); sub = sub.charAt(0).toUpperCase() + sub.slice(1); } }
+        const legacy = !ln.fmt, f = ln.fmt || (bulleted ? 'bullet' : 'num'), isL = f === 'num' || f === 'bullet';
+        let head, sub, parts, textLinks = [];
+        if (legacy) { ({ head, sub } = this._splitLegacy(ln)); parts = [{ key: 0, t: head, w: '600' }]; }
+        else {
+          const txt = this._stripUrls(ln.text); parts = this._rich(txt); head = txt.replace(/\*\*/g, ''); sub = isL ? this._stripUrls(ln.sub) : '';
+          const seen = new Set(ln.link ? [this._domainOf(ln.link) + ln.link.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '')] : []);
+          this._urls((ln.text || '') + '\n' + (isL ? (ln.sub || '') : '')).forEach(u => { const href = /^https?:/i.test(u) ? u : 'https://' + u; const key = this._domainOf(href) + href.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, ''); if (seen.has(key)) return; seen.add(key); textLinks.push({ key, href, label: (ln.linkNames || {})[href] || this._domainOf(href) }); });
+        }
+        const showT = !!head || !(ln.link || textLinks.length);
         const label = i === 0 ? sec.label : null;
-        out.push({ num: String(n).padStart(2, '0'), label, labelPad: n === 1 ? '0 0 8px' : '18px 0 8px', text: ln.text, head, sub, hasSub: !!sub, hasLink: !!ln.link, link: ln.link || null, divider: i === sec.lines.length - 1 ? 'none' : '1px solid oklch(91.2% 0.006 80)' });
+        out.push({ num: f === 'num' ? String(n).padStart(2, '0') : f === 'bullet' ? '•' : '', fmt: f, label, labelPad: n === 1 ? '0 0 8px' : '18px 0 8px', headPad: n === 1 ? '4px 0 8px' : '30px 0 8px',
+          isNum: f === 'num', isBullet: f === 'bullet', isText: f === 'text' && showT, isBoldLine: f === 'bold' && showT, isList: isL && showT, headWeight: legacy ? '600' : '400',
+          parts, text: head, head, sub, hasSub: !!sub, textLinks, hasTextLinks: textLinks.length > 0, tlTop: showT ? '5px' : '-2px',
+          hasLink: !!ln.link, link: ln.link || null, linkLabel: ln.linkName || this._domainOf(ln.link),
+          divider: i === sec.lines.length - 1 ? 'none' : '1px solid oklch(91.2% 0.006 80)' });
         n++;
       });
     });
@@ -1722,12 +1744,13 @@ class Component extends DCLogic {
     const s = this.state;
     const id = s.editingDraftId || ('d' + Date.now());
     const entry = { id, step: out.step || 'build', title: (out.title || '').trim() || 'Untitled draft', description: (out.description || '').trim(), tags: out.tags || [], visibility: out.visibility || 'public', forkedFromId: out.forkedFromId || null, editOf: (s.createEdit && s.createEdit.stackId) || null,
-      sections: out.sections.map(sec => ({ label: (sec.label || '').trim() || null, lines: sec.lines.map(ln => ({ text: ln.text.trim(), sub: (ln.sub || '').trim() || undefined, link: (ln.link || '').trim() || undefined })).filter(ln => ln.text) })).filter(sec => sec.lines.length) };
+      sections: out.sections.map(sec => ({ label: (sec.label || '').trim() || null, lines: sec.lines.map(ln => this._lnOut(ln)).filter(ln => ln.text || ln.link) })).filter(sec => sec.lines.length) };
     const drafts = s.editingDraftId ? s.drafts.map(d => d.id === id ? entry : d) : [entry, ...s.drafts];
     this.setState({ drafts, editingDraftId: id });
   }
   createSave(out) { this.requireAuth(() => this._upsertDraft(out), 'Sign in to save this stack as a draft.'); }
   createExit(out, has) {
+    if (this.state.justPublishedId) { this.setState({ justPublishedId: null, screen: 'profile', profileTab: 'mine' }); return; }
     if (this.state.createEdit) {
       if (!has) { this.setState({ draft: null, editingDraftId: null, createEdit: null, screen: 'manage' }); return; }
       this._upsertDraft(out); this.setState({ draft: null, editingDraftId: null, createEdit: null, screen: 'manage', manageFilter: 'drafts' }); this.showToast('Changes saved as a draft'); return;
@@ -1735,7 +1758,7 @@ class Component extends DCLogic {
     if (!has) { this.setState({ draft: null, editingDraftId: null, screen: 'feed' }); return; }
     this.requireAuth(() => { this._upsertDraft(out); this.setState({ draft: null, editingDraftId: null, screen: 'profile', profileTab: 'drafts' }); this.showToast('Draft saved'); }, 'Sign in to keep this draft.');
   }
-  createPublish(out) { this.setState({ draft: out }, () => this.publishDraft()); }
+  createPublish(out) { this.setState({ draft: out }, () => this.requireAuth(() => this._doPublish(true), "Sign in to publish this stack and share it with others.")); }
   goNewLegacy() { this.setState({ draft: { title: '', description: '', tags: [], sections: [{ label: '', lines: [{ text: '', link: '' }] }] }, linkInputOpen: {}, tagInput: '', editingDraftId: null, screen: 'create' }); }
   goNew() { this.setState({ createEdit: null, draft: null, createStart: 'title', createInitial: null, editingDraftId: null, screen: 'create' }); }
   signIn() { this.setState({ signedIn: true }); }
@@ -1767,7 +1790,7 @@ class Component extends DCLogic {
       if (!s.draft) return null;
       const title = s.draft.title.trim() || 'Untitled draft';
       const sections = s.draft.sections
-        .map(sec => ({ label: sec.label.trim() || null, lines: sec.lines.map(ln => ({ text: ln.text.trim(), sub: (ln.sub || '').trim() || undefined, link: (ln.link || '').trim() || undefined })).filter(ln => ln.text) }))
+        .map(sec => ({ label: sec.label.trim() || null, lines: sec.lines.map(ln => this._lnOut(ln)).filter(ln => ln.text || ln.link) }))
         .filter(sec => sec.lines.length > 0);
       const entry = { id: s.editingDraftId || ('d' + Date.now()), title, description: (s.draft.description || '').trim(), tags: s.draft.tags || [], sections, visibility: s.draft.visibility || 'public', forkedFromId: s.draft.forkedFromId || null };
       const drafts = s.editingDraftId ? s.drafts.map(d => d.id === s.editingDraftId ? entry : d) : [entry, ...s.drafts];
@@ -1807,7 +1830,7 @@ class Component extends DCLogic {
     this.setState(s => {
       const src = s.lists.find(l => l.id === s.activeListId);
       if (!src) return null;
-      const sections = src.sections.map(sec => ({ label: sec.label || '', lines: sec.lines.map(ln => ({ text: ln.text, sub: ln.sub || '', link: ln.link || '' })) }));
+      const sections = src.sections.map(sec => ({ label: sec.label || '', lines: sec.lines.map(ln => this._lnIn(ln, src)) }));
       return {
         lists: s.lists.map(l => l.id === src.id ? { ...l, forks: l.forks + 1 } : l),
         draft: null, createStart: 'build', editingDraftId: null, createEdit: null,
@@ -1841,7 +1864,7 @@ class Component extends DCLogic {
   publishDraft() {
     this.requireAuth(() => this._doPublish(), "Sign in to publish this stack and share it with others.");
   }
-  _doPublish() {
+  _doPublish(stay) {
     this.setState(s => {
       if (!s.draft) return null;
       const title = s.draft.title.trim();
@@ -1849,7 +1872,7 @@ class Component extends DCLogic {
       const sections = s.draft.sections
         .map(sec => ({
           label: sec.label.trim() || null,
-          lines: sec.lines.map(ln => ({ text: ln.text.trim(), sub: (ln.sub || '').trim() || undefined, link: (ln.link || '').trim() || undefined })).filter(ln => ln.text),
+          lines: sec.lines.map(ln => this._lnOut(ln)).filter(ln => ln.text || ln.link),
         }))
         .filter(sec => sec.lines.length > 0);
       if (sections.length === 0) return null;
@@ -1860,6 +1883,7 @@ class Component extends DCLogic {
         forkedFromId: s.draft.forkedFromId || null,
       };
       const drafts = s.editingDraftId ? s.drafts.filter(d => d.id !== s.editingDraftId) : s.drafts;
+      if (stay) return { lists: [newList, ...s.lists], draft: null, editingDraftId: null, drafts, justPublishedId: id };
       return { lists: [newList, ...s.lists], draft: null, editingDraftId: null, drafts, screen: 'profile', profileTab: 'mine' };
     });
   }
@@ -2028,9 +2052,10 @@ class Component extends DCLogic {
       featured: vFeat ? { title: vFeat.title, description: vFeat.description || '', count: this._flatten(vFeat).length + ' lines', onOpen: () => this.openList(vFeat.id, 'user') } : { title: '', description: '', count: '', onOpen: () => {} },
     };
     const firstName = vName.split(' ')[0];
+    const gExtra = (l) => { const flat = this._flatten(l); return { gLines: flat.slice(0, 3).map(x => ({ num: x.num, text: x.text })), gCount: flat.length + (flat.length === 1 ? ' line' : ' lines') }; };
     const userCards = s.userTab === 'reposts'
-      ? vMeta.reposts.map(id => list.find(l => l.id === id)).filter(Boolean).map(l => ({ isRepost: true, repostLabel: firstName + ' reposted', card: this._cardVM(l, 'user') }))
-      : vStacks.map(l => ({ isRepost: false, repostLabel: '', card: this._cardVM(l, 'user') }));
+      ? vMeta.reposts.map(id => list.find(l => l.id === id)).filter(Boolean).map(l => ({ isRepost: true, repostLabel: firstName + ' reposted', card: this._cardVM(l, 'user'), ...gExtra(l) }))
+      : vStacks.map(l => ({ isRepost: false, repostLabel: '', card: this._cardVM(l, 'user'), ...gExtra(l) }));
     const allSaved = list.filter(l => l.savedByUser);
     const sf = (s.savedFilter || '').trim().toLowerCase();
     const savedRows = allSaved
@@ -2107,7 +2132,7 @@ class Component extends DCLogic {
       isUser: s.screen === 'user',
       isCreate: s.screen === 'create',
       createStart: s.createStart || 'title', createInitial: s.createInitial || null,
-      createExit: (out, has) => this.createExit(out, has), createSave: (out) => this.createSave(out), createPublish: (out) => this.createPublish(out),
+      createExit: (out, has) => this.createExit(out, has), createSave: (out) => this.createSave(out), createPublish: (out) => this.createPublish(out), createShareNew: () => { const l = this.state.lists.find(x => x.id === this.state.justPublishedId); if (l) this._shareOrWarn(l); },
       showTabBar: ['feed', 'search', 'profile', 'user', 'notifs'].includes(s.screen),
       ...this._notifVMs(s),
       goBack: () => this.goBack(),

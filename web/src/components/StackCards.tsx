@@ -310,38 +310,6 @@ export function TrendingCard({ stack }: { stack: Stack }) {
 }
 
 /** Creator profile card: first 4 lines, a comment count instead of comments. */
-export function CompactCard({ stack, repostedBy }: { stack: Stack; repostedBy?: string }) {
-  const open = useOpen(stack.id);
-  const lines = flatten(stack);
-  return (
-    <div className={s.userItem}>
-      {repostedBy && (
-        <div className={s.repostLabel}>
-          <RepostIcon />
-          {repostedBy} reposted
-        </div>
-      )}
-      <div className={s.card} {...open}>
-        <AuthorRow stack={stack} />
-        <div className={s.title}>{stack.title}</div>
-        <div className={s.lines}>
-          {lines.slice(0, 4).map((l, i) => (
-            <div key={i} className={s.lineClip}>
-              {l.num && <span className={s.num}>{l.num} </span>}
-            {l.text}
-            </div>
-          ))}
-        </div>
-        {lines.length > 4 && <div className={s.more}>+ {lines.length - 4} more · tap to see all</div>}
-        <ActionRow
-          stack={stack}
-          extra={<span className={s.commentCount}>{stack.comments_count ? plural(stack.comments_count, "comment") : "No comments"}</span>}
-        />
-      </div>
-    </div>
-  );
-}
-
 /** Flat list card used for search results and your own stacks. */
 export function ListCard({ stack, following = false }: { stack: Stack; following?: boolean }) {
   const open = useOpen(stack.id);
@@ -396,12 +364,18 @@ export function ListCard({ stack, following = false }: { stack: Stack; following
   );
 }
 
-/** Your own profile's square tile: title, first 3 lines, line count and who can see it. Pinned stacks get a pin. */
-export function GridCard({ stack, pinned = false }: { stack: Stack; pinned?: boolean }) {
+/**
+ * Square profile tile: title, first 3 lines and line count. On your own profile it shows who can see the stack
+ * and a pin on the pinned one; on someone else's it shows a save button, and reposts show the original author.
+ */
+export function GridCard({ stack, pinned = false, visitor = false, repost = false }: { stack: Stack; pinned?: boolean; visitor?: boolean; repost?: boolean }) {
   const open = useOpen(stack.id);
   const visibility = useVisibility(stack);
+  const a = useStackActions();
+  const e = useEngagement(stack);
   const lines = flatten(stack);
   const visColor = visibility === "public" ? "var(--muted-66)" : "var(--warn)";
+  const saveColor = e.saved ? "var(--accent)" : "var(--muted-66)";
   return (
     <div className={`${s.gridCard} ${pinned ? s.gridCardPinned : ""}`} {...open}>
       {pinned && (
@@ -411,6 +385,12 @@ export function GridCard({ stack, pinned = false }: { stack: Stack; pinned?: boo
             <path d="M9 10.8V4h6v6.8l3 3.2H6z" />
           </svg>
         </span>
+      )}
+      {repost && (
+        <div className={s.gridRepost}>
+          <RepostIcon size={11} />
+          <span>@{stack.author.handle}</span>
+        </div>
       )}
       <div className={s.gridTitle} style={pinned ? { paddingRight: 24 } : undefined}>
         {stack.title}
@@ -425,10 +405,26 @@ export function GridCard({ stack, pinned = false }: { stack: Stack; pinned?: boo
       </div>
       <div className={s.gridStats}>
         <span className={s.gridCount}>{plural(lines.length, "line")}</span>
-        <span className={s.gridVis} style={{ color: visColor }}>
-          <VisIcon value={visibility} size={11} color={visColor} />
-          {VIS[visibility].label}
-        </span>
+        {visitor ? (
+          <button
+            className={s.gridSave}
+            style={{ color: saveColor }}
+            onClick={(ev) => {
+              ev.stopPropagation();
+              a.toggleSave(stack.id, e);
+            }}
+            aria-pressed={e.saved}
+            aria-label={e.saved ? "Unsave" : "Save"}
+          >
+            <BookmarkIcon size={12} color={saveColor} filled={e.saved} />
+            {fmtCount(e.saves)}
+          </button>
+        ) : (
+          <span className={s.gridVis} style={{ color: visColor }}>
+            <VisIcon value={visibility} size={11} color={visColor} />
+            {VIS[visibility].label}
+          </span>
+        )}
       </div>
     </div>
   );
