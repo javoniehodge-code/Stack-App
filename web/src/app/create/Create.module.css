@@ -973,14 +973,6 @@
   text-align: center;
 }
 
-/* Exit on the "Your Stack is live" screen goes to your profile */
-.doneExit {
-  position: absolute;
-  top: calc(var(--safe-top) + 8px);
-  left: 8px;
-  z-index: 5;
-}
-
 .doneIcon {
   width: 56px;
   height: 56px;

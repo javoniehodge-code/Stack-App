@@ -711,7 +711,12 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
    * it ends the list instead, turning the line back into a fresh paragraph.
    */
   function enterLine(secId: string, l: Line) {
-    if (!isListFormat(l.format)) return !isEmpty(l) ? addLine(secId, l.id, "text") : undefined;
+    if (!isListFormat(l.format)) {
+      if (!isEmpty(l)) return addLine(secId, l.id, "text");
+      // Return on an empty paragraph finishes writing (the empty line is removed).
+      (document.activeElement as HTMLElement | null)?.blur?.();
+      return select(null);
+    }
     if (isEmpty(l)) return mapLine(l.id, (x) => ({ ...x, format: "text", picked: false }));
     addLine(secId, l.id, l.format);
   }
@@ -1009,20 +1014,6 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     requireAuth(() => doPublish(work.title.trim()), "Sign in to publish this stack and share it with others.");
   }
 
-  function startOver() {
-    idRef.current = null;
-    dirty.current = false;
-    setWork(fromDraft({ ...initial, id: null, title: "", description: "", tags: [], sections: [], forkedFromId: null, visibility: "public", location: "" }));
-    setStep("title");
-    setPreview(false);
-    setSel(null);
-    setPublished(null);
-    setPublishedStack(null);
-    setShareSheet(false);
-    setSave("idle");
-    router.replace("/create");
-  }
-
   async function share(id: string) {
     const url = `${window.location.origin}/s/${id}`;
     const r = await systemShare({ title: work.title, url });
@@ -1059,12 +1050,6 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   if (published) {
     return (
       <main className={`${shell.screen} ${s.done}`}>
-        <button className={`${s.exit} ${s.doneExit}`} onClick={() => router.replace("/profile")}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-            <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />
-          </svg>
-          Exit
-        </button>
         <div className={s.doneIcon}>
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M5 12.5l4.5 4.5L19 7.5" />
@@ -1083,14 +1068,14 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               else share(published);
             }}
           >
-            Share
+            Share your Stack
           </button>
           {/* Replace, so leaving the stack page doesn't land back in the finished create flow. */}
           <Link href={`/s/${published}?from=create`} replace className={s.secondary}>
             View your Stack
           </Link>
-          <button className={s.quiet} onClick={startOver}>
-            Start another Stack
+          <button className={s.quiet} onClick={() => router.replace("/profile")}>
+            Exit
           </button>
         </div>
         {shareSheet && publishedStack && <ShareSheet stack={publishedStack} onClose={() => setShareSheet(false)} />}
