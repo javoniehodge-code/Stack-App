@@ -610,14 +610,14 @@ class Component extends DCLogic {
     ] };
   }
   _fromApp(a) {
-    const secs = (a.sections || []).map(sec => ({ id: this._id(), headed: !!(sec.label && String(sec.label).trim()), label: sec.label || '', lines: (sec.lines || []).map(ln => this._L(ln.text || '', ln.link || '', ln.sub || '', ln.fmt || 'num', ln.bold)) }));
+    const secs = (a.sections || []).map(sec => ({ id: this._id(), headed: !!(sec.label && String(sec.label).trim()), label: sec.label || '', lines: (sec.lines || []).map(ln => Object.assign(this._L(ln.text || '', ln.link || '', ln.sub || '', ln.fmt || 'num', ln.bold), ln.linkName ? { linkName: ln.linkName } : {}, ln.linkNames ? { linkNames: { ...ln.linkNames } } : {})) }));
     if (!secs.length) secs.push({ id: this._id(), headed: false, label: '', lines: [Object.assign(this._L('', '', '', 'num'), { picked: true })] });
     return { title: a.title || '', description: a.description || '', theme: 'default', tags: [], visibility: a.visibility || 'public', location: a.location || '', forkedFromId: a.forkedFromId || null, sections: secs };
   }
   _toApp(d) {
     const st = this.state && this.state.step;
     return { step: ['title', 'description', 'build', 'review'].includes(st) ? st : 'build', title: d.title, description: d.description, tags: [], visibility: d.visibility || 'public', location: d.location || '', forkedFromId: d.forkedFromId || null,
-      sections: d.sections.map(sec => ({ label: sec.headed ? sec.label : '', lines: sec.lines.map(ln => ({ text: ln.text, sub: ['num', 'bullet'].includes(this._fmtOf(ln)) ? (ln.sub || '') : '', link: ln.link || '', fmt: this._fmtOf(ln), bold: ln.bold !== false })) })) };
+      sections: d.sections.map(sec => ({ label: sec.headed ? sec.label : '', lines: sec.lines.map(ln => ({ text: ln.text, sub: ['num', 'bullet'].includes(this._fmtOf(ln)) ? (ln.sub || '') : '', link: ln.link || '', fmt: this._fmtOf(ln), bold: ln.bold !== false, linkName: ln.linkName || '', linkNames: ln.linkNames || null })) })) };
   }
   addTag(name) {
     const t = (name || '').trim().replace(/^#/, '').replace(/,$/, '');
