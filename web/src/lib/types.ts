@@ -5,10 +5,20 @@
 export type LineFormat = "num" | "bullet" | "text" | "bold";
 
 /**
- * A line of a stack. `note` is missing until the line_notes_location migration has run; `format` and `bold`
- * (false when a numbered or bulleted heading isn't bold) until the line_formats_limits migration.
+ * A line of a stack. `text` can have bold words between ** marks. `note` is the separate detail older numbered
+ * and bulleted lines had (new lines keep everything in `text`). `linkName` is the name shown on the link's pill
+ * instead of its domain, and `linkNames` names web addresses typed into the text (address → name); both are
+ * missing until the rich_lines migration has run. `bold` (false for a plain heading) is from before then.
  */
-export type Line = { text: string; link: string | null; note?: string | null; format?: LineFormat; bold?: boolean };
+export type Line = {
+  text: string;
+  link: string | null;
+  note?: string | null;
+  format?: LineFormat;
+  bold?: boolean;
+  linkName?: string | null;
+  linkNames?: Record<string, string> | null;
+};
 export type Section = { label: string | null; lines: Line[] };
 
 export type Author = { id: string; handle: string; name: string };
@@ -84,7 +94,7 @@ export type Profile = {
 };
 
 /** A draft being edited in the create screen. */
-export type DraftLine = { text: string; link: string; note?: string; format: LineFormat; bold?: boolean; linkOpen?: boolean };
+export type DraftLine = { text: string; link: string; note?: string; format: LineFormat; linkName?: string; linkNames?: Record<string, string> };
 /** `headed` is whether the section shows a heading (the first section can go without one). */
 export type DraftSection = { label: string; headed?: boolean; lines: DraftLine[] };
 export type Draft = {

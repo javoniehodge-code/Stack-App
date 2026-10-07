@@ -212,14 +212,12 @@
 .noteInput::placeholder {
   color: oklch(62% 0.006 80);
 }
-
 /* The text cursor uses the accent color across the create screen. */
 .titleInput,
 .descInput,
 .sectionInput,
 .lineInput,
 .noteInput,
-.linkInput,
 .placeInput,
 .sheetInput {
   caret-color: var(--warn);
@@ -321,21 +319,6 @@
   padding: 8px 0;
 }
 
-.sectionTools {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 8px 0 6px;
-}
-
-.textControl {
-  height: 36px;
-  padding: 0 10px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--muted-66);
-}
-
 .doneBtn {
   height: 36px;
   padding: 0 4px;
@@ -399,14 +382,16 @@
 }
 
 .head {
-  font-size: 15.5px;
-  font-weight: 650;
-  line-height: 22px;
-  letter-spacing: -0.01em;
+  font-size: 15px;
+  line-height: 1.55;
+  white-space: pre-wrap;
 }
 
-.head[data-plain] {
-  font-weight: 400;
+.head strong,
+.para strong,
+.lineInput b,
+.lineInput strong {
+  font-weight: 700;
 }
 
 .para {
@@ -427,14 +412,6 @@
 .para[data-empty],
 .boldLine[data-empty] {
   color: oklch(58% 0.006 80);
-}
-
-.lineNote {
-  font-size: 14px;
-  line-height: 1.5;
-  color: oklch(38% 0.006 80);
-  text-wrap: pretty;
-  overflow-wrap: anywhere;
 }
 
 .pills {
@@ -516,23 +493,20 @@
   padding: 2px 0;
 }
 
+/* Paragraphs and numbered or bulleted items: an editable box where words can be bold. */
 .lineInput {
-  font-size: 15.5px;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  line-height: 22px;
-  color: var(--text-bright);
-}
-
-.lineInput[data-plain] {
-  font-weight: 400;
-}
-
-.lineInput[data-format="text"] {
+  min-height: 27px;
   font-size: 15px;
   font-weight: 400;
-  letter-spacing: 0;
   line-height: 1.55;
+  color: var(--text-bright);
+  cursor: text;
+}
+
+.lineInput[data-ph]:empty::before {
+  content: attr(data-ph);
+  color: oklch(62% 0.006 80);
+  pointer-events: none;
 }
 
 .lineInput[data-format="bold"] {
@@ -547,14 +521,12 @@
   line-height: 1.5;
   color: oklch(38% 0.006 80);
 }
-
 .titleInput:focus-visible,
 .descInput:focus-visible,
 .sectionInput:focus-visible,
 .lineInput:focus-visible,
 .noteInput:focus-visible,
-.placeInput:focus-visible,
-.linkInput:focus-visible {
+.placeInput:focus-visible {
   outline: none;
 }
 
@@ -563,59 +535,11 @@
   padding-left: 32px;
 }
 
-.lineTools .linkCard {
-  margin-top: 6px;
-  padding-right: 4px;
-}
-
 .toolRow {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-top: 8px;
-}
-
-.toolBtn {
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
-  border-radius: 999px;
-  border: 1px solid oklch(86% 0.006 80);
-  background: var(--bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.toolBtn:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
-
-.boldToggle {
-  font-size: 14px;
-  font-weight: 800;
-  color: oklch(30% 0.006 80);
-}
-
-.boldToggle[aria-pressed="true"] {
-  background: var(--text);
-  border-color: var(--text);
-  color: var(--bg);
-}
-
-.addLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 34px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid oklch(86% 0.006 80);
-  background: var(--bg);
-  font-size: 13px;
-  font-weight: 600;
-  color: oklch(30% 0.006 80);
 }
 
 .charCount {
@@ -638,220 +562,6 @@
   font-size: 13.5px;
   font-weight: 700;
   color: var(--warn);
-}
-
-/* ── The + button and its format menu ── */
-.plusRow {
-  display: flex;
-  align-items: center;
-  min-height: 44px;
-  margin-top: 2px;
-}
-
-.plus {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 1.5px solid oklch(86% 0.006 80);
-  background: var(--bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.plus:hover {
-  border-color: var(--accent);
-}
-
-.plusRow {
-  gap: 8px;
-}
-
-.plusLabel {
-  height: 44px;
-  display: flex;
-  align-items: center;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--muted-66);
-}
-
-.menu {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr)) 30px;
-  gap: 2px;
-  align-items: center;
-  margin: 6px 0 4px;
-  padding: 4px;
-  border-radius: 14px;
-  border: 1px solid oklch(90% 0.006 80);
-  background: var(--bg);
-  box-shadow: 0 4px 14px oklch(20% 0.01 80 / 0.07);
-}
-
-.menuItem {
-  height: 50px;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  color: oklch(22% 0.006 80);
-}
-
-.menuItem:hover {
-  background: oklch(96% 0.004 80);
-}
-
-/* The format in use. */
-.menuItem[data-on] {
-  color: oklch(42% 0.15 45);
-  background: oklch(95.5% 0.03 60);
-  box-shadow: inset 0 0 0 1.5px var(--accent);
-}
-
-.menuLabel {
-  font-size: 10.5px;
-  font-weight: 600;
-}
-
-.menuBold {
-  font-size: 16px;
-  font-weight: 800;
-  line-height: 16px;
-}
-
-.menuClose {
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-left: 1px solid oklch(92% 0.006 80);
-}
-
-.linkCard {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 4px 0;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-  background: var(--bg);
-}
-
-.fav {
-  width: 20px;
-  height: 20px;
-  border-radius: 5px;
-  color: var(--bg);
-  font-size: 10.5px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.linkText {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.linkEdit {
-  align-items: stretch;
-  text-align: left;
-  cursor: text;
-}
-
-.linkTitle,
-.linkDomain {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.linkTitle {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.linkDomain {
-  font-size: 11.5px;
-  color: var(--muted-60);
-}
-
-.linkArrow {
-  color: var(--warn);
-  font-size: 14px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.linkRemove {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.linkField {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 12px;
-  height: 44px;
-  border-radius: 12px;
-  border: 1.5px solid var(--accent);
-  background: var(--bg);
-  margin-top: 6px;
-}
-
-.linkArrowIcon {
-  color: var(--warn);
-  font-size: 14px;
-  flex-shrink: 0;
-}
-
-.linkInput {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 14px;
-  color: oklch(17.5% 0.006 80);
-}
-
-.linkButtons {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.pillPrimary,
-.pillSecondary {
-  font-size: 13px;
-  padding: 9px 16px;
-  border-radius: 999px;
-}
-
-.pillPrimary {
-  font-weight: 700;
-  background: var(--accent);
-  color: var(--on-accent);
-}
-
-.pillSecondary {
-  font-weight: 600;
-  border: 1px solid oklch(88.5% 0.006 80);
-  color: var(--muted-72);
 }
 
 /* ── Footer buttons ── */
@@ -1050,7 +760,6 @@
   margin-bottom: 6px;
 }
 
-
 .privacyRow {
   width: 100%;
   display: flex;
@@ -1107,12 +816,6 @@
   color: var(--muted-66);
   margin-top: 1px;
 }
-
-
-
-
-
-
 
 .placeTitle {
   font-size: 15px;
@@ -1256,15 +959,6 @@
   font-weight: 700;
 }
 
-
-
-
-
-
-
-
-
-
 /* ── Published ── */
 .done {
   position: relative;
@@ -1392,4 +1086,304 @@
   margin: 6px 0 0;
   padding-left: 18px;
   color: var(--text-2);
+}
+
+/* ── Edit mode: every line and heading in a box with move buttons ── */
+.arrangeRow {
+  display: flex;
+  justify-content: flex-end;
+  margin: 6px 0 -6px;
+}
+
+.arrangeBtn {
+  height: 36px;
+  padding: 0 2px 0 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.arrangeBtn[data-on] {
+  font-weight: 700;
+  color: var(--warn);
+}
+
+.sectionBox[data-arranging] {
+  margin: 0 -12px 8px;
+  padding: 4px 10px 8px 12px;
+  border: 1px solid oklch(90% 0.006 80);
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+.line[data-arranging] {
+  margin: 0 -12px 8px;
+  padding: 10px 8px 10px 12px;
+  border: 1px solid oklch(90% 0.006 80);
+  border-radius: 14px;
+  background: var(--bg);
+  cursor: default;
+}
+
+.moveBtns {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin: -4px -4px 0 0;
+}
+
+.moveBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.moveBtn:hover:not(:disabled) {
+  background: oklch(94% 0.006 80);
+}
+
+.moveBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* A selected heading: delete beside it, Done under it. */
+.headDelete {
+  width: 32px;
+  height: 32px;
+  margin-top: 4px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.headDelete:hover {
+  background: oklch(94% 0.006 80);
+}
+
+.headDoneRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+/* Add item, at the end when nothing is selected. */
+.addItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted-66);
+}
+
+.addItemIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid oklch(86% 0.006 80);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── The formatting toolbar, in place of the footer while writing ── */
+.toolbar {
+  flex-shrink: 0;
+  padding: 6px 10px calc(10px + var(--safe-bottom));
+  background: var(--bg);
+}
+
+.toolbarRow {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-radius: 16px;
+  border: 1px solid oklch(90% 0.006 80);
+  background: var(--bg);
+  box-shadow: 0 6px 20px oklch(20% 0.01 80 / 0.1);
+}
+
+.toolbarRow::-webkit-scrollbar {
+  display: none;
+}
+
+.tool {
+  flex: 0 0 58px;
+  height: 50px;
+  border-radius: 11px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: oklch(22% 0.006 80);
+}
+
+.tool:hover:not(:disabled) {
+  background: oklch(96% 0.004 80);
+}
+
+/* The format in use. */
+.tool[data-on] {
+  color: oklch(42% 0.15 45);
+  background: oklch(95.5% 0.03 60);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+/* Bold, while the cursor is in bold text. */
+.tool[data-pressed] {
+  color: var(--bg);
+  background: var(--text);
+}
+
+.tool:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.toolLabel {
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.toolB {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 16px;
+}
+
+.toolAa {
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 16px;
+  letter-spacing: -0.02em;
+}
+
+.toolDivider {
+  flex-shrink: 0;
+  width: 1px;
+  margin: 10px 3px;
+  background: oklch(91% 0.006 80);
+}
+
+/* ── The Add link / Edit link sheet ── */
+.scrim[data-light] {
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.lsHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.lsRemove {
+  height: 36px;
+  font-size: 13px;
+  font-weight: 600;
+  color: oklch(48% 0.16 30);
+}
+
+.lsLabel {
+  display: block;
+  margin: 14px 2px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-60);
+}
+
+.lsOptional {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+
+.lsInput {
+  width: 100%;
+  height: 46px;
+  border: 1.5px solid var(--accent);
+  border-radius: 12px;
+  outline: none;
+  background: var(--bg);
+  font-size: 15px;
+  color: var(--text-bright);
+  padding: 0 14px;
+}
+
+.lsInput[data-name] {
+  border-color: oklch(88% 0.006 80);
+}
+
+.lsInput[data-name]:focus {
+  border-color: var(--accent);
+}
+
+.lsInput[data-locked] {
+  border-color: oklch(91% 0.006 80);
+  background: oklch(97% 0.004 80);
+  color: var(--muted-60);
+}
+
+.lsPreview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 26px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted-60);
+}
+
+.lsButtons {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.lsCancel,
+.lsSubmit {
+  flex: 1;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 14px;
+}
+
+.lsCancel {
+  border: 1px solid oklch(88.5% 0.006 80);
+  font-weight: 600;
+  color: var(--muted-72);
+}
+
+.lsSubmit {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+}
+
+.lsSubmit[aria-disabled="true"] {
+  opacity: 0.4;
+}
+
+.visit[role="button"],
+button.visit {
+  cursor: pointer;
 }

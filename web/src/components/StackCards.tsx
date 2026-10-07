@@ -15,7 +15,7 @@ import { BookmarkIcon, RepostIcon } from "./icons";
 import { MentionList, useMentions } from "./Mentions";
 import { RepostButton, RepostGlyph } from "./Repost";
 import { ShareButton } from "./Share";
-import { LineMarker, LinkPill } from "./StackView";
+import { LineMarker, LinkPill, RichText } from "./StackView";
 import { VIS, VisIcon } from "./Visibility";
 import s from "./Cards.module.css";
 
@@ -198,14 +198,18 @@ function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode })
                     <div className={`${s.feedLine} ${divided ? s.feedLineDivided : ""}`}>
                       <LineMarker ln={l} numClass={s.num} bulletClass={s.feedBullet} />
                       <span className={s.feedLineText}>
-                        {l.head && <span className={l.format === "text" ? s.feedPara : l.format === "bold" ? s.feedBoldLine : `${s.feedHead} ${l.bold ? "" : s.feedPlain}`}>{l.head}</span>}
+                        {l.head && (
+                          <span className={l.format === "text" ? s.feedPara : l.format === "bold" ? s.feedBoldLine : s.feedHead}>
+                            <RichText text={l.head} />
+                          </span>
+                        )}
                         {l.note && <span className={s.feedNote}>{l.note}</span>}
                         {(l.link || l.links.length > 0) && (
                           <span className={s.feedPills}>
                             {l.links.map((u) => (
-                              <LinkPill key={u} href={u} className={s.feedLink} size={10} />
+                              <LinkPill key={u.href} href={u.href} label={u.label} className={s.feedLink} size={10} />
                             ))}
-                            {l.link && <LinkPill href={l.link} className={s.feedLink} size={10} />}
+                            {l.link && <LinkPill href={l.link} label={l.linkLabel} className={s.feedLink} size={10} />}
                           </span>
                         )}
                       </span>

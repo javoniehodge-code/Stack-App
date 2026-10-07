@@ -1,4 +1,4 @@
-import { flatten, initials } from "@/lib/format";
+import { flatten, richParts, initials } from "@/lib/format";
 import type { Stack } from "@/lib/types";
 
 /*
@@ -51,7 +51,10 @@ const C = {
 type Fonts = { sans: string; mono: string };
 type Item =
   | { kind: "label"; label: string; cont: boolean; padTop: number; h: number }
-  | { kind: "line"; num: string; head: string[]; note: string[]; h: number; weight: number };
+  | { kind: "line"; num: string; head: Run[][]; note: string[]; h: number; weight: number };
+
+/** A stretch of a wrapped line in one weight (bold words are drawn heavier). */
+type Run = { text: string; bold: boolean };
 export type StoryPage = {
   cover: boolean;
   last: boolean;
@@ -112,6 +115,56 @@ function wrapText(c: CanvasRenderingContext2D, text: string, max: number): strin
   return out.length ? out : [""];
 }
 
+/**
+ * Wraps text with ** bold words into lines of runs. Breaks only at spaces (a word wider than the line stays whole
+ * and is clipped) and at line breaks.
+ */
+function wrapRich(c: CanvasRenderingContext2D, text: string, max: number, weight: number, size: number, family: string, spacing: number): Run[][] {
+  const width = (t: string, bold: boolean) => {
+    setFont(c, bold ? 700 : weight, size, family, spacing);
+    return c.measureText(t).width;
+  };
+  // Words, each made of runs that join without a space ("**Fuunji**." is one word).
+  const words: { runs: Run[]; breakBefore: boolean }[] = [];
+  let space = false;
+  let br = false;
+  for (const p of richParts(text)) {
+    for (const piece of p.text.split(/(\s+)/)) {
+      if (!piece) continue;
+      if (/^\s+$/.test(piece)) {
+        space = true;
+        if (piece.includes("\n")) br = true;
+        continue;
+      }
+      const last = words[words.length - 1];
+      if (last && !space) last.runs.push({ text: piece, bold: p.bold });
+      else words.push({ runs: [{ text: piece, bold: p.bold }], breakBefore: br });
+      space = false;
+      br = false;
+    }
+  }
+  const out: Run[][] = [];
+  let line: Run[] = [];
+  let used = 0;
+  const spaceW = width(" ", false);
+  for (const w of words) {
+    const ww = w.runs.reduce((sum, r) => sum + width(r.text, r.bold), 0);
+    if (line.length && (w.breakBefore || used + spaceW + ww > max)) {
+      out.push(line);
+      line = [];
+      used = 0;
+    }
+    if (line.length) {
+      line.push({ text: " ", bold: false });
+      used += spaceW;
+    }
+    line.push(...w.runs);
+    used += ww;
+  }
+  if (line.length) out.push(line);
+  return out.length ? out : [[{ text: "", bold: false }]];
+}
+
 function ellipsize(c: CanvasRenderingContext2D, text: string, max: number) {
   if (c.measureText(text).width <= max) return text;
   let t = text;
@@ -140,9 +193,8 @@ export function layoutStory(stack: Stack, shortUrl: string, counts: Story["count
   const colW = TEXT_W - numW - NUM_GAP;
   const measured = lines.map((l) => {
     // Paragraphs are regular weight and keep their line breaks; bold lines are heavier.
-    const weight = l.format === "text" ? 400 : l.format === "bold" ? 700 : l.bold ? 600 : 400;
-    setFont(c, weight, 14, fonts.sans, -0.2);
-    const head = (l.head || l.text).split("\n").flatMap((p) => wrapText(c, p, colW));
+    const weight = l.format === "bold" ? 700 : 400;
+    const head = wrapRich(c, l.head || l.text, colW, weight, 14, fonts.sans, -0.2);
     setFont(c, 400, 12.5, fonts.sans);
     const note = l.note ? wrapText(c, l.note, colW) : [];
     const h = 11 + head.length * 18.2 + (note.length ? 2 + note.length * 18.125 : 0) + 12 + 1;
@@ -373,10 +425,14 @@ export function drawPage(canvas: HTMLCanvasElement, story: Story, index: number)
     c.fillText(it.num, bx, top + 11 + 13);
     const cx = bx + numW + NUM_GAP;
     let ty = top + 11;
-    setFont(c, it.weight, 14, sans, -0.2);
     c.fillStyle = C.text2;
-    it.head.forEach((t) => {
-      c.fillText(t, cx, ty + 14);
+    it.head.forEach((runs) => {
+      let x = cx;
+      runs.forEach((r) => {
+        setFont(c, r.bold ? 700 : it.weight, 14, sans, -0.2);
+        c.fillText(r.text, x, ty + 14);
+        x += c.measureText(r.text).width;
+      });
       ty += 18.2;
     });
     if (it.note.length) {
