@@ -80,7 +80,7 @@
       <div style="opacity:{{ bodyOp }};transform:translateY({{ bodyY }});transition:opacity 450ms ease,transform 600ms cubic-bezier(0.22,1,0.36,1);">
       <sc-if value="{{ showEditBtn }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;justify-content:flex-end;margin:6px 0 -6px;">
-          <span onMouseDown="{{ keep }}" onClick="{{ toggleEdit }}" style="height:36px;padding:0 2px 0 10px;display:flex;align-items:center;font-size:13.5px;font-weight:{{ editWeight }};color:{{ editColor }};cursor:pointer;">{{ editLabel }}</span>
+          <span onMouseDown="{{ keep }}" onClick="{{ toggleEdit }}" style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;margin:3px 0;border-radius:999px;border:1px solid {{ editBorder }};background:{{ editBg }};font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:{{ editColor }};cursor:pointer;flex-shrink:0;"><sc-if value="{{ editPencil }}" hint-placeholder-val="{{ true }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 19.5h4l10-10-4-4-10 10v4z"></path><path d="M13 7l4 4"></path></svg></sc-if>{{ editLabel }}</span>
         </div>
       </sc-if>
       <sc-if value="{{ noEditBtn }}" hint-placeholder-val="{{ true }}"><div style="height:4px;"></div></sc-if>
@@ -100,6 +100,21 @@
                     <div style="display:flex;justify-content:flex-end;margin-top:6px;">
                       <span onMouseDown="{{ keep }}" onClick="{{ sec.onDone }}" style="height:34px;padding:0 4px;display:flex;align-items:center;font-size:13.5px;font-weight:700;color:oklch(54% 0.16 45);cursor:pointer;">Done</span>
                     </div>
+                    <sc-if value="{{ sec.showTb }}" hint-placeholder-val="{{ false }}">
+                      <div onMouseDown="{{ keep }}" style="margin-top:8px;border-radius:14px;background:oklch(99.6% 0.002 80);border:1px solid oklch(90% 0.006 80);box-shadow:0 4px 14px oklch(20% 0.01 80 / 0.08);display:flex;align-items:stretch;overflow:hidden;">
+                        <div style="flex:1;min-width:0;display:flex;gap:2px;padding:4px;overflow-x:auto;scrollbar-width:none;">
+                          <div onMouseDown="{{ keep }}" onClick="{{ pickSection }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mSecFg }};background:{{ mSecBg }};box-shadow:{{ mSecRing }};opacity:{{ mSecOp }};"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><rect x="1" y="2" width="3" height="12" rx="1.5" fill="oklch(64% 0.16 50)"></rect><path d="M8 5h13M8 11h9" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"></path></svg><span style="font-size:10px;font-weight:600;white-space:nowrap;">Section</span></div>
+                          <div onMouseDown="{{ keep }}" onClick="{{ pickText }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mTextFg }};background:{{ mTextBg }};box-shadow:{{ mTextRing }};opacity:{{ mTextOp }};"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><path d="M2 3h18M2 8h18M2 13h11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:10px;font-weight:600;white-space:nowrap;">Paragraph</span></div>
+                          <div onMouseDown="{{ keep }}" onClick="{{ pickNum }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mNumFg }};background:{{ mNumBg }};box-shadow:{{ mNumRing }};opacity:{{ mNumOp }};"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><text x="1" y="7" fontSize="7" fontWeight="700" fill="currentColor" fontFamily="IBM Plex Mono, monospace">1</text><text x="1" y="15" fontSize="7" fontWeight="700" fill="currentColor" fontFamily="IBM Plex Mono, monospace">2</text><path d="M8 4.5h13M8 12.5h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:10px;font-weight:600;white-space:nowrap;">Numbered</span></div>
+                          <div onMouseDown="{{ keep }}" onClick="{{ pickBullet }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mBulFg }};background:{{ mBulBg }};box-shadow:{{ mBulRing }};opacity:{{ mBulOp }};"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><circle cx="3" cy="4.5" r="2" fill="oklch(64% 0.16 50)"></circle><circle cx="3" cy="12.5" r="2" fill="oklch(64% 0.16 50)"></circle><path d="M8 4.5h13M8 12.5h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:10px;font-weight:600;white-space:nowrap;">Bulleted</span></div>
+                          <span style="flex-shrink:0;width:1px;margin:10px 3px;background:oklch(91% 0.006 80);"></span>
+                          <div onMouseDown="{{ keep }}" onClick="{{ toolLink }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mLinkFg }};background:{{ mLinkBg }};box-shadow:{{ mLinkRing }};opacity:{{ mLinkOp }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg><span style="font-size:10px;font-weight:600;white-space:nowrap;">Link</span></div>
+                          <div onMouseDown="{{ keep }}" onClick="{{ toolBold }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mBFg }};background:{{ mBBg }};box-shadow:{{ mBRing }};opacity:{{ mBOp }};"><span style="font-family:Inter,sans-serif;font-size:16px;font-weight:800;line-height:16px;">B</span><span style="font-size:10px;font-weight:600;white-space:nowrap;">Bold</span></div>
+                          <div onMouseDown="{{ keep }}" onClick="{{ pickBold }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mBoldFg }};background:{{ mBoldBg }};box-shadow:{{ mBoldRing }};opacity:{{ mBoldOp }};"><span style="font-family:Inter,sans-serif;font-size:13px;font-weight:800;line-height:16px;letter-spacing:-0.02em;">Aa</span><span style="font-size:10px;font-weight:600;white-space:nowrap;">Bold line</span></div>
+                        </div>
+                        <span onMouseDown="{{ keep }}" onClick="{{ hideTb }}" title="Hide toolbar" style="flex-shrink:0;width:36px;display:flex;align-items:center;justify-content:center;border-left:1px solid oklch(91% 0.006 80);cursor:pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span>
+                      </div>
+                    </sc-if>
                   </sc-if>
                 </div>
               </div>
@@ -160,8 +175,24 @@
                       <div style="display:flex;align-items:center;gap:8px;margin-top:6px;min-height:34px;">
                         <span style="flex:1;"></span>
                         <sc-if value="{{ ln.showCount }}" hint-placeholder-val="{{ false }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ ln.countColor }};font-variant-numeric:tabular-nums;">{{ ln.charCount }}</span></sc-if>
+                        <sc-if value="{{ ln.tbHidden }}" hint-placeholder-val="{{ false }}"><span onMouseDown="{{ keep }}" onClick="{{ showTbAgain }}" style="height:34px;padding:0 4px;display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:oklch(41.5% 0.006 80);cursor:pointer;margin-right:auto;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 14.5l6-6 6 6"></path></svg>Formatting</span></sc-if>
                         <span onMouseDown="{{ keep }}" onClick="{{ ln.onDone }}" style="height:34px;padding:0 4px;display:flex;align-items:center;font-size:13.5px;font-weight:700;color:oklch(54% 0.16 45);cursor:pointer;">Done</span>
                       </div>
+                      <sc-if value="{{ ln.showTb }}" hint-placeholder-val="{{ false }}">
+                      <div onMouseDown="{{ keep }}" style="margin-top:8px;border-radius:14px;background:oklch(99.6% 0.002 80);border:1px solid oklch(90% 0.006 80);box-shadow:0 4px 14px oklch(20% 0.01 80 / 0.08);display:flex;align-items:stretch;overflow:hidden;">
+                        <div style="flex:1;min-width:0;display:flex;gap:2px;padding:4px;overflow-x:auto;scrollbar-width:none;">
+                          <div onMouseDown="{{ keep }}" onClick="{{ pickSection }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mSecFg }};background:{{ mSecBg }};box-shadow:{{ mSecRing }};opacity:{{ mSecOp }};"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><rect x="1" y="2" width="3" height="12" rx="1.5" fill="oklch(64% 0.16 50)"></rect><path d="M8 5h13M8 11h9" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"></path></svg><span style="font-size:10px;font-weight:600;white-space:nowrap;">Section</span></div>
+                          <div onMouseDown="{{ keep }}" onClick="{{ pickText }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mTextFg }};background:{{ mTextBg }};box-shadow:{{ mTextRing }};opacity:{{ mTextOp }};"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><path d="M2 3h18M2 8h18M2 13h11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:10px;font-weight:600;white-space:nowrap;">Paragraph</span></div>
+                          <div onMouseDown="{{ keep }}" onClick="{{ pickNum }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mNumFg }};background:{{ mNumBg }};box-shadow:{{ mNumRing }};opacity:{{ mNumOp }};"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><text x="1" y="7" fontSize="7" fontWeight="700" fill="currentColor" fontFamily="IBM Plex Mono, monospace">1</text><text x="1" y="15" fontSize="7" fontWeight="700" fill="currentColor" fontFamily="IBM Plex Mono, monospace">2</text><path d="M8 4.5h13M8 12.5h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:10px;font-weight:600;white-space:nowrap;">Numbered</span></div>
+                          <div onMouseDown="{{ keep }}" onClick="{{ pickBullet }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mBulFg }};background:{{ mBulBg }};box-shadow:{{ mBulRing }};opacity:{{ mBulOp }};"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><circle cx="3" cy="4.5" r="2" fill="oklch(64% 0.16 50)"></circle><circle cx="3" cy="12.5" r="2" fill="oklch(64% 0.16 50)"></circle><path d="M8 4.5h13M8 12.5h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:10px;font-weight:600;white-space:nowrap;">Bulleted</span></div>
+                          <span style="flex-shrink:0;width:1px;margin:10px 3px;background:oklch(91% 0.006 80);"></span>
+                          <div onMouseDown="{{ keep }}" onClick="{{ toolLink }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mLinkFg }};background:{{ mLinkBg }};box-shadow:{{ mLinkRing }};opacity:{{ mLinkOp }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg><span style="font-size:10px;font-weight:600;white-space:nowrap;">Link</span></div>
+                          <div onMouseDown="{{ keep }}" onClick="{{ toolBold }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mBFg }};background:{{ mBBg }};box-shadow:{{ mBRing }};opacity:{{ mBOp }};"><span style="font-family:Inter,sans-serif;font-size:16px;font-weight:800;line-height:16px;">B</span><span style="font-size:10px;font-weight:600;white-space:nowrap;">Bold</span></div>
+                          <div onMouseDown="{{ keep }}" onClick="{{ pickBold }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mBoldFg }};background:{{ mBoldBg }};box-shadow:{{ mBoldRing }};opacity:{{ mBoldOp }};"><span style="font-family:Inter,sans-serif;font-size:13px;font-weight:800;line-height:16px;letter-spacing:-0.02em;">Aa</span><span style="font-size:10px;font-weight:600;white-space:nowrap;">Bold line</span></div>
+                        </div>
+                        <span onMouseDown="{{ keep }}" onClick="{{ hideTb }}" title="Hide toolbar" style="flex-shrink:0;width:36px;display:flex;align-items:center;justify-content:center;border-left:1px solid oklch(91% 0.006 80);cursor:pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span>
+                      </div>
+                    </sc-if>
                     </div>
                   </div>
                 </sc-if>
@@ -179,22 +210,6 @@
       </div>
       </sc-if>
     </div>
-    <sc-if value="{{ showToolbar }}" hint-placeholder-val="{{ false }}">
-      <div style="flex-shrink:0;padding:6px 10px 30px;background:oklch(99.6% 0.002 80);">
-        <div style="border-radius:16px;background:oklch(99.6% 0.002 80);border:1px solid oklch(90% 0.006 80);box-shadow:0 6px 20px oklch(20% 0.01 80 / 0.10);overflow:hidden;">
-          <div style="display:flex;gap:2px;padding:4px;overflow-x:auto;scrollbar-width:none;">
-            <div onMouseDown="{{ keep }}" onClick="{{ pickText }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mTextFg }};background:{{ mTextBg }};box-shadow:{{ mTextRing }};opacity:{{ mTextOp }};"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><path d="M2 3h18M2 8h18M2 13h11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:10px;font-weight:600;white-space:nowrap;">Paragraph</span></div>
-            <div onMouseDown="{{ keep }}" onClick="{{ pickNum }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mNumFg }};background:{{ mNumBg }};box-shadow:{{ mNumRing }};opacity:{{ mNumOp }};"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><text x="1" y="7" fontSize="7" fontWeight="700" fill="currentColor" fontFamily="IBM Plex Mono, monospace">1</text><text x="1" y="15" fontSize="7" fontWeight="700" fill="currentColor" fontFamily="IBM Plex Mono, monospace">2</text><path d="M8 4.5h13M8 12.5h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:10px;font-weight:600;white-space:nowrap;">Numbered</span></div>
-            <div onMouseDown="{{ keep }}" onClick="{{ pickBullet }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mBulFg }};background:{{ mBulBg }};box-shadow:{{ mBulRing }};opacity:{{ mBulOp }};"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><circle cx="3" cy="4.5" r="2" fill="oklch(64% 0.16 50)"></circle><circle cx="3" cy="12.5" r="2" fill="oklch(64% 0.16 50)"></circle><path d="M8 4.5h13M8 12.5h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:10px;font-weight:600;white-space:nowrap;">Bulleted</span></div>
-            <div onMouseDown="{{ keep }}" onClick="{{ pickSection }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mSecFg }};background:{{ mSecBg }};box-shadow:{{ mSecRing }};opacity:{{ mSecOp }};"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><rect x="1" y="2" width="3" height="12" rx="1.5" fill="oklch(64% 0.16 50)"></rect><path d="M8 5h13M8 11h9" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"></path></svg><span style="font-size:10px;font-weight:600;white-space:nowrap;">Section</span></div>
-            <span style="flex-shrink:0;width:1px;margin:10px 3px;background:oklch(91% 0.006 80);"></span>
-            <div onMouseDown="{{ keep }}" onClick="{{ toolLink }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mLinkFg }};background:{{ mLinkBg }};box-shadow:{{ mLinkRing }};opacity:{{ mLinkOp }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg><span style="font-size:10px;font-weight:600;white-space:nowrap;">Link</span></div>
-            <div onMouseDown="{{ keep }}" onClick="{{ toolBold }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mBFg }};background:{{ mBBg }};box-shadow:{{ mBRing }};opacity:{{ mBOp }};"><span style="font-family:Inter,sans-serif;font-size:16px;font-weight:800;line-height:16px;">B</span><span style="font-size:10px;font-weight:600;white-space:nowrap;">Bold</span></div>
-            <div onMouseDown="{{ keep }}" onClick="{{ pickBold }}" style="flex-shrink:0;width:58px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mBoldFg }};background:{{ mBoldBg }};box-shadow:{{ mBoldRing }};opacity:{{ mBoldOp }};"><span style="font-family:Inter,sans-serif;font-size:13px;font-weight:800;line-height:16px;letter-spacing:-0.02em;">Aa</span><span style="font-size:10px;font-weight:600;white-space:nowrap;">Bold line</span></div>
-          </div>
-        </div>
-      </div>
-    </sc-if>
     <sc-if value="{{ showBuildFooter }}" hint-placeholder-val="{{ true }}">
     <sc-if value="{{ isEditing }}" hint-placeholder-val="{{ false }}">
       <div style="padding:12px 20px 30px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;border-top:1px solid oklch(91.8% 0.006 80);background:oklch(99.6% 0.002 80);">
@@ -598,7 +613,7 @@ class Component extends DCLogic {
   }
   _fromApp(a) {
     const secs = (a.sections || []).map(sec => ({ id: this._id(), headed: !!(sec.label && String(sec.label).trim()), label: sec.label || '', lines: (sec.lines || []).map(ln => this._L(ln.text || '', ln.link || '', ln.sub || '', ln.fmt || 'num', ln.bold)) }));
-    if (!secs.length) secs.push({ id: this._id(), headed: false, label: '', lines: [this._L('')] });
+    if (!secs.length) secs.push({ id: this._id(), headed: false, label: '', lines: [Object.assign(this._L('', '', '', 'num'), { picked: true })] });
     return { title: a.title || '', description: a.description || '', theme: 'default', tags: [], visibility: a.visibility || 'public', location: a.location || '', forkedFromId: a.forkedFromId || null, sections: secs };
   }
   _toApp(d) {
@@ -615,7 +630,7 @@ class Component extends DCLogic {
     this._focus = 'title';
     const st = { bodyIn: true, step: 'title', mode: 'arrange', draft: this._empty(), sel: null, linkOpen: null, linkDraft: '', save: 'idle', toast: '', sheet: false, titleDraft: '' };
     if (start === 'description') { st.step = 'description'; st.draft.title = 'Tokyo ramen worth the line'; st.save = 'saved'; }
-    else if (start === 'build-empty') { st.step = 'build'; st.draft.title = 'Tokyo ramen worth the line'; st.draft.description = 'Five bowls from a week of eating nothing else.'; const l = this._L(''); l.picked = false; this._focus = l.id; st.draft.sections[0].lines = [l]; st.sel = { kind: 'line', id: l.id }; st.save = 'saved'; }
+    else if (start === 'build-empty') { st.step = 'build'; st.draft.title = 'Tokyo ramen worth the line'; st.draft.description = 'Five bowls from a week of eating nothing else.'; const l = this._L('', '', '', 'num'); l.picked = true; this._focus = l.id; st.draft.sections[0].lines = [l]; st.sel = { kind: 'line', id: l.id }; st.save = 'saved'; }
     else if (start === 'build-draft') { st.step = 'build'; st.draft = this._sample(); st.save = 'saved'; }
     else if (start === 'build-editing') {
       st.step = 'build'; st.draft = this._sample(); st.save = 'saving';
@@ -799,7 +814,7 @@ class Component extends DCLogic {
     this.setState(s => {
       const total = s.draft.sections.reduce((a, x) => a + x.lines.length, 0);
       if (total) return { step: 'build', sel: null };
-      const l = this._L(''); l.picked = false; this._focus = l.id;
+      const l = this._L('', '', '', 'num'); l.picked = true; this._focus = l.id;
       const secs = s.draft.sections.map((x, i) => i === 0 ? { ...x, lines: [l] } : x);
       return { step: 'build', draft: { ...s.draft, sections: secs }, sel: { kind: 'line', id: l.id } };
     });
@@ -851,7 +866,7 @@ class Component extends DCLogic {
       upOp: si > 0 ? 1 : 0.35, downOp: sec.lines.length || si < d.sections.length - 1 ? 1 : 0.35,
       onRemove: () => this.removeSection(sec.id),
       onAddLine: () => this.addLine(sec.id),
-      inEdit: edit && sec.headed, readOnly: edit, onEdDel: () => this.removeSecWithUndo(sec.id),
+      inEdit: edit && sec.headed, readOnly: edit, showTb: !s.tbHidden, onEdDel: () => this.removeSecWithUndo(sec.id),
       boxBorder: edit ? EB : 'none', boxPad: edit ? '4px 10px 8px 12px' : '0px', boxMargin: edit ? '0 -12px 8px' : '0px', boxBg: edit ? 'oklch(99.6% 0.002 80)' : 'transparent',
       lines: sec.lines.map(ln => {
         const fmt = this._fmtOf(ln);
@@ -905,7 +920,7 @@ class Component extends DCLogic {
           onDelete: () => this.deleteLine(ln.id),
           onUp: () => { this._focus = ln.id; this.moveLine(ln.id, -1); }, onDown: () => { this._focus = ln.id; this.moveLine(ln.id, 1); },
           upOp: ln.id === firstId ? 0.35 : 1, downOp: ln.id === lastId ? 0.35 : 1,
-          inEdit: edit, onEdDel: () => this.deleteWithUndo(ln.id),
+          inEdit: edit, onEdDel: () => this.deleteWithUndo(ln.id), showTb: !s.tbHidden, tbHidden: !!s.tbHidden,
           boxPad: edit ? '10px 8px 10px 12px' : '12px 0 13px', boxMargin: edit ? '0 -12px 8px' : '0px', boxBorder: edit ? EB : 'none', boxRadius: edit ? '14px' : '0px', boxBg: edit ? 'oklch(99.6% 0.002 80)' : 'transparent',
           ...(edit ? { divider: EB, onSelect: () => {} } : {}),
           linkLabel: ln.fetching ? 'Fetching link…' : (ln.linkName || ln.domain || this._domain(ln.link || '')),
@@ -943,11 +958,11 @@ class Component extends DCLogic {
       cePaste: (e) => { e.preventDefault(); const t = (e.clipboardData && e.clipboardData.getData('text/plain')) || ''; document.execCommand('insertText', false, t); },
       toastUndo: !!s.toastUndo,
       toastActLabel: s.toastActLabel || '', toastAct: () => { const fn = this._toastFn; this._toastFn = null; clearTimeout(this._tt); this.setState({ toast: '', toastUndo: false }); if (fn) fn(); },
-      showBuildFooter: s.step === 'build' && !typing,
-      showToolbar: typing,
+      showBuildFooter: s.step === 'build',
+      hideTb: () => this.setState({ tbHidden: true }), showTbAgain: () => this.setState({ tbHidden: false }),
       toolLink: () => { const l = this._selLine(); if (l) this.openLinkSheet(l.id, 'attached'); },
       toolBold: () => this.toolBold(),
-      ...(() => { const has = d.sections.some(x => x.headed || x.lines.some(l => this._plain(l.text).trim() || l.link)); const show = s.step === 'build' && (has || !!s.editMode); return { showEditBtn: show, noEditBtn: !show }; })(), toggleEdit: () => this.toggleEdit(), editLabel: edit ? 'Done' : 'Edit', editWeight: edit ? 700 : 600, editColor: edit ? 'oklch(54% 0.16 45)' : 'oklch(19.4% 0.006 80)',
+      ...(() => { const has = d.sections.some(x => x.headed || x.lines.some(l => this._plain(l.text).trim() || l.link)); const show = s.step === 'build' && (has || !!s.editMode); return { showEditBtn: show, noEditBtn: !show }; })(), toggleEdit: () => this.toggleEdit(), editLabel: edit ? 'Done' : 'Edit', editWeight: 600, editColor: edit ? 'oklch(99.6% 0.002 80)' : 'oklch(23.1% 0.006 80)', editBorder: edit ? 'oklch(64% 0.16 50)' : 'oklch(88.5% 0.006 80)', editBg: edit ? 'oklch(64% 0.16 50)' : 'transparent', editPencil: !edit,
       showAddItem: s.step === 'build' && !sel && !edit, addItem: () => this.addItem(),
       ...(() => { const ls = s.linkSheet; if (!ls) return { linkSheet: false }; const dom = this._domain(/^https?:/i.test(ls.url || '') ? ls.url : 'https://' + (ls.url || '')); const nm = (ls.name || '').trim(); return {
         linkSheet: true, lsTitle: ls.mode === 'add' ? 'Add link' : 'Edit link', lsCanRemove: ls.mode === 'edit', lsRemove: () => this.removeLinkSheet(),
