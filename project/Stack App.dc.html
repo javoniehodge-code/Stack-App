@@ -471,6 +471,7 @@
                 <span onClick="{{ m.onDelete }}" style="font-size:12px;color:oklch(41.5% 0.006 80);cursor:pointer;">Delete</span>
               </div>
             </sc-if>
+            <sc-if value="{{ m.canShare }}" hint-placeholder-val="{{ false }}"><span onClick="{{ m.onShare }}" title="Share link" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid oklch(88.5% 0.006 80);cursor:pointer;flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(23.1% 0.006 80)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></span></sc-if>
             <sc-if value="{{ m.isStack }}" hint-placeholder-val="{{ true }}"><span onClick="{{ m.onVis }}" style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:999px;border:1px solid oklch(88.5% 0.006 80);font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:oklch(23.1% 0.006 80);cursor:pointer;flex-shrink:0;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(64% 0.16 50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 19.5h4l10-10-4-4-10 10v4z"></path><path d="M13 7l4 4"></path></svg>Edit<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span></sc-if>
           </div>
         </sc-for>
@@ -861,7 +862,7 @@
           </div>
           <div onClick="{{ visPick_unlisted }}" style="display:flex;align-items:center;gap:14px;padding:13px 14px;border-radius:14px;border:1px solid {{ visSheet.unlistedBorder }};background:{{ visSheet.unlistedBg }};cursor:pointer;">
             <div style="width:40px;height:40px;border-radius:12px;background:oklch(91.8% 0.03 60);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(54% 0.16 45)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></div>
-            <div style="flex:1;min-width:0;"><div style="font-size:15px;font-weight:600;color:oklch(17.5% 0.006 80);">Invite Only</div><div style="font-size:12.5px;color:oklch(43.4% 0.006 80);margin-top:2px;line-height:1.4;">Only people with the link. Hidden from your profile and search</div></div>
+            <div style="flex:1;min-width:0;"><div style="font-size:15px;font-weight:600;color:oklch(17.5% 0.006 80);">Unlisted</div><div style="font-size:12.5px;color:oklch(43.4% 0.006 80);margin-top:2px;line-height:1.4;">Hidden from your profile and discovery. Anyone with the link can view.</div></div>
             <span style="width:20px;height:20px;border-radius:50%;border:2px solid {{ visSheet.unlistedRing }};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-sizing:border-box;"><span style="width:10px;height:10px;border-radius:50%;background:{{ visSheet.unlistedDot }};"></span></span>
           </div>
           <div onClick="{{ visPick_private }}" style="display:flex;align-items:center;gap:14px;padding:13px 14px;border-radius:14px;border:1px solid {{ visSheet.privateBorder }};background:{{ visSheet.privateBg }};cursor:pointer;">
@@ -1033,7 +1034,7 @@
         </div>
         <div onClick="{{ stopClick }}" style="width:100%;background:oklch(94.5% 0.006 80);border-radius:22px 22px 0 0;padding:14px 20px 28px;box-sizing:border-box;font-family:Inter,sans-serif;flex-shrink:0;">
           <div style="width:36px;height:4px;border-radius:2px;background:oklch(86.3% 0.006 80);margin:0 auto 14px;"></div>
-          <sc-if value="{{ shareCard.unlisted }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:oklch(54% 0.16 45);margin:-2px 2px 12px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(54% 0.16 45)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg>Unlisted · only people with this link can view</div></sc-if>
+          <sc-if value="{{ shareCard.unlisted }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:oklch(54% 0.16 45);margin:-2px 2px 12px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(54% 0.16 45)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg>Unlisted · hidden from discovery. Anyone with the link can view</div></sc-if>
           <div onClick="{{ copyShareLink }}" style="display:flex;align-items:center;gap:10px;height:48px;padding:0 14px;border-radius:12px;border:1px solid oklch(90.7% 0.006 80);cursor:pointer;">
             <span style="flex:1;min-width:0;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:oklch(24.9% 0.006 80);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ shareCard.url }}</span>
             <span style="font-size:13px;font-weight:700;color:oklch(64% 0.16 50);flex-shrink:0;">Copy</span>
@@ -1640,7 +1641,7 @@ class Component extends DCLogic {
     '@kenji.eats': { bio: 'Will wait in any line for noodles.', followers: 3870, following: 150, reposts: ['l1', 'l3'] },
   };
   _snapshot(s) { return { screen: s.screen, activeListId: s.activeListId, viewedHandle: s.viewedHandle, userTab: s.userTab }; }
-  openList(id, from) { this.setState(s => ({ navStack: [...s.navStack, this._snapshot(s)], activeListId: id, returnScreen: from, screen: 'detail' })); }
+  openList(id, from) { const t = this.state.lists.find(l => l.id === id); if (t && !t.isMine && (t.visibility || 'public') === 'private') { this.showToast('This stack is private. Only its owner can view it.'); return; } this.setState(s => ({ navStack: [...s.navStack, this._snapshot(s)], activeListId: id, returnScreen: from, screen: 'detail' })); }
   openUser(handle) {
     if (handle === '@you') { this.setState({ screen: 'profile', navStack: [] }); return; }
     this.setState(s => ({ navStack: [...s.navStack, this._snapshot(s)], viewedHandle: handle, userTab: 'stacks', screen: 'user' }));
@@ -1650,7 +1651,7 @@ class Component extends DCLogic {
     this.setState(s => ({ blockedHandles: [...s.blockedHandles.filter(x => x !== handle), handle], followedHandles: s.followedHandles.filter(x => x !== handle), profileSheet: null }));
     this.goBack(); this.showToast(handle + ' blocked');
   }
-  VIS = { public: { label: 'Public', short: 'Profile, search and link' }, unlisted: { label: 'Invite Only', short: 'Only people you invite' }, private: { label: 'Private', short: 'Only you' } };
+  VIS = { public: { label: 'Public', short: 'Profile, search and link' }, unlisted: { label: 'Unlisted', short: 'Anyone with the link' }, private: { label: 'Private', short: 'Only you' } };
   _visVM(v) { v = v || 'public'; return { key: v, label: this.VIS[v].label, short: this.VIS[v].short, is_public: v === 'public', is_unlisted: v === 'unlisted', is_private: v === 'private', notPublic: v !== 'public' }; }
   openVis(target, note, fromManage) { this.setState({ visTarget: target, visNote: note || '', visDelArmed: false, visFromManage: !!fromManage }); }
   setVis(v) {
@@ -1658,10 +1659,10 @@ class Component extends DCLogic {
     this.setState({ visDelArmed: false });
     if (t === 'draft') this.setState(s => ({ draft: { ...s.draft, visibility: v }, visTarget: null }));
     else this.setState(s => ({ lists: s.lists.map(l => l.id === t ? { ...l, visibility: v } : l), visTarget: null }));
-    if (t !== 'draft') this.showToast({ public: 'Now public', unlisted: 'Now invite only', private: 'Now private · only you' }[v]);
+    if (t !== 'draft') this.showToast({ public: 'Now public', unlisted: 'Now unlisted · anyone with the link can view', private: 'Now private · shared links no longer work' }[v]);
   }
   _shareOrWarn(l) {
-    if ((l.visibility || 'public') === 'private') { this.openVis(l.id, 'This stack is private. Make it public or invite only to share it.'); return; }
+    if ((l.visibility || 'public') === 'private') { this.openVis(l.id, 'This stack is private. Make it public or unlisted to share it.'); return; }
     this.setState({ shareListId: l.id });
   }
   logOut() { this.setState({ signedIn: false, profileSheet: null, screen: 'feed', navStack: [] }); this.showToast('Logged out'); }
@@ -1920,7 +1921,7 @@ class Component extends DCLogic {
       'Home': 'oklch(64% 0.16 50)', 'Art & Design': 'oklch(64% 0.16 50)', 'Tech': 'oklch(64% 0.16 50)', 'Shopping': 'oklch(64% 0.16 50)',
     };
     const EXPLORE_CATS = ['Food & Drink', 'Travel', 'Books', 'Home', 'Art & Design', 'Tech'];
-    const pub = list.filter(l => !l.isMine);
+    const pub = list.filter(l => !l.isMine && isPub(l));
     const lines3 = (l) => this._flatten(l).slice(0, 3).map(f => ({ num: f.num, text: f.text }));
     const exVM = (l) => {
       const total = this._flatten(l).length;
@@ -2035,7 +2036,7 @@ class Component extends DCLogic {
     const vAuthorList = vh ? list.find(l => l.author.handle === vh) : null;
     const vMeta = (vh && this.USERS[vh]) || { bio: '', followers: 0, following: 0, reposts: [] };
     const vFollowing = !!vh && s.followedHandles.includes(vh);
-    const vStacks = vh ? list.filter(l => l.author.handle === vh) : [];
+    const vStacks = vh ? list.filter(l => l.author.handle === vh && (l.isMine || isPub(l))) : [];
     const vName = vAuthorList ? vAuthorList.author.name : '';
     const vFeat = (vMeta.featuredId && list.find(l => l.id === vMeta.featuredId)) || vStacks[0] || null;
     const viewedUser = {
@@ -2172,15 +2173,16 @@ class Component extends DCLogic {
         const by = (v) => mine.filter(l => (l.visibility || 'public') === v);
         const counts = { all: mine.length + s.drafts.length, public: by('public').length, unlisted: by('unlisted').length, private: by('private').length, drafts: s.drafts.length };
         const f = s.manageFilter;
-        const tabs = [['all', 'All'], ['public', 'Public'], ['unlisted', 'Invite Only'], ['private', 'Private'], ['drafts', 'Drafts']].map(([key, label]) => ({
+        const tabs = [['all', 'All'], ['public', 'Public'], ['unlisted', 'Unlisted'], ['private', 'Private'], ['drafts', 'Drafts']].map(([key, label]) => ({
           label, count: String(counts[key]), onSelect: () => this.setState({ manageFilter: key }),
           bg: f === key ? 'oklch(19.4% 0.006 80)' : 'transparent', color: f === key ? 'oklch(99.6% 0.002 80)' : 'oklch(24.9% 0.006 80)', border: f === key ? 'oklch(19.4% 0.006 80)' : 'oklch(88.5% 0.006 80)' }));
         const stackRow = (l) => ({ isStack: true, isDraft: false, title: l.title, meta: this._flatten(l).length + ' lines · ' + this.VIS[l.visibility || 'public'].label + (l.updatedAt ? ' · Updated ' + this._dfmt(l.updatedAt) : ''),
-          vis: this._visVM(l.visibility), onVis: (e) => { if (e) e.stopPropagation(); this.openVis(l.id, '', true); }, onOpen: () => this.openList(l.id, 'manage'), onDelete: () => {} });
+          vis: this._visVM(l.visibility), onVis: (e) => { if (e) e.stopPropagation(); this.openVis(l.id, '', true); }, onOpen: () => this.openList(l.id, 'manage'), onDelete: () => {},
+          canShare: (l.visibility || 'public') !== 'private', onShare: (e) => { if (e) e.stopPropagation(); this._shareOrWarn(l); } });
         const draftRow = (d) => ({ isStack: false, isDraft: true, title: d.title || 'Untitled stack', meta: d.editOf ? 'Unsaved edits to a published stack' : d.sections.reduce((n, sec) => n + sec.lines.length, 0) + ' lines · publishes as ' + this.VIS[d.visibility || 'public'].label.toLowerCase(),
           vis: this._visVM(d.visibility), onVis: () => {}, onOpen: () => this.openDraftForEdit(d.id), onDelete: (e) => this.deleteDraft(d.id, e) });
         const rows = f === 'drafts' ? s.drafts.map(draftRow) : f === 'all' ? [...mine.map(stackRow), ...s.drafts.map(draftRow)] : by(f).map(stackRow);
-        const hints = { all: "Everything you've made. Tap a visibility pill to change who can see a stack.", public: 'Shown on your profile, in search, and to anyone with the link.', unlisted: 'Only people with the link can view. Good for itineraries and one-off recommendations.', private: 'Only you can see these. Use them to collect ideas for yourself.', drafts: 'Unfinished stacks. Only you can see them until you publish.' };
+        const hints = { all: "Everything you've made. Tap a visibility pill to change who can see a stack.", public: 'Shown on your profile, in search, and to anyone with the link.', unlisted: 'Hidden from your profile and discovery. Anyone with the link can view.', private: 'Only you can see these. Use them to collect ideas for yourself.', drafts: 'Unfinished stacks. Only you can see them until you publish.' };
         return { manageTabs: tabs, manageRows: rows, manageHint: hints[f], manageEmpty: rows.length === 0, manageEmptyLabel: f === 'drafts' ? 'No drafts.' : 'No ' + (f === 'all' ? '' : f + ' ') + 'stacks yet.' };
       })(),
       showVisSheet: !!s.visTarget,
