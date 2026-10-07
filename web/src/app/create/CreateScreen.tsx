@@ -647,6 +647,42 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     setMenu(false);
   }
 
+  /**
+   * Moves a section heading one line up or down, so the line it passes changes section. Past an empty headed
+   * section, the two headings swap places.
+   */
+  function moveHeading(id: string, dir: -1 | 1) {
+    focusId.current = id;
+    edit((w) => {
+      const secs = w.sections.map((x) => ({ ...x, lines: [...x.lines] }));
+      const i = secs.findIndex((x) => x.id === id);
+      if (i < 0 || !secs[i].headed) return w;
+      const swap = (a: number, b: number) => {
+        const [A, B] = [secs[a], secs[b]];
+        secs[a] = { ...B, lines: A.lines };
+        secs[b] = { ...A, lines: B.lines };
+      };
+      if (dir < 0) {
+        if (i === 0) return w;
+        const prev = secs[i - 1];
+        if (prev.lines.length) {
+          secs[i].lines.unshift(prev.lines.pop()!);
+          if (!prev.lines.length && !prev.headed) secs.splice(i - 1, 1);
+        } else if (prev.headed) swap(i - 1, i);
+        else secs.splice(i - 1, 1);
+      } else {
+        const cur = secs[i];
+        if (cur.lines.length) {
+          const ln = cur.lines.shift()!;
+          if (i > 0) secs[i - 1].lines.push(ln);
+          else secs.unshift({ id: uid(), headed: false, label: "", lines: [ln] });
+        } else if (i < secs.length - 1 && secs[i + 1].headed) swap(i, i + 1);
+        else return w;
+      }
+      return { ...w, sections: secs };
+    });
+  }
+
   function removeSection(id: string) {
     edit((w) => {
       const i = w.sections.findIndex((x) => x.id === id);
@@ -1101,7 +1137,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                   </div>
                 )}
 
-                {work.sections.map((sec) => {
+                {work.sections.map((sec, si) => {
                   const secSel = sel?.kind === "sec" && sel.id === sec.id;
                   return (
                     <div key={sec.id} className={s.section}>
@@ -1131,6 +1167,18 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                           </div>
                           {secSel && (
                             <div className={s.sectionTools}>
+                              <button className={s.toolBtn} onMouseDown={keep} onClick={() => moveHeading(sec.id, -1)} disabled={si === 0} aria-label="Move heading up">
+                                {arrow("up")}
+                              </button>
+                              <button
+                                className={s.toolBtn}
+                                onMouseDown={keep}
+                                onClick={() => moveHeading(sec.id, 1)}
+                                disabled={!sec.lines.length && si === work.sections.length - 1}
+                                aria-label="Move heading down"
+                              >
+                                {arrow("down")}
+                              </button>
                               <button className={s.textControl} onClick={() => removeSection(sec.id)}>
                                 Remove heading
                               </button>
