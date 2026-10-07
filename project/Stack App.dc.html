@@ -408,39 +408,25 @@
           <span onClick="{{ selectUserStacks }}" style="padding-bottom:10px;font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:{{ userStacksColor }};border-bottom:2px solid {{ userStacksBorder }};cursor:pointer;">Stacks</span>
           <span onClick="{{ selectUserReposts }}" style="padding-bottom:10px;font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:{{ userRepostsColor }};border-bottom:2px solid {{ userRepostsBorder }};cursor:pointer;">Reposts</span>
         </div>
-      <div style="padding:16px 20px 24px;display:flex;flex-direction:column;gap:14px;">
-        <sc-for list="{{ userCards }}" as="uc" hint-placeholder-count="2">
-          <div style="display:flex;flex-direction:column;gap:7px;">
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;padding:14px 20px 28px;background:oklch(96.5% 0.004 80);border-top:1px solid oklch(91.8% 0.006 80);">
+        <sc-for list="{{ userCards }}" as="uc" hint-placeholder-count="4">
+          <div onClick="{{ uc.card.onOpen }}" style="aspect-ratio:1 / 1;border-radius:18px;background:oklch(99.6% 0.002 80);box-shadow:0 1px 2px rgba(0,0,0,0.04),0 8px 24px rgba(0,0,0,0.05);border:1px solid oklch(90.7% 0.006 80);display:flex;flex-direction:column;padding:12px;cursor:pointer;overflow:hidden;">
             <sc-if value="{{ uc.isRepost }}" hint-placeholder-val="{{ false }}">
-              <div style="display:flex;align-items:center;gap:6px;padding-left:4px;font-family:Inter,sans-serif;font-size:11.5px;font-weight:600;color:oklch(41.5% 0.006 80);">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 2l4 4-4 4"></path><path d="M3 11V9a3 3 0 0 1 3-3h15"></path><path d="M7 22l-4-4 4-4"></path><path d="M21 13v2a3 3 0 0 1-3 3H3"></path></svg>{{ uc.repostLabel }}
-              </div>
+              <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px;font-family:Inter,sans-serif;font-size:10.5px;font-weight:600;color:oklch(41.5% 0.006 80);white-space:nowrap;overflow:hidden;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style="flex-shrink:0;"><path d="M17 2l4 4-4 4"></path><path d="M3 11V9a3 3 0 0 1 3-3h15"></path><path d="M7 22l-4-4 4-4"></path><path d="M21 13v2a3 3 0 0 1-3 3H3"></path></svg><span style="overflow:hidden;text-overflow:ellipsis;">{{ uc.card.authorHandle }}</span></div>
             </sc-if>
-            <div onClick="{{ uc.card.onOpen }}" style="border-radius:16px;background:oklch(94.5% 0.006 80);border:1px solid oklch(91.8% 0.006 80);display:flex;flex-direction:column;padding:18px;cursor:pointer;">
-              <div onClick="{{ uc.card.onOpenAuthor }}" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;align-self:flex-start;max-width:100%;cursor:pointer;">
-                <div style="width:26px;height:26px;border-radius:50%;background:oklch(64% 0.16 50);color:oklch(99.6% 0.002 80);font-family:Inter,sans-serif;font-weight:700;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ uc.card.initials }}</div>
-                <span style="font-family:Inter,sans-serif;font-weight:600;font-size:12px;color:oklch(19.4% 0.006 80);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ uc.card.authorName }}</span>
-                <span style="font-family:Inter,sans-serif;font-size:11px;color:oklch(50.8% 0.006 80);white-space:nowrap;flex-shrink:0;">{{ uc.card.authorHandle }}</span>
-              </div>
-              <div style="font-family:Inter,sans-serif;font-weight:400;font-size:14px;color:oklch(24.9% 0.006 80);line-height:1.3;margin-bottom:12px;text-wrap:pretty;">{{ uc.card.title }}</div>
-              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(41.5% 0.006 80);line-height:1.9;">
-                <sc-for list="{{ uc.card.shortLines }}" as="pl" hint-placeholder-count="4">
-                  <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(64% 0.16 50);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
-                </sc-for>
-              </div>
-              <sc-if value="{{ uc.card.hasMoreShort }}" hint-placeholder-val="{{ false }}">
-                <div style="font-family:Inter,sans-serif;font-size:11.5px;font-weight:600;color:oklch(64% 0.16 50);margin-top:6px;">{{ uc.card.moreShortLabel }}</div>
-              </sc-if>
-              <div style="display:flex;align-items:center;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid oklch(91.8% 0.006 80);font-family:Inter,sans-serif;font-size:11px;color:oklch(50.8% 0.006 80);">
-                  <span onClick="{{ uc.card.onToggleLike }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ uc.card.likeColor }};"><span style="font-size:13px;line-height:1;">{{ uc.card.likeGlyph }}</span>{{ uc.card.likesLabel }}</span>
-                  <span onClick="{{ uc.card.onToggleSave }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:{{ uc.card.saveColor }};"><svg width="13" height="13" viewBox="0 0 24 24" fill="{{ uc.card.saveFill }}" stroke="{{ uc.card.saveColor }}" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ uc.card.savesLabel }}</span>
-                  <span onClick="{{ uc.card.onFork }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:oklch(41.5% 0.006 80);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.006 80)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.2"></circle><circle cx="18" cy="5" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle><path d="M6 7.2v1.8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7.2"></path><path d="M12 12v4.8"></path></svg>{{ uc.card.forksLabel }}</span>
-                  <span style="font-size:10.5px;">{{ uc.card.commentCountLabel }}</span>
-                  <span onClick="{{ uc.card.onCopyLink }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;margin-left:auto;padding:2px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="oklch(41.5% 0.006 80)" stroke="oklch(41.5% 0.006 80)" strokeWidth="1" strokeLinejoin="round"><path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z"></path></svg></span>
-              </div>
+            <div style="font-family:Inter,sans-serif;font-size:13.5px;font-weight:600;color:oklch(14.8% 0.006 80);line-height:1.3;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ uc.card.title }}</div>
+            <div style="flex:1;min-height:0;overflow:hidden;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:oklch(36% 0.006 80);line-height:1.85;">
+              <sc-for list="{{ uc.gLines }}" as="pl" hint-placeholder-count="3">
+                <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:oklch(64% 0.16 50);font-weight:700;">{{ pl.num }}</span> {{ pl.text }}</div>
+              </sc-for>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid oklch(91.8% 0.006 80);font-family:Inter,sans-serif;font-size:10.5px;color:oklch(41.5% 0.006 80);">
+              <span style="font-weight:600;color:oklch(36% 0.006 80);">{{ uc.gCount }}</span>
+              <span onClick="{{ uc.card.onToggleSave }}" style="margin-left:auto;display:flex;align-items:center;gap:4px;cursor:pointer;color:{{ uc.card.saveColor }};"><svg width="12" height="12" viewBox="0 0 24 24" fill="{{ uc.card.saveFill }}" stroke="{{ uc.card.saveColor }}" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ uc.card.savesLabel }}</span>
             </div>
           </div>
         </sc-for>
+      </div>
         <sc-if value="{{ userCardsEmpty }}" hint-placeholder-val="{{ false }}">
           <div style="padding:40px 20px;text-align:center;font-family:Inter,sans-serif;font-size:13px;color:oklch(41.5% 0.006 80);">{{ userEmptyLabel }}</div>
         </sc-if>
@@ -709,7 +695,7 @@
 
     <sc-if value="{{ isCreate }}" hint-placeholder-val="{{ false }}">
       <div style="flex:1;min-height:0;position:relative;">
-        <dc-import name="Create Flow Screen" start="{{ createStart }}" initial="{{ createInitial }}" on-exit="{{ createExit }}" on-save="{{ createSave }}" on-publish="{{ createPublish }}" edit="{{ createEditVM }}" on-save-edit="{{ createSaveEdit }}" on-share-update="{{ createShareUpdate }}" hint-size="100%,100%" style="position:absolute;inset:0;"></dc-import>
+        <dc-import name="Create Flow Screen" start="{{ createStart }}" initial="{{ createInitial }}" on-exit="{{ createExit }}" on-save="{{ createSave }}" on-publish="{{ createPublish }}" edit="{{ createEditVM }}" on-save-edit="{{ createSaveEdit }}" on-share-update="{{ createShareUpdate }}" on-share-new="{{ createShareNew }}" hint-size="100%,100%" style="position:absolute;inset:0;"></dc-import>
       </div>
     </sc-if>
 
@@ -1728,6 +1714,7 @@ class Component extends DCLogic {
   }
   createSave(out) { this.requireAuth(() => this._upsertDraft(out), 'Sign in to save this stack as a draft.'); }
   createExit(out, has) {
+    if (this.state.justPublishedId) { this.setState({ justPublishedId: null, screen: 'profile', profileTab: 'mine' }); return; }
     if (this.state.createEdit) {
       if (!has) { this.setState({ draft: null, editingDraftId: null, createEdit: null, screen: 'manage' }); return; }
       this._upsertDraft(out); this.setState({ draft: null, editingDraftId: null, createEdit: null, screen: 'manage', manageFilter: 'drafts' }); this.showToast('Changes saved as a draft'); return;
@@ -1735,7 +1722,7 @@ class Component extends DCLogic {
     if (!has) { this.setState({ draft: null, editingDraftId: null, screen: 'feed' }); return; }
     this.requireAuth(() => { this._upsertDraft(out); this.setState({ draft: null, editingDraftId: null, screen: 'profile', profileTab: 'drafts' }); this.showToast('Draft saved'); }, 'Sign in to keep this draft.');
   }
-  createPublish(out) { this.setState({ draft: out }, () => this.publishDraft()); }
+  createPublish(out) { this.setState({ draft: out }, () => this.requireAuth(() => this._doPublish(true), "Sign in to publish this stack and share it with others.")); }
   goNewLegacy() { this.setState({ draft: { title: '', description: '', tags: [], sections: [{ label: '', lines: [{ text: '', link: '' }] }] }, linkInputOpen: {}, tagInput: '', editingDraftId: null, screen: 'create' }); }
   goNew() { this.setState({ createEdit: null, draft: null, createStart: 'title', createInitial: null, editingDraftId: null, screen: 'create' }); }
   signIn() { this.setState({ signedIn: true }); }
@@ -1841,7 +1828,7 @@ class Component extends DCLogic {
   publishDraft() {
     this.requireAuth(() => this._doPublish(), "Sign in to publish this stack and share it with others.");
   }
-  _doPublish() {
+  _doPublish(stay) {
     this.setState(s => {
       if (!s.draft) return null;
       const title = s.draft.title.trim();
@@ -1860,6 +1847,7 @@ class Component extends DCLogic {
         forkedFromId: s.draft.forkedFromId || null,
       };
       const drafts = s.editingDraftId ? s.drafts.filter(d => d.id !== s.editingDraftId) : s.drafts;
+      if (stay) return { lists: [newList, ...s.lists], draft: null, editingDraftId: null, drafts, justPublishedId: id };
       return { lists: [newList, ...s.lists], draft: null, editingDraftId: null, drafts, screen: 'profile', profileTab: 'mine' };
     });
   }
@@ -2028,9 +2016,10 @@ class Component extends DCLogic {
       featured: vFeat ? { title: vFeat.title, description: vFeat.description || '', count: this._flatten(vFeat).length + ' lines', onOpen: () => this.openList(vFeat.id, 'user') } : { title: '', description: '', count: '', onOpen: () => {} },
     };
     const firstName = vName.split(' ')[0];
+    const gExtra = (l) => { const flat = this._flatten(l); return { gLines: flat.slice(0, 3).map(x => ({ num: x.num, text: x.text })), gCount: flat.length + (flat.length === 1 ? ' line' : ' lines') }; };
     const userCards = s.userTab === 'reposts'
-      ? vMeta.reposts.map(id => list.find(l => l.id === id)).filter(Boolean).map(l => ({ isRepost: true, repostLabel: firstName + ' reposted', card: this._cardVM(l, 'user') }))
-      : vStacks.map(l => ({ isRepost: false, repostLabel: '', card: this._cardVM(l, 'user') }));
+      ? vMeta.reposts.map(id => list.find(l => l.id === id)).filter(Boolean).map(l => ({ isRepost: true, repostLabel: firstName + ' reposted', card: this._cardVM(l, 'user'), ...gExtra(l) }))
+      : vStacks.map(l => ({ isRepost: false, repostLabel: '', card: this._cardVM(l, 'user'), ...gExtra(l) }));
     const allSaved = list.filter(l => l.savedByUser);
     const sf = (s.savedFilter || '').trim().toLowerCase();
     const savedRows = allSaved
@@ -2107,7 +2096,7 @@ class Component extends DCLogic {
       isUser: s.screen === 'user',
       isCreate: s.screen === 'create',
       createStart: s.createStart || 'title', createInitial: s.createInitial || null,
-      createExit: (out, has) => this.createExit(out, has), createSave: (out) => this.createSave(out), createPublish: (out) => this.createPublish(out),
+      createExit: (out, has) => this.createExit(out, has), createSave: (out) => this.createSave(out), createPublish: (out) => this.createPublish(out), createShareNew: () => { const l = this.state.lists.find(x => x.id === this.state.justPublishedId); if (l) this._shareOrWarn(l); },
       showTabBar: ['feed', 'search', 'profile', 'user', 'notifs'].includes(s.screen),
       ...this._notifVMs(s),
       goBack: () => this.goBack(),
