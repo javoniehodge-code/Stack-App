@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useAuth, useBack, useToast } from "@/components/AppProviders";
 import shell from "@/components/AppShell.module.css";
-import { systemShare } from "@/components/Share";
+import { ShareSheet, systemShare } from "@/components/Share";
 import { RichText, StackPaper } from "@/components/StackView";
 import {
   initials,
@@ -27,7 +27,10 @@ import {
 } from "@/lib/format";
 import { SHOW_DRAFTS } from "@/lib/navFlags";
 import { createClient } from "@/lib/supabase/client";
-import type { Draft, EditTarget, LineFormat, Visibility } from "@/lib/types";
+import { fetchStack } from "@/lib/queries";
+import { useVisibility } from "@/lib/store";
+import { useVisibilityEditor } from "@/components/Visibility";
+import type { Draft, EditTarget, LineFormat, Stack, Visibility } from "@/lib/types";
 import p from "../profile/Profile.module.css";
 import s from "./Create.module.css";
 
@@ -403,6 +406,12 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const [titleDraft, setTitleDraft] = useState("");
   const [save, setSave] = useState<SaveState>(initial.id ? "saved" : "idle");
   const [published, setPublished] = useState<string | null>(null);
+  // The just-published stack, loaded for the share sheet's story images; and whether that sheet is open.
+  const [publishedStack, setPublishedStack] = useState<Stack | null>(null);
+  const [shareSheet, setShareSheet] = useState(false);
+  const publishedVis = useVisibility({ id: published ?? "", visibility: work.visibility });
+  // A private stack can't be shared: Share offers the visibility sheet instead, as on the stack page.
+  const vis = useVisibilityEditor(() => router.replace("/profile"));
   const [busy, setBusy] = useState(false);
   // Edit mode: whether anything differs from the published stack (reopened edits already do), and the share sheet.
   const [edited, setEdited] = useState(!!(target && initial.id));
@@ -981,8 +990,10 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     if (err) return toast(err.includes("sign in") ? "Sign in to continue." : `Couldn't publish: ${err}`);
     setSheet(false);
     setWork((w) => ({ ...w, title }));
-    setPublished(idRef.current);
+    const id = idRef.current;
+    setPublished(id);
     router.refresh();
+    if (id) setPublishedStack(await fetchStack(createClient(), viewer?.id ?? null, id));
   }
 
   function publish() {
@@ -1006,6 +1017,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     setPreview(false);
     setSel(null);
     setPublished(null);
+    setPublishedStack(null);
+    setShareSheet(false);
     setSave("idle");
     router.replace("/create");
   }
@@ -1062,7 +1075,14 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
           {shownTitle} · {countLabel}
         </div>
         <div className={s.doneActions}>
-          <button className={s.primary} onClick={() => share(published)}>
+          <button
+            className={s.primary}
+            onClick={() => {
+              if (publishedVis === "private") vis.open({ id: published, title: shownTitle, visibility: publishedVis }, "This stack is private. Make it public or invite only to share it.");
+              else if (publishedStack) setShareSheet(true);
+              else share(published);
+            }}
+          >
             Share
           </button>
           {/* Replace, so leaving the stack page doesn't land back in the finished create flow. */}
@@ -1073,6 +1093,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
             Start another Stack
           </button>
         </div>
+        {shareSheet && publishedStack && <ShareSheet stack={publishedStack} onClose={() => setShareSheet(false)} />}
+        {vis.sheet}
       </main>
     );
   }
