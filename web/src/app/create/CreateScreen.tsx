@@ -1150,10 +1150,12 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const curFormat: Pick | null = selLine ? selLine.format : sel?.kind === "sec" ? "section" : null;
   // Keeps focus in the text while tapping the toolbar and line tools.
   const keep = (e: React.MouseEvent) => e.preventDefault();
+  // While writing, the footer steps aside and the page gets room to scroll the line up above the keyboard.
+  const writing = step === "build" && !!sel && !arranging;
   const canArrange = arranging || work.sections.some((sec) => sec.headed || sec.lines.some((l) => !isEmpty(l)));
 
   const toolbar = toolsHidden ? null : (
-    <div className={s.toolbar} onMouseDown={keep}>
+    <div className={s.toolbar} data-list={(!!selLine && isListFormat(selLine.format)) || undefined} onMouseDown={keep}>
       <div className={s.toolbarRow} role="toolbar" aria-label="Format">
         {FORMATS.map(([type, label, icon]) => (
           <button key={type} className={s.tool} data-on={type === curFormat || undefined} onMouseDown={keep} onClick={() => pick(type)}>
@@ -1179,12 +1181,6 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
             B
           </span>
           <span className={s.toolLabel}>Bold</span>
-        </button>
-        <button className={s.tool} data-on={curFormat === "bold" || undefined} onMouseDown={keep} onClick={() => pick("bold")} aria-label="Bold line">
-          <span className={s.toolAa} aria-hidden>
-            Aa
-          </span>
-          <span className={s.toolLabel}>Bold line</span>
         </button>
       </div>
       <button className={s.toolHide} onMouseDown={keep} onClick={() => setToolsHidden(true)} aria-label="Hide toolbar">
@@ -1212,7 +1208,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
 
       {step !== "review" && (
         <>
-          <div className={s.scroll}>
+          <div className={s.scroll} data-writing={writing || undefined}>
             <div className={s.composeSpacer} style={{ height: step === "title" ? 150 : step === "description" ? 72 : 6 }} />
             {step === "title" && <div className={s.ask}>What would you like to call this Stack?</div>}
             <textarea
@@ -1544,6 +1540,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
             )}
           </div>
           {step === "build" &&
+            !writing &&
             (target ? (
               <footer className={`${s.footer} ${s.editFooter}`}>
                 <button className={s.primary} disabled={busy} onClick={() => applyEdit(false)}>

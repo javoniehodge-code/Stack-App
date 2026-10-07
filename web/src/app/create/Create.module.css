@@ -114,6 +114,11 @@
   padding: 12px 20px 28px;
 }
 
+/* While writing, room below so the line being edited can scroll up above the keyboard. */
+.scroll[data-writing] {
+  padding-bottom: 45vh;
+}
+
 /* ── Compose: title, description and the stack on one page ── */
 .composeSpacer {
   flex-shrink: 0;
@@ -1215,12 +1220,17 @@
   box-shadow: 0 4px 14px oklch(20% 0.01 80 / 0.08);
 }
 
+/* Under a numbered or bulleted line it lines up with the box, not the indented text. */
+.toolbar[data-list] {
+  margin-left: -32px;
+}
+
 .toolbarRow {
   flex: 1;
   min-width: 0;
   display: flex;
-  gap: 2px;
-  padding: 4px;
+  gap: 1px;
+  padding: 4px 3px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -1231,7 +1241,7 @@
 
 .toolHide {
   flex-shrink: 0;
-  width: 36px;
+  width: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1252,7 +1262,8 @@
 }
 
 .tool {
-  flex: 0 0 58px;
+  flex: 1 1 0;
+  min-width: 46px;
   height: 50px;
   border-radius: 11px;
   display: flex;
@@ -1286,7 +1297,8 @@
 }
 
 .toolLabel {
-  font-size: 10px;
+  font-size: 9.5px;
+  letter-spacing: -0.01em;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -1297,17 +1309,10 @@
   line-height: 16px;
 }
 
-.toolAa {
-  font-size: 13px;
-  font-weight: 800;
-  line-height: 16px;
-  letter-spacing: -0.02em;
-}
-
 .toolDivider {
   flex-shrink: 0;
   width: 1px;
-  margin: 10px 3px;
+  margin: 10px 1px;
   background: oklch(91% 0.006 80);
 }
 
