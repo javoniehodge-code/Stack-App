@@ -7,6 +7,7 @@ import { FeedCard } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
 import cards from "@/components/Cards.module.css";
 import { PAGE_SIZE, fetchFeed } from "@/lib/queries";
+import { useVisibilityLookup } from "@/lib/store";
 import { createClient } from "@/lib/supabase/client";
 import type { FeedItem, Stack } from "@/lib/types";
 import s from "./Feed.module.css";
@@ -16,6 +17,8 @@ type FeedState = { stacks: FeedItem[]; page: number; done: boolean; loading: boo
 
 export default function FeedScreen({ initial }: { initial: Stack[] }) {
   const { viewer } = useAuth();
+  // Stacks made invite only or private in this session leave the feed right away.
+  const visOf = useVisibilityLookup();
   const [tab, setTab] = useState<Tab>("forYou");
   const [feeds, setFeeds] = useState<Record<Tab, FeedState | null>>({
     forYou: { stacks: initial, page: 0, done: initial.length < PAGE_SIZE, loading: false },
@@ -87,7 +90,8 @@ export default function FeedScreen({ initial }: { initial: Stack[] }) {
       )}
     </button>
   );
-  const empty = feed && !feed.loading && feed.stacks.length === 0;
+  const shown = feed?.stacks.filter((st) => visOf(st) === "public") ?? [];
+  const empty = feed && !feed.loading && shown.length === 0;
 
   return (
     <main className={shell.screen}>
@@ -126,7 +130,7 @@ export default function FeedScreen({ initial }: { initial: Stack[] }) {
         </div>
       ) : (
         <div ref={railRef} className={cards.feedScroll}>
-          {feed?.stacks.map((st) => <FeedCard key={st.id} stack={st} />)}
+          {shown.map((st) => <FeedCard key={st.id} stack={st} />)}
           {feed && !feed.done && (
             <div ref={sentinelRef} className={cards.feedLoading}>
               Loading…
