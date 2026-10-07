@@ -745,6 +745,17 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     addLine(sec.id, null, "text", true, true);
   }
 
+  /** Return on a heading: a new line right under it (continuing the list below, if there is one). */
+  function enterSec(sec: Sec) {
+    const first = sec.lines[0];
+    if (first && isEmpty(first)) return select({ kind: "line", id: first.id });
+    addLine(sec.id, null, first && isListFormat(first.format) ? first.format : "text", true, true);
+  }
+
+  /**
+   * Moves a line one place up or down. At the edge of a section it crosses the heading into the next section;
+   * the stack's first line can also move up above the first heading.
+   */
   function moveLine(id: string, dir: -1 | 1) {
     focusId.current = id;
     edit((w) => {
@@ -756,6 +767,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
       const j = i + dir;
       if (j >= 0 && j < cur.length) [cur[i], cur[j]] = [cur[j], cur[i]];
       else if (dir < 0 && si > 0) secs[si - 1].lines.push(...cur.splice(i, 1));
+      else if (dir < 0 && secs[0].headed) secs.unshift({ id: uid(), headed: false, label: "", lines: cur.splice(i, 1) });
       else if (dir > 0 && si < secs.length - 1) secs[si + 1].lines.unshift(...cur.splice(i, 1));
       return { ...w, sections: secs };
     });
@@ -1335,7 +1347,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                                 onKeyDown={(e) => {
                                   if (e.key === "Enter") {
                                     e.preventDefault();
-                                    doneSec(sec);
+                                    enterSec(sec);
                                   }
                                 }}
                                 placeholder="Section heading"
@@ -1428,7 +1440,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                               </div>
                               {arranging && (
                                 <span className={s.moveBtns}>
-                                  <button className={s.moveBtn} onClick={() => moveLine(l.id, -1)} disabled={l.id === allIds[0]} aria-label="Move line up">
+                                  <button className={s.moveBtn} onClick={() => moveLine(l.id, -1)} disabled={l.id === allIds[0] && !sec.headed} aria-label="Move line up">
                                     {arrow("up")}
                                   </button>
                                   <button className={s.moveBtn} onClick={() => moveLine(l.id, 1)} disabled={l.id === allIds[allIds.length - 1]} aria-label="Move line down">
