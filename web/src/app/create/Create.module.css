@@ -1087,9 +1087,53 @@
 
 /* ── Edit mode: every line and heading in a box with move buttons ── */
 .arrangeRow {
+  position: relative;
   display: flex;
   justify-content: flex-end;
   margin: 6px 0 -6px;
+}
+
+/* Edit's menu: Reorder or Delete */
+.editMenuScrim {
+  position: fixed;
+  inset: 0;
+  z-index: 14;
+}
+
+.editMenu {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  z-index: 15;
+  min-width: 168px;
+  padding: 5px;
+  border-radius: 14px;
+  background: var(--bg);
+  border: 1px solid oklch(90% 0.006 80);
+  box-shadow: 0 8px 24px oklch(20% 0.006 80 / 0.12);
+  display: flex;
+  flex-direction: column;
+}
+
+.editMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+}
+
+.editMenuItem:hover {
+  background: oklch(95.5% 0.004 80);
+}
+
+.editMenuDanger {
+  color: oklch(48% 0.16 30);
 }
 
 .arrangeBtn {
