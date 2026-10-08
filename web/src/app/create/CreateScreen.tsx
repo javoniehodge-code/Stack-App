@@ -395,6 +395,9 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const [sel, setSel] = useState<Sel>(null);
   // Edit mode on the Build step: every line and heading in a box with move buttons, nothing editable.
   const [arranging, setArranging] = useState(false);
+  // Edit opens a menu: Reorder (move buttons) or Delete (a delete button on each line and heading).
+  const [editMode, setEditMode] = useState<"reorder" | "delete">("reorder");
+  const [editMenu, setEditMenu] = useState(false);
   // The formatting toolbar under the selected line or heading can be tucked away (and brought back).
   const [toolsHidden, setToolsHidden] = useState(false);
   // Whether the text at the cursor is bold, for the toolbar's Bold button.
@@ -728,13 +731,24 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     addLine(last.id, null, prev && isListFormat(prev.format) ? prev.format : "text");
   }
 
-  /** Edit mode on and off. It needs something to arrange; turning it on leaves the line being written. */
+  /** Edit opens the Reorder / Delete menu (it needs something to edit); Done leaves edit mode. */
   function toggleArrange() {
-    if (!arranging && !work.sections.some((sec) => sec.headed || sec.lines.some((l) => !isEmpty(l)))) return;
+    if (arranging) return setArranging(false);
+    if (!work.sections.some((sec) => sec.headed || sec.lines.some((l) => !isEmpty(l)))) return;
     (document.activeElement as HTMLElement | null)?.blur?.();
     setWork((w) => prune(w, null));
     setSel(null);
-    setArranging((a) => !a);
+    setEditMenu((m) => !m);
+  }
+
+  /** Enters edit mode for moving or for deleting; it leaves the line being written. */
+  function pickEditMode(mode: "reorder" | "delete") {
+    (document.activeElement as HTMLElement | null)?.blur?.();
+    setWork((w) => prune(w, null));
+    setSel(null);
+    setEditMenu(false);
+    setEditMode(mode);
+    setArranging(true);
   }
 
   /** Bold for the selected words (or what's typed next), in the line being written. */
@@ -1313,7 +1327,25 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                 )}
                 {canArrange ? (
                   <div className={s.arrangeRow}>
-                    <button className={s.arrangeBtn} data-on={arranging || undefined} onMouseDown={keep} onClick={toggleArrange}>
+                    {editMenu && !arranging && (
+                      <>
+                        <div className={s.editMenuScrim} onClick={() => setEditMenu(false)} aria-hidden />
+                        <div className={s.editMenu} role="menu" aria-label="Edit">
+                          <button role="menuitem" className={s.editMenuItem} onMouseDown={keep} onClick={() => pickEditMode("reorder")}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(30% 0.006 80)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                              <path d="M8 9.5l4-4 4 4" />
+                              <path d="M8 14.5l4 4 4-4" />
+                            </svg>
+                            Reorder
+                          </button>
+                          <button role="menuitem" className={`${s.editMenuItem} ${s.editMenuDanger}`} onMouseDown={keep} onClick={() => pickEditMode("delete")}>
+                            {trashIcon("oklch(48% 0.16 30)")}
+                            Delete
+                          </button>
+                        </div>
+                      </>
+                    )}
+                    <button className={s.arrangeBtn} data-on={arranging || undefined} onMouseDown={keep} onClick={toggleArrange} aria-haspopup={arranging ? undefined : "menu"} aria-expanded={arranging ? undefined : editMenu}>
                       {!arranging && (
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                           <path d="M4.5 19.5h4l10-10-4-4-10 10v4z" />
@@ -1361,7 +1393,14 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                                   {trashIcon("oklch(48% 0.16 30)")}
                                 </button>
                               )}
-                              {arranging && (
+                              {arranging && editMode === "delete" && (
+                                <span className={s.moveBtns}>
+                                  <button className={s.moveBtn} onMouseDown={keep} onClick={() => removeSection(sec.id)} aria-label="Remove heading">
+                                    {trashIcon("oklch(48% 0.16 30)")}
+                                  </button>
+                                </span>
+                              )}
+                              {arranging && editMode === "reorder" && (
                                 <span className={s.moveBtns}>
                                   <button className={s.moveBtn} onMouseDown={keep} onClick={() => moveHeading(sec.id, -1)} disabled={si === 0} aria-label="Move heading up">
                                     {arrow("up")}
@@ -1441,7 +1480,14 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                                   </div>
                                 )}
                               </div>
-                              {arranging && (
+                              {arranging && editMode === "delete" && (
+                                <span className={s.moveBtns}>
+                                  <button className={s.moveBtn} onClick={() => deleteLine(l.id)} aria-label="Delete line">
+                                    {trashIcon("oklch(48% 0.16 30)")}
+                                  </button>
+                                </span>
+                              )}
+                              {arranging && editMode === "reorder" && (
                                 <span className={s.moveBtns}>
                                   <button className={s.moveBtn} onClick={() => moveLine(l.id, -1)} disabled={l.id === allIds[0] && !sec.headed} aria-label="Move line up">
                                     {arrow("up")}
@@ -1677,18 +1723,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
       {step === "review" && preview && (
         <>
           <header className={s.previewHeader}>
-            <button className={s.back} onClick={() => setPreview(false)}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M14.5 5.5L8 12l6.5 6.5" />
-              </svg>
-              Back
-            </button>
             <span className={s.previewLabel}>Preview · {PRIVACY.find(([key]) => key === work.visibility)?.[1]}</span>
-            <div className={s.headerEnd}>
-              <button className={s.publishPill} aria-disabled={!n} disabled={busy} onClick={publish}>
-                Publish
-              </button>
-            </div>
           </header>
           <div className={s.previewPage}>
             <StackPaper
@@ -1743,6 +1778,17 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               }
             />
           </div>
+          <footer className={s.footer}>
+            <button className={s.back} onClick={() => setPreview(false)}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M14.5 5.5L8 12l6.5 6.5" />
+              </svg>
+              Back
+            </button>
+            <button className={s.primary} style={{ flex: 1 }} aria-disabled={!n} disabled={busy} onClick={publish}>
+              Publish
+            </button>
+          </footer>
         </>
       )}
 
