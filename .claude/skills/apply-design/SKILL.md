@@ -89,6 +89,9 @@ a different link, use the id from that link.
   a real change, public stacks, once every 7 days); update notes show for 7 days; a shared update
   moves the stack to the top of your profile below the pinned one. Product rules live in `docs/`.
 
+- "View as public" (eye icon next to share on your profile, `/profile/public`): a preview of your profile as
+  visitors see it, with your first 4 public stacks as feed cards
+
 Add new app-only features to this list as they ship.
 
 ### Keep these app choices even if the design differs
@@ -121,6 +124,8 @@ Add new app-only features to this list as they ship.
   design still shows them. Old `forked_from_id` data stays in the database untouched.
 - No profile photos yet: avatars stay as initials (the user skipped the photo upload the design
   added to Edit profile, since it needs a storage bucket and a new column).
+- No "Featured websites" on profiles yet: the public profile preview (eye icon on your profile) shows socials and
+  stacks only (the user skipped the two website links, since they need a migration).
 - You can't repost your own stack, and the Following feed shows each stack once, at its
   latest activity (published or reposted by someone you follow).
 

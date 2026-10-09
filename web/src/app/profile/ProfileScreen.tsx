@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth, useToast } from "@/components/AppProviders";
-import { SearchIcon } from "@/components/icons";
+import { EyeIcon, SearchIcon } from "@/components/icons";
 import { ProfileShareButton } from "@/components/ProfileShare";
 import shell from "@/components/AppShell.module.css";
 import cards from "@/components/Cards.module.css";
@@ -50,7 +50,16 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
 
   return (
     <main className={shell.screen}>
-      <ProfileBar right={<ProfileShareButton profile={viewer} stackCount={data.mine.length} own />}>
+      <ProfileBar
+        right={
+          <div className={p.barIcons}>
+            <Link href="/profile/public" aria-label="View as public" title="View as public">
+              <EyeIcon />
+            </Link>
+            <ProfileShareButton profile={viewer} stackCount={data.mine.length} own />
+          </div>
+        }
+      >
         <span className={p.wordmark}>
           stack<span className={p.wordmarkDot}>.</span>
         </span>
