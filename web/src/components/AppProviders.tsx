@@ -15,6 +15,7 @@ type AuthCtx = {
   requireAuth: (action: (() => void) | null, message: string) => void;
 };
 const AuthContext = createContext<AuthCtx | null>(null);
+type Attempt = { id: number; message: string; action: (() => void) | null; opener: HTMLElement | null };
 /** A button on a toast, such as Undo. */
 export type ToastAction = { label: string; run: () => void };
 const ToastContext = createContext<(msg: string, action?: ToastAction) => void>(() => {});
@@ -32,8 +33,11 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
   const router = useRouter();
   const pathname = usePathname();
   const [viewer, setViewer] = useState(initialViewer);
-  const [sheet, setSheet] = useState<{ message: string } | null>(null);
-  const pending = useRef<(() => void) | null>(null);
+  // One sign-in attempt per sheet: its message, the action to run after signing in, and what opened it (for
+  // returning focus). Only the current attempt can complete; a cancelled or replaced one is ignored.
+  const [sheet, setSheet] = useState<Attempt | null>(null);
+  const attempt = useRef<Attempt | null>(null);
+  const attempts = useRef(0);
   const [toast, setToast] = useState<{ msg: string; action?: ToastAction } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -66,11 +70,27 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
         action?.();
         return;
       }
-      pending.current = action;
-      setSheet({ message });
+      const opener = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
+      const a: Attempt = { id: ++attempts.current, message, action, opener };
+      attempt.current = a;
+      setSheet(a);
     },
     [viewer],
   );
+
+  /** Puts focus back on what opened the sheet, once the sheet is gone, if it's still on the page. */
+  const refocus = (a: Attempt) =>
+    requestAnimationFrame(() => {
+      if (a.opener?.isConnected) a.opener.focus({ preventScroll: true });
+    });
+
+  const cancelAttempt = useCallback((id: number) => {
+    const a = attempt.current;
+    if (!a || a.id !== id) return;
+    attempt.current = null;
+    setSheet(null);
+    refocus(a);
+  }, []);
 
   // A toast with an action stays up longer, so there's time to tap it.
   const showToast = useCallback((msg: string, action?: ToastAction) => {
@@ -80,14 +100,18 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
   }, []);
   useEffect(() => () => clearTimeout(toastTimer.current), []);
 
-  const onSignedIn = (profile: Profile) => {
+  /** Completes attempt `id`: signs the app in and runs its action once. False if that attempt is no longer open. */
+  const completeAttempt = (id: number, profile: Profile) => {
+    const a = attempt.current;
+    if (!a || a.id !== id) return false;
+    attempt.current = null;
     setViewer(profile);
     setSheet(null);
     resetStore();
-    const action = pending.current;
-    pending.current = null;
-    action?.();
+    a.action?.();
     router.refresh();
+    refocus(a);
+    return true;
   };
 
   return (
@@ -115,12 +139,11 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
           )}
           {sheet && (
             <AuthSheet
+              key={sheet.id}
               message={sheet.message}
-              onCancel={() => {
-                pending.current = null;
-                setSheet(null);
-              }}
-              onSignedIn={onSignedIn}
+              isCurrent={() => attempt.current?.id === sheet.id}
+              onCancel={() => cancelAttempt(sheet.id)}
+              onSignedIn={(p) => completeAttempt(sheet.id, p)}
             />
           )}
         </BackContext.Provider>

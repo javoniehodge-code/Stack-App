@@ -6,9 +6,9 @@
 begin;
 
 -- Test accounts: one existing user with a profile (made the old way), one brand-new user without one.
-insert into auth.users (id, email) values
-  ('aaaaaaaa-0000-4000-8000-00000000000a', 'existing@test.invalid'),
-  ('bbbbbbbb-0000-4000-8000-00000000000b', 'new@test.invalid');
+insert into auth.users (id, email, encrypted_password) values
+  ('aaaaaaaa-0000-4000-8000-00000000000a', 'existing@test.invalid', 'old-hash'),
+  ('bbbbbbbb-0000-4000-8000-00000000000b', 'new@test.invalid', 'random-hash-like-code-sign-ups-get');
 insert into public.profiles (id, handle, name) values ('aaaaaaaa-0000-4000-8000-00000000000a', 'existing.user', 'Existing User');
 
 -- 1. Creating an auth user no longer creates a profile on its own.
@@ -109,6 +109,21 @@ do $$ begin
 exception when insufficient_privilege then null;
 end $$;
 reset role;
+
+-- 9. The old sign-up screen (which always sends a "handle" in user metadata) can't create an account, while a
+--    code sign-up (random password, no handle) can.
+do $$ begin
+  insert into auth.users (id, email, encrypted_password, raw_user_meta_data)
+  values ('cccccccc-0000-4000-8000-00000000000c', 'old-signup@test.invalid', 'hash', '{"name":"Old","handle":"old.signup"}');
+  raise exception 'FAIL 9: the old sign-up screen created an account';
+exception when insufficient_privilege then null;
+end $$;
+do $$ begin
+  insert into auth.users (id, email, encrypted_password, raw_user_meta_data)
+  values ('dddddddd-0000-4000-8000-00000000000d', 'code-signup@test.invalid', 'random-hash', '{}');
+exception when others then
+  raise exception 'FAIL 9: a code sign-up was refused: %', sqlerrm;
+end $$;
 
 select 'all email_code_sign_in checks passed' as result;
 rollback;

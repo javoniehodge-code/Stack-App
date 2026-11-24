@@ -7,6 +7,11 @@
 --   and not one of the names the app uses for its own pages (the spec's list plus today's top-level routes).
 --   The rule is a table constraint, so it also applies when a profile's handle is edited. Existing handles
 --   (stackapp, knicksin5) already meet it.
+-- * The old sign-up screen can't create accounts any more. It always sends the username it asked for
+--   (user metadata "handle"); the email-code flow never does, because the username is chosen after the code.
+--   Without this, that screen (say, in a tab opened before the deploy) could create accounts with no profile once
+--   the profile trigger below is removed. Supabase Auth gives every new account a random password, including
+--   code sign-ups, so the guard can't simply refuse passwords.
 -- * Existing profiles and accounts are not changed.
 
 -- Names the app uses for its own pages. Keep in sync with RESERVED_HANDLES in web/src/lib/handles.ts.
@@ -35,6 +40,28 @@ alter table public.profiles add constraint profiles_handle_check check (
 -- No more automatic profiles.
 drop trigger if exists on_auth_user_created on auth.users;
 drop function if exists public.handle_new_user();
+
+-- The old sign-up screen can't create accounts (see the header).
+create or replace function public.reject_old_signup()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if coalesce(new.raw_user_meta_data, '{}'::jsonb) ? 'handle' then
+    raise exception 'this sign-up screen is no longer available; sign in with an email code' using errcode = '42501';
+  end if;
+  return new;
+end;
+$$;
+
+revoke execute on function public.reject_old_signup() from public, anon, authenticated;
+
+drop trigger if exists reject_old_signup on auth.users;
+create trigger reject_old_signup
+  before insert on auth.users
+  for each row execute function public.reject_old_signup();
 
 -- Whether a username can be chosen right now: valid, not reserved and not taken. For the live hint while typing;
 -- create_profile() checks again.

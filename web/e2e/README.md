@@ -31,8 +31,18 @@ Keys were local test JWTs signed with a throwaway secret.
 
 ```bash
 APP_URL=http://localhost:3000 API_URL=http://localhost:54321 MAILPIT_URL=http://127.0.0.1:8025 \
-ANON_KEY=<local anon JWT> TEST_DB="host=/tmp port=55433 dbname=stack_test user=postgres" \
+ANON_KEY=<local anon JWT> TEST_DB="host=/tmp port=55433 dbname=<test db> user=postgres" \
 EXISTING_EMAIL=existing.user@stack.test LIKE_STACK_TITLE="Test Tacos" node web/e2e/sign-in.e2e.mjs
 ```
 
-The app was built and started with `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321` and the local anon key. A Public Stack titled "Test Tacos", owned by the existing user, gives the Like check something to like.
+The app was built and started with `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321` and the local anon key. A Public Stack titled "Test Tacos", owned by the existing user, gives the Like and Save checks something to act on.
+
+The script checks:
+- **Stale attempts (0a, 0b).** A slow code check, and a slow profile setup, finish after their sheet was closed and another was opened from a different action. Playwright holds back only the response, so the server does the work.
+- **Existing user, Not now, new user, and setup closed midway** (1–4).
+- **Keyboard** (6): Tab, Shift+Tab, Escape and focus return.
+- **Desktop layout** (5).
+
+Against the sheet code from before the stale-attempt fix, 0a fails three of its checks: the newer sheet closed, the browser was signed in, and a session stayed active. That shows the test catches the bug.
+
+The rollback in `docs/party-mode-task-1a-rollout.md` was exercised on the same database: rollback script, then the old sign-up screen, then the migration re-applied and the database test rerun.

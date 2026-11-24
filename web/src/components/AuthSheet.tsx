@@ -1,9 +1,11 @@
 "use client";
 
+import { createClient as createSupabaseClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
 import { useEffect, useRef, useState } from "react";
 import { normalizeHandle, handleProblem } from "@/lib/handles";
 import { fetchProfile } from "@/lib/queries";
 import { createClient } from "@/lib/supabase/client";
+import { SUPABASE_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 import type { Profile } from "@/lib/types";
 import { useToast } from "./AppProviders";
 import s from "./AuthSheet.module.css";
@@ -15,20 +17,43 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const RESEND_AFTER_MS = 30_000;
 const MAX_TRIES = 5;
 const NAME_MAX = 40;
+const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/**
+ * A Supabase client for one sign-in attempt. It keeps the session in memory only, so a verification that
+ * finishes after the attempt was cancelled or replaced never signs the app in. The app's own client adopts the
+ * session only once the attempt succeeds and is still the current one.
+ */
+const attemptClient = () =>
+  createSupabaseClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: `stack-attempt-${crypto.randomUUID()}` },
+  });
 
 // One screen for signing in and creating an account (spec Flow 10): email, a 6-digit code, and for a new
-// account a display name and username. The pending action runs after onSignedIn, once.
+// account a display name and username.
+//
+// Every sheet belongs to one sign-in attempt. `isCurrent` says whether that attempt is still the open one;
+// `onSignedIn` completes it (runs its pending action once) and returns false if it was already cancelled or
+// replaced. Results that arrive for a stale attempt are dropped, and their session is revoked.
 export default function AuthSheet({
   message,
+  isCurrent,
   onCancel,
   onSignedIn,
 }: {
   message: string;
+  isCurrent: () => boolean;
   onCancel: () => void;
-  onSignedIn: (p: Profile) => void;
+  onSignedIn: (p: Profile) => boolean;
 }) {
   const sb = createClient();
   const toast = useToast();
+  const [client] = useState(attemptClient);
+  // Which client holds this attempt's session: the attempt's own, or (for an account the app already had
+  // signed in without a profile) the app's.
+  const owner = useRef<SupabaseClient>(client);
+  const adopted = useRef(false);
+  const dialog = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState<Step>("start");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -44,26 +69,42 @@ export default function AuthSheet({
   const [verifiedEmail, setVerifiedEmail] = useState("");
   const [busy, setBusy] = useState<null | "sending" | "checking" | "creating">(null);
   const [formError, setFormError] = useState("");
-  const done = useRef(false);
 
-  const finish = (p: Profile) => {
-    if (done.current) return;
-    done.current = true;
-    onSignedIn(p);
+  /** Ends this attempt's session on the server without touching the app's (other devices stay signed in). */
+  const revoke = () => {
+    if (!adopted.current) owner.current.auth.signOut({ scope: "local" }).catch(() => {});
   };
 
-  // Signed in already but never finished setting up a profile (closed the sheet at that step): continue there.
+  /** Signs the app in with this attempt's session and completes the attempt, or revokes it if it's stale. */
+  async function complete(profile: Profile, session: Session | null) {
+    if (!isCurrent()) return revoke();
+    if (session && owner.current === client) {
+      const { error } = await sb.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
+      if (error) {
+        setFormError("Signed in, but the session couldn’t be saved. Try again.");
+        return;
+      }
+    }
+    adopted.current = true;
+    // Cancelled or replaced while the session was being saved: undo it.
+    if (!onSignedIn(profile)) sb.auth.signOut({ scope: "local" }).catch(() => {});
+  }
+
+  // Closing the sheet (or replacing it) without finishing never leaves a session behind.
+  useEffect(() => () => revoke(), []);
+
+  // The app has a session for an account that never finished setting up a profile: continue at that step.
+  // (Sign-ins from this sheet don't leave one behind, but older sessions might.)
   useEffect(() => {
     let live = true;
     sb.auth.getUser().then(async ({ data }) => {
       if (!live || !data.user) return;
       const p = await fetchProfile(sb, "id", data.user.id);
       if (!live) return;
-      if (p) finish(p);
-      else {
-        setVerifiedEmail(data.user.email ?? "");
-        setStep("profile");
-      }
+      owner.current = sb;
+      if (p) return complete(p, null);
+      setVerifiedEmail(data.user.email ?? "");
+      setStep("profile");
     });
     return () => {
       live = false;
@@ -71,11 +112,35 @@ export default function AuthSheet({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Escape closes; Tab and Shift+Tab stay inside the sheet.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onCancel();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") return onCancel();
+      if (e.key !== "Tab" || !dialog.current) return;
+      const items = [...dialog.current.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) => el.getClientRects().length > 0);
+      if (!items.length) {
+        e.preventDefault();
+        dialog.current.focus();
+        return;
+      }
+      const first = items[0], last = items[items.length - 1];
+      const inside = dialog.current.contains(document.activeElement);
+      if (e.shiftKey && (!inside || document.activeElement === first || document.activeElement === dialog.current)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (!inside || document.activeElement === last)) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onCancel]);
+
+  // While checking a code there's nothing to focus, so the sheet itself holds focus.
+  useEffect(() => {
+    if (busy === "checking") dialog.current?.focus();
+  }, [busy]);
 
   // Ticks the resend countdown.
   useEffect(() => {
@@ -92,7 +157,8 @@ export default function AuthSheet({
     setEmailError("");
     setCodeError("");
     try {
-      const { error } = await sb.auth.signInWithOtp({ email: addr, options: { shouldCreateUser: true } });
+      const { error } = await client.auth.signInWithOtp({ email: addr, options: { shouldCreateUser: true } });
+      if (!isCurrent()) return;
       if (error) {
         const msg =
           error.status === 429 || error.code === "over_email_send_rate_limit"
@@ -109,7 +175,7 @@ export default function AuthSheet({
       setStep("code");
       if (isResend) toast(`New code sent to ${addr}`);
     } catch {
-      (isResend ? setCodeError : setEmailError)("Couldn’t send a code. Check your connection and try again.");
+      if (isCurrent()) (isResend ? setCodeError : setEmailError)("Couldn’t send a code. Check your connection and try again.");
     } finally {
       setBusy(null);
     }
@@ -120,7 +186,9 @@ export default function AuthSheet({
     setBusy("checking");
     setCodeError("");
     try {
-      const { data, error } = await sb.auth.verifyOtp({ email: email.trim(), token, type: "email" });
+      const { data, error } = await client.auth.verifyOtp({ email: email.trim(), token, type: "email" });
+      // Cancelled or replaced while the code was being checked: drop the result and end its session.
+      if (!isCurrent()) return revoke();
       if (error || !data.user) {
         setCode("");
         // A dropped connection or server error isn't a wrong guess, so it doesn't count as a try.
@@ -135,12 +203,13 @@ export default function AuthSheet({
         else setCodeError("That code isn’t right or has expired. Check the email and try again, or send a new code.");
         return;
       }
-      const profile = await fetchProfile(sb, "id", data.user.id);
-      if (profile) return finish(profile);
+      const profile = await fetchProfile(client, "id", data.user.id);
+      if (!isCurrent()) return revoke();
+      if (profile) return await complete(profile, data.session);
       setVerifiedEmail(data.user.email ?? email.trim());
       setStep("profile");
     } catch {
-      setCodeError("Couldn’t check the code. Check your connection and try again.");
+      if (isCurrent()) setCodeError("Couldn’t check the code. Check your connection and try again.");
     } finally {
       setBusy(null);
     }
@@ -160,14 +229,13 @@ export default function AuthSheet({
     if (step !== "profile" || problem) return;
     let live = true;
     const t = setTimeout(async () => {
-      const { data, error } = await sb.rpc("handle_available", { p_handle: handle });
+      const { data, error } = await owner.current.rpc("handle_available", { p_handle: handle });
       if (live) setAvail({ handle, free: error ? null : !!data });
     }, 300);
     return () => {
       live = false;
       clearTimeout(t);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handle, step, problem]);
   const handleState: HandleState = problem
     ? { state: handle ? "bad" : "idle", msg: problem }
@@ -185,18 +253,23 @@ export default function AuthSheet({
     setBusy("creating");
     setFormError("");
     try {
-      const { data, error } = await sb.rpc("create_profile", { p_name: nm, p_handle: handle });
+      const db = owner.current;
+      const { data, error } = await db.rpc("create_profile", { p_name: nm, p_handle: handle });
+      // Cancelled or replaced meanwhile: the profile may exist now, but this attempt doesn't sign in.
+      if (!isCurrent()) return revoke();
       if (error) {
         if (error.hint === "handle_taken" || error.hint === "handle_reserved" || error.hint === "handle_invalid") setAvail({ handle, free: false });
         else if (error.hint === "name") setFormError("Use 1–50 characters for your name.");
         else setFormError("Couldn’t create your account. Check your connection and try again.");
         return;
       }
-      const p = await fetchProfile(sb, "id", (data as { id: string }).id);
-      if (p) finish(p);
-      else setFormError("Your account was created, but it couldn’t be loaded. Try again.");
+      const p = await fetchProfile(db, "id", (data as { id: string }).id);
+      if (!isCurrent()) return revoke();
+      if (!p) return setFormError("Your account was created, but it couldn’t be loaded. Try again.");
+      const { data: sess } = await db.auth.getSession();
+      await complete(p, sess.session);
     } catch {
-      setFormError("Couldn’t create your account. Check your connection and try again.");
+      if (isCurrent()) setFormError("Couldn’t create your account. Check your connection and try again.");
     } finally {
       setBusy(null);
     }
@@ -219,7 +292,7 @@ export default function AuthSheet({
 
   return (
     <div className={s.scrim} onClick={onCancel}>
-      <div className={s.sheet} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <div ref={dialog} tabIndex={-1} className={s.sheet} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="auth-title">
         <div className={s.grabber} aria-hidden="true" />
 
         {busy === "checking" ? (

@@ -67,8 +67,105 @@ async function enterEmail(page, email) {
   return sentAfter;
 }
 
+/** Auth cookies the app's own client stores. None means the browser isn't signed in. */
+const authCookies = async (ctx) => (await ctx.cookies()).filter((c) => c.name.startsWith("sb-")).map((c) => c.name);
+/** Active server-side sessions for an account. */
+const sessionsFor = (userId) => sql(`select count(*) from auth.sessions where user_id = '${userId}'`);
+/**
+ * Holds back the response (not the request) of the first matching call for `ms`, so the server finishes the work
+ * but the browser hears about it late, like a slow connection.
+ */
+async function delayFirstResponse(page, pattern, ms) {
+  let first = true;
+  await page.route(pattern, async (route) => {
+    if (!first || route.request().method() === "OPTIONS") return route.continue();
+    first = false;
+    const res = await route.fetch();
+    await new Promise((r) => setTimeout(r, ms));
+    await route.fulfill({ response: res });
+  });
+}
+
 const browser = await chromium.launch();
 const phone = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true };
+
+// 0a. A slow code check that finishes after its sheet was closed and another opened from a different action.
+//     The late result must not run the first action, close the newer sheet, or sign the browser in.
+{
+  const ctx = await browser.newContext(phone);
+  const page = await ctx.newPage();
+  const userId = sql(`select id from auth.users where email = '${EXISTING}'`);
+  const stackId = sql(`select id from public.stacks where title = '${STACK_TITLE}'`);
+  const likes0 = sql(`select count(*) from public.likes where stack_id = '${stackId}'`);
+  const saves0 = sql(`select count(*) from public.saves where stack_id = '${stackId}'`);
+  sql(`delete from auth.sessions where user_id = '${userId}'`);
+  await delayFirstResponse(page, "**/auth/v1/verify", 4000);
+  await page.goto(APP + "/");
+  const card = page.locator("article", { hasText: STACK_TITLE }).first();
+  await card.getByRole("button", { name: "Like", exact: true }).click();
+  const sentAfter = await enterEmail(page, EXISTING);
+  const { code } = await latestCode(EXISTING, sentAfter);
+  await page.getByLabel("6-digit code").fill(code);
+  await page.getByText("Checking your code…").waitFor();
+  await page.keyboard.press("Escape"); // close the first sheet while its code is still being checked
+  await page.getByRole("dialog").waitFor({ state: "detached" });
+  await card.getByRole("button", { name: "Save", exact: true }).click(); // a different action opens a new sheet
+  await page.getByText("Sign in to save stacks").waitFor();
+  await page.waitForTimeout(5500); // the first check's response arrives during this wait
+  check("0a-1. The late result didn't close the newer sheet", await page.getByText("Sign in to save stacks").isVisible() && (await page.getByRole("dialog").count()) === 1);
+  check("0a-2. The first sheet's Like never ran", sql(`select count(*) from public.likes where stack_id = '${stackId}'`) === likes0);
+  const cookies = await authCookies(ctx);
+  check("0a-3. The browser isn't signed in", cookies.length === 0, cookies.join(",") || "no auth cookies");
+  check("0a-4. The late session was revoked on the server", sessionsFor(userId) === "0", `${sessionsFor(userId)} active sessions`);
+  // The newer sheet still works, and runs its own action only.
+  const sentAfter2 = await enterEmail(page, EXISTING);
+  const { code: code2 } = await latestCode(EXISTING, sentAfter2);
+  await page.getByLabel("6-digit code").fill(code2);
+  await page.getByRole("dialog").waitFor({ state: "detached" });
+  await card.getByRole("button", { name: "Unsave" }).waitFor();
+  check(
+    "0a-5. Signing in on the newer sheet runs only its Save, once",
+    sql(`select count(*) from public.saves where stack_id = '${stackId}'`) === String(Number(saves0) + 1) && sql(`select count(*) from public.likes where stack_id = '${stackId}'`) === likes0,
+  );
+  sql(`delete from public.saves where stack_id = '${stackId}'`);
+  await page.goto(APP + "/settings");
+  await page.getByRole("button", { name: "Log out" }).click();
+  await page.waitForURL(APP + "/");
+  await ctx.close();
+}
+
+// 0b. The same for profile setup: the "Create account" response arrives after the sheet was closed and another
+//     opened. The pending Create must not run, the newer sheet stays, and the browser isn't signed in.
+{
+  const stamp = Date.now().toString(36);
+  const email = `slow.${stamp}@stack.test`;
+  const ctx = await browser.newContext(phone);
+  const page = await ctx.newPage();
+  await delayFirstResponse(page, "**/rest/v1/rpc/create_profile", 4000);
+  await page.goto(APP + "/");
+  await page.getByRole("link", { name: "Create" }).click();
+  const sentAfter = await enterEmail(page, email);
+  const { code } = await latestCode(email, sentAfter);
+  await page.getByLabel("6-digit code").fill(code);
+  await page.getByRole("heading", { name: "Make it yours" }).waitFor();
+  await page.getByLabel("Display name").fill("Slow Tester");
+  await page.getByLabel("Username").fill(`slow.${stamp}`);
+  await page.getByText("✓ Available").waitFor();
+  await page.getByRole("button", { name: "Create account" }).click();
+  await page.getByRole("button", { name: "Creating account…" }).waitFor();
+  await page.keyboard.press("Escape");
+  await page.getByRole("dialog").waitFor({ state: "detached" });
+  await page.getByRole("link", { name: "Profile" }).click();
+  await page.getByRole("button", { name: "Sign in / Create account" }).click();
+  await page.getByRole("heading", { name: "Sign in or join stack" }).waitFor();
+  await page.waitForTimeout(5500);
+  const uid = sql(`select id from auth.users where email = '${email}'`);
+  check("0b-1. The late setup result didn't close the newer sheet", await page.getByRole("heading", { name: "Sign in or join stack" }).isVisible());
+  check("0b-2. The first sheet's Create never ran", !page.url().includes("/create"), page.url());
+  check("0b-3. The browser isn't signed in", (await authCookies(ctx)).length === 0);
+  check("0b-4. The late session was revoked on the server", sessionsFor(uid) === "0", `${sessionsFor(uid)} active sessions`);
+  await ctx.close();
+}
 
 // 1. Existing user, starting from a protected action (Like). Wrong code first, then the right one.
 {
@@ -179,12 +276,66 @@ const phone = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isM
   const { code } = await latestCode(email, sentAfter);
   await page.getByLabel("6-digit code").fill(code);
   await page.getByRole("heading", { name: "Make it yours" }).waitFor();
+  const uid = sql(`select id from auth.users where email = '${email}'`);
   await page.keyboard.press("Escape");
+  await page.getByRole("dialog").waitFor({ state: "detached" });
+  await page.waitForTimeout(500);
   await page.reload();
-  check("4a. Without a profile the app still treats the visitor as signed out", await page.getByRole("heading", { name: "Sign in to see your profile" }).isVisible());
+  check("4a. Closing at setup leaves the browser signed out", (await authCookies(ctx)).length === 0 && (await page.getByRole("heading", { name: "Sign in to see your profile" }).isVisible()));
+  check("4b. …and its session is revoked on the server", sessionsFor(uid) === "0", `${sessionsFor(uid)} active sessions`);
   await page.getByRole("button", { name: "Sign in / Create account" }).click();
-  await page.getByRole("heading", { name: "Make it yours" }).waitFor({ timeout: 5000 }).catch(() => {});
-  check("4b. Signing in again continues at “Make it yours”", await page.getByRole("heading", { name: "Make it yours" }).isVisible());
+  const sentAfter2 = await enterEmail(page, email);
+  const { code: code2 } = await latestCode(email, sentAfter2);
+  await page.getByLabel("6-digit code").fill(code2);
+  await page.getByRole("heading", { name: "Make it yours" }).waitFor({ timeout: 10000 }).catch(() => {});
+  check("4c. Signing in again with a new code returns to “Make it yours”", await page.getByRole("heading", { name: "Make it yours" }).isVisible());
+  await ctx.close();
+}
+
+// 6. Keyboard only: Tab and Shift+Tab stay inside the sheet on each step, and closing returns focus to the opener.
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 });
+  const page = await ctx.newPage();
+  await page.goto(APP + "/");
+  const like = page.locator("article", { hasText: STACK_TITLE }).first().getByRole("button", { name: "Like", exact: true });
+  // Reach the Like button with Tab alone.
+  for (let i = 0; i < 60 && !(await like.evaluate((el) => el === document.activeElement)); i++) await page.keyboard.press("Tab");
+  check("6a. The Like button is reachable with Tab", await like.evaluate((el) => el === document.activeElement));
+  await page.keyboard.press("Enter");
+  await page.getByRole("dialog").waitFor();
+  const inside = () => page.evaluate(() => !!document.activeElement && !!document.querySelector('[role="dialog"]')?.contains(document.activeElement));
+  const cycle = async (key, n) => {
+    const seen = new Set();
+    for (let i = 0; i < n; i++) {
+      await page.keyboard.press(key);
+      if (!(await inside())) return { ok: false, seen };
+      seen.add(await page.evaluate(() => document.activeElement?.getAttribute("aria-label") || document.activeElement?.textContent?.trim().slice(0, 30) || document.activeElement?.tagName));
+    }
+    return { ok: true, seen };
+  };
+  let r = await cycle("Tab", 8);
+  check("6b. Start step: Tab ×8 stays inside the sheet", r.ok, [...r.seen].join(" → "));
+  r = await cycle("Shift+Tab", 8);
+  check("6c. Start step: Shift+Tab ×8 stays inside the sheet", r.ok, [...r.seen].join(" → "));
+  // Move to the email step with the keyboard and check again.
+  await page.getByRole("button", { name: "Continue with email" }).focus();
+  await page.keyboard.press("Enter");
+  await page.getByLabel("Email address").waitFor();
+  r = await cycle("Tab", 8);
+  const r2 = await cycle("Shift+Tab", 8);
+  check("6d. Email step: Tab and Shift+Tab stay inside the sheet", r.ok && r2.ok, [...r.seen].join(" → "));
+  await page.keyboard.press("Escape");
+  await page.getByRole("dialog").waitFor({ state: "detached" });
+  await page.waitForTimeout(100);
+  check("6e. Escape closes the sheet and returns focus to the Like button", await like.evaluate((el) => el === document.activeElement));
+  // Not now, chosen with the keyboard, does the same.
+  await page.keyboard.press("Enter");
+  await page.getByRole("dialog").waitFor();
+  await page.getByRole("button", { name: "Not now" }).focus();
+  await page.keyboard.press("Enter");
+  await page.getByRole("dialog").waitFor({ state: "detached" });
+  await page.waitForTimeout(100);
+  check("6f. Not now returns focus to the Like button", await like.evaluate((el) => el === document.activeElement));
   await ctx.close();
 }
 
