@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@700;800;900&display=swap">
+  <style>
+[role="button"]:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, [contenteditable]:focus-visible { outline: 3px solid oklch(55% 0.22 350) !important; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
+    body { margin: 0; background: oklch(99.5% 0.01 95); }
+    * { box-sizing: border-box; }
+    input::placeholder, textarea::placeholder { color: oklch(62% 0.02 300); }
+    input, textarea, [contenteditable] { caret-color: oklch(55% 0.22 350); }
+    [data-ph]:empty:before { content: attr(data-ph); color: oklch(62% 0.02 300); pointer-events: none; }
+    a { color: oklch(55% 0.22 350); } a:hover { color: oklch(48% 0.22 350); }
+    @keyframes cfSheet { from { transform: translateY(100%); } to { transform: none; } }
+    .cfSheet { animation: cfSheet 260ms cubic-bezier(.2,.8,.2,1) both; }
+    @keyframes cfPop { 0% { transform: scale(.5); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+    .cfPop { animation: cfPop 320ms cubic-bezier(.2,.9,.3,1.4); }
+    @keyframes pmDrift { from { background-position: 0 0; } to { background-position: 120px 240px; } }
+    .pmWall { animation: pmDrift 18s linear infinite; }
+  </style>
+</helmet>
+<div style="height:100%;display:flex;flex-direction:column;background:{{ screenBg }};position:relative;font-family:Inter,-apple-system,sans-serif;">
+
+  <sc-if value="{{ showHeader }}" hint-placeholder-val="{{ true }}">
+    <div style="padding:54px 8px 0;flex-shrink:0;background:oklch(99.5% 0.01 95);">
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:44px;">
+        <div style="display:flex;">
+          <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ exit }}" style="height:44px;padding:0 10px;display:flex;align-items:center;gap:4px;cursor:pointer;font-size:13.5px;font-weight:500;color:oklch(36% 0.035 300);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.035 300)" strokeWidth="2" strokeLinecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"></path></svg>Exit
+          </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:oklch(47.1% 0.035 300);white-space:nowrap;">
+          <sc-if value="{{ showStatus }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ saveFailed }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ retrySave }}" style="display:flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;background:oklch(96% 0.04 25);border:1.5px solid oklch(50% 0.2 25);font-size:12px;font-weight:800;color:oklch(45% 0.2 25);"><span aria-hidden="true">⚠️</span>Not saved · Retry</button></sc-if><sc-if value="{{ saveOk }}" hint-placeholder-val="{{ true }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ statusDot }};flex-shrink:0;"></span>{{ statusText }}</sc-if></sc-if>
+        </div>
+        <div style="display:flex;justify-content:flex-end;">
+          <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ saveDraft }}" style="height:44px;padding:0 12px;display:flex;align-items:center;font-size:13.5px;font-weight:600;color:oklch(19.4% 0.035 300);cursor:pointer;">Save draft</span>
+        </div>
+      </div>
+      <sc-if value="{{ isEditing }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:0 20px 8px;font-size:11.5px;font-weight:600;color:oklch(41.5% 0.035 300);">Editing a published stack</div>
+      </sc-if>
+      <sc-if value="{{ notEditing }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;align-items:center;gap:10px;padding:0 12px 8px;">
+        <div style="flex:1;display:flex;gap:4px;">
+          <sc-for list="{{ progSegs }}" as="p" hint-placeholder-count="4">
+            <span style="flex:1;height:3px;border-radius:2px;background:{{ p.bg }};"></span>
+          </sc-for>
+        </div>
+        <span style="font-size:11.5px;font-weight:600;color:oklch(41.5% 0.035 300);font-variant-numeric:tabular-nums;white-space:nowrap;">{{ stepNum }}/4 · {{ stepName }}</span>
+      </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isCompose }}" hint-placeholder-val="{{ true }}">
+    <div ref="{{ buildScrollRef }}" style="flex:1;min-height:0;overflow-y:auto;padding:12px 20px {{ buildPadB }};">
+      <div style="height:{{ composeSpacer }};flex-shrink:0;transition:height 650ms cubic-bezier(0.22,1,0.36,1);"></div>
+      <div style="max-height:{{ tPromptH }};opacity:{{ tPromptOp }};overflow:hidden;transition:max-height 500ms cubic-bezier(0.22,1,0.36,1),opacity 250ms ease;">
+        <div style="font-size:14px;font-weight:600;color:oklch(36% 0.035 300);padding:0 2px 10px;">What would you like to call this Stack?</div>
+      </div>
+      <textarea rows="1" ref="{{ titleRef }}" value="{{ title }}" onChange="{{ onTitle }}" onKeyDown="{{ onTitleKey }}" onFocus="{{ onTitleFocus }}" placeholder="{{ tPlaceholder }}" style="font-family:Outfit,Inter,sans-serif;width:100%;display:block;field-sizing:content;resize:none;overflow-wrap:anywhere;white-space:pre-wrap;overflow:hidden;border:1.5px solid {{ tBorder }};background:{{ tBg }};box-shadow:{{ tShadow }};border-radius:14px;padding:{{ tPad }};outline:none;font-weight:800;font-size:25px;line-height:1.2;letter-spacing:-0.025em;color:oklch(14.8% 0.035 300);transition:padding 550ms cubic-bezier(0.22,1,0.36,1),border-color 350ms ease,background 350ms ease,box-shadow 350ms ease;"></textarea><sc-if value="{{ titleCountShow }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px;font-weight:700;color:{{ titleCountFg }};margin-top:4px;">{{ titleCount }}</div></sc-if>
+      <div style="max-height:{{ tActH }};opacity:{{ tActOp }};overflow:hidden;transition:max-height 450ms cubic-bezier(0.22,1,0.36,1),opacity 200ms ease;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:14px;">
+          <span style="font-size:12.5px;color:oklch(47.1% 0.035 300);">Press return to continue</span>
+          <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ nextTitle }}" style="height:44px;padding:0 20px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;cursor:pointer;background:{{ tBtnBg }};color:{{ tBtnColor }};transition:background 200ms ease,color 200ms ease;">{{ titleSkipLabel }}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+        </div>
+      </div>
+      <div style="max-height:{{ dWrapH }};opacity:{{ dWrapOp }};transform:translateY({{ dWrapY }});overflow:hidden;pointer-events:{{ dWrapPe }};transition:max-height 600ms cubic-bezier(0.22,1,0.36,1),opacity 400ms ease 120ms,transform 600ms cubic-bezier(0.22,1,0.36,1);">
+        <div style="max-height:{{ dPromptH }};opacity:{{ dPromptOp }};overflow:hidden;transition:max-height 500ms cubic-bezier(0.22,1,0.36,1),opacity 250ms ease;">
+          <div style="display:flex;align-items:baseline;gap:8px;padding:28px 2px 10px;"><span style="font-size:14px;font-weight:600;color:oklch(36% 0.035 300);">What is this Stack about?</span><span style="font-size:12.5px;color:oklch(50.8% 0.035 300);">Optional</span></div>
+        </div>
+        <textarea ref="{{ descRef }}" value="{{ description }}" onChange="{{ onDesc }}" onKeyDown="{{ onDescKey }}" onFocus="{{ onDescFocus }}" onBlur="{{ onDescBlur }}" placeholder="{{ dPlaceholder }}" rows="1" style="width:{{ dW }};display:block;field-sizing:content;min-height:{{ dMinH }};resize:none;border:1.5px solid {{ dBorder }};background:{{ dBg }};box-shadow:{{ dShadow }};border-radius:14px;padding:{{ dPad }};margin:{{ dTop }} {{ dSide }} 0;outline:none;font-family:Inter,sans-serif;font-size:15px;line-height:1.5;color:oklch(36% 0.035 300);transition:padding 550ms cubic-bezier(0.22,1,0.36,1),margin 550ms cubic-bezier(0.22,1,0.36,1),min-height 550ms cubic-bezier(0.22,1,0.36,1),border-color 350ms ease,background 350ms ease,box-shadow 350ms ease;"></textarea>
+        <div style="max-height:{{ dActH }};opacity:{{ dActOp }};overflow:hidden;transition:max-height 450ms cubic-bezier(0.22,1,0.36,1),opacity 200ms ease;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:14px;">
+            <span style="font-size:12.5px;color:{{ descCountFg }};font-weight:700;font-variant-numeric:tabular-nums;">{{ descCount }}</span>
+            <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ goBuild }}" style="height:44px;padding:0 20px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;cursor:pointer;background:{{ dBtnBg }};color:{{ dBtnColor }};transition:background 200ms ease,color 200ms ease;">{{ descSkipLabel }}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ isBuild }}" hint-placeholder-val="{{ true }}">
+      <div style="opacity:{{ bodyOp }};transform:translateY({{ bodyY }});transition:opacity 450ms ease,transform 600ms cubic-bezier(0.22,1,0.36,1);">
+      <sc-if value="{{ showEditBtn }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;justify-content:flex-end;margin:6px 0 -6px;position:relative;">
+          <sc-if value="{{ editMenu }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ closeEditMenu }}" style="position:fixed;inset:0;z-index:14;"></div>
+            <div style="position:absolute;top:40px;right:0;z-index:15;min-width:168px;padding:5px;border-radius:14px;background:oklch(99.5% 0.01 95);border:1px solid oklch(90% 0.025 95);box-shadow:0 8px 24px oklch(20% 0.006 80 / 0.12);display:flex;flex-direction:column;font-family:Inter,sans-serif;">
+              <div role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onMouseDown="{{ keep }}" onClick="{{ pickReorder }}" style="display:flex;align-items:center;gap:10px;height:44px;padding:0 12px;border-radius:999px;cursor:pointer;font-size:14px;font-weight:600;color:oklch(19.4% 0.035 300);" style-hover="background:oklch(95.5% 0.025 95);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(30% 0.035 300)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 9.5l4-4 4 4"></path><path d="M8 14.5l4 4 4-4"></path></svg>Reorder</div>
+              <div role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onMouseDown="{{ keep }}" onClick="{{ pickDelete }}" style="display:flex;align-items:center;gap:10px;height:44px;padding:0 12px;border-radius:999px;cursor:pointer;font-size:14px;font-weight:600;color:oklch(48% 0.16 30);" style-hover="background:oklch(95.5% 0.025 95);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(48% 0.16 30)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"></path></svg>Delete</div>
+            </div>
+          </sc-if>
+          <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onMouseDown="{{ keep }}" onClick="{{ toggleEdit }}" style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;margin:3px 0;border-radius:999px;border:1px solid {{ editBorder }};background:{{ editBg }};font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:{{ editColor }};cursor:pointer;flex-shrink:0;"><sc-if value="{{ editPencil }}" hint-placeholder-val="{{ true }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(55% 0.22 350)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 19.5h4l10-10-4-4-10 10v4z"></path><path d="M13 7l4 4"></path></svg></sc-if>{{ editLabel }}</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{ noEditBtn }}" hint-placeholder-val="{{ true }}"><div style="height:4px;"></div></sc-if>
+      <div>
+        <sc-for list="{{ sections }}" as="sec" hint-placeholder-count="1">
+          <div style="margin-bottom:6px;">
+            <sc-if value="{{ sec.headed }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:{{ sec.headTop }};">
+                <div style="border:{{ sec.boxBorder }};border-radius:14px;padding:{{ sec.boxPad }};margin:{{ sec.boxMargin }};background:{{ sec.boxBg }};">
+                  <div style="display:flex;align-items:flex-start;gap:10px;border-bottom:1.5px solid oklch(19.4% 0.035 300);">
+                    <span style="width:3px;height:15px;margin-top:13px;border-radius:2px;background:oklch(22% 0.04 300);flex-shrink:0;"></span>
+                    <textarea ref="{{ sec.headRef }}" value="{{ sec.label }}" onChange="{{ sec.onLabel }}" onFocus="{{ sec.onSelect }}" readOnly="{{ sec.readOnly }}" onKeyDown="{{ sec.onKey }}" placeholder="Section heading" rows="1" style="font-family:Outfit,Inter,sans-serif;flex:1;min-width:0;field-sizing:content;resize:none;overflow-wrap:anywhere;white-space:pre-wrap;overflow:hidden;border:none;outline:none;background:transparent;font-size:18px;font-weight:800;letter-spacing:-0.015em;line-height:1.3;color:oklch(14.8% 0.035 300);padding:8px 0;border-radius:0;"></textarea>
+                    <sc-if value="{{ sec.isSel }}" hint-placeholder-val="{{ false }}"><div style="flex-shrink:0;margin-top:4px;"><span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="Delete" onMouseDown="{{ keep }}" onClick="{{ sec.onRemove }}" title="Delete" style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;" style-hover="background:oklch(94% 0.025 95);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(48% 0.16 30)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"></path></svg></span></div></sc-if>
+                    <sc-if value="{{ sec.inEdit }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:2px;flex-shrink:0;align-self:flex-start;margin:-4px -4px 0 0;"><sc-if value="{{ sec.edMove }}" hint-placeholder-val="{{ false }}"><span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="Move up" onMouseDown="{{ keep }}" onClick="{{ sec.onUp }}" title="Move up" style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ sec.upOp }};" style-hover="background:oklch(94% 0.025 95);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(30% 0.035 300)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 14.5l6-6 6 6"></path></svg></span><span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="Move down" onMouseDown="{{ keep }}" onClick="{{ sec.onDown }}" title="Move down" style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ sec.downOp }};" style-hover="background:oklch(94% 0.025 95);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(30% 0.035 300)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span></sc-if><sc-if value="{{ sec.edDel }}" hint-placeholder-val="{{ false }}"><span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="Delete" onMouseDown="{{ keep }}" onClick="{{ sec.onEdDel }}" title="Delete" style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;" style-hover="background:oklch(94% 0.025 95);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(48% 0.16 30)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"></path></svg></span></sc-if></div></sc-if>
+                  </div>
+                  <sc-if value="{{ sec.isSel }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;justify-content:flex-end;margin-top:6px;">
+                      <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onMouseDown="{{ keep }}" onClick="{{ sec.onDone }}" style="height:34px;padding:0 4px;display:flex;align-items:center;font-size:13.5px;font-weight:700;color:oklch(55% 0.22 350);cursor:pointer;">Done</span>
+                    </div>
+                    <sc-if value="{{ sec.showTb }}" hint-placeholder-val="{{ false }}">
+                      <div onMouseDown="{{ keep }}" style="margin-top:8px;border-radius:14px;background:oklch(99.5% 0.01 95);border:1px solid oklch(90% 0.025 95);box-shadow:0 4px 14px oklch(20% 0.01 80 / 0.08);display:flex;align-items:stretch;overflow:hidden;">
+                        <div style="flex:1;min-width:0;display:flex;gap:1px;padding:4px 3px;overflow-x:auto;scrollbar-width:none;">
+                          <div role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onMouseDown="{{ keep }}" onClick="{{ pickSection }}" style="flex:1 1 0;min-width:46px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mSecFg }};background:{{ mSecBg }};box-shadow:{{ mSecRing }};opacity:{{ mSecOp }};"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><rect x="1" y="2" width="3" height="12" rx="1.5" fill="oklch(55% 0.22 350)"></rect><path d="M8 5h13M8 11h9" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"></path></svg><span style="font-size:9.5px;font-weight:600;white-space:nowrap;letter-spacing:-0.01em;">Section</span></div>
+                          <div role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onMouseDown="{{ keep }}" onClick="{{ pickNum }}" style="flex:1 1 0;min-width:46px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mNumFg }};background:{{ mNumBg }};box-shadow:{{ mNumRing }};opacity:{{ mNumOp }};"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><text x="1" y="7" fontSize="7" fontWeight="700" fill="currentColor" fontFamily="IBM Plex Mono, monospace">1</text><text x="1" y="15" fontSize="7" fontWeight="700" fill="currentColor" fontFamily="IBM Plex Mono, monospace">2</text><path d="M8 4.5h13M8 12.5h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:9.5px;font-weight:600;white-space:nowrap;letter-spacing:-0.01em;">Numbered</span></div>
+                          <div role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onMouseDown="{{ keep }}" onClick="{{ pickBullet }}" style="flex:1 1 0;min-width:46px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mBulFg }};background:{{ mBulBg }};box-shadow:{{ mBulRing }};opacity:{{ mBulOp }};"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><circle cx="3" cy="4.5" r="2" fill="oklch(55% 0.22 350)"></circle><circle cx="3" cy="12.5" r="2" fill="oklch(55% 0.22 350)"></circle><path d="M8 4.5h13M8 12.5h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:9.5px;font-weight:600;white-space:nowrap;letter-spacing:-0.01em;">Bulleted</span></div>
+                          <span style="flex-shrink:0;width:1px;margin:10px 1px;background:oklch(91% 0.025 95);"></span>
+                          <div role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onMouseDown="{{ keep }}" onClick="{{ toolLink }}" style="flex:1 1 0;min-width:46px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mLinkFg }};background:{{ mLinkBg }};box-shadow:{{ mLinkRing }};opacity:{{ mLinkOp }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg><span style="font-size:9.5px;font-weight:600;white-space:nowrap;letter-spacing:-0.01em;">Link</span></div>
+                          </div>
+                        <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="Hide toolbar" onMouseDown="{{ keep }}" onClick="{{ hideTb }}" title="Hide toolbar" style="flex-shrink:0;width:30px;display:flex;align-items:center;justify-content:center;border-left:1px solid oklch(91% 0.025 95);cursor:pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.035 300)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span>
+                      </div>
+                    </sc-if>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-if>
+            <sc-for list="{{ sec.lines }}" as="ln" hint-placeholder-count="3">
+              <div>
+                <sc-if value="{{ ln.notSel }}" hint-placeholder-val="{{ true }}">
+                  <div role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ ln.onSelect }}" style="display:flex;gap:12px;padding:{{ ln.boxPad }};margin:{{ ln.boxMargin }};border:{{ ln.boxBorder }};border-bottom:{{ ln.divider }};border-radius:{{ ln.boxRadius }};background:{{ ln.boxBg }};cursor:pointer;">
+                    <sc-if value="{{ ln.isNum }}" hint-placeholder-val="{{ false }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:22px;padding-top:0px;color:oklch(55% 0.035 300);flex-shrink:0;width:20px;font-variant-numeric:tabular-nums;">{{ ln.num }}</span></sc-if>
+                    <sc-if value="{{ ln.isBullet }}" hint-placeholder-val="{{ false }}"><span style="flex-shrink:0;width:20px;height:22px;margin-top:0px;display:flex;align-items:center;justify-content:center;"><span style="width:6px;height:6px;border-radius:50%;background:oklch(22% 0.04 300);"></span></span></sc-if>
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;">
+                      <sc-if value="{{ ln.nsText }}" hint-placeholder-val="{{ false }}">
+                        <div style="font-size:15px;font-weight:{{ ln.paraWeight }};line-height:1.55;color:{{ ln.paraColor }};text-wrap:pretty;overflow-wrap:anywhere;white-space:pre-wrap;"><sc-for list="{{ ln.parts }}" as="pt" hint-placeholder-count="1"><span style="color:{{ pt.color }};text-decoration:{{ pt.deco }};text-underline-offset:2px;font-weight:{{ pt.w }};">{{ pt.t }}</span></sc-for></div>
+                      </sc-if>
+                      <sc-if value="{{ ln.nsBold }}" hint-placeholder-val="{{ false }}">
+                        <div style="font-size:16.5px;font-weight:700;letter-spacing:-0.015em;line-height:1.35;color:{{ ln.textColor }};text-wrap:pretty;overflow-wrap:anywhere;"><sc-for list="{{ ln.parts }}" as="pt" hint-placeholder-count="1"><span style="color:{{ pt.color }};text-decoration:{{ pt.deco }};text-underline-offset:2px;font-weight:{{ pt.w }};">{{ pt.t }}</span></sc-for></div>
+                      </sc-if>
+                      <sc-if value="{{ ln.nsList }}" hint-placeholder-val="{{ true }}">
+                        <div style="font-size:15px;font-weight:{{ ln.headWeight }};color:{{ ln.textColor }};line-height:1.55;text-wrap:pretty;overflow-wrap:anywhere;white-space:pre-wrap;"><sc-for list="{{ ln.parts }}" as="pt" hint-placeholder-count="1"><span style="color:{{ pt.color }};text-decoration:{{ pt.deco }};text-underline-offset:2px;font-weight:{{ pt.w }};">{{ pt.t }}</span></sc-for></div>
+                        <sc-if value="{{ ln.hasSub }}" hint-placeholder-val="{{ false }}">
+                          <div style="font-size:14px;color:oklch(38% 0.035 300);line-height:1.5;text-wrap:pretty;overflow-wrap:anywhere;">{{ ln.subDisp }}</div>
+                        </sc-if>
+                      </sc-if>
+                      <sc-if value="{{ ln.hasTextLinks }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:{{ ln.tlTop }};">
+                          <sc-for list="{{ ln.textLinks }}" as="tl" hint-placeholder-count="1"><span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ tl.onRename }}" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;min-height:26px;padding:0 10px;border-radius:999px;background:oklch(95.5% 0.025 255);font-size:12.5px;font-weight:600;color:oklch(42% 0.17 255);"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(42% 0.17 255)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg>{{ tl.label }}</span></sc-for>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{ ln.hasLink }}" hint-placeholder-val="{{ false }}">
+                        <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ ln.onRenameLink }}" style="cursor:pointer;align-self:flex-start;display:inline-flex;align-items:center;gap:5px;min-height:26px;margin-top:{{ ln.linkTop }};padding:0 10px;border-radius:999px;background:oklch(95.5% 0.025 255);font-size:12.5px;font-weight:600;color:oklch(42% 0.17 255);"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(42% 0.17 255)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg>{{ ln.linkLabel }}</span>
+                      </sc-if><sc-if value="{{ ln.hasTags }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;"><sc-for list="{{ ln.tagChips }}" as="tg" hint-placeholder-count="2"><span style="height:24px;padding:0 9px;border-radius:999px;background:{{ tg.bg }};color:{{ tg.fg }};border:1.5px solid oklch(22% 0.04 300);font-size:11.5px;font-weight:800;display:inline-flex;align-items:center;">{{ tg.label }}</span></sc-for></div></sc-if>
+                    </div>
+                    <sc-if value="{{ ln.inEdit }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:2px;flex-shrink:0;align-self:flex-start;margin:-4px -4px 0 0;"><sc-if value="{{ ln.edMove }}" hint-placeholder-val="{{ false }}"><span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="Move up" onMouseDown="{{ keep }}" onClick="{{ ln.onUp }}" title="Move up" style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ ln.upOp }};" style-hover="background:oklch(94% 0.025 95);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(30% 0.035 300)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 14.5l6-6 6 6"></path></svg></span><span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="Move down" onMouseDown="{{ keep }}" onClick="{{ ln.onDown }}" title="Move down" style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ ln.downOp }};" style-hover="background:oklch(94% 0.025 95);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(30% 0.035 300)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span></sc-if><sc-if value="{{ ln.edDel }}" hint-placeholder-val="{{ false }}"><span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="Delete" onMouseDown="{{ keep }}" onClick="{{ ln.onEdDel }}" title="Delete" style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;" style-hover="background:oklch(94% 0.025 95);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(48% 0.16 30)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"></path></svg></span></sc-if></div></sc-if>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ ln.isSel }}" hint-placeholder-val="{{ false }}">
+                  <div data-line-box="1" style="position:relative;margin:4px -12px;padding:10px 12px 8px;border-radius:14px;background:oklch(97.6% 0.025 95);border:1px solid oklch(90% 0.025 95);">
+                    <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="Delete line" onMouseDown="{{ keep }}" onClick="{{ ln.onDelete }}" title="Delete line" style="position:absolute;top:4px;right:4px;width:36px;height:36px;border-radius:999px;display:flex;align-items:center;justify-content:center;cursor:pointer;" style-hover="background:oklch(93.5% 0.025 95);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.035 300)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"></path></svg></span>
+                    <div style="display:flex;gap:12px;padding-right:34px;">
+                      <sc-if value="{{ ln.isNum }}" hint-placeholder-val="{{ false }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:22px;padding-top:2px;color:oklch(55% 0.035 300);flex-shrink:0;width:20px;font-variant-numeric:tabular-nums;">{{ ln.num }}</span></sc-if>
+                    <sc-if value="{{ ln.isBullet }}" hint-placeholder-val="{{ false }}"><span style="flex-shrink:0;width:20px;height:22px;margin-top:2px;display:flex;align-items:center;justify-content:center;"><span style="width:6px;height:6px;border-radius:50%;background:oklch(22% 0.04 300);"></span></span></sc-if>
+                      <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
+                        <sc-if value="{{ ln.isText }}" hint-placeholder-val="{{ false }}">
+                          <div contentEditable="true" ref="{{ ln.ceRef }}" onInput="{{ ln.onCe }}" onKeyDown="{{ ln.onKey }}" onPaste="{{ cePaste }}" data-ph="{{ ln.textPlaceholder }}" style="width:100%;min-height:27px;outline:none;font-family:Inter,sans-serif;font-size:15px;font-weight:{{ ln.paraWeight }};line-height:1.55;color:oklch(14.8% 0.035 300);padding:2px 0;white-space:pre-wrap;overflow-wrap:anywhere;cursor:text;"></div>
+                        </sc-if>
+                        <sc-if value="{{ ln.isBoldLine }}" hint-placeholder-val="{{ false }}">
+                          <textarea ref="{{ ln.ref }}" value="{{ ln.text }}" onChange="{{ ln.onText }}" onKeyDown="{{ ln.onKey }}" placeholder="Bold line" rows="1" style="width:100%;field-sizing:content;resize:none;overflow-wrap:anywhere;white-space:pre-wrap;overflow:hidden;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:16.5px;font-weight:700;letter-spacing:-0.015em;line-height:1.35;color:oklch(14.8% 0.035 300);padding:2px 0;"></textarea>
+                        </sc-if>
+                        <sc-if value="{{ ln.isList }}" hint-placeholder-val="{{ true }}">
+                          <div contentEditable="true" ref="{{ ln.ceRef }}" onInput="{{ ln.onCe }}" onKeyDown="{{ ln.onKey }}" onPaste="{{ cePaste }}" data-ph="{{ ln.placeholder }}" style="width:100%;min-height:27px;outline:none;font-family:Inter,sans-serif;font-size:15px;font-weight:{{ ln.headWeight }};line-height:1.55;color:oklch(14.8% 0.035 300);padding:2px 0;white-space:pre-wrap;overflow-wrap:anywhere;cursor:text;"></div>
+                        </sc-if>
+                        <textarea rows="1" value="{{ ln.subVal }}" onChange="{{ ln.onSub }}" onKeyDown="{{ ln.onSubKey }}" placeholder="Add a short reason or useful context (optional)" aria-label="Item subheading" style="width:100%;field-sizing:content;resize:none;border:none;outline:none;background:transparent;margin-top:4px;padding:0;font-family:Inter,sans-serif;font-size:14px;line-height:1.45;color:oklch(38% 0.035 300);"></textarea>
+                      </div>
+                    </div>
+                    <div style="padding-left:{{ ln.indent }};">
+                      <sc-if value="{{ ln.hasLink }}" hint-placeholder-val="{{ false }}">
+                        <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onMouseDown="{{ keep }}" onClick="{{ ln.onRenameLink }}" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;min-height:26px;margin-top:6px;padding:0 10px;border-radius:999px;background:oklch(95.5% 0.025 255);font-size:12.5px;font-weight:600;color:oklch(42% 0.17 255);"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(42% 0.17 255)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg>{{ ln.linkLabel }}</span>
+                      </sc-if><sc-if value="{{ ln.hasTags }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;"><sc-for list="{{ ln.tagChips }}" as="tg" hint-placeholder-count="2"><span style="height:24px;padding:0 9px;border-radius:999px;background:{{ tg.bg }};color:{{ tg.fg }};border:1.5px solid oklch(22% 0.04 300);font-size:11.5px;font-weight:800;display:inline-flex;align-items:center;">{{ tg.label }}</span></sc-for></div></sc-if>
+                      <div style="display:flex;align-items:center;gap:8px;margin-top:6px;min-height:34px;">
+                        <span style="flex:1;"></span>
+                        <sc-if value="{{ ln.showCount }}" hint-placeholder-val="{{ false }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ ln.countColor }};font-variant-numeric:tabular-nums;">{{ ln.charCount }}</span></sc-if>
+                        <sc-if value="{{ ln.tbHidden }}" hint-placeholder-val="{{ false }}"><span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onMouseDown="{{ keep }}" onClick="{{ showTbAgain }}" style="height:34px;padding:0 4px;display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:oklch(41.5% 0.035 300);cursor:pointer;margin-right:auto;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.035 300)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 14.5l6-6 6 6"></path></svg>Formatting</span></sc-if>
+                        <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onMouseDown="{{ keep }}" onClick="{{ ln.onDone }}" style="height:34px;padding:0 4px;display:flex;align-items:center;font-size:13.5px;font-weight:700;color:oklch(55% 0.22 350);cursor:pointer;">Done</span>
+                      </div>
+                      <sc-if value="{{ ln.showTb }}" hint-placeholder-val="{{ false }}">
+                      <div onMouseDown="{{ keep }}" style="margin:8px 0 0 {{ ln.tbShift }};border-radius:14px;background:oklch(99.5% 0.01 95);border:1px solid oklch(90% 0.025 95);box-shadow:0 4px 14px oklch(20% 0.01 80 / 0.08);display:flex;align-items:stretch;overflow:hidden;">
+                        <div style="flex:1;min-width:0;display:flex;gap:1px;padding:4px 3px;overflow-x:auto;scrollbar-width:none;">
+                          <div role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onMouseDown="{{ keep }}" onClick="{{ pickSection }}" style="flex:1 1 0;min-width:46px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mSecFg }};background:{{ mSecBg }};box-shadow:{{ mSecRing }};opacity:{{ mSecOp }};"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><rect x="1" y="2" width="3" height="12" rx="1.5" fill="oklch(55% 0.22 350)"></rect><path d="M8 5h13M8 11h9" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"></path></svg><span style="font-size:9.5px;font-weight:600;white-space:nowrap;letter-spacing:-0.01em;">Section</span></div>
+                          <div role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onMouseDown="{{ keep }}" onClick="{{ pickNum }}" style="flex:1 1 0;min-width:46px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mNumFg }};background:{{ mNumBg }};box-shadow:{{ mNumRing }};opacity:{{ mNumOp }};"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><text x="1" y="7" fontSize="7" fontWeight="700" fill="currentColor" fontFamily="IBM Plex Mono, monospace">1</text><text x="1" y="15" fontSize="7" fontWeight="700" fill="currentColor" fontFamily="IBM Plex Mono, monospace">2</text><path d="M8 4.5h13M8 12.5h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:9.5px;font-weight:600;white-space:nowrap;letter-spacing:-0.01em;">Numbered</span></div>
+                          <div role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onMouseDown="{{ keep }}" onClick="{{ pickBullet }}" style="flex:1 1 0;min-width:46px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mBulFg }};background:{{ mBulBg }};box-shadow:{{ mBulRing }};opacity:{{ mBulOp }};"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><circle cx="3" cy="4.5" r="2" fill="oklch(55% 0.22 350)"></circle><circle cx="3" cy="12.5" r="2" fill="oklch(55% 0.22 350)"></circle><path d="M8 4.5h13M8 12.5h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path></svg><span style="font-size:9.5px;font-weight:600;white-space:nowrap;letter-spacing:-0.01em;">Bulleted</span></div>
+                          <span style="flex-shrink:0;width:1px;margin:10px 1px;background:oklch(91% 0.025 95);"></span>
+                          <div role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onMouseDown="{{ keep }}" onClick="{{ toolLink }}" style="flex:1 1 0;min-width:46px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:{{ mLinkFg }};background:{{ mLinkBg }};box-shadow:{{ mLinkRing }};opacity:{{ mLinkOp }};"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg><span style="font-size:9.5px;font-weight:600;white-space:nowrap;letter-spacing:-0.01em;">Link</span></div>
+                          <div role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onMouseDown="{{ keep }}" onClick="{{ toolTags }}" aria-expanded="{{ showTagTray }}" aria-haspopup="true" style="flex:1 1 0;min-width:56px;height:50px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:oklch(48% 0.2 350);background:{{ mTagsBg }};box-shadow:{{ mTagsRing }};"><span style="font-size:15px;line-height:16px;">🏷️</span><span style="font-size:9.5px;font-weight:700;white-space:nowrap;letter-spacing:-0.01em;display:flex;align-items:center;gap:2px;">{{ mTagsLabel }}<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" style="transform:rotate({{ mTagsRot }});transition:transform 160ms;"><path d="M6 9.5l6 6 6-6"></path></svg></span></div>
+                          </div>
+                        <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="Hide toolbar" onMouseDown="{{ keep }}" onClick="{{ hideTb }}" title="Hide toolbar" style="flex-shrink:0;width:30px;display:flex;align-items:center;justify-content:center;border-left:1px solid oklch(91% 0.025 95);cursor:pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.035 300)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9.5l6 6 6-6"></path></svg></span>
+                      </div>
+                      <sc-if value="{{ showTagTray }}" hint-placeholder-val="{{ false }}">
+                      <div onMouseDown="{{ keep }}" role="menu" aria-label="Tags" style="position:relative;margin:6px 0 0 {{ ln.tbShift }};border-radius:16px;background:oklch(99.5% 0.01 95);border:2px solid oklch(22% 0.04 300);box-shadow:4px 4px 0 oklch(22% 0.04 300);padding:10px 12px 12px;max-height:340px;overflow-y:auto;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                          <div style="display:flex;flex-wrap:wrap;gap:4px;min-height:24px;align-items:center;">
+                            <sc-for list="{{ tray.preview }}" as="t" hint-placeholder-count="2"><span class="cfPop" style="height:24px;padding:0 9px;border-radius:999px;background:{{ t.bg }};color:{{ t.fg }};border:1.5px solid oklch(22% 0.04 300);font-size:11.5px;font-weight:800;display:inline-flex;align-items:center;">{{ t.label }}</span></sc-for>
+                            <sc-if value="{{ tray.none }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:oklch(50% 0.035 300);">Pick up to 3 tags</span></sc-if>
+                          </div>
+                          <span style="flex-shrink:0;font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;background:{{ tray.countBg }};color:oklch(22% 0.04 300);">{{ tray.countLabel }}</span>
+                        </div>
+                        <sc-for list="{{ tray.cats }}" as="c" hint-placeholder-count="5">
+                          <div style="margin-top:10px;">
+                            <div style="font-size:10.5px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:oklch(38% 0.035 300);margin-bottom:5px;">{{ c.label }} <span style="text-transform:none;letter-spacing:0;font-weight:600;color:oklch(50% 0.035 300);">{{ c.hint }}</span></div>
+                            <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                              <sc-for list="{{ c.tags }}" as="t" hint-placeholder-count="4">
+                                <button type="button" role="menuitemcheckbox" aria-checked="{{ t.on }}" onMouseDown="{{ keep }}" onClick="{{ t.toggle }}" style="height:30px;padding:0 10px;border-radius:999px;cursor:pointer;border:2px solid {{ t.ring }};background:{{ t.bg }};color:{{ t.fg }};font-family:Inter,sans-serif;font-size:12px;font-weight:800;opacity:{{ t.op }};">{{ t.label }}</button>
+                              </sc-for>
+                            </div>
+                          </div>
+                        </sc-for>
+                        <div style="margin-top:12px;">
+                          <div style="font-size:10.5px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:oklch(38% 0.035 300);margin-bottom:5px;">Your own <span style="text-transform:none;letter-spacing:0;font-weight:600;">· up to 20 characters</span></div>
+                          <div style="display:flex;gap:6px;align-items:center;">
+                            <input value="{{ tray.custom }}" onChange="{{ tray.onCustom }}" onKeyDown="{{ tray.onCustomKey }}" placeholder="e.g. Outdoor seating" aria-label="Custom tag" style="flex:1;min-width:0;height:34px;border-radius:999px;border:2px solid {{ tray.customRing }};padding:0 12px;font-family:Inter,sans-serif;font-size:13px;outline:none;background:oklch(100% 0 0);" />
+                            <button type="button" onMouseDown="{{ keep }}" onClick="{{ tray.addCustom }}" style="height:34px;padding:0 12px;border-radius:999px;border:2px solid oklch(22% 0.04 300);background:oklch(100% 0 0);font-size:12.5px;font-weight:800;color:oklch(22% 0.04 300);opacity:{{ tray.addOp }};">Add</button>
+                          </div>
+                          <sc-if value="{{ tray.customMsg }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px;font-weight:700;color:{{ tray.customFg }};margin:5px 4px 0;">{{ tray.customMsg }}</div></sc-if>
+                        </div>
+                        <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+                          <button type="button" onMouseDown="{{ keep }}" onClick="{{ closeTagTray }}" style="height:34px;padding:0 16px;border-radius:999px;border:none;cursor:pointer;background:oklch(22% 0.04 300);color:oklch(98% 0.02 95);font-family:Inter,sans-serif;font-size:13px;font-weight:800;">Done</button>
+                        </div>
+                      </div>
+                      </sc-if>
+                    </sc-if>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+        <sc-if value="{{ showAddItem }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ addItem }}" role="button" aria-disabled="{{ addItemFull }}" style="display:flex;align-items:center;gap:10px;min-height:44px;margin-top:4px;cursor:pointer;opacity:{{ addItemOp }};">
+            <span style="width:28px;height:28px;border-radius:50%;border:1.5px solid oklch(86% 0.025 95);display:flex;align-items:center;justify-content:center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(55% 0.22 350)" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14"></path></svg></span>
+            <span style="font-size:14px;font-weight:600;color:oklch(41.5% 0.035 300);">{{ addItemLabel }}</span>
+          </div>
+        </sc-if>
+      </div>
+      </div>
+      </sc-if>
+    </div>
+    <sc-if value="{{ showBuildFooter }}" hint-placeholder-val="{{ true }}">
+    <sc-if value="{{ isEditing }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:12px 20px 30px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;border-top:1px solid oklch(91.8% 0.025 95);background:oklch(99.5% 0.01 95);">
+        <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ saveEdit }}" style="height:48px;border-radius:999px;background:oklch(22% 0.04 300);color:oklch(99.5% 0.01 95);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;">Save</span>
+        <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ openShare }}" style="height:44px;border-radius:999px;border:2px solid oklch(22% 0.04 300);background:{{ shareBg }};color:{{ shareColor }};display:flex;align-items:center;justify-content:center;gap:7px;font-size:14px;font-weight:600;cursor:{{ shareCursor }};"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5"></path><path d="M20 4v4.5h-4.5"></path><path d="M20 12a8 8 0 0 1-13.7 5.7L4 15.5"></path><path d="M4 20v-4.5h4.5"></path></svg>Save and share update</span>
+        <div style="font-size:11.5px;color:oklch(45.2% 0.035 300);text-align:center;line-height:1.4;text-wrap:pretty;overflow-wrap:anywhere;padding:0 10px;">{{ shareHint }}</div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ notEditing }}" hint-placeholder-val="{{ true }}">
+    <div style="padding:10px 20px 34px;display:flex;align-items:center;gap:10px;flex-shrink:0;border-top:1px solid oklch(91.8% 0.025 95);background:oklch(99.5% 0.01 95);">
+      <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ backToDesc }}" style="height:48px;padding:0 6px;display:flex;align-items:center;gap:2px;font-size:14px;font-weight:600;color:oklch(36% 0.035 300);cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.035 300)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>Back</span>
+      <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ goReview }}" style="flex:1;height:48px;border-radius:999px;background:oklch(22% 0.04 300);color:oklch(99.5% 0.01 95);display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:700;cursor:pointer;opacity:{{ reviewOp }};">Finalize</span>
+    </div>
+    </sc-if>
+    </sc-if>
+  </sc-if>
+
+  <sc-if value="{{ isArrange }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;overflow-y:auto;padding:10px 20px 24px;">
+      <div style="font-family:Outfit,Inter,sans-serif;font-size:22px;font-weight:800;color:oklch(19.4% 0.035 300);letter-spacing:-0.3px;margin:16px 0 16px;">Finalize</div>
+      <div role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ showPreview }}" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:16px;background:oklch(96.5% 0.02 60);border:1px solid oklch(90% 0.04 60);cursor:pointer;margin-bottom:14px;">
+        <span style="width:36px;height:36px;border-radius:50%;background:oklch(22% 0.04 300);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(99.5% 0.01 95)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"></path><circle cx="12" cy="12" r="3"></circle></svg></span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:15px;font-weight:700;color:oklch(19.4% 0.035 300);">Preview your Stack</div>
+          <div style="font-size:12.5px;color:oklch(41.5% 0.035 300);margin-top:1px;">See exactly what visitors will see</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.035 300)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"></path></svg>
+      </div>
+
+      <div style="border:2px solid oklch(22% 0.04 300);border-radius:18px;margin-bottom:14px;overflow:hidden;box-shadow:3px 3px 0 oklch(22% 0.04 300);">
+        <div style="height:74px;background:{{ th.bg }};display:flex;align-items:center;gap:12px;padding:0 14px;border-bottom:2px solid oklch(22% 0.04 300);">
+          <span class="cfPop" style="font-size:34px;line-height:1;" aria-hidden="true">{{ th.sig }}</span>
+          <div style="min-width:0;"><div style="font-family:Outfit,Inter,sans-serif;font-size:17px;font-weight:800;color:oklch(18% 0.05 300);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ th.title }}</div><div style="font-size:12px;font-weight:600;color:oklch(30% 0.04 300);">This is how your card looks in feeds</div></div>
+        </div>
+        <div style="padding:12px 14px 14px;">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(41.5% 0.035 300);margin-bottom:8px;">Theme · emoji</div>
+          <div style="display:grid;grid-template-columns:repeat(6, minmax(0, 1fr));gap:6px;">
+            <sc-for list="{{ th.emojis }}" as="e" hint-placeholder-count="12">
+              <button type="button" onClick="{{ e.pick }}" aria-pressed="{{ e.on }}" aria-label="{{ e.aria }}" style="height:40px;border-radius:11px;font-size:20px;cursor:pointer;background:{{ e.bg }};border:2px solid {{ e.ring }};padding:0;">{{ e.e }}</button>
+            </sc-for>
+          </div>
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(41.5% 0.035 300);margin:12px 0 8px;">Theme · color</div>
+          <div style="display:flex;gap:10px;">
+            <sc-for list="{{ th.colors }}" as="k" hint-placeholder-count="6">
+              <button type="button" onClick="{{ k.pick }}" aria-pressed="{{ k.on }}" aria-label="{{ k.aria }}" style="width:36px;height:36px;border-radius:50%;cursor:pointer;background:{{ k.c }};border:{{ k.ring }};padding:0;"></button>
+            </sc-for>
+          </div>
+          <div style="font-size:12px;color:oklch(45% 0.035 300);margin-top:10px;">{{ th.hint }}</div>
+        </div>
+      </div>
+      <div style="border:1px solid oklch(91.8% 0.025 95);border-radius:16px;padding:16px 16px 8px;">
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(41.5% 0.035 300);margin-bottom:6px;">Privacy</div>
+        <sc-for list="{{ visOptions }}" as="v" hint-placeholder-count="3">
+          <div role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ v.onPick }}" style="display:flex;align-items:center;gap:12px;min-height:52px;cursor:pointer;border-top:{{ v.divider }};">
+            <span style="width:20px;height:20px;border-radius:50%;border:2px solid {{ v.ring }};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="width:10px;height:10px;border-radius:50%;background:{{ v.dot }};"></span></span>
+            <div style="flex:1;min-width:0;padding:8px 0;">
+              <div style="font-size:14.5px;font-weight:{{ v.weight }};color:oklch(19.4% 0.035 300);">{{ v.label }}</div>
+              <div style="font-size:12.5px;color:oklch(41.5% 0.035 300);margin-top:1px;">{{ v.desc }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="border:1px solid oklch(91.8% 0.025 95);border-radius:16px;padding:16px;margin-top:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <div style="font-size:15px;font-weight:700;color:oklch(19.4% 0.035 300);">Is this Stack about a place?</div>
+          <div role="radiogroup" aria-label="Is this Stack about a place?" style="display:flex;padding:3px;border-radius:999px;background:oklch(95% 0.025 95);border:2px solid oklch(22% 0.04 300);flex-shrink:0;">
+            <button type="button" role="radio" aria-checked="{{ plc.yes }}" onClick="{{ plc.pickYes }}" style="height:30px;padding:0 14px;border-radius:999px;border:none;cursor:pointer;font-family:Inter,sans-serif;font-size:12.5px;font-weight:700;background:{{ plc.yesBg }};color:{{ plc.yesFg }};">Yes</button>
+            <button type="button" role="radio" aria-checked="{{ plc.no }}" onClick="{{ plc.pickNo }}" style="height:30px;padding:0 14px;border-radius:999px;border:none;cursor:pointer;font-family:Inter,sans-serif;font-size:12.5px;font-weight:700;background:{{ plc.noBg }};color:{{ plc.noFg }};">No</button>
+          </div>
+        </div>
+        <div style="font-size:12.5px;color:oklch(41.5% 0.035 300);line-height:1.45;margin-top:6px;">{{ plc.hint }}</div>
+        <sc-if value="{{ plc.yes }}" hint-placeholder-val="{{ true }}">
+        <div style="height:12px;"></div>
+        <div style="display:flex;align-items:center;gap:10px;height:44px;padding:0 14px;border:2px solid oklch(22% 0.04 300);border-radius:999px;background:oklch(99.5% 0.01 95);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(55% 0.22 350)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex-shrink:0;"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"></path><circle cx="12" cy="10" r="2.4"></circle></svg>
+          <input value="{{ location }}" onChange="{{ onLocation }}" aria-label="City" aria-required="true" placeholder="City (required), e.g. Mexico City" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:Inter,sans-serif;font-size:14px;color:oklch(19.4% 0.035 300);" />
+        </div>
+        <sc-if value="{{ plc.missing }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px;font-weight:600;color:oklch(50% 0.18 30);margin-top:8px;">Add a city to publish.</div></sc-if>
+        </sc-if>
+      </div>
+      <sc-if value="{{ cantPublish }}" hint-placeholder-val="{{ false }}">
+        <div role="alert" style="margin-top:14px;padding:12px 14px;border-radius:16px;border:2px solid oklch(50% 0.2 25);background:oklch(97% 0.03 25);">
+          <div style="font-size:13px;font-weight:800;color:oklch(42% 0.18 25);margin-bottom:6px;">{{ cantPublishMsg }}</div>
+          <sc-for list="{{ issues }}" as="is" hint-placeholder-count="2"><div style="display:flex;gap:6px;font-size:12.5px;line-height:1.45;color:oklch(22% 0.04 300);padding:2px 0;"><span aria-hidden="true">•</span><span>{{ is.t }}</span></div></sc-for>
+        </div>
+      </sc-if>
+    </div>
+    <div style="padding:10px 20px 34px;display:flex;align-items:center;gap:10px;flex-shrink:0;border-top:1px solid oklch(91.8% 0.025 95);background:oklch(99.5% 0.01 95);">
+      <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ backToBuild }}" style="height:48px;padding:0 6px;display:flex;align-items:center;gap:2px;font-size:14px;font-weight:600;color:oklch(36% 0.035 300);cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.035 300)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>Back</span>
+      <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ publish }}" style="flex:1;height:48px;border-radius:999px;background:oklch(22% 0.04 300);color:oklch(99.5% 0.01 95);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;opacity:{{ publishOp }};">Publish</span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isPreview }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;background:{{ th.bg }};position:relative;overflow:hidden;">
+    <div class="pmWall" style="position:absolute;inset:0;opacity:0.14;font-size:28px;line-height:52px;letter-spacing:26px;word-break:break-all;pointer-events:none;" aria-hidden="true">{{ th.wallLong }}</div>
+    <div style="padding:62px 12px 0;flex-shrink:0;position:relative;z-index:2;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:40px;margin-bottom:10px;">
+        <button type="button" onClick="{{ showArrange }}" style="display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 14px 0 10px;border-radius:999px;background:oklch(99.5% 0.01 95);border:2px solid oklch(22% 0.04 300);box-shadow:3px 3px 0 oklch(22% 0.04 300);font-family:Inter,sans-serif;font-size:13px;font-weight:800;color:oklch(22% 0.04 300);cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(22% 0.04 300)" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>Edit</button>
+        <span style="height:30px;padding:0 12px;border-radius:999px;background:oklch(22% 0.04 300);color:oklch(98% 0.02 95);font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:6px;">👀 Preview · {{ visLabel }}</span>
+      </div>
+    </div>
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;padding:0 12px 14px;position:relative;z-index:1;">
+      <div style="flex:1;min-height:0;display:flex;flex-direction:column;background:oklch(99.5% 0.01 95);border:2px solid oklch(22% 0.04 300);border-radius:24px;overflow:hidden;box-shadow:5px 5px 0 oklch(22% 0.04 300);">
+        <div style="flex-shrink:0;height:52px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:2px solid oklch(22% 0.04 300);background:{{ th.bg }};position:relative;overflow:hidden;">
+          <span class="pmWall" style="position:absolute;inset:-10px;opacity:0.18;font-size:22px;line-height:38px;letter-spacing:18px;word-break:break-all;pointer-events:none;" aria-hidden="true">{{ th.wallShort }}</span>
+          <span style="position:relative;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 11px;border-radius:999px;background:oklch(100% 0 0 / 0.88);border:2px solid oklch(22% 0.04 300);font-size:12px;font-weight:800;color:oklch(22% 0.04 300);"><span aria-hidden="true">{{ th.sig }}</span>{{ th.picksLabel }}</span>
+          <span style="position:relative;font-size:12px;font-weight:700;color:oklch(30% 0.04 300);white-space:nowrap;padding:3px 8px;border-radius:999px;background:oklch(100% 0 0 / 0.7);">{{ updatedLabel }}</span>
+        </div>
+        <div style="flex:1;min-height:0;overflow-y:auto;padding:18px 18px 22px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+            <div style="width:32px;height:32px;border-radius:50%;background:oklch(22% 0.04 300);color:oklch(99.5% 0.01 95);font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">Y</div>
+            <span style="font-weight:600;font-size:14px;color:oklch(19.4% 0.035 300);">You</span>
+            <span style="font-size:13px;color:oklch(47.1% 0.035 300);">@you</span>
+            <span style="flex:1;"></span>
+            <span style="font-size:12px;font-weight:700;padding:7px 15px;border-radius:999px;background:oklch(55% 0.22 350);color:oklch(99% 0 0);opacity:0.55;" aria-hidden="true">Follow</span>
+          </div>
+          <div style="font-family:Outfit,Inter,sans-serif;font-size:24px;font-weight:800;color:oklch(14.8% 0.035 300);line-height:1.1;letter-spacing:-0.5px;margin-bottom:8px;text-wrap:balance;">{{ reviewTitle }}</div>
+          <sc-if value="{{ description }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:13.5px;color:oklch(39.7% 0.035 300);line-height:1.5;text-wrap:pretty;overflow-wrap:anywhere;">{{ description }}</div>
+          </sc-if>
+          <div style="height:22px;"></div>
+          <sc-for list="{{ pvSections }}" as="sec" hint-placeholder-count="1">
+            <div>
+              <sc-if value="{{ sec.headed }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:baseline;gap:10px;padding:{{ sec.headPad }};border-bottom:1.5px solid oklch(19.4% 0.035 300);">
+                  <span style="width:3px;height:15px;border-radius:2px;background:oklch(22% 0.04 300);align-self:center;flex-shrink:0;"></span>
+                  <span style="font-family:Outfit,Inter,sans-serif;flex:1;min-width:0;font-size:18px;font-weight:800;letter-spacing:-0.015em;line-height:1.25;color:oklch(14.8% 0.035 300);text-wrap:balance;">{{ sec.label }}</span>
+                </div>
+              </sc-if>
+              <sc-for list="{{ sec.lines }}" as="ln" hint-placeholder-count="3">
+                <div style="display:flex;gap:12px;padding:13px 0 14px;border-bottom:{{ ln.divider }};">
+                  <sc-if value="{{ ln.isNum }}" hint-placeholder-val="{{ false }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:22px;padding-top:0px;color:oklch(55% 0.035 300);flex-shrink:0;width:20px;font-variant-numeric:tabular-nums;">{{ ln.num }}</span></sc-if>
+                    <sc-if value="{{ ln.isBullet }}" hint-placeholder-val="{{ false }}"><span style="flex-shrink:0;width:20px;height:22px;margin-top:0px;display:flex;align-items:center;justify-content:center;"><span style="width:6px;height:6px;border-radius:50%;background:oklch(22% 0.04 300);"></span></span></sc-if>
+                  <div style="display:flex;flex-direction:column;gap:3px;min-width:0;flex:1;">
+                    <sc-if value="{{ ln.isText }}" hint-placeholder-val="{{ false }}"><div style="font-size:15px;line-height:1.55;color:oklch(14.8% 0.035 300);text-wrap:pretty;overflow-wrap:anywhere;white-space:pre-wrap;"><sc-for list="{{ ln.parts }}" as="pt" hint-placeholder-count="1"><a href="{{ pt.href }}" target="_blank" style="color:{{ pt.color }};text-decoration:{{ pt.deco }};text-underline-offset:2px;font-weight:{{ pt.w }};">{{ pt.t }}</a></sc-for></div></sc-if>
+                    <sc-if value="{{ ln.isBoldLine }}" hint-placeholder-val="{{ false }}"><div style="font-size:16.5px;font-weight:700;letter-spacing:-0.015em;line-height:1.35;color:oklch(14.8% 0.035 300);text-wrap:pretty;overflow-wrap:anywhere;"><sc-for list="{{ ln.parts }}" as="pt" hint-placeholder-count="1"><a href="{{ pt.href }}" target="_blank" style="color:{{ pt.color }};text-decoration:{{ pt.deco }};text-underline-offset:2px;font-weight:{{ pt.w }};">{{ pt.t }}</a></sc-for></div></sc-if>
+                    <sc-if value="{{ ln.isList }}" hint-placeholder-val="{{ true }}"><div style="font-size:15px;font-weight:{{ ln.headWeight }};color:oklch(14.8% 0.035 300);line-height:1.55;text-wrap:pretty;overflow-wrap:anywhere;white-space:pre-wrap;"><sc-for list="{{ ln.parts }}" as="pt" hint-placeholder-count="1"><a href="{{ pt.href }}" target="_blank" style="color:{{ pt.color }};text-decoration:{{ pt.deco }};text-underline-offset:2px;font-weight:{{ pt.w }};">{{ pt.t }}</a></sc-for></div></sc-if>
+                    <sc-if value="{{ ln.hasSub }}" hint-placeholder-val="{{ false }}">
+                      <div style="font-size:14px;color:oklch(38% 0.035 300);line-height:1.5;text-wrap:pretty;overflow-wrap:anywhere;">{{ ln.subDisp }}</div>
+                    </sc-if>
+                    <sc-if value="{{ ln.hasTextLinks }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:{{ ln.tlTop }};">
+                        <sc-for list="{{ ln.textLinks }}" as="tl" hint-placeholder-count="1"><a href="{{ tl.href }}" target="_blank" style="text-decoration:none;display:flex;"><span style="display:inline-flex;align-items:center;gap:5px;min-height:26px;padding:0 10px;border-radius:999px;background:oklch(95.5% 0.025 255);font-size:12.5px;font-weight:600;color:oklch(42% 0.17 255);"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(42% 0.17 255)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg>{{ tl.label }}</span></a></sc-for>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ ln.hasLink }}" hint-placeholder-val="{{ false }}">
+                      <a href="{{ ln.link }}" target="_blank" style="align-self:flex-start;text-decoration:none;display:flex;"><span style="align-self:flex-start;display:inline-flex;align-items:center;gap:5px;min-height:26px;margin-top:5px;padding:0 10px;border-radius:999px;background:oklch(95.5% 0.025 255);font-size:12.5px;font-weight:600;color:oklch(42% 0.17 255);"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(42% 0.17 255)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg>{{ ln.linkLabelPv }}</span></a>
+                    </sc-if><sc-if value="{{ ln.hasTags }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center;"><span style="font-size:10.5px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:oklch(45% 0.04 300);margin-right:2px;">You say</span><sc-for list="{{ ln.tagChips }}" as="tg" hint-placeholder-count="2"><span style="height:28px;padding:0 10px;border-radius:999px;background:{{ tg.bg }};color:{{ tg.fg }};border:2px solid oklch(22% 0.04 300);font-size:12px;font-weight:800;display:inline-flex;align-items:center;">{{ tg.label }}</span></sc-for></div></sc-if>
+                    <div style="display:flex;gap:8px;margin-top:9px;" aria-hidden="true"><span style="height:32px;padding:0 12px;border-radius:999px;border:2px solid oklch(22% 0.04 300);font-size:12px;font-weight:800;color:oklch(22% 0.04 300);display:inline-flex;align-items:center;opacity:0.6;">📌 Pin</span><span style="height:32px;padding:0 12px;border-radius:999px;border:2px solid oklch(22% 0.04 300);font-size:12px;font-weight:800;color:oklch(22% 0.04 300);display:inline-flex;align-items:center;opacity:0.6;">📨 Send</span></div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+        <div style="flex-shrink:0;height:52px;padding:0 10px 0 8px;display:flex;align-items:center;gap:2px;border-top:1px solid oklch(91.2% 0.025 95);">
+          <span style="width:40px;height:44px;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;color:oklch(41.5% 0.035 300);">♡</span>
+          <span style="width:40px;height:44px;display:flex;align-items:center;justify-content:center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.035 300)" strokeWidth="2" strokeLinejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg></span>
+          <span style="width:40px;height:44px;display:flex;align-items:center;justify-content:center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="oklch(41.5% 0.035 300)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 2l4 4-4 4"></path><path d="M3 11V9a3 3 0 0 1 3-3h15"></path><path d="M7 22l-4-4 4-4"></path><path d="M21 13v2a3 3 0 0 1-3 3H3"></path></svg></span>
+          <span style="flex:1;"></span>
+          <span style="height:44px;padding:0 8px;display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:oklch(41.5% 0.035 300);">Share<svg width="16" height="16" viewBox="0 0 24 24" fill="oklch(41.5% 0.035 300)" stroke="oklch(41.5% 0.035 300)" strokeWidth="1" strokeLinejoin="round"><path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z"></path></svg></span>
+        </div>
+      </div>
+    </div>
+    </div>
+    <div style="padding:10px 20px 34px;display:flex;align-items:center;gap:10px;flex-shrink:0;border-top:1px solid oklch(91.8% 0.025 95);background:oklch(99.5% 0.01 95);">
+      <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ showArrange }}" style="height:48px;padding:0 6px;display:flex;align-items:center;gap:2px;font-size:14px;font-weight:600;color:oklch(36% 0.035 300);cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(36% 0.035 300)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>Back</span>
+      <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ publish }}" style="flex:1;height:48px;border-radius:999px;background:oklch(22% 0.04 300);color:oklch(99.5% 0.01 95);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;opacity:{{ publishOp }};">Publish</span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isPublished }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 32px;text-align:center;">
+      <div style="width:56px;height:56px;border-radius:50%;background:oklch(92.9% 0.05 350);display:flex;align-items:center;justify-content:center;margin-bottom:18px;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="oklch(55% 0.22 350)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></div>
+      <div style="font-family:Outfit,Inter,sans-serif;font-size:22px;font-weight:800;color:oklch(19.4% 0.035 300);letter-spacing:-0.3px;">Your Stack is live</div>
+      <div style="font-size:14px;color:oklch(41.5% 0.035 300);margin-top:6px;line-height:1.45;text-wrap:balance;">{{ reviewTitle }} · {{ countLabel }}</div>
+      <div style="display:flex;flex-direction:column;gap:10px;width:100%;margin-top:28px;">
+        <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ copyLink }}" style="height:48px;border-radius:999px;background:oklch(22% 0.04 300);color:oklch(99.5% 0.01 95);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;">Share your Stack</span>
+        <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ exitPublished }}" style="height:48px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:oklch(36% 0.035 300);cursor:pointer;">Exit</span>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isDrafts }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:58px 20px 0;flex-shrink:0;border-bottom:2px solid oklch(22% 0.04 300);">
+      <div style="display:flex;align-items:center;justify-content:space-between;height:40px;">
+        <span style="font-family:Outfit,Inter,sans-serif;font-size:19px;font-weight:800;color:oklch(19.4% 0.035 300);">Profile</span>
+        <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ newStack }}" style="font-size:13px;font-weight:700;padding:9px 16px;border-radius:999px;background:oklch(22% 0.04 300);color:oklch(99.5% 0.01 95);cursor:pointer;">+ New Stack</span>
+      </div>
+      <div style="display:flex;gap:22px;margin-top:10px;">
+        <span style="font-size:13.5px;font-weight:600;color:oklch(47.1% 0.035 300);padding:10px 0;">Stacks</span>
+        <span style="font-size:13.5px;font-weight:700;color:oklch(19.4% 0.035 300);padding:10px 0;border-bottom:2px solid oklch(19.4% 0.035 300);">Drafts</span>
+      </div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:16px 20px;">
+      <sc-if value="{{ hasDraft }}" hint-placeholder-val="{{ true }}">
+        <div role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ reopen }}" style="border-radius:16px;border:1px solid oklch(91.8% 0.025 95);background:oklch(97.6% 0.025 95);padding:16px;cursor:pointer;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span style="font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:oklch(41.5% 0.035 300);">Draft</span>
+            <span style="font-size:12px;color:oklch(47.1% 0.035 300);">· saved just now</span>
+          </div>
+          <div style="font-size:16px;font-weight:800;color:{{ draftRowColor }};line-height:1.3;">{{ reviewTitle }}</div>
+          <div style="font-size:12.5px;color:oklch(41.5% 0.035 300);margin-top:4px;">{{ countLabel }}</div>
+          <div style="font-size:13.5px;font-weight:700;color:oklch(55% 0.22 350);margin-top:12px;">Keep building ›</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ noDraft }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:13.5px;color:oklch(41.5% 0.035 300);text-align:center;padding:40px 0;">Nothing was added, so there's no draft to keep.</div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showSheet }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeSheet }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.42);display:flex;align-items:flex-end;z-index:20;">
+      <div onClick="{{ stop }}" style="width:100%;background:oklch(99.5% 0.01 95);border-radius:22px 22px 0 0;padding:12px 20px 34px;;border-top:2px solid oklch(22% 0.04 300)">
+        <div style="width:36px;height:4px;border-radius:2px;background:oklch(86.3% 0.025 95);margin:0 auto 18px;"></div>
+        <div style="font-family:Outfit,Inter,sans-serif;font-size:19px;font-weight:800;color:oklch(19.4% 0.035 300);">Name your Stack to publish</div>
+        <div style="font-size:13.5px;color:oklch(41.5% 0.035 300);line-height:1.45;margin-top:6px;">Everything else stays as it is.</div>
+        <input ref="{{ sheetRef }}" value="{{ titleDraft }}" onChange="{{ onTitleDraft }}" onKeyDown="{{ onSheetKey }}" placeholder="e.g. Tokyo ramen worth the line" style="width:100%;height:50px;margin-top:16px;border:1.5px solid oklch(55% 0.22 350);border-radius:12px;outline:none;background:oklch(99.5% 0.01 95);font-family:Inter,sans-serif;font-size:16px;font-weight:600;color:oklch(14.8% 0.035 300);padding:0 14px;" />
+        <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ confirmTitle }}" style="margin-top:14px;height:48px;border-radius:999px;background:oklch(22% 0.04 300);color:oklch(99.5% 0.01 95);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;opacity:{{ sheetOp }};">Publish</span>
+        <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ closeSheet }}" style="height:44px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:oklch(36% 0.035 300);cursor:pointer;margin-top:4px;">Not now</span>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ shareSheet }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeShare }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.42);display:flex;align-items:flex-end;z-index:20;">
+      <div onClick="{{ stop }}" style="width:100%;background:oklch(99.5% 0.01 95);border-radius:22px 22px 0 0;padding:12px 20px 34px;;border-top:2px solid oklch(22% 0.04 300)">
+        <div style="width:36px;height:4px;border-radius:2px;background:oklch(86.3% 0.025 95);margin:0 auto 18px;"></div>
+        <div style="font-family:Outfit,Inter,sans-serif;font-size:19px;font-weight:800;color:oklch(19.4% 0.035 300);">Share an update</div>
+        <div style="font-size:13.5px;color:oklch(41.5% 0.035 300);line-height:1.45;margin-top:6px;text-wrap:pretty;overflow-wrap:anywhere;">Your stack goes back into the feed with this note. After this, you can share your next update on {{ nextShareDate }}.</div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin:18px 2px 6px;">
+          <span style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(47.1% 0.035 300);">Update note</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:{{ noteCountColor }};">{{ noteCount }}</span>
+        </div>
+        <input ref="{{ noteRef }}" value="{{ noteDraft }}" onChange="{{ onNote }}" onKeyDown="{{ onNoteKey }}" maxLength="40" placeholder="What changed? (optional)" style="width:100%;height:50px;border:1.5px solid oklch(55% 0.22 350);border-radius:12px;outline:none;background:oklch(99.5% 0.01 95);font-family:Inter,sans-serif;font-size:15px;font-weight:500;color:oklch(14.8% 0.035 300);padding:0 14px;" />
+        <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ confirmShare }}" style="margin-top:14px;height:48px;border-radius:999px;background:oklch(22% 0.04 300);color:oklch(99.5% 0.01 95);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;">Share update</span>
+        <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ closeShare }}" style="height:44px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:oklch(36% 0.035 300);cursor:pointer;margin-top:4px;">Cancel</span>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ linkSheet }}" hint-placeholder-val="{{ false }}">
+    <div onMouseDown="{{ closeLinkSheet }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.22);display:flex;align-items:flex-end;z-index:25;">
+      <div onMouseDown="{{ stop }}" style="width:100%;background:oklch(99.5% 0.01 95);border-radius:20px 20px 0 0;padding:10px 20px 30px;box-shadow:0 -8px 30px rgba(0,0,0,0.12);;border-top:2px solid oklch(22% 0.04 300)">
+        <div style="width:36px;height:4px;border-radius:2px;background:oklch(86.3% 0.025 95);margin:0 auto 14px;"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <span style="font-family:Outfit,Inter,sans-serif;font-size:17px;font-weight:800;color:oklch(19.4% 0.035 300);">{{ lsTitle }}</span>
+          <sc-if value="{{ lsCanRemove }}" hint-placeholder-val="{{ false }}"><span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ lsRemove }}" style="height:36px;display:flex;align-items:center;font-size:13px;font-weight:600;color:oklch(48% 0.16 30);cursor:pointer;">Remove link</span></sc-if>
+        </div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(47.1% 0.035 300);margin:14px 2px 6px;">Link</div>
+        <input ref="{{ lsUrlRef }}" value="{{ lsUrl }}" onChange="{{ onLsUrl }}" onKeyDown="{{ onLsKey }}" readOnly="{{ lsUrlLocked }}" placeholder="Paste a link" style="width:100%;height:46px;border:1.5px solid {{ lsUrlBorder }};border-radius:12px;outline:none;background:{{ lsUrlBg }};font-family:Inter,sans-serif;font-size:15px;color:oklch(17.5% 0.035 300);padding:0 14px;" />
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:oklch(47.1% 0.035 300);margin:14px 2px 6px;">Name <span style="text-transform:none;letter-spacing:0;font-weight:500;">(optional)</span></div>
+        <input ref="{{ lsNameRef }}" value="{{ lsName }}" onChange="{{ onLsName }}" onKeyDown="{{ onLsKey }}" maxLength="40" placeholder="{{ lsNamePh }}" style="width:100%;height:46px;border:1.5px solid oklch(88% 0.025 95);border-radius:12px;outline:none;background:oklch(99.5% 0.01 95);font-family:Inter,sans-serif;font-size:15px;color:oklch(17.5% 0.035 300);padding:0 14px;" />
+        <div style="display:flex;align-items:center;gap:8px;margin-top:10px;min-height:26px;">
+          <span style="font-size:12px;color:oklch(47.1% 0.035 300);">Shows as</span>
+          <span style="display:inline-flex;align-items:center;gap:5px;min-height:26px;padding:0 10px;border-radius:999px;background:oklch(95.5% 0.025 255);font-size:12.5px;font-weight:600;color:oklch(42% 0.17 255);"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(42% 0.17 255)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg>{{ lsPreview }}</span>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ closeLinkSheet }}" style="flex:1;height:46px;border-radius:999px;border:2px solid oklch(22% 0.04 300);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:oklch(36% 0.035 300);cursor:pointer;">Cancel</span>
+          <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ lsSubmit }}" style="flex:1;height:46px;border-radius:999px;background:oklch(22% 0.04 300);color:oklch(99.5% 0.01 95);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;cursor:pointer;opacity:{{ lsOp }};">{{ lsCta }}</span>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:20px;right:20px;bottom:104px;display:flex;justify-content:center;pointer-events:none;z-index:30;">
+      <div style="display:flex;align-items:center;gap:14px;pointer-events:auto;background:oklch(19.4% 0.035 300);color:oklch(99.5% 0.01 95);font-size:13px;font-weight:500;padding:11px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.2);text-align:center;line-height:1.4;"><span>{{ toast }}</span><sc-if value="{{ toastUndo }}" hint-placeholder-val="{{ false }}"><span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onMouseDown="{{ keep }}" onClick="{{ toastAct }}" style="font-weight:700;color:oklch(80% 0.12 55);cursor:pointer;padding:4px 0;white-space:nowrap;">{{ toastActLabel }}</span></sc-if></div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:402,&quot;height&quot;:874},&quot;start&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;title&quot;,&quot;description&quot;,&quot;build-empty&quot;,&quot;build-draft&quot;,&quot;build-editing&quot;,&quot;review&quot;,&quot;preview&quot;,&quot;publish-title&quot;,&quot;drafts&quot;],&quot;default&quot;:&quot;title&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;initial&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;object&quot;},&quot;onExit&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(draft, hasContent) =&gt; void&quot;},&quot;onSave&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(draft) =&gt; void&quot;},&quot;net&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;onPublish&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(draft) =&gt; void&quot;},&quot;onBeforePublish&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(draft, proceed) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this._n = 1;
+    this.FETCH = { 'fuunji.jp': 'Fuunji | Tsukemen in Shinjuku', 'tabelog.com': 'Nakiryu (Otsuka) — Tabelog', 'afuri.com': 'AFURI — Yuzu Shio Ramen', 'tsuta.world': 'Tsuta — Japanese Soba Noodles', 'youtube.com': 'YouTube', 'nytimes.com': 'The New York Times' };
+    this.FAVBG = ['oklch(45% 0.13 30)', 'oklch(38% 0.08 250)', 'oklch(40% 0.09 150)', 'oklch(28% 0.01 80)', 'oklch(46% 0.13 60)'];
+    this.THEMES = [
+      { id: 'default', name: 'Default', bg: 'oklch(99.5% 0.01 95)', text: 'oklch(14.8% 0.035 300)', muted: 'oklch(41.5% 0.035 300)', accent: 'oklch(55% 0.22 350)', line: 'oklch(91.8% 0.025 95)', chip: 'oklch(95.5% 0.025 95)' },
+      { id: 'cream', name: 'Cream', bg: 'oklch(96.5% 0.022 85)', text: 'oklch(18% 0.01 60)', muted: 'oklch(40% 0.02 60)', accent: 'oklch(48% 0.13 50)', line: 'oklch(88.5% 0.022 80)', chip: 'oklch(93% 0.028 80)' },
+      { id: 'ink', name: 'Ink', bg: 'oklch(19% 0.035 300)', text: 'oklch(96% 0.025 95)', muted: 'oklch(74% 0.02 300)', accent: 'oklch(75% 0.14 55)', line: 'oklch(31% 0.035 300)', chip: 'oklch(25% 0.035 300)' },
+      { id: 'sage', name: 'Sage', bg: 'oklch(96.5% 0.018 150)', text: 'oklch(18% 0.012 150)', muted: 'oklch(38% 0.025 150)', accent: 'oklch(43% 0.08 155)', line: 'oklch(88.5% 0.02 150)', chip: 'oklch(92.5% 0.022 150)' },
+    ];
+    this.TAGS = ['Food & Drink', 'Travel & Places', 'Art & Design', 'Technology', 'Learning', 'Home & Living', 'Style & Shopping', 'Entertainment & Culture', 'Health & Wellness', 'Business & Money', 'Sports & Outdoors', 'Games & Hobbies'];
+    const init = props && props.initial;
+    this.state = init ? { ...this._seed('title'), step: ['title', 'description', 'build', 'review'].includes(init.step) ? init.step : 'build', mode: 'arrange', draft: this._fromApp(init), save: 'saved' } : this._seed((props && props.start) || 'title');
+  }
+  _id() { return 'x' + (this._n++); }
+  _domain(url) { return url.replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[/?#]/)[0]; }
+  _meta(url) {
+    const domain = this._domain(url);
+    const base = domain.split('.')[0];
+    const title = this.FETCH[domain] || (base.charAt(0).toUpperCase() + base.slice(1));
+    let h = 0; for (const c of domain) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+    return { link: url, domain, linkTitle: title, favLetter: title.charAt(0).toUpperCase(), favBg: this.FAVBG[h % this.FAVBG.length], fetching: false };
+  }
+  _L(text, link, sub, fmt, bold) { let f = fmt || 'num'; if (f === 'text' || f === 'bold') f = 'bullet'; const isL = true; if (false) { text = '**' + text.trim() + '**'; bold = false; } return { id: this._id(), text, sub: sub || '', fmt: f, bold: bold === true, picked: true, tags: [], ...(link ? this._meta(link) : { link: '' }) }; }
+
+  CAT = {
+    highlight: { label: 'Highlight', bg: 'oklch(66% 0.24 350)', fg: 'oklch(99% 0 0)', hint: 'what stands out' },
+    price: { label: 'Price', bg: 'oklch(92% 0.08 150)', fg: 'oklch(30% 0.1 150)', hint: 'pick one' },
+    good: { label: 'Good for', bg: 'oklch(92% 0.06 240)', fg: 'oklch(32% 0.12 250)', hint: 'who it suits' },
+    know: { label: 'Know before', bg: 'oklch(93% 0.09 90)', fg: 'oklch(34% 0.08 70)', hint: 'save them a surprise' },
+    when: { label: 'When', bg: 'oklch(92% 0.06 300)', fg: 'oklch(34% 0.12 300)', hint: 'best time' },
+  };
+  MTAGS = {
+    must: ['highlight', '⭐ Must-do'], gem: ['highlight', '💎 Hidden gem'], fresh: ['highlight', '🆕 New'],
+    free: ['price', 'Free'], p1: ['price', '$'], p2: ['price', '$$'], p3: ['price', '$$$'],
+    kids: ['good', '👶 Kid-friendly'], date: ['good', '💑 Date night'], solo: ['good', '🧍 Solo-friendly'], group: ['good', '👯 Groups'], veg: ['good', '🥗 Veg options'],
+    cash: ['know', '💵 Cash only'], book: ['know', '📅 Book ahead'], early: ['know', '⏰ Go early'], walkin: ['know', '🚶 Walk-in'], line: ['know', '⏳ Expect a line'],
+    quick: ['know', '📗 Quick read'], dense: ['know', '🧠 Dense'], audio: ['know', '🎧 Great on audio'],
+    late: ['when', '🌙 Late night'], brunch: ['when', '☀️ Brunch'], sunset: ['when', '🌅 Sunset'],
+  };
+  CAT_ORDER = ['highlight', 'price', 'good', 'know', 'when'];
+  TAG_PICKER = { highlight: ['must', 'gem', 'fresh'], price: ['free', 'p1', 'p2', 'p3'], good: ['kids', 'date', 'solo', 'group', 'veg'], know: ['cash', 'book', 'early', 'walkin', 'line', 'quick', 'dense', 'audio'], when: ['brunch', 'late', 'sunset'] };
+  THEME_COLORS = ['oklch(86% 0.13 85)', 'oklch(84% 0.12 40)', 'oklch(84% 0.09 260)', 'oklch(85% 0.1 160)', 'oklch(85% 0.1 340)', 'oklch(88% 0.12 110)'];
+  THEME_EMOJIS = ['🍸', '🍜', '☕', '📖', '✈️', '🛍️', '🖥️', '🎧', '🌮', '🌴', '🎨', '✨'];
+  _suggestSig(title) { const t = String(title || '').toLowerCase(); const R = [[/bar|drink|cocktail|wine|mezcal/, '🍸'], [/ramen|noodle|food|eat|restaurant|taco|brunch/, '🍜'], [/coffee|caf[eé]/, '☕'], [/book|read/, '📖'], [/travel|trip|city|spots|guide/, '✈️'], [/etsy|shop|gift|finds/, '🛍️'], [/desk|tech|setup/, '🖥️'], [/podcast|music|playlist/, '🎧'], [/art|design|gallery/, '🎨']]; for (const [re, e] of R) if (re.test(t)) return e; return '✨'; }
+  _suggestBg(key) { let h = 0; String(key || '').split('').forEach(c => { h = (h * 31 + c.charCodeAt(0)) >>> 0; }); return this.THEME_COLORS[h % this.THEME_COLORS.length]; }
+  _tag(id) { if (String(id).startsWith('c:')) { const t = String(id).slice(2); return { id, key: id, label: t, cat: 'custom', bg: 'oklch(94% 0.02 95)', fg: 'oklch(22% 0.04 300)' }; } const d = this.MTAGS[id]; if (!d) return null; const c = this.CAT[d[0]]; return { id, key: id, label: d[1], cat: d[0], bg: c.bg, fg: c.fg }; }
+  _sortTags(ids) { const K = Object.keys(this.MTAGS); const ci = (x) => this.MTAGS[x] ? this.CAT_ORDER.indexOf(this.MTAGS[x][0]) : 99; return (ids || []).filter(id => this.MTAGS[id] || String(id).startsWith('c:')).slice().sort((a, b) => ci(a) - ci(b) || K.indexOf(a) - K.indexOf(b)); }
+
+  PLACE_SIGS = ['🍸', '🍜', '☕', '✈️', '🌮', '🌴'];
+  _isPlace(d) { if (d.isPlace === true || d.isPlace === false) return d.isPlace; return !!(d.location || '').trim() || this.PLACE_SIGS.includes(d.sig || this._suggestSig(d.title)); }
+  _placeMissing(d) { return this._isPlace(d) && !(d.location || '').trim(); }
+  _tagVM(ln) { const ids = this._sortTags(ln.tags); return { hasTags: ids.length > 0, tagChips: ids.map(id => this._tag(id)) }; }
+  toggleLineTag(lineId, id) {
+    this.upd(d => this._mapLine(d, lineId, x => {
+      const cur = x.tags || []; if (cur.includes(id)) return { ...x, tags: cur.filter(t => t !== id) };
+      let next = cur; if (this.MTAGS[id] && this.MTAGS[id][0] === 'price') next = cur.filter(t => !this.MTAGS[t] || this.MTAGS[t][0] !== 'price');
+      if (next.length >= this.LIM.tags) { this.showToast('Up to 3 tags per item. Remove one to add another.'); return x; } return { ...x, tags: [...next, id] };
+    }));
+  }
+  _fmtOf(ln) { return (ln && ln.fmt) || 'text'; }
+  _rich(t) { const out = []; const re = /\*\*([\s\S]+?)\*\*/g; let last = 0, m, k = 0; while ((m = re.exec(t))) { if (m.index > last) out.push({ key: k++, t: t.slice(last, m.index), w: 'inherit' }); out.push({ key: k++, t: m[1], w: '700' }); last = m.index + m[0].length; } if (last < t.length) out.push({ key: k++, t: t.slice(last), w: 'inherit' }); return out; }
+  _esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  _mdToHtml(t) { return this._rich(t || '').map(p => { const e = this._esc(p.t).replace(/\n/g, '<br>'); return p.w === '700' ? '<b>' + e + '</b>' : e; }).join(''); }
+  _htmlToMd(el) {
+    let out = '';
+    const walk = (n, b) => { n.childNodes.forEach(c => {
+      if (c.nodeType === 3) { const t = c.nodeValue.replace(/\u200b/g, ''); if (t) out += b ? '\u0001' + t + '\u0002' : t; }
+      else if (c.nodeType === 1) { const tag = c.tagName; if (tag === 'BR') { out += '\n'; return; } const fw = c.style && c.style.fontWeight; const nb = b || tag === 'B' || tag === 'STRONG' || (fw && (fw === 'bold' || parseInt(fw, 10) >= 600)); if ((tag === 'DIV' || tag === 'P') && out && !out.endsWith('\n')) out += '\n'; walk(c, nb); }
+    }); };
+    walk(el, false);
+    out = out.replace(/\u0002\u0001/g, '').replace(/\u0001([\s\S]*?)\u0002/g, (m, x) => { const lead = x.match(/^\s*/)[0], trail = x.match(/\s*$/)[0], core = x.trim(); return core ? lead + '**' + core + '**' + trail : x; });
+    return out.replace(/\n$/, '');
+  }
+  _plain(t) { return (t || '').replace(/\*\*/g, ''); }
+  _caretEnd(el) { try { const r = document.createRange(); r.selectNodeContents(el); r.collapse(false); const s = window.getSelection(); s.removeAllRanges(); s.addRange(r); } catch (e) {} }
+  _ceRef(id, text) { const f = this._ref(id); return (el) => { if (el && (el._lid !== id || (el._src !== text && document.activeElement !== el))) { el.innerHTML = this._mdToHtml(text); el._lid = id; el._src = text; } f(el); }; }
+  _ceInput(el, id, fmt) {
+    const [a, b] = this._find(this.state.draft, id); if (a < 0) return;
+    const cur = this.state.draft.sections[a].lines[b];
+    let md = this._plain(this._htmlToMd(el)).replace(/[\r\n]+/g, ' ').slice(0, 1000);
+    if (!this._plain(md).trim()) { md = ''; if (el.innerHTML) el.innerHTML = ''; }
+    el._src = md;
+    this.upd(dd => this._mapLine(dd, id, x => ({ ...x, text: md })));
+  }
+
+  _parts(t, base) {
+    const re = /((?:https?:\/\/|www\.)[^\s]+|\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|org|net|io|co|jp|world|app|dev|me|ly|tv|uk)\b(?:\/[^\s]*)?)/gi;
+    const out = []; let last = 0, m, k = 0;
+    while ((m = re.exec(t))) { let u = m[0]; const trail = (u.match(/[.,;:!?)\]*]+$/) || [''])[0]; u = u.slice(0, u.length - trail.length); if (!u) continue;
+      if (m.index > last) out.push({ key: k++, t: t.slice(last, m.index), color: base, deco: 'none' });
+      out.push({ key: k++, t: u, color: 'oklch(42% 0.17 255)', deco: 'underline', href: /^https?:/i.test(u) ? u : 'https://' + u });
+      last = m.index + u.length; }
+    if (last < t.length) out.push({ key: k++, t: t.slice(last), color: base, deco: 'none' });
+    return out.length ? out : [{ key: 0, t: '', color: base, deco: 'none' }];
+  }
+  _strip(t) { return this._parts(t || '', '').filter(p => !p.href).map(p => p.t).join('').replace(/[ \t]{2,}/g, ' ').replace(/ +\n/g, '\n').trim(); }
+  _view(ln) {
+    const text = this._strip(ln.text).replace(/\*\*\s*\*\*/g, '').trim(), sub = this._strip(ln.sub), tls = this._textLinks(ln);
+    const showT = !!text || !(ln.link || tls.length);
+    return { vText: text, vSub: sub, tls, showT };
+  }
+  _textLinks(ln) {
+    const seen = new Set(); if (ln.link) seen.add(this._domain(ln.link) + '|' + ln.link.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, ''));
+    const out = [];
+    this._parts((ln.text || '') + '\n' + (this._fmtOf(ln) === 'num' || this._fmtOf(ln) === 'bullet' ? (ln.sub || '') : ''), '').forEach(p => { if (!p.href) return; const norm = p.href.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, ''); const key = this._domain(p.href) + '|' + norm; if (seen.has(key)) return; seen.add(key); out.push({ key, href: p.href, label: ((ln.linkNames || {})[p.href]) || this._domain(p.href) }); });
+    return out;
+  }
+  _reflow(d, s, endIdx, type) {
+    let n = 0; const lines = [...d.sections[s].lines];
+    for (let j = endIdx - 1; j >= 0; j--) { const f = this._fmtOf(lines[j]); if (f !== 'num' && f !== 'bullet') break; if (f !== type) { lines[j] = { ...lines[j], fmt: type }; n++; } }
+    if (!n) return [d, 0];
+    return [{ ...d, sections: d.sections.map((x, i) => i === s ? { ...x, lines } : x) }, n];
+  }
+  _reflowToast(mid, n, type, focusId) { if (!n) return; this._undoDraft = mid; this._undoFocus = focusId; this.showToast('Switched ' + n + (n === 1 ? ' line' : ' lines') + ' above to ' + (type === 'num' ? 'numbered' : 'bullets'), true); }
+  _prevLine(d, secId, afterId) {
+    if (afterId) { const [s, i] = this._find(d, afterId); if (s >= 0) return d.sections[s].lines[i]; }
+    const si = d.sections.findIndex(x => x.id === secId);
+    for (let k = (si < 0 ? d.sections.length - 1 : si); k >= 0; k--) { const L = d.sections[k].lines; if (L.length) return L[L.length - 1]; }
+    return null;
+  }
+  _commitLink(id) { const s = this.state; if (id && s.linkOpen === id && (s.linkDraft || '').trim()) { this.submitLink(id, s.linkDraft); return true; } return false; }
+  doneLine(secId, ln) {
+    const f = this._fmtOf(ln);
+    const committed = this._commitLink(ln.id);
+    if (!committed && this._isEmpty(ln)) { this.setState(st => ({ sel: null, linkOpen: null, menu: false, draft: this._prune(st.draft, null) })); return; }
+    this.addLine(secId, ln.id, f === 'bullet' ? 'bullet' : 'num', true);
+  }
+  doneSec(sec) {
+    const first = sec.lines[0];
+    if (first && this._isEmpty(first)) { this.selectLine(first.id); return; }
+    this.addLine(sec.id, null, 'num', true, true);
+  }
+  _itemCount(d) { let n = 0; d.sections.forEach(sec => sec.lines.forEach(l => { if (this._plain(l.text || '').trim() || (l.sub || '').trim() || l.link) n++; })); return n; }
+  _total(d) { let t = (d.title || '').length + (d.description || '').length; d.sections.forEach(sec => { if (sec.headed) t += (sec.label || '').length; sec.lines.forEach(l => { t += (l.text || '').length + (['num', 'bullet'].includes(this._fmtOf(l)) ? (l.sub || '').length : 0); }); }); return t; }
+  _lim(d, next, prev, max) { return String(next || '').replace(/[\r\n]+/g, ' ').slice(0, 1000); }
+  _limOld(d, next, prev, max) { const room = 6000 - this._total(d) + (prev || '').length; const cap = Math.max(0, Math.min(max, room)); return next.length > cap ? next.slice(0, Math.max(cap, Math.min(next.length, (prev || '').length))) : next; }
+  LIM = { title: 60, desc: 160, sections: 5, label: 40, items: 15, head: 80, sub: 100, tags: 3, tag: 20 };
+  _maxFor(fmt, field) { return field === 'sub' ? this.LIM.sub : this.LIM.head; }
+  toggleBold(id) { this._focus = id; this.upd(d => this._mapLine(d, id, x => this._fmtOf(x) === 'text' ? { ...x, textBold: !x.textBold } : { ...x, bold: x.bold !== true })); }
+  _isEmpty(l) { return !l.text.trim() && !(l.sub || '').trim() && !l.link; }
+  _prune(d, exceptId) { return { ...d, sections: d.sections.map(sec => ({ ...sec, lines: sec.lines.filter(l => l.id === exceptId || !this._isEmpty(l)).map(l => l.id === exceptId || l.picked ? l : { ...l, picked: true }) })) }; }
+  _selLine() { const s = this.state; if (!s.sel || s.sel.kind !== 'line') return null; const [a, b] = this._find(s.draft, s.sel.id); return a >= 0 ? s.draft.sections[a].lines[b] : null; }
+  selectLine(id) { this._commitLink(this.state.linkOpen); this._focus = id; this.setState(s => ({ draft: this._prune(s.draft, id), sel: { kind: 'line', id }, linkOpen: null, menu: false })); }
+  _splitSection(d, lineId, label, dropLine) {
+    const [s, i] = this._find(d, lineId);
+    const secs = d.sections.map(x => ({ ...x, lines: [...x.lines] }));
+    const keep = secs[s].lines.slice(0, dropLine ? i : i + 1), after = secs[s].lines.slice(i + 1);
+    if (!keep.length && !secs[s].headed) { secs[s] = { ...secs[s], headed: true, label, lines: after }; return [{ ...d, sections: secs }, secs[s].id]; }
+    const sid = this._id(); secs[s].lines = keep; secs.splice(s + 1, 0, { id: sid, headed: true, label, lines: after });
+    return [{ ...d, sections: secs }, sid];
+  }
+  _goSec(d, sid) { this._focus = sid; this.upd(() => d); this.setState({ sel: { kind: 'sec', id: sid }, linkOpen: null, menu: false }); }
+  pick(type) {
+    if (type === 'text' || type === 'bold') type = 'bullet';
+    if (type === 'section' && this.state.draft.sections.filter(x => x.headed).length >= this.LIM.sections) { this.setState({ menu: false }); this.showToast('A Stack can have up to 5 sections.'); return; }
+    const d = this.state.draft, sel = this.state.sel, line = this._selLine();
+    this.setState({ menu: false });
+    if (line) {
+      const empty = this._isEmpty(line);
+      if (empty || !line.picked) {
+        if (type === 'section') { const [nd, sid] = this._splitSection(d, line.id, empty ? '' : line.text.trim(), true); this._goSec(nd, sid); return; }
+        this._focus = line.id; const mid = this._mapLine(d, line.id, x => ({ ...x, fmt: type, picked: true, bold: this._fmtOf(x) === 'text' ? !!x.textBold : x.bold }));
+        if (type === 'num' || type === 'bullet') { const [a, b] = this._find(mid, line.id); const [nd, cnt] = this._reflow(mid, a, b, type); this.upd(() => nd); if (!this._offerParas(nd, a, b, type, line.id) && cnt) this._reflowToast(mid, cnt, type, line.id); return; }
+        this.upd(() => mid); return;
+      }
+      if (type === 'section') { const [nd, sid] = this._splitSection(d, line.id, '', false); this._goSec(nd, sid); return; }
+      this._focus = line.id;
+      if (this._fmtOf(line) === type) { this.forceUpdate(); return; }
+      const mid = this._mapLine(d, line.id, x => this._convert(x, type));
+      if (type === 'num' || type === 'bullet') { const [a, b] = this._find(mid, line.id); const [nd, cnt] = this._reflow(mid, a, b, type); this.upd(() => nd); if (!this._offerParas(nd, a, b, type, line.id) && cnt) this._reflowToast(mid, cnt, type, line.id); return; }
+      this.upd(() => mid); return;
+    }
+    if (sel && sel.kind === 'sec') {
+      if (type === 'section') { const i = d.sections.findIndex(x => x.id === sel.id); const sid = this._id(); const secs = [...d.sections]; secs.splice(i + 1, 0, { id: sid, headed: true, label: '', lines: [] }); this._goSec({ ...d, sections: secs }, sid); return; }
+      this.addLine(sel.id, null, type, true, true); return;
+    }
+    const last = d.sections[d.sections.length - 1];
+    if (type === 'section') {
+      if (d.sections.length === 1 && !last.headed && !last.lines.length) { this._goSec({ ...d, sections: [{ ...last, headed: true, label: '' }] }, last.id); return; }
+      const sid = this._id(); this._goSec({ ...d, sections: [...d.sections, { id: sid, headed: true, label: '', lines: [] }] }, sid); return;
+    }
+    this.addLine(last.id, null, type, true);
+  }
+  _empty() { return { title: '', description: '', theme: 'default', tags: [], visibility: 'public', sections: [{ id: this._id(), headed: false, label: '', lines: [] }] }; }
+  _sample() {
+    return { title: 'Tokyo ramen worth the line', description: 'Five bowls from a week of eating nothing else, and one rule for all of them.', theme: 'default', tags: ['Food & Drink', 'Travel & Places'], visibility: 'public', sections: [
+      { id: this._id(), headed: false, label: '', lines: [
+        this._L('Fuunji', 'https://fuunji.jp', 'The tsukemen broth is thick enough to coat a spoon. Go at 11:00 sharp.', 'num'),
+        this._L('Skip the famous chain by the station', '', 'The line is for tourists, not the broth.', 'num'),
+        this._L('Nakiryu', 'https://tabelog.com/tokyo/A1323/A132301/13141542/', 'Michelin-starred tantanmen for under ¥1,500.', 'num'),
+      ] },
+      { id: this._id(), headed: true, label: 'If you only have one night', lines: [
+        this._L('Afuri in Ebisu', 'https://afuri.com', 'Yuzu shio, light enough for a 1 a.m. bowl.', 'bullet'),
+        this._L('Bring cash', '', "Half of these places don't take cards.", 'bullet', false),
+        this._L('Order the egg', '', 'Always. Every shop, every bowl.', 'bullet'),
+      ] },
+    ] };
+  }
+  _fromApp(a) { /* legacy paragraph and bold lines import as bullet items */
+    const secs = (a.sections || []).map(sec => ({ id: this._id(), headed: !!(sec.label && String(sec.label).trim()), label: sec.label || '', lines: (sec.lines || []).map(ln => Object.assign(this._L(ln.text || '', ln.link || '', ln.sub || '', ln.fmt || 'num', ln.bold), ln.linkName ? { linkName: ln.linkName } : {}, ln.linkNames ? { linkNames: { ...ln.linkNames } } : {}, ln.tags ? { tags: ln.tags.slice() } : {})) }));
+    if (!secs.length) secs.push({ id: this._id(), headed: false, label: '', lines: [Object.assign(this._L('', '', '', 'num'), { picked: true })] });
+    return { title: a.title || '', description: a.description || '', theme: 'default', tags: [], visibility: a.visibility || 'public', location: a.location || '', forkedFromId: a.forkedFromId || null, sig: a.sig || '', bg: a.bg || '', isPlace: a.isPlace, sections: secs };
+  }
+  _toApp(d) {
+    const st = this.state && this.state.step;
+    return { step: ['title', 'description', 'build', 'review'].includes(st) ? st : 'build', title: d.title, description: d.description, tags: [], visibility: d.visibility || 'public', location: d.location || '', forkedFromId: d.forkedFromId || null, sig: d.sig || this._suggestSig(d.title), bg: d.bg || this._suggestBg(d.title || 'stack'), isPlace: this._isPlace(d),
+      sections: d.sections.map(sec => ({ label: sec.headed ? sec.label : '', lines: sec.lines.map(ln => ({ text: ln.text, sub: ['num', 'bullet'].includes(this._fmtOf(ln)) ? (ln.sub || '') : '', link: ln.link || '', fmt: this._fmtOf(ln), bold: ln.bold !== false, linkName: ln.linkName || '', linkNames: ln.linkNames || null, tags: (ln.tags || []).slice() })) })) };
+  }
+  addTag(name) {
+    const t = (name || '').trim().replace(/^#/, '').replace(/,$/, '');
+    this.setState({ tagInput: '' }); if (!t) return;
+    this.upd(d => (d.tags || []).some(x => x.toLowerCase() === t.toLowerCase()) ? d : { ...d, tags: [...(d.tags || []), t] });
+  }
+  _seed(start) {
+    this._focus = 'title';
+    const st = { bodyIn: true, step: 'title', mode: 'arrange', draft: this._empty(), sel: null, linkOpen: null, linkDraft: '', save: 'idle', toast: '', sheet: false, titleDraft: '' };
+    if (start === 'description') { st.step = 'description'; st.draft.title = 'Tokyo ramen worth the line'; st.save = 'saved'; }
+    else if (start === 'build-empty') { st.step = 'build'; st.draft.title = 'Tokyo ramen worth the line'; st.draft.description = 'Five bowls from a week of eating nothing else.'; const l = this._L('', '', '', 'num'); l.picked = true; this._focus = l.id; st.draft.sections[0].lines = [l]; st.sel = { kind: 'line', id: l.id }; st.save = 'saved'; }
+    else if (start === 'build-draft') { st.step = 'build'; st.draft = this._sample(); st.save = 'saved'; }
+    else if (start === 'build-editing') {
+      st.step = 'build'; st.draft = this._sample(); st.save = 'saving';
+      const l = { id: this._id(), fmt: 'bullet', bold: true, text: 'Tsuta', sub: 'Truffle shoyu. Worth one visit, even if you queue alone.', link: 'https://tsuta.world', domain: 'tsuta.world', linkTitle: '', favLetter: '', favBg: 'oklch(88.5% 0.025 95)', fetching: true };
+      st.draft.sections[1].lines.push(l); st.sel = { kind: 'line', id: l.id }; this._pending = l.id; this._scrollSel = true;
+    }
+    else if (start === 'review') { st.step = 'review'; st.draft = this._sample(); st.save = 'saved'; }
+    else if (start === 'preview') { st.step = 'review'; st.mode = 'preview'; st.draft = this._sample(); st.save = 'saved'; }
+    else if (start === 'publish-title') { st.step = 'review'; st.draft = { ...this._sample(), title: '' }; st.sheet = true; st.save = 'saved'; }
+    else if (start === 'drafts') { st.step = 'drafts'; st.draft = this._sample(); st.save = 'saved'; }
+    if (st.step !== 'title' && this._focus === 'title') this._focus = null;
+    return st;
+  }
+  componentDidMount() {
+    this._selH = () => { const a = document.activeElement; let on = false; try { on = !!(a && a.isContentEditable && document.queryCommandState('bold')); } catch (e) {} if (on !== !!this.state.boldOn) this.setState({ boldOn: on }); };
+    document.addEventListener('selectionchange', this._selH);
+    if (this._pending) { const id = this._pending; this._pending = null; this._t1 = setTimeout(() => this._resolve(id), 6000); }
+  }
+  componentWillUnmount() { document.removeEventListener('selectionchange', this._selH); clearTimeout(this._t1); clearTimeout(this._st); clearTimeout(this._tt); }
+  _resolve(id) {
+    this.setState(s => ({ draft: this._mapLine(s.draft, id, ln => ln.link ? { ...ln, ...this._meta(ln.link) } : ln) }));
+    this.dirty();
+  }
+  dirty() {
+    this.setState({ save: 'saving' });
+    clearTimeout(this._st); this._st = setTimeout(() => this.setState({ save: this.props.net === 'offline' ? 'failed' : 'saved' }), 700);
+  }
+  upd(fn) { this._edited = true; this.setState(s => ({ draft: fn(s.draft) })); this.dirty(); }
+  showToast(msg, act) { if (act === true) act = { label: 'Undo', fn: () => this._doUndo() }; this._toastFn = act ? act.fn : null; this.setState({ toast: msg, toastUndo: !!act, toastActLabel: act ? act.label : '' }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: '', toastUndo: false }), act ? 5000 : 2400); }
+  _doUndo() { if (!this._undoDraft) return; const dd = this._undoDraft; this._undoDraft = null; if (this._undoFocus) this._focus = this._undoFocus; clearTimeout(this._tt); this.setState({ toast: '', toastUndo: false }); this.upd(() => dd); }
+  _toList(x, type) { return { ...x, fmt: type, text: (x.text || '').trim(), sub: '', bold: !!x.textBold, picked: true }; }
+  _offerParas(d, s, endIdx, type, focusId) {
+    const lines = d.sections[s].lines, ids = [];
+    for (let j = endIdx + 1; j < lines.length; j++) { const l = lines[j]; if (this._fmtOf(l) !== 'text') break; if (l.text.trim() || l.link) ids.push(l.id); }
+    if (!ids.length) return false;
+    const n = ids.length, kind = type === 'num' ? 'numbered' : 'bullets';
+    this.showToast('Make the ' + (n === 1 ? 'paragraph' : n + ' paragraphs') + ' below ' + kind + ' too?', { label: 'Convert', fn: () => {
+      const before = this.state.draft; this._undoDraft = before; this._undoFocus = focusId;
+      this.upd(dd => ({ ...dd, sections: dd.sections.map(sec => ({ ...sec, lines: sec.lines.map(l => ids.includes(l.id) && this._fmtOf(l) === 'text' ? this._toList(l, type) : l) })) }));
+      if (focusId) this._focus = focusId;
+      this.showToast('Converted ' + (n === 1 ? '1 paragraph' : n + ' paragraphs') + ' to ' + kind, true);
+    } });
+    return true;
+  }
+  _convert(x, type) {
+    const f = this._fmtOf(x), isL = t => t === 'num' || t === 'bullet';
+    if (isL(type)) { if (f === 'text') return this._toList(x, type); if (f === 'bold') return { ...x, fmt: type, bold: true, sub: x.sub || '', picked: true }; return { ...x, fmt: type, picked: true }; }
+    const head = (x.text || '').trim(), sub = isL(f) ? (x.sub || '').trim() : '';
+    const joined = head + (sub ? (head ? (/[.!?]$/.test(head) ? ' ' : '. ') : '') + sub : '');
+    if (type === 'text') return { ...x, fmt: 'text', text: joined, sub: '', textBold: isL(f) ? x.bold === true : f === 'bold' ? false : !!x.textBold, picked: true };
+    return { ...x, fmt: 'bold', text: joined.replace(/\s*\n+\s*/g, ' '), sub: '', picked: true };
+  }
+  _mapLine(d, id, fn) { return { ...d, sections: d.sections.map(sec => ({ ...sec, lines: sec.lines.map(ln => ln.id === id ? fn(ln) : ln) })) }; }
+  _ref(id) { return (el) => { if (el && this._focus === id) { this._focus = null; requestAnimationFrame(() => { try { el.focus({ preventScroll: true }); setTimeout(() => { if (el.isConnected && document.activeElement !== el) { try { el.focus({ preventScroll: true }); const v2 = el.value || ''; if (el.setSelectionRange) el.setSelectionRange(v2.length, v2.length); else if (el.isContentEditable) this._caretEnd(el); } catch (e) {} } }, 160); setTimeout(() => { const c = this._scrollEl; if (c && c.contains(el)) { const r = el.getBoundingClientRect(), cr = c.getBoundingClientRect(); const box = el.closest('[data-line-box]') || el; const br = box.getBoundingClientRect(); if (br.bottom > cr.bottom - 16) c.scrollTop += br.bottom - cr.bottom + 24; else if (r.top < cr.top + 8) c.scrollTop -= cr.top - r.top + 24; } }, 80); const v = el.value || ''; if (el.setSelectionRange) el.setSelectionRange(v.length, v.length); else if (el.isContentEditable) this._caretEnd(el); } catch (e) {} }); } }; }
+  _find(d, id) { for (let s = 0; s < d.sections.length; s++) { const i = d.sections[s].lines.findIndex(l => l.id === id); if (i >= 0) return [s, i]; } return [-1, -1]; }
+  addLine(secId, afterId, fmt, picked, atStart) {
+    if (this._itemCount(this.state.draft) >= this.LIM.items) { this.showToast('A Stack can have up to 15 items. Remove one to add another.'); return; }
+    const l = this._L('', '', '', fmt === 'bullet' ? 'bullet' : 'num', false); l.picked = !!picked; this._focus = l.id;
+    this.upd(d0 => { const d = this._prune(d0, null); return { ...d, sections: d.sections.map(sec => {
+      if (sec.id !== secId) return sec;
+      const lines = [...sec.lines];
+      const i = afterId ? lines.findIndex(x => x.id === afterId) : -1;
+      if (i >= 0) lines.splice(i + 1, 0, l); else if (atStart) lines.unshift(l); else lines.push(l);
+      return { ...sec, lines };
+    }) }; });
+    this.setState({ sel: { kind: 'line', id: l.id }, linkOpen: null, menu: false });
+  }
+  moveLine(id, dir) {
+    this.upd(d => {
+      const [s, i] = this._find(d, id); if (s < 0) return d;
+      const secs = d.sections.map(x => ({ ...x, lines: [...x.lines] }));
+      const cur = secs[s].lines;
+      const j = i + dir;
+      if (j >= 0 && j < cur.length) { [cur[i], cur[j]] = [cur[j], cur[i]]; }
+      else if (dir < 0 && s > 0) { const [ln] = cur.splice(i, 1); secs[s - 1].lines.push(ln); }
+      else if (dir > 0 && s < secs.length - 1) { const [ln] = cur.splice(i, 1); secs[s + 1].lines.unshift(ln); }
+      return { ...d, sections: secs };
+    });
+  }
+  deleteLine(id) {
+    this.upd(d => ({ ...d, sections: d.sections.map(sec => ({ ...sec, lines: sec.lines.filter(l => l.id !== id) })) }));
+    this.setState({ sel: null, linkOpen: null });
+  }
+  addSection() {
+    if (this.state.draft.sections.filter(x => x.headed).length >= this.LIM.sections) { this.showToast('A Stack can have up to 5 sections.'); return; }
+    const prev = this._prevLine(this.state.draft, null, null);
+    const l = this._L('', '', '', this._fmtOf(prev), false); const sid = this._id(); this._focus = sid;
+    this.upd(d => ({ ...d, sections: [...d.sections, { id: sid, headed: true, label: '', lines: [l] }] }));
+    this.setState({ sel: { kind: 'sec', id: sid }, linkOpen: null });
+  }
+  addTopSection() {
+    const d0 = this.state.draft.sections[0]; if (!d0 || d0.headed) return;
+    this._focus = d0.id;
+    this.upd(d => ({ ...d, sections: d.sections.map((x, i) => i === 0 ? { ...x, headed: true, label: '', lines: x.lines.length ? x.lines : [this._L('', '', '', 'num')] } : x) }));
+    this.setState({ sel: { kind: 'sec', id: d0.id }, linkOpen: null });
+  }
+  moveSection(id, dir) {
+    this.upd(d => {
+      const i = d.sections.findIndex(x => x.id === id); const j = i + dir;
+      if (i < 0 || j < 0 || j >= d.sections.length || !d.sections[i].headed || !d.sections[j].headed) return d;
+      const secs = [...d.sections]; [secs[i], secs[j]] = [secs[j], secs[i]];
+      return { ...d, sections: secs };
+    });
+  }
+  toggleEdit() { if (this.state.editMode) { this.setState({ editMode: false, editMenu: false }); return; } const pd = this._prune(this.state.draft, null); if (!pd.sections.some(x => x.headed || x.lines.length)) return; try { document.activeElement && document.activeElement.blur && document.activeElement.blur(); } catch (e) {} this.setState(st => ({ editMenu: !st.editMenu, sel: null, linkOpen: null, menu: false, draft: this._prune(st.draft, null) })); }
+  pickEdit(mode) { try { document.activeElement && document.activeElement.blur && document.activeElement.blur(); } catch (e) {} this.setState(st => ({ editMode: mode, editMenu: false, sel: null, linkOpen: null, menu: false, draft: this._prune(st.draft, null) })); }
+  addItem() { const d = this.state.draft, last = d.sections[d.sections.length - 1], prev = this._prevLine(d, null, null), pf = this._fmtOf(prev); this.addLine(last.id, null, pf === 'bullet' ? 'bullet' : 'num', true); }
+  deleteWithUndo(id) { this._undoDraft = this.state.draft; this._undoFocus = null; this.deleteLine(id); this.showToast('Item deleted', true); }
+  removeSecWithUndo(id) { this._undoDraft = this.state.draft; this._undoFocus = null; this.removeSection(id); this.showToast('Section header removed', true); }
+  openLinkSheet(lineId, mode, url) {
+    const [a, b] = this._find(this.state.draft, lineId); if (a < 0) return;
+    const ln = this.state.draft.sections[a].lines[b];
+    const ls = mode === 'text' ? { lineId, mode, url, name: (ln.linkNames || {})[url] || '' } : { lineId, mode: ln.link ? 'edit' : 'add', url: ln.link || '', name: ln.linkName || '' };
+    this._lsReturn = this.state.sel && this.state.sel.kind === 'line' && this.state.sel.id === lineId;
+    this._focus = mode === 'text' || ls.mode === 'edit' ? 'lsName' : 'lsUrl';
+    this.setState({ linkSheet: ls });
+  }
+  closeLinkSheet() { const ls = this.state.linkSheet; if (ls && this._lsReturn) this._focus = ls.lineId; this.setState({ linkSheet: null }); }
+  submitLinkSheet() {
+    const ls = this.state.linkSheet; if (!ls) return;
+    const name = (ls.name || '').trim().slice(0, 40), id = ls.lineId;
+    if (ls.mode === 'text') { this.upd(d => this._mapLine(d, id, x => ({ ...x, linkNames: { ...(x.linkNames || {}), [ls.url]: name } }))); this.closeLinkSheet(); return; }
+    const raw = (ls.url || '').trim();
+    if (!raw) { if (ls.mode === 'edit') this.removeLinkSheet(); else this.closeLinkSheet(); return; }
+    const url = /^https?:\/\//.test(raw) ? raw : 'https://' + raw;
+    const [a, b] = this._find(this.state.draft, id); const cur = a >= 0 ? this.state.draft.sections[a].lines[b] : null;
+    if (!cur || cur.link !== url) this.submitLink(id, url);
+    this.upd(d => this._mapLine(d, id, x => ({ ...x, linkName: name })));
+    this.closeLinkSheet();
+  }
+  removeLinkSheet() { const ls = this.state.linkSheet; if (!ls) return; this.upd(d => this._mapLine(d, ls.lineId, x => ({ id: x.id, text: x.text, sub: x.sub || '', fmt: x.fmt, bold: x.bold, picked: x.picked, linkNames: x.linkNames, link: '' }))); this.closeLinkSheet(); }
+  toolBold() {
+    const line = this._selLine(); if (!line || this._fmtOf(line) === 'bold') return;
+    let a = document.activeElement;
+    if (!(a && a.isContentEditable)) { a = document.querySelector('[data-line-box] [contenteditable]'); if (!a) return; a.focus({ preventScroll: true }); this._caretEnd(a); }
+    document.execCommand('bold'); this.setState({ boldOn: document.queryCommandState('bold') });
+  }
+  moveHeader(id, dir) {
+    this.upd(d => {
+      const secs = d.sections.map(x => ({ ...x, lines: [...x.lines] }));
+      const i = secs.findIndex(x => x.id === id); if (i < 0 || !secs[i].headed) return d;
+      const swapHead = (a, b) => { const A = secs[a], B = secs[b]; secs[a] = { ...B, lines: A.lines }; secs[b] = { ...A, lines: B.lines }; };
+      if (dir < 0) {
+        if (i === 0) return d;
+        const prev = secs[i - 1];
+        if (prev.lines.length) { secs[i].lines.unshift(prev.lines.pop()); if (!prev.lines.length && !prev.headed) secs.splice(i - 1, 1); }
+        else if (prev.headed) swapHead(i - 1, i);
+        else secs.splice(i - 1, 1);
+      } else {
+        const cur = secs[i];
+        if (cur.lines.length) { const ln = cur.lines.shift(); if (i > 0) secs[i - 1].lines.push(ln); else secs.unshift({ id: this._id(), headed: false, label: '', lines: [ln] }); }
+        else if (i < secs.length - 1 && secs[i + 1].headed) swapHead(i, i + 1);
+        else return d;
+      }
+      return { ...d, sections: secs };
+    });
+  }
+  removeSection(id) {
+    this.upd(d => {
+      const i = d.sections.findIndex(x => x.id === id); if (i < 0) return d;
+      if (i === 0) return { ...d, sections: d.sections.map((x, k) => k === 0 ? { ...x, headed: false, label: '' } : x) };
+      const secs = d.sections.map(x => ({ ...x, lines: [...x.lines] }));
+      secs[i - 1].lines.push(...secs[i].lines); secs.splice(i, 1);
+      return { ...d, sections: secs };
+    });
+    this.setState({ sel: null });
+  }
+  submitLink(id, raw) {
+    const v = (raw || '').trim().slice(0, 2048);
+    if (!v) { this.setState({ linkOpen: null, linkDraft: '' }); return; }
+    const url = /^https?:\/\//.test(v) ? v : 'https://' + v;
+    this.upd(d => this._mapLine(d, id, ln => ({ ...ln, link: url, domain: this._domain(url), linkTitle: '', favLetter: '', favBg: 'oklch(88.5% 0.025 95)', fetching: true })));
+    this.setState({ linkOpen: null, linkDraft: '' });
+    setTimeout(() => this._resolve(id), 1100);
+  }
+  _counts(d) {
+    let n = 0, k = 0;
+    d.sections.forEach(sec => sec.lines.forEach(l => { if (l.text.trim()) n++; if (l.link) k++; }));
+    return { n, k };
+  }
+  _hasContent(d) { return !!(d.title.trim() || d.description.trim() || this._counts(d).n || this._counts(d).k); }
+  goBuild() {
+    clearTimeout(this._bt); this.setState({ bodyIn: false }); this._bt = setTimeout(() => this.setState({ bodyIn: true }), 420);
+    this.setState(s => {
+      const total = s.draft.sections.reduce((a, x) => a + x.lines.length, 0);
+      if (total) return { step: 'build', sel: null };
+      const l = this._L('', '', '', 'num'); l.picked = true; this._focus = l.id;
+      const secs = s.draft.sections.map((x, i) => i === 0 ? { ...x, lines: [l] } : x);
+      return { step: 'build', draft: { ...s.draft, sections: secs }, sel: { kind: 'line', id: l.id } };
+    });
+  }
+  _issues(d) {
+    const L = this.LIM, out = [], P = (t) => this._plain(t || '').trim();
+    const tl = (d.title || '').trim().length; if (tl > L.title) out.push('Title is ' + (tl - L.title) + ' over 60 characters.');
+    const dl = (d.description || '').trim().length; if (dl > L.desc) out.push('Description is ' + (dl - L.desc) + ' over 160 characters.');
+    const heads = d.sections.filter(x => x.headed); if (heads.length > L.sections) out.push('Remove ' + (heads.length - L.sections) + ' section' + (heads.length - L.sections === 1 ? '' : 's') + ' (5 max).');
+    let n = 0;
+    d.sections.forEach((sec, si) => { const live = sec.lines.filter(l => P(l.text) || (l.sub || '').trim() || l.link);
+      if (sec.headed) { const nm = (sec.label || '').trim(); const ref = nm ? '\u201c' + nm + '\u201d' : 'Section ' + (heads.indexOf(sec) + 1);
+        if (!nm) out.push(ref + ' needs a title.'); else if (nm.length > L.label) out.push(ref + ' title is ' + (nm.length - L.label) + ' over 40 characters.');
+        if (!live.length) out.push(ref + ' has no items. Add one or remove the section.'); }
+      live.forEach(l => { n++; const h = P(l.text), sb = (l.sub || '').trim(), tg = l.tags || [];
+        if (!h) out.push('Item ' + n + ' needs a heading.'); else if (h.length > L.head) out.push('Item ' + n + ' heading is ' + (h.length - L.head) + ' over 80 characters.');
+        if (sb.length > L.sub) out.push('Item ' + n + ' subheading is ' + (sb.length - L.sub) + ' over 100 characters.');
+        if (tg.length > L.tags) out.push('Item ' + n + ' has ' + tg.length + ' tags (3 max).');
+        tg.forEach(t => { const lb = this._tag(t); if (lb && lb.label.length > L.tag) out.push('Item ' + n + ' tag \u201c' + lb.label + '\u201d is over 20 characters.'); }); }); });
+    if (!n) out.unshift('Add at least one item.'); else if (n > L.items) out.push('Remove ' + (n - L.items) + ' item' + (n - L.items === 1 ? '' : 's') + ' (15 max).');
+    return out;
+  }
+  publish() {
+    const d = this.state.draft;
+    const iss = this._issues(d); if (iss.length) { this.setState({ step: 'review', mode: 'arrange' }); this.showToast(iss[0] + (iss.length > 1 ? ' (+' + (iss.length - 1) + ' more)' : '')); return; }
+    if (this._placeMissing(d)) { this.setState({ step: 'review', mode: 'arrange' }); this.showToast('Add a city to publish this place stack.'); return; }
+    if (!d.title.trim()) { this._focus = 'sheet'; this.setState({ sheet: true, titleDraft: '' }); return; }
+    if (this.props.onPublish) { this._send(d); return; }
+    this.setState({ step: 'published', sheet: false });
+  }
+  _send(dd) {
+    const run = (over) => { const d2 = over ? { ...dd, ...over } : dd; this.setState({ sheet: false, step: 'published', draft: d2 }); this.props.onPublish(this._toApp(d2)); };
+    if (this.props.onBeforePublish) { this.setState({ sheet: false, draft: dd }); this.props.onBeforePublish(this._toApp(dd), run); return; }
+    run();
+  }
+  confirmTitle() {
+    const t = this.state.titleDraft.trim(); if (!t) return;
+    if (this.props.onPublish) { this._send({ ...this.state.draft, title: t }); return; }
+    this.setState(s => ({ draft: { ...s.draft, title: t }, sheet: false, step: 'published' }));
+  }
+  renderVals() {
+    const s = this.state, d = s.draft;
+    const th = this.THEMES[0];
+    const { n, k } = this._counts(d);
+    const itemsN = this._itemCount(d), secN = d.sections.filter(x => x.headed).length;
+    const countLabel = (itemsN === 0 ? 'No items yet' : itemsN + '/15 items') + (secN ? ' \u00b7 ' + secN + '/5 sections' : '') + (k ? ' \u00b7 ' + k + (k === 1 ? ' link' : ' links') : '');
+    const sel = s.sel;
+    const clearSel = () => this.setState(st => ({ sel: null, linkOpen: null, menu: false, draft: this._prune(st.draft, null) }));
+    const selLine = this._selLine();
+    const anchorMenu = !!s.menu || !!(selLine && this._isEmpty(selLine) && !selLine.picked);
+    const lastSec = d.sections[d.sections.length - 1];
+    const totalLeft = 6000 - this._total(d);
+    const allIds = []; d.sections.forEach(sec => sec.lines.forEach(l => allIds.push(l.id)));
+    const firstId = allIds[0], lastId = allIds[allIds.length - 1];
+    const curFmt = selLine ? this._fmtOf(selLine) : (sel && sel.kind === 'sec') ? 'section' : this._fmtOf(this._prevLine(d, null, null));
+    const mStyle = {}; [['section', 'mSec'], ['text', 'mText'], ['num', 'mNum'], ['bullet', 'mBul'], ['bold', 'mBold']].forEach(([f, k]) => { const on = f === curFmt; mStyle[k + 'Fg'] = on ? 'oklch(55% 0.22 350)' : 'oklch(22% 0.035 300)'; mStyle[k + 'Bg'] = on ? 'oklch(95.5% 0.05 350)' : 'transparent'; mStyle[k + 'Ring'] = on ? 'inset 0 0 0 1.5px oklch(55% 0.22 350)' : 'none'; mStyle[k + 'Op'] = 1; });
+    const edit = !!s.editMode && s.step === 'build', typing = !!sel && s.step === 'build' && !edit;
+    const lineFmt = selLine ? this._fmtOf(selLine) : null, canB = !!selLine && lineFmt !== 'bold';
+    Object.assign(mStyle, { mLinkFg: 'oklch(22% 0.035 300)', mLinkBg: 'transparent', mLinkRing: 'none', mLinkOp: selLine ? 1 : 0.35,
+      mBFg: s.boldOn && canB ? 'oklch(99.5% 0.01 95)' : 'oklch(22% 0.035 300)', mBBg: s.boldOn && canB ? 'oklch(19.4% 0.035 300)' : 'transparent', mBRing: 'none', mBOp: canB ? 1 : 0.35 });
+    const EB = '1px solid oklch(90% 0.025 95)';
+    let num = 0;
+    const sections = d.sections.map((sec, si) => ({
+      key: sec.id, headed: sec.headed, label: sec.label, headTop: si === 0 ? '0px' : '28px',
+      isSel: !!(sel && sel.kind === 'sec' && sel.id === sec.id),
+      headRef: this._ref(sec.id),
+      onLabel: (e) => { const v = this._lim(this.state.draft, e.target.value, sec.label, 40); this.upd(dd => ({ ...dd, sections: dd.sections.map(x => x.id === sec.id ? { ...x, label: v } : x) })); },
+      onSelect: () => { if (this.state.editMode) return; this.setState(st => ({ sel: { kind: 'sec', id: sec.id }, linkOpen: null, menu: false, draft: this._prune(st.draft, null) })); },
+      onKey: (e) => { if (e.key === 'Enter') { e.preventDefault(); this.doneSec(sec); } },
+      onDone: () => this.doneSec(sec),
+      rowMenu: !!(sel && sel.kind === 'sec' && sel.id === sec.id) && anchorMenu, rowPlus: !!(sel && sel.kind === 'sec' && sel.id === sec.id) && !anchorMenu,
+      endMenu: !sel && sec.id === lastSec.id && anchorMenu, endPlus: !sel && sec.id === lastSec.id && !anchorMenu,
+      onUp: () => { this._focus = sec.id; this.moveHeader(sec.id, -1); }, onDown: () => { this._focus = sec.id; this.moveHeader(sec.id, 1); },
+      upOp: si > 0 ? 1 : 0.35, downOp: sec.lines.length || si < d.sections.length - 1 ? 1 : 0.35,
+      onRemove: () => this.removeSection(sec.id),
+      onAddLine: () => this.addLine(sec.id),
+      inEdit: edit && sec.headed, edMove: edit && s.editMode === 'reorder', edDel: edit && s.editMode === 'delete', readOnly: edit, showTb: !s.tbHidden, onEdDel: () => this.removeSecWithUndo(sec.id),
+      boxBorder: edit ? EB : 'none', boxPad: edit ? '4px 10px 8px 12px' : '0px', boxMargin: edit ? '0 -12px 8px' : '0px', boxBg: edit ? 'oklch(99.5% 0.01 95)' : 'transparent',
+      lines: sec.lines.map(ln => {
+        const fmt = this._fmtOf(ln);
+        if (fmt === 'num') num++;
+        const isSel = !!(sel && sel.kind === 'line' && sel.id === ln.id);
+        const linkOpen = s.linkOpen === ln.id;
+        return {
+          key: ln.id, num: String(num).padStart(2, '0'), text: ln.text, sub: ln.sub || '', hasSub: (fmt === 'num' || fmt === 'bullet') && !!(ln.sub || '').trim(),
+          isText: fmt === 'text', isBoldLine: fmt === 'bold', isList: fmt === 'num' || fmt === 'bullet', isNum: fmt === 'num', isBullet: fmt === 'bullet',
+          ...(() => { const v = this._view(ln), isL = fmt === 'num' || fmt === 'bullet'; return { nsText: fmt === 'text' && v.showT, nsBold: fmt === 'bold' && v.showT, nsList: isL && v.showT, linkTop: (v.showT || v.tls.length) ? '5px' : '-2px', tlTop: v.showT ? '5px' : '-2px', textLinks: v.tls, hasTextLinks: v.tls.length > 0, subDisp: v.vSub, hasSub: !!v.vSub, textColor: v.vText ? 'oklch(14.8% 0.035 300)' : 'oklch(58% 0.035 300)', parts: v.vText ? this._rich(v.vText).map(p => ({ ...p, color: fmt === 'text' ? 'oklch(22% 0.035 300)' : 'oklch(14.8% 0.035 300)', deco: 'none' })) : [{ key: 0, t: fmt === 'text' ? 'Empty paragraph — tap to write' : 'Empty line — tap to write', color: 'oklch(58% 0.035 300)', deco: 'none', w: 'inherit' }] }; })(),
+          headWeight: fmt === 'num' || fmt === 'bullet' ? '600' : '400', indent: fmt === 'num' || fmt === 'bullet' ? '32px' : '0px', tbShift: fmt === 'num' || fmt === 'bullet' ? '-32px' : '0px',
+          rowMenu: isSel && anchorMenu, rowPlus: isSel && !anchorMenu,
+          textPlaceholder: ln.picked ? 'Write a paragraph' : 'Start writing, or pick a format in the toolbar',
+          ...(() => { const on = !!s.boldOn; return { boldBg: on ? 'oklch(19.4% 0.035 300)' : 'oklch(99.5% 0.01 95)', boldFg: on ? 'oklch(99.5% 0.01 95)' : 'oklch(30% 0.035 300)', boldBorder: on ? 'oklch(19.4% 0.035 300)' : 'oklch(86% 0.025 95)' }; })(),
+          onToggleBold: (e) => { let a = document.activeElement; if (!(a && a.isContentEditable)) { const box = e.currentTarget.closest('[data-line-box]'); a = box && box.querySelector('[contenteditable]'); if (!a) return; a.focus({ preventScroll: true }); this._caretEnd(a); } document.execCommand('bold'); this.setState({ boldOn: document.queryCommandState('bold') }); },
+          ceRef: this._ceRef(ln.id, ln.text), onCe: (e) => this._ceInput(e.currentTarget, ln.id, fmt),
+          onDone: () => this.doneLine(sec.id, ln),
+          canBold: fmt !== 'bold', paraWeight: ln.textBold ? '650' : '400',
+          ...(() => { const tl = this._plain(ln.text).length, sl = (ln.sub || '').length, TM = this.LIM.head, SM = this.LIM.sub;
+            const part = (n, m, name) => n > m ? name + n + '/' + m + ' \u00b7 ' + (n - m) + ' over' : n >= m * 0.8 ? name + n + '/' + m : '';
+            const label = [part(tl, TM, 'heading '), part(sl, SM, 'subheading ')].filter(Boolean).join(' \u00b7 ');
+            return { charCount: label, showCount: !!label, countColor: (tl > TM || sl > SM) ? 'oklch(50% 0.2 25)' : 'oklch(50.8% 0.035 300)', subVal: ln.sub || '', subOver: sl > SM }; })(),
+          paraColor: ln.text ? 'oklch(22% 0.035 300)' : 'oklch(58% 0.035 300)',
+          divider: ln.id === sec.lines[sec.lines.length - 1].id ? 'none' : '1px solid oklch(91.2% 0.025 95)',
+          linkLabel: ln.fetching ? 'Fetching link…' : ((ln.domain || ln.link || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]),
+          subRef: this._ref('sub-' + ln.id),
+          onSub: (e) => { const raw = e.target.value; this.upd(dd => this._mapLine(dd, ln.id, x => ({ ...x, sub: this._lim(dd, raw, x.sub, 100) }))); },
+          onSubKey: (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.doneLine(sec.id, ln); } },
+          display: ln.text || (fmt === 'text' ? 'Empty paragraph — tap to write' : 'Empty line — tap to write'),
+          isSel, notSel: !isSel,
+          hasLink: !!ln.link && !linkOpen,
+          linkTitle: ln.fetching ? 'Fetching title…' : ln.linkTitle, linkTitleColor: ln.fetching ? 'oklch(50.8% 0.035 300)' : 'oklch(19.4% 0.035 300)',
+          domain: ln.domain, favLetter: ln.favLetter, favBg: ln.favBg,
+          showLinkInput: isSel && linkOpen, showAddLink: isSel && !ln.link && !linkOpen,
+          placeholder: 'Item name (required)',
+          ref: this._ref(ln.id), linkRef: this._ref('link-' + ln.id),
+          onSelect: () => this.selectLine(ln.id),
+          onText: (e) => { const raw = this._fmtOf(ln) === 'bold' ? e.target.value.replace(/\n/g, '') : e.target.value; this.upd(dd => this._mapLine(dd, ln.id, x => ({ ...x, text: this._lim(dd, raw, x.text, this._maxFor(this._fmtOf(x), 'text')) }))); },
+          onKey: (e) => {
+            if (e.key !== 'Enter' || e.shiftKey) return;
+            e.preventDefault();
+            if (fmt === 'text' || fmt === 'bold') { if (ln.text.trim()) this.addLine(sec.id, ln.id, 'text', true); else { this._commitLink(ln.id); this.setState(st => ({ sel: null, linkOpen: null, menu: false, draft: this._prune(st.draft, null) })); } return; }
+            if (!ln.text.trim()) { this._commitLink(ln.id); this.setState(st => ({ sel: null, linkOpen: null, menu: false, draft: this._prune(st.draft, null) })); return; }
+            this.addLine(sec.id, ln.id, fmt, true);
+          },
+          onOpenLink: () => { this._focus = 'link-' + ln.id; this.setState({ linkOpen: ln.id, linkDraft: '' }); },
+          onLinkPaste: (e) => { const t = (e.clipboardData && e.clipboardData.getData('text')) || ''; if (t.trim()) { e.preventDefault(); this.submitLink(ln.id, t); } },
+          onLinkKey: (e) => { if (e.key === 'Enter') { e.preventDefault(); this.submitLink(ln.id, this.state.linkDraft); } },
+          onLinkDone: () => this.submitLink(ln.id, this.state.linkDraft),
+          onRemoveLink: () => this.upd(dd => this._mapLine(dd, ln.id, x => ({ id: x.id, text: x.text, sub: x.sub || '', fmt: x.fmt, bold: x.bold, picked: x.picked, link: '' }))),
+          onDelete: () => this.deleteLine(ln.id),
+          onUp: () => { this._focus = ln.id; this.moveLine(ln.id, -1); }, onDown: () => { this._focus = ln.id; this.moveLine(ln.id, 1); },
+          upOp: ln.id === firstId ? 0.35 : 1, downOp: ln.id === lastId ? 0.35 : 1,
+          inEdit: edit, edMove: edit && s.editMode === 'reorder', edDel: edit && s.editMode === 'delete', onEdDel: () => this.deleteWithUndo(ln.id), showTb: !s.tbHidden, tbHidden: !!s.tbHidden,
+          boxPad: edit ? '10px 8px 10px 12px' : '12px 0 13px', boxMargin: edit ? '0 -12px 8px' : '0px', boxBorder: edit ? EB : 'none', boxRadius: edit ? '14px' : '0px', boxBg: edit ? 'oklch(99.5% 0.01 95)' : 'transparent',
+          ...(edit ? { divider: EB, onSelect: () => {} } : {}),
+          linkLabel: ln.fetching ? 'Fetching link…' : (ln.linkName || ln.domain || this._domain(ln.link || '')),
+          onRenameLink: (e) => { e && e.stopPropagation && e.stopPropagation(); if (!edit) this.openLinkSheet(ln.id, 'attached'); },
+          ...this._tagVM(ln), textLinks: this._textLinks(ln).map(t => ({ ...t, onRename: (e) => { e && e.stopPropagation && e.stopPropagation(); if (!edit) this.openLinkSheet(ln.id, 'text', t.href); } })),
+        };
+      }),
+    }));
+    let an = 0;
+    const arrSections = d.sections.map((sec, si) => ({
+      key: sec.id, headed: sec.headed, label: sec.label || 'Untitled subsection',
+      onUp: () => this.moveSection(sec.id, -1), onDown: () => this.moveSection(sec.id, 1),
+      upOp: si > 0 && d.sections[si - 1].headed ? 1 : 0.3, downOp: si < d.sections.length - 1 ? 1 : 0.3,
+      lines: sec.lines.filter(l => l.text.trim() || l.link).map(ln => ({
+        key: ln.id, num: String(++an).padStart(2, '0'), text: ln.text || ln.linkTitle || ln.domain, hasLink: !!ln.link, domain: ln.domain,
+        onUp: () => this.moveLine(ln.id, -1), onDown: () => this.moveLine(ln.id, 1),
+        upOp: ln.id === firstId ? 0.3 : 1, downOp: ln.id === lastId ? 0.3 : 1,
+      })),
+    }));
+    let pn = 0, pvSecIdx = 0;
+    const pvSections = d.sections.map(sec => {
+      const ls = sec.lines.filter(l => l.text.trim() || l.link);
+      const headed = sec.headed && !!sec.label.trim();
+      const headPad = pvSecIdx++ === 0 ? '8px 0 8px' : '34px 0 8px';
+      return { key: sec.id, headed, label: sec.label, headPad,
+        lines: ls.map((ln, i) => { const f = this._fmtOf(ln); return { ...this._tagVM(ln), key: ln.id, num: f === 'num' ? String(++pn).padStart(2, '0') : '', isText: f === 'text', isBoldLine: f === 'bold', isList: f === 'num' || f === 'bullet', isNum: f === 'num', isBullet: f === 'bullet', headWeight: f === 'num' || f === 'bullet' ? '600' : '400', ...(() => { const v = this._view(ln), isL = f === 'num' || f === 'bullet'; return { isText: f === 'text' && v.showT, isBoldLine: f === 'bold' && v.showT, isList: isL && v.showT, text: v.vText, parts: this._rich(v.vText).map(p => ({ ...p, color: 'oklch(14.8% 0.035 300)', deco: 'none' })), showT: v.showT, textLinks: v.tls, hasTextLinks: v.tls.length > 0, tlTop: v.showT ? '5px' : '-2px', subDisp: v.vSub, hasSub: !!v.vSub }; })(), hasLink: !!ln.link && !ln.fetching, link: ln.link, linkDomain: (ln.link || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0], linkLabelPv: ln.linkName || (ln.link || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0], divider: i === ls.length - 1 ? 'none' : '1px solid oklch(91.2% 0.025 95)' }; }), _first: false };
+    });
+    const isPreview = s.step === 'review' && s.mode === 'preview';
+    const hasDraft = this._hasContent(d);
+    const ed = this.props.edit || null;
+    const editOut = () => this._toApp(d);
+    const noteDraft = s.noteDraft || '';
+    return {
+      ...mStyle,
+      cePaste: (e) => { e.preventDefault(); const t = ((e.clipboardData && e.clipboardData.getData('text/plain')) || '').replace(/[\r\n]+/g, ' '); document.execCommand('insertText', false, t); },
+      toastUndo: !!s.toastUndo,
+      toastActLabel: s.toastActLabel || '', toastAct: () => { const fn = this._toastFn; this._toastFn = null; clearTimeout(this._tt); this.setState({ toast: '', toastUndo: false }); if (fn) fn(); },
+      showBuildFooter: s.step === 'build' && !typing, buildPadB: typing ? '45vh' : '28px',
+      hideTb: () => this.setState({ tbHidden: true }), showTbAgain: () => this.setState({ tbHidden: false }),
+      toolLink: () => { const l = this._selLine(); if (l) this.openLinkSheet(l.id, 'attached'); },
+      toolBold: () => this.toolBold(),
+      ...(() => { const has = d.sections.some(x => x.headed || x.lines.some(l => this._plain(l.text).trim() || l.link)); const show = s.step === 'build' && (has || !!s.editMode); return { showEditBtn: show, noEditBtn: !show }; })(), toggleEdit: () => this.toggleEdit(), editMenu: !!s.editMenu && !edit, closeEditMenu: () => this.setState({ editMenu: false }), pickReorder: () => this.pickEdit('reorder'), pickDelete: () => this.pickEdit('delete'), editLabel: edit ? 'Done' : 'Edit', editWeight: 600, editColor: edit ? 'oklch(99.5% 0.01 95)' : 'oklch(23.1% 0.035 300)', editBorder: edit ? 'oklch(55% 0.22 350)' : 'oklch(88.5% 0.025 95)', editBg: edit ? 'oklch(55% 0.22 350)' : 'transparent', editPencil: !edit,
+      showAddItem: s.step === 'build' && !sel && !edit, addItem: () => this.addItem(), addItemOp: itemsN >= 15 ? 0.45 : 1, addItemFull: itemsN >= 15 ? 'true' : 'false', addItemLabel: itemsN >= 15 ? '15 of 15 items \u00b7 remove one to add another' : 'Add item',
+      ...(() => { const ls = s.linkSheet; if (!ls) return { linkSheet: false }; const dom = this._domain(/^https?:/i.test(ls.url || '') ? ls.url : 'https://' + (ls.url || '')); const nm = (ls.name || '').trim(); return {
+        linkSheet: true, lsTitle: ls.mode === 'add' ? 'Add link' : 'Edit link', lsCanRemove: ls.mode === 'edit', lsRemove: () => this.removeLinkSheet(),
+        lsUrl: ls.url || '', lsName: ls.name || '', lsUrlLocked: ls.mode === 'text', lsUrlBorder: ls.mode === 'text' ? 'oklch(91% 0.025 95)' : 'oklch(55% 0.22 350)', lsUrlBg: ls.mode === 'text' ? 'oklch(97% 0.025 95)' : 'oklch(99.5% 0.01 95)',
+        lsNamePh: (ls.url || '').trim() ? 'e.g. ' + (dom.split('.')[0].charAt(0).toUpperCase() + dom.split('.')[0].slice(1)) + ' menu' : 'e.g. Reservation page',
+        lsPreview: nm || ((ls.url || '').trim() ? dom : 'example.com'), lsCta: ls.mode === 'add' ? 'Add' : 'Save', lsOp: (ls.url || '').trim() || ls.mode === 'edit' ? 1 : 0.4,
+        lsUrlRef: this._ref('lsUrl'), lsNameRef: this._ref('lsName'),
+        onLsUrl: (e) => { const v = e.target.value.slice(0, 2048); this.setState(st => ({ linkSheet: { ...st.linkSheet, url: v } })); },
+        onLsName: (e) => { const v = e.target.value.slice(0, 40); this.setState(st => ({ linkSheet: { ...st.linkSheet, name: v } })); },
+        onLsKey: (e) => { if (e.key === 'Enter') { e.preventDefault(); this.submitLinkSheet(); } if (e.key === 'Escape') this.closeLinkSheet(); },
+        lsSubmit: () => this.submitLinkSheet(), closeLinkSheet: () => this.closeLinkSheet() }; })(),
+      keep: (e) => e.preventDefault(),
+      openMenu: () => this.setState({ menu: true }),
+      closeMenu: () => { const l = this._selLine(); this.setState({ menu: false }); if (l && !l.picked) { this._focus = l.id; this.upd(dd => this._mapLine(dd, l.id, x => ({ ...x, picked: true }))); } },
+      pickSection: () => this.pick('section'), pickText: () => this.pick('text'), pickNum: () => this.pick('num'), pickBullet: () => this.pick('bullet'), pickBold: () => this.pick('bold'),
+      isEditing: !!ed, notEditing: !ed,
+      shareHint: ed ? ed.hint : '', nextShareDate: (ed && ed.nextShareDate) || '',
+      shareBg: ed && ed.canShare ? 'oklch(99.5% 0.01 95)' : 'oklch(95.6% 0.025 95)',
+      shareColor: ed && ed.canShare ? 'oklch(19.4% 0.035 300)' : 'oklch(58% 0.035 300)',
+      shareCursor: ed && ed.canShare ? 'pointer' : 'not-allowed',
+      saveEdit: () => { const iss = this._issues(d); if (iss.length) { this.showToast(iss[0] + (iss.length > 1 ? ' (+' + (iss.length - 1) + ' more)' : '')); return; } if (this.props.onSaveEdit) this.props.onSaveEdit(editOut()); },
+      openShare: () => { if (!ed || !ed.canShare) { if (ed) this.showToast(ed.blocked === 'private' ? 'Only public stacks can share updates.' : ed.hint.split('.')[0] + '.'); return; } if (!n) { this.showToast('Add a line with some text to save.'); return; } this._focus = 'note'; this.setState({ shareSheet: true, noteDraft: '' }); },
+      shareSheet: !!s.shareSheet, closeShare: () => this.setState({ shareSheet: false }),
+      noteDraft, noteCount: noteDraft.length + '/40', noteCountColor: noteDraft.length >= 36 ? 'oklch(55% 0.22 350)' : 'oklch(50.8% 0.035 300)',
+      noteRef: this._ref('note'),
+      onNote: (e) => this.setState({ noteDraft: e.target.value.slice(0, 40) }),
+      onNoteKey: (e) => { if (e.key === 'Enter') { e.preventDefault(); this.setState({ shareSheet: false }); if (this.props.onShareUpdate) this.props.onShareUpdate(editOut(), this.state.noteDraft || ''); } },
+      confirmShare: () => { this.setState({ shareSheet: false }); if (this.props.onShareUpdate) this.props.onShareUpdate(editOut(), noteDraft); },
+      screenBg: isPreview ? 'oklch(96.5% 0.025 95)' : 'oklch(99.5% 0.01 95)',
+      updatedLabel: 'Updated ' + new Date().toLocaleString('en-US', { month: 'short', year: 'numeric' }) + (n ? ' · ' + n + (n === 1 ? ' line' : ' lines') : ''),
+      showHeader: ['title', 'description', 'build'].includes(s.step) || (s.step === 'review' && !isPreview),
+      statusText: ed ? (this._edited ? (s.save === 'saving' ? 'Saving draft…' : 'Unsaved changes') : 'No changes yet') : s.save === 'saving' ? 'Saving…' : s.save === 'saved' ? 'Saved just now' : 'New draft',
+      saveFailed: s.save === 'failed', saveOk: s.save !== 'failed', retrySave: () => { this.dirty(); },
+      statusDot: s.save === 'saving' ? 'oklch(76% 0.12 80)' : s.save === 'saved' ? 'oklch(62% 0.12 150)' : 'oklch(80% 0.02 300)',
+      exit: () => { if (this.props.onExit) { this.props.onExit(this._toApp(d), ed ? !!this._edited : hasDraft); return; } this.setState({ step: 'drafts', sel: null, sheet: false, linkOpen: null, toast: '' }, () => { if (hasDraft) this.showToast('Draft saved'); }); },
+      saveDraft: () => { if (this.props.onSave) this.props.onSave(this._toApp(d)); clearTimeout(this._st); this.setState({ save: 'saved' }); this.showToast('Draft saved. Pick it up anytime from Profile › Drafts.'); },
+      isTitle: s.step === 'title', isDesc: s.step === 'description', isBuild: s.step === 'build',
+      isArrange: s.step === 'review' && !isPreview, isPreview, isPublished: s.step === 'published', isDrafts: s.step === 'drafts',
+      title: d.title, description: d.description,
+      onTitle: (e) => { const v = this._lim(this.state.draft, e.target.value.replace(/\n/g, ''), d.title, 60); this.upd(dd => ({ ...dd, title: v })); },
+      onTitleKey: (e) => { if (e.key === 'Enter') { e.preventDefault(); this._focus = 'desc'; this.setState({ step: 'description' }); } },
+      onDesc: (e) => { const v = this._lim(this.state.draft, e.target.value, d.description, 160); this.upd(dd => ({ ...dd, description: v })); },
+      titleNextOp: d.title.trim() ? 1 : 0.4,
+      nextTitle: () => { this._focus = 'desc'; this.setState({ step: 'description' }); },
+      ...(() => {
+        const ph = s.step, tL = ph !== 'title', dL = ph === 'build', on = 'oklch(55% 0.22 350)', off = 'oklch(93.5% 0.025 95)';
+        const hasT = !!d.title.trim(), hasD = !!d.description.trim();
+        return {
+          isCompose: ['title', 'description', 'build'].includes(ph),
+          composeSpacer: ph === 'title' ? '150px' : ph === 'description' ? '72px' : '6px',
+          titleRef: this._ref('title'), descRef: this._ref('desc'),
+          tPromptH: tL ? '0px' : '60px', tPromptOp: tL ? 0 : 1, tActH: tL ? '0px' : '80px', tActOp: tL ? 0 : 1,
+          tBorder: tL ? 'transparent' : 'oklch(19.4% 0.035 300)', tBg: tL ? 'transparent' : 'oklch(99.5% 0.01 95)',
+          tShadow: tL ? '0 0 0 0 transparent' : '0 0 0 4px oklch(64% 0.16 50 / 0.14)', tPad: tL ? '0px 0px' : '14px 16px',
+          tPlaceholder: tL ? 'Untitled Stack' : 'Name your Stack',
+          tBtnBg: hasT ? on : off, tBtnColor: hasT ? 'oklch(99.5% 0.01 95)' : 'oklch(30% 0.035 300)',
+          dWrapH: ph === 'title' ? '0px' : '600px', dWrapOp: ph === 'title' ? 0 : 1, dWrapY: ph === 'title' ? '14px' : '0px', dWrapPe: ph === 'title' ? 'none' : 'auto',
+          dPromptH: ph === 'description' ? '80px' : '0px', dPromptOp: ph === 'description' ? 1 : 0,
+          dActH: ph === 'description' ? '80px' : '0px', dActOp: ph === 'description' ? 1 : 0,
+          dBorder: dL ? (s.descFocus ? 'oklch(88% 0.025 95)' : 'transparent') : 'oklch(19.4% 0.035 300)', dBg: dL ? (s.descFocus ? 'oklch(98.6% 0.003 80)' : 'transparent') : 'oklch(99.5% 0.01 95)',
+          dShadow: dL ? '0 0 0 0 transparent' : '0 0 0 4px oklch(64% 0.16 50 / 0.14)', dPad: dL ? '10px 14px' : '12px 16px', dSide: dL ? '-14px' : '0px', dW: dL ? 'calc(100% + 28px)' : '100%',
+          dMinH: dL ? '0px' : '96px', dTop: dL ? '2px' : '0px',
+          dPlaceholder: dL ? 'Add a description (optional)' : 'A sentence or two on what this is and who it’s for',
+          dBtnBg: hasD ? on : off, dBtnColor: hasD ? 'oklch(99.5% 0.01 95)' : 'oklch(30% 0.035 300)',
+          bodyOp: s.bodyIn ? 1 : 0, bodyY: s.bodyIn ? '0px' : '18px',
+          onTitleFocus: () => { if (ph === 'description') this.setState({ step: 'title' }); else if (ph === 'build') this.setState({ sel: null, linkOpen: null }); },
+          onDescFocus: () => { this.setState(ph === 'build' ? { sel: null, linkOpen: null, descFocus: true } : { descFocus: true }); },
+          onDescBlur: () => this.setState({ descFocus: false }),
+        };
+      })(),
+      titleSkipLabel: d.title.trim() ? 'Next' : 'Skip', titleSkipColor: d.title.trim() ? 'oklch(55% 0.22 350)' : 'oklch(41.5% 0.035 300)',
+      descSkipLabel: d.description.trim() ? 'Next' : 'Skip', descSkipColor: d.description.trim() ? 'oklch(55% 0.22 350)' : 'oklch(41.5% 0.035 300)',
+      onDescKey: (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.goBuild(); } },
+      a11yKey: (e) => { if (e.key === 'Enter' || e.key === ' ') { if (e.target !== e.currentTarget) return; e.preventDefault(); e.currentTarget.click(); } },
+      showStatus: !['title', 'description'].includes(s.step),
+      skipTitle: () => this.setState({ step: 'description' }),
+      descTitle: d.title.trim() || 'Untitled Stack', descTitleColor: d.title.trim() ? 'oklch(19.4% 0.035 300)' : 'oklch(58% 0.035 300)',
+      titleCountShow: d.title.length >= 48, titleCount: d.title.length + '/60' + (d.title.length > 60 ? ' \u00b7 ' + (d.title.length - 60) + ' over. Shorten it to publish.' : ''), titleCountFg: d.title.length > 60 ? 'oklch(50% 0.2 25)' : 'oklch(47.1% 0.035 300)',
+      descCount: d.description.length + '/160' + (d.description.length > 160 ? ' \u00b7 ' + (d.description.length - 160) + ' over' : ''), descCountFg: d.description.length > 160 ? 'oklch(50% 0.2 25)' : 'oklch(47.1% 0.035 300)', descNextOp: d.description.trim() ? 1 : 0.4,
+      backToTitle: () => this.setState({ step: 'title' }),
+      goBuild: () => this.goBuild(),
+      backToDesc: () => this.setState({ step: 'description', sel: null, linkOpen: null }),
+      titleBorder: d.title ? 'transparent' : 'oklch(80% 0.02 300)', descBorder: d.description ? 'transparent' : 'oklch(86.3% 0.025 95)',
+      countLabel, sections, clearSel,
+      linkDraft: s.linkDraft, onLinkDraft: (e) => this.setState({ linkDraft: e.target.value.slice(0, 2048) }),
+      closeLink: () => this.setState({ linkOpen: null, linkDraft: '' }),
+      addSection: () => this.addSection(),
+      showTopSub: !(d.sections[0] && d.sections[0].headed), addTopSection: () => this.addTopSection(),
+      reviewOp: n || k ? 1 : 0.4,
+      goReview: () => { if (n || k) this.setState({ step: 'review', mode: 'arrange', sel: null, linkOpen: null }); },
+      showPreview: () => this.setState({ mode: 'preview' }), showArrange: () => this.setState({ mode: 'arrange' }),
+      backToBuild: () => this.setState({ step: 'build', mode: 'arrange' }),
+      swatches: this.THEMES.map(t => ({ key: t.id, name: t.name, bg: t.bg, accent: t.accent, ring: t.id === th.id ? 'oklch(19.4% 0.035 300)' : 'oklch(86.3% 0.025 95)', weight: t.id === th.id ? 700 : 500, onPick: () => this.upd(dd => ({ ...dd, theme: t.id })) })),
+      thBg: th.bg, thText: th.text, thMuted: th.muted, thAccent: th.accent, thLine: th.line, thChip: th.chip,
+      reviewTitle: d.title.trim() || 'Untitled Stack', draftRowColor: d.title.trim() ? 'oklch(19.4% 0.035 300)' : 'oklch(50.8% 0.035 300)',
+      arrSections, pvSections,
+      ...(() => {
+        const sl = this._selLine(), cnt = sl ? (sl.tags || []).length : 0;
+        const tl = s.tagFor ? (() => { for (const sec of d.sections) for (const x of sec.lines) if (x.id === s.tagFor) return x; return null; })() : null;
+        const tids = tl ? (tl.tags || []) : [], full = tids.length >= 3;
+        const sig = d.sig || this._suggestSig(d.title), bg = d.bg || this._suggestBg(d.title || 'stack');
+        return {
+          mTagsLabel: cnt ? 'Tags · ' + cnt : 'Tags', mTagsBg: (cnt || (tl && sl && tl.id === sl.id)) ? 'oklch(95% 0.05 350)' : 'transparent', mTagsRing: tl && sl && tl.id === sl.id ? 'inset 0 0 0 1.5px oklch(66% 0.24 350)' : 'none', mTagsRot: tl && sl && tl.id === sl.id ? '180deg' : '0deg',
+          toolTags: () => { const l = this._selLine(); if (l) this.setState(x => ({ tagFor: x.tagFor === l.id ? null : l.id })); },
+          showTagTray: !!(tl && sl && tl.id === sl.id), closeTagTray: () => this.setState({ tagFor: null }),
+          tray: tl ? {
+            ...(() => { const cv = (s.customTag || ''), n = cv.trim().length, over = n > this.LIM.tag; const add = () => { const t = cv.trim(); if (!t || over) return; if (tids.length >= this.LIM.tags) { this.showToast('Up to 3 tags per item. Remove one to add another.'); return; } if (tids.some(x => this._tag(x) && this._tag(x).label.toLowerCase() === t.toLowerCase())) { this.setState({ customTag: '' }); return; } this.upd(dd => this._mapLine(dd, tl.id, x => ({ ...x, tags: [...(x.tags || []), 'c:' + t] }))); this.setState({ customTag: '' }); };
+              return { custom: cv, onCustom: (e) => this.setState({ customTag: e.target.value.replace(/[\r\n]+/g, ' ').slice(0, 60) }), onCustomKey: (e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } }, addCustom: add,
+                addOp: n && !over && !full ? 1 : 0.4, customRing: over ? 'oklch(50% 0.2 25)' : 'oklch(86% 0.025 95)', customMsg: full ? 'This item has 3 tags. Remove one to add another.' : over ? n + '/20 \u00b7 ' + (n - 20) + ' over. Shorten it to add.' : n >= 16 ? n + '/20' : '', customFg: over || full ? 'oklch(50% 0.2 25)' : 'oklch(45% 0.035 300)' }; })(),
+            lineText: (tl.text || '').replace(/\*\*/g, '').trim() || 'Untitled line', countLabel: tids.length + '/3', countBg: full ? 'oklch(92% 0.17 100)' : 'oklch(93% 0.03 95)',
+            preview: this._sortTags(tids).map(id => this._tag(id)), none: tids.length === 0,
+            cats: this.CAT_ORDER.map(c => ({ label: this.CAT[c].label, hint: '· ' + this.CAT[c].hint,
+              tags: this.TAG_PICKER[c].map(id => { const on = tids.includes(id), t = this._tag(id), dim = full && !on;
+                return { label: t.label, on, bg: on ? t.bg : 'oklch(100% 0 0)', fg: on ? t.fg : 'oklch(22% 0.04 300)', ring: on ? 'oklch(22% 0.04 300)' : 'oklch(85% 0.03 95)', op: dim ? 0.4 : 1, toggle: () => this.toggleLineTag(tl.id, id) }; }) })),
+          } : { cats: [], preview: [] },
+          plc: (() => { const yes = this._isPlace(d), auto = d.isPlace !== true && d.isPlace !== false; const on = 'oklch(22% 0.04 300)', onF = 'oklch(98% 0.02 95)';
+            return { yes, no: !yes, missing: this._placeMissing(d), yesBg: yes ? on : 'transparent', yesFg: yes ? onF : 'oklch(30% 0.035 300)', noBg: !yes ? on : 'transparent', noFg: !yes ? onF : 'oklch(30% 0.035 300)',
+              hint: yes ? (auto ? 'Looks like a place stack. A city is required for place stacks.' : 'A city is required for place stacks.') : 'Not about a place. No city needed.',
+              pickYes: () => this.upd(dd => ({ ...dd, isPlace: true })), pickNo: () => this.upd(dd => ({ ...dd, isPlace: false })) }; })(),
+          th: { sig, bg, wallLong: Array(240).fill(sig).join(''), wallShort: Array(24).fill(sig).join(''), picksLabel: this._counts(d).n + (this._counts(d).n === 1 ? ' pick' : ' picks'), title: d.title.trim() || 'Untitled Stack', hint: d.sig ? 'You picked this theme.' : 'Suggested from your title. Tap to change.',
+            emojis: this.THEME_EMOJIS.map(e => ({ e, on: e === sig, aria: 'Theme emoji ' + e, bg: e === sig ? bg : 'oklch(99.5% 0.01 95)', ring: e === sig ? 'oklch(22% 0.04 300)' : 'oklch(90% 0.025 95)', pick: () => this.upd(dd => ({ ...dd, sig: e })) })),
+            colors: this.THEME_COLORS.map((c, i) => ({ c, on: c === bg, aria: 'Theme color ' + (i + 1), ring: c === bg ? '3px solid oklch(22% 0.04 300)' : '2px solid oklch(85% 0.025 95)', pick: () => this.upd(dd => ({ ...dd, bg: c })) })) },
+        };
+      })(),
+      ...(() => { const iss = this._issues(d); if (this._placeMissing(d)) iss.push('Add a city, or answer No to the place question.'); return { cantPublish: iss.length > 0, cantPublishMsg: iss.length === 1 ? 'Fix this before publishing:' : 'Fix ' + iss.length + ' things before publishing:', issues: iss.map((t, i) => ({ key: i, t })), publishOp: iss.length ? 0.4 : 1 }; })(),
+      publish: () => this.publish(),
+      showSheet: s.sheet, titleDraft: s.titleDraft, sheetRef: this._ref('sheet'),
+      onTitleDraft: (e) => this.setState({ titleDraft: e.target.value }),
+      onSheetKey: (e) => { if (e.key === 'Enter') this.confirmTitle(); },
+      confirmTitle: () => this.confirmTitle(), sheetOp: s.titleDraft.trim() ? 1 : 0.4,
+      closeSheet: () => this.setState({ sheet: false }), stop: (e) => e.stopPropagation(),
+      copyLink: () => { if (this.props.onShareNew) this.props.onShareNew(); else this.showToast('Link copied'); },
+      newStack: () => this.setState({ ...this._seed('title'), toast: '' }),
+      exitPublished: () => { if (this.props.onExit) { this.props.onExit(null, false); return; } this.setState({ step: 'drafts', sel: null, sheet: false, linkOpen: null, toast: '' }); },
+      reopen: () => this.setState({ step: 'build', sel: null, mode: 'arrange' }),
+      hasDraft, noDraft: !hasDraft,
+      location: d.location || '', onLocation: (e) => { const v = e.target.value.slice(0, 80); this.upd(dd => ({ ...dd, location: v })); },
+      toast: s.toast,
+      visOptions: [['public', 'Public', 'Anyone can find it on your profile and in search'], ['unlisted', 'Unlisted', 'Hidden from your profile and discovery. Anyone with the link can view.'], ['private', 'Private', 'Only you can view it']].map(([k, label, desc], i) => { const on = (d.visibility || 'public') === k; return { key: k, label, desc, onPick: () => this.upd(dd => ({ ...dd, visibility: k })), ring: on ? 'oklch(55% 0.22 350)' : 'oklch(80% 0.02 300)', dot: on ? 'oklch(55% 0.22 350)' : 'transparent', weight: on ? 700 : 600, divider: i ? '1px solid oklch(93% 0.025 95)' : 'none' }; }),
+      pv: { hasTags: (d.tags || []).length > 0, tagItems: (d.tags || []).map(t => ({ key: t, name: t })) },
+      visLabel: { public: 'Public', unlisted: 'Unlisted', private: 'Private' }[d.visibility || 'public'],
+      stepNum: ({ title: 1, description: 2, build: 3, review: 4 })[s.step] || 1, stepName: ({ title: 'Title', description: 'Description', build: 'Build', review: 'Finalize' })[s.step] || 'Title',
+      progSegs: [1, 2, 3, 4].map(i => ({ key: i, bg: i <= (({ title: 1, description: 2, build: 3, review: 4 })[s.step] || 1) ? 'oklch(55% 0.22 350)' : 'oklch(91.8% 0.025 95)' })),
+      visHint: { public: 'Shows on your profile, in search, and to anyone with the link.', unlisted: 'Hidden from your profile and discovery. Anyone with the link can view.', private: 'Only you can see it.' }[d.visibility || 'public'],
+      tags: (d.tags || []).map(t => ({ key: t, name: t, onRemove: () => this.upd(dd => ({ ...dd, tags: (dd.tags || []).filter(x => x !== t) })) })),
+      hasTags: (d.tags || []).length > 0,
+      tagInput: s.tagInput || '',
+      onTagInput: (e) => this.setState({ tagInput: e.target.value }),
+      onTagKey: (e) => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); this.addTag(this.state.tagInput); } },
+      tagSugg: this.TAGS.filter(n => !(d.tags || []).some(t => t.toLowerCase() === n.toLowerCase())).map(n => ({ key: n, name: n, onAdd: () => this.addTag(n) })),
+      hasTagSugg: this.TAGS.some(n => !(d.tags || []).some(t => t.toLowerCase() === n.toLowerCase())),
+      buildScrollRef: (el) => { if (el) this._scrollEl = el; if (el && this._scrollSel) { this._scrollSel = false; setTimeout(() => { el.scrollTop = el.scrollHeight; }, 60); } },
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,73 +1,22 @@
-# Authentication User Flows
+# Authentication user flows
 
-This document defines the expected behavior for Stack authentication flows: sign up, log in, and log out.
+[Functional spec — Flow 10](../stack-spec.md#flow-10-sign-in-sign-up-log-out) defines sign-in, sign-up and log-out for Party Mode.
 
-## Sign Up
+## Sign in or create an account
 
-### Entry Points
-- User clicks **Create Stack** while logged out.
-- User clicks **Profile** while logged out.
+- Signed-out visitors can browse and open eligible shared links. A protected action such as Create, Save, Like or Pin opens an action-specific sign-in prompt. The signed-out Profile tab also offers **Sign in / Create account**.
+- The combined screen offers **Continue with Google** or **Continue with email**. Email sends a six-digit code that expires after 10 minutes. Returning users enter the existing account. New users choose a display name and unique handle after verification.
+- Both methods resolve to the same account when they verify the same email. Passwords, username-and-password login and password reset are outside this flow.
+- After sign-in, resume the original action exactly once. For Create, open step 1. For Profile, show the user's profile. For Pin, open the pin sheet on the original pick.
+- **Not now**, closing the prompt or leaving the page drops the pending action. Wrong or expired codes and network failures appear inline. Cancelled Google sign-in returns to the sign-in screen. The spec proposes five attempts per code and a 30-second resend delay.
 
-### Main Flow
-1. User is prompted to sign up or log in.
-2. User chooses **Sign Up**.
-3. User enters name, username, email, and password.
-4. User submits account creation.
-5. User verifies their email.
-6. After verification:
-   - If signup started from **Create Stack**, direct the user to Step 1 (Title) of the Create Stack flow.
-   - If signup started from **Profile**, direct the user to their new profile page.
+## Log out
 
-## Log In
+**Log out** in Settings or the profile share sheet ends the session and returns to Home. Refreshing retains an active session. Signing back in restores server-backed drafts, pins and buckets. Authenticated actions require a valid session after logout, including in another open tab.
 
-### Entry Points
-- User clicks **Create Stack** while logged out.
-- User clicks **Profile** while logged out.
+## Checks
 
-### Main Flow
-1. User is prompted to sign up or log in.
-2. User enters email and password.
-3. User logs in successfully.
-4. After login:
-   - If login started from **Create Stack**, direct the user to Step 1 (Title) of the Create Stack flow.
-   - If login started from **Profile**, direct the user to their profile page.
-
-## Log Out
-
-### Main Flow
-1. User opens the dropdown menu from the share button on the top-right of their profile.
-2. User selects **Logout**.
-3. The user's authenticated session ends.
-4. The user returns to a logged-out state.
-
-### Known Issue
-- Logout currently also appears under **Edit Profile**.
-- Remove this duplicate logout option.
-
-## Rules
-- Only registered users can own a profile or create Stacks.
-- Public profiles may be viewed without logging in.
-- After authentication, return the user to the action that caused the login/signup prompt.
-- A logged-out user cannot access authenticated-only pages directly.
-
-## Failure Cases
-- User loses internet access during signup.
-- User loses internet access during login.
-- Email is already associated with an account.
-- Username is already taken.
-- Password does not meet requirements.
-- Email verification link is expired or invalid.
-- User closes the verification page before completing verification.
-- Login credentials are incorrect.
-- Authentication succeeds but redirect fails.
-- User tries to access Create Stack through a direct URL while logged out.
-- User logs out in one tab while another authenticated tab is still open.
-
-## Expected Results
-- Successful signup creates exactly one user account.
-- Successful login creates an authenticated session.
-- The user's session persists after refreshing the page until they log out or the session expires.
-- The user is redirected to the correct destination based on what they were doing before authentication.
-- Successful logout invalidates the session.
-- After logout, authenticated-only actions require login again.
-- The user cannot access another user's private account data.
+- Verify Google and email sign-in for the same verified email reach one profile.
+- Verify a taken handle can be corrected without duplicating an account.
+- Verify a signed-out direct link to an owner-only surface prompts for sign-in and that ownership is still checked after sign-in.
+- Verify a cancelled or failed sign-in never writes the pending action.

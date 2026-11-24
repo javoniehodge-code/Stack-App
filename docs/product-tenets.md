@@ -16,7 +16,7 @@ A successful visit may be brief. Someone can open a restaurant guide, recognize 
 
 ### 1.1 Easy to access
 
-- Public stacks open directly in a browser through a shareable link.
+- Public Stacks and Unlisted Stacks with a shared link open directly in a browser.
 - Reading public information should not require an account or an app download.
 - A creator's public profile should work as a useful personal website for visitors unfamiliar with Stack.
 
@@ -59,7 +59,7 @@ A successful visit may be brief. Someone can open a restaurant guide, recognize 
 
 - Encourage short labels and focused explanations.
 - Use links to add informational depth while keeping the guide digestible.
-- Allow substantial collections when they remain organized and useful.
+- Keep each Stack focused. Use sections for structure and pick tags for quick context.
 - Set text and size limits that protect readability, reliable editing, and performance.
 
 ## 3. Make useful information easy to find again
@@ -116,7 +116,7 @@ A successful visit may be brief. Someone can open a restaurant guide, recognize 
 
 ### 5.2 Easy to control access
 
-- Make public, unlisted, private, and draft states understandable.
+- Make Public, Unlisted, Private and draft states understandable. Profiles are public. Access is set per Stack or bucket.
 - Explain who can view a stack before the owner shares it.
 - Respect those settings across profiles, feeds, search, and sharing.
 
@@ -128,7 +128,7 @@ A successful visit may be brief. Someone can open a restaurant guide, recognize 
 
 ## Applying these tenets
 
-These principles guide product decisions; they do not commit every possible feature to the initial release. Specific limits, layouts, and release rules belong in separate feature specifications.
+These principles guide product decisions; they do not commit every possible feature to the initial release. See the [Party Mode functional spec](stack-spec.md) for current limits, layouts and release rules.
 
 When evaluating a feature or design, ask:
 
