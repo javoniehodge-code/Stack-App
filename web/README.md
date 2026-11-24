@@ -1,4 +1,6 @@
-# Stack
+# Stack web app
+
+> This README describes the existing implementation. For Party Mode product and implementation requirements, use the [functional spec](../docs/stack-spec.md) and [design handoff](../project/party-mode/README.md). The routes, sign-in and data model below are for running the current code.
 
 Short lists of anything worth remembering: bars, books, gear and more. Each line is at most 120 characters, and lines can carry a link.
 
