@@ -48,12 +48,24 @@ There is no old-format content, no draft and no shared Stack link left to preser
 
 **Keeping existing accounts.** Both remaining accounts have confirmed emails, so signing in with an email code reaches the same account and data. Supabase links Google to an existing account with the same verified email. Nobody needs to be moved over, and password data can stay in the database unused.
 
+**Do old passwords still work after Task 1a? (decision G, open).** Removing the password form from the app doesn't by itself stop passwords from working. Supabase's email sign-in covers both codes and passwords. Both remaining accounts still have a saved password, so anyone who knows one could still sign in through Supabase's API with the app's public key, bypassing the app. There are three options:
+
+1. **Remove the form only.** Simplest. Old passwords keep working through the API for the 2 existing accounts. New accounts never get a password.
+2. **Remove the form and clear the 2 saved passwords** (a one-time change to the live `auth.users` table, which needs your approval). After that no saved password exists, so password sign-in fails for everyone. One gap remains: a user who is already signed in could set a new password through Supabase's API and use it later. This doesn't let anyone into an account they couldn't already open.
+3. **Option 2, plus Supabase's Password Verification Hook** set to reject every password attempt. This closes the remaining gap. Whether the hook is available on the Stack project's Supabase plan still needs checking.
+
+Recommendation: option 2 now, and option 3 if the hook is available on your plan. Tell me which one you want before Task 1a starts.
+
 **Supabase settings needed (not visible to me, set in the dashboard later).** The email template must send the 6-digit code (`{{ .Token }}`), the code must expire after 10 minutes (Supabase's default is 1 hour), and the Google provider needs its client ID and secret. Five wrong tries and the 30-second resend delay need checking against Supabase's built-in rate limits.
 
-**Task 1a acceptance checks.** Both must pass in a test environment (a local or preview database with test accounts and a test inbox) before live sign-in is switched.
+**Task 1a acceptance checks.** All must pass in a test environment (a local or preview database with test accounts and a test inbox) before live sign-in is switched.
 
 1. **An existing user keeps their account.** Create a test account the old way (email and password, with a profile). Sign in with an email code using the same address. Expect the same `auth.users` id, the same profile (handle, name, bio) and the same data. No second account or profile is created.
 2. **A new user picks their identity before their profile is public.** Sign in with an email code using an address that has no account. Expect a profile-setup step that asks for a display name and a handle (3–30 characters, not taken, not reserved). Until setup is finished, a signed-out visitor and a second account can't find the profile by handle or through any listing or API, and no generated handle appears anywhere.
+3. **Passwords behave as decision G says.** Use a test account that has a password.
+   - **Option 1:** the app shows no password field anywhere. Signing in with the password directly through Supabase's API still works, and this is recorded as a known limit.
+   - **Options 2 and 3:** after the test account's password is cleared, a direct API sign-in with the old password fails, while email-code sign-in reaches the same account.
+   - **Option 3:** additionally, a signed-in user who sets a new password through the API still can't sign in with it.
 
 ## 3. Create and drafts (Flow 1, Task 2)
 
@@ -83,12 +95,19 @@ Gaps compared with the spec:
 
 **Access check (before cleanup, signed-out role, tested inside the database).** A signed-out visitor saw only the 5 published Public Stacks. The draft was hidden, and so were Private Stacks. Task 3 and Task 5 repeat this check with test Stacks.
 
-**Unlisted problem (confirmed from the policy text).** The read policy on `stacks` is `status = 'published' AND visibility <> 'private' AND NOT is_blocked_with(author_id)`, or the reader is the owner. That means anyone, signed out, can ask the database API for `stacks?visibility=eq.unlisted` and get a list of every Unlisted Stack. Tags, comments and counts follow the same rule. The app's own listings (`search_stacks`, `explore_categories`, and the feed and profile queries) filter to Public correctly, but the raw API does not. No Unlisted Stack has ever existed, so nothing has leaked.
+**Unlisted problem (confirmed from the policy text).** The read policy on `stacks` is `status = 'published' AND visibility <> 'private' AND NOT is_blocked_with(author_id)`, or the reader is the owner. That means anyone, signed out, can ask the database API for `stacks?visibility=eq.unlisted` and get a list of every Unlisted Stack. Tags, comments and counts follow the same rule. The app's own listings (`search_stacks`, `explore_categories`, and the feed and profile queries) filter to Public correctly, but the raw API does not.
 
-The fix belongs in Task 5:
+No Unlisted Stacks were found during the audit. The current app already lets owners choose Unlisted, labeled "Invite Only" (`web/src/components/Visibility.tsx`), so the gap would apply to any Unlisted Stack created before the fix. The Vercel deployments are behind a Vercel login for now.
+
+**Release requirement.** This fix must ship, and pass the check below, before users can rely on Unlisted visibility: before Party Mode is released, and before the app is opened to the public. It is built in Task 5:
 - Limit the table's read policy to Public Stacks plus the owner's own.
 - Open Unlisted Stacks only through a function that takes the exact `handle` and `slug` (or id).
-- Move the policies on comments, likes and other related tables to the same "can this viewer open this Stack" check.
+- Move the policies on comments, likes, tags and other related tables to the same "can this viewer open this Stack" check.
+
+**Acceptance check (test environment, with a test Unlisted Stack).**
+- A signed-out visitor with the exact link `/{handle}/{slug}` can open the Stack.
+- Ordinary listing and search requests can't reveal the Stack's title, id or existence, nor its tags, comments or counts. This covers the database API (for example `stacks?select=*` and `stacks?visibility=eq.unlisted`), the app's RPCs (`search_stacks`, `explore_categories`, `stack_categories`, feed and profile queries), the owner's public profile and its Stack count, and Explore and search in the app.
+- Each request is tried signed out and as a second, signed-in account.
 
 **New URLs.**
 
@@ -116,6 +135,8 @@ The fix belongs in Task 5:
 - I didn't open a Vercel preview, because the previews require a Vercel login.
 
 ### Live schema compared with the repo's migrations
+
+**Evidence.** The scripts, the reproduction commands and a redacted summary of the results (object names and hashes only) are in [`docs/party-mode-audit/schema-compare/`](party-mode-audit/schema-compare/README.md). The clean build was rerun from those scripts for this write-up and gave the same result. That README also lists what can't be reproduced: the "before" live run can't be repeated now that the fix is applied, the live side needs database access, and the stand-ins don't cover Auth settings.
 
 **Method.** I built a clean database from the repo by applying all 19 files in `web/supabase/migrations/` in order. I used Postgres 16 locally, with minimal stand-ins for Supabase's `auth.users`, `auth.uid()`, the `anon`, `authenticated` and `service_role` roles, and Supabase's default grants. All 19 applied without errors.
 
@@ -183,3 +204,4 @@ The migration history is still untouched.
 - **D. Sign-in:** as the spec says: email code + Google, no passwords. Sessions last about 90 days per device, so a code is only needed on a new device or after logging out. Password sign-in is removed in Task 1a.
 - **E. Old content:** all 6 Stacks (and their comment) were deleted for a fresh start. No old-format conversion, draft migration, slug backfill or `/s/{id}` redirects are needed for existing data.
 - **F. Follow notifications:** following someone notifies the person followed. Applied to the live database (section 6).
+- **G. Old passwords after Task 1a:** open; see section 2. Recommendation: remove the form and clear the 2 saved passwords, plus the Password Verification Hook if the plan allows it.
