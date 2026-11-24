@@ -24,8 +24,9 @@ select set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-4000-8000-00000000000b
 
 -- 2. Before setup, the new account can't be found through the profiles API.
 do $$ begin
-  if (select count(*) from public.profiles) <> 1 then
-    raise exception 'FAIL 2: expected only the existing profile to be visible before setup';
+  if exists (select 1 from public.profiles where id = 'bbbbbbbb-0000-4000-8000-00000000000b')
+     or not exists (select 1 from public.profiles where id = 'aaaaaaaa-0000-4000-8000-00000000000a') then
+    raise exception 'FAIL 2: before setup the new account should have no profile, while existing profiles stay visible';
   end if;
 end $$;
 

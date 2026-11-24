@@ -145,6 +145,9 @@
 .quiet {
   width: 100%;
   height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 14px;
   font-weight: 700;
   color: oklch(40% 0.04 300);
