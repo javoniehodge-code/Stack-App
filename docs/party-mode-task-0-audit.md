@@ -48,13 +48,18 @@ There is no old-format content, no draft and no shared Stack link left to preser
 
 **Keeping existing accounts.** Both remaining accounts have confirmed emails, so signing in with an email code reaches the same account and data. Supabase links Google to an existing account with the same verified email. Nobody needs to be moved over, and password data can stay in the database unused.
 
-**Do old passwords still work after Task 1a? (decision G, open).** Removing the password form from the app doesn't by itself stop passwords from working. Supabase's email sign-in covers both codes and passwords. Both remaining accounts still have a saved password, so anyone who knows one could still sign in through Supabase's API with the app's public key, bypassing the app. There are three options:
+**Do old passwords still work after Task 1a? (decision G, decided Nov 24).** Removing the password form from the app doesn't by itself stop passwords from working. Supabase's email sign-in covers both codes and passwords. Both remaining accounts still have a saved password, so anyone who knows one could still sign in through Supabase's API with the app's public key, bypassing the app.
 
-1. **Remove the form only.** Simplest. Old passwords keep working through the API for the 2 existing accounts. New accounts never get a password.
-2. **Remove the form and clear the 2 saved passwords** (a one-time change to the live `auth.users` table, which needs your approval). After that no saved password exists, so password sign-in fails for everyone. One gap remains: a user who is already signed in could set a new password through Supabase's API and use it later. This doesn't let anyone into an account they couldn't already open.
-3. **Option 2, plus Supabase's Password Verification Hook** set to reject every password attempt. This closes the remaining gap. Whether the hook is available on the Stack project's Supabase plan still needs checking.
+Decision: remove the form **and erase the 2 saved passwords**. Also add Supabase's Password Verification Hook if it's available.
 
-Recommendation: option 2 now, and option 3 if the hook is available on your plan. Tell me which one you want before Task 1a starts.
+- **The hook isn't available.** Supabase lists the Password Verification Attempt hook for Teams and Enterprise plans only, and the Stack organization is on the Free plan (checked Nov 24). It would need a plan upgrade, so it is left out.
+- **Remaining gap.** A user who is already signed in could set a new password through Supabase's API and use it later. This doesn't let anyone into an account they couldn't already open.
+- **When the passwords are erased.** Not yet. Today's app signs in only with a password, so erasing them now would lock both accounts out until email-code sign-in ships. The erase is part of the Task 1a rollout:
+  1. Pass the acceptance checks below in a test environment.
+  2. Deploy email-code sign-in.
+  3. Confirm both accounts can sign in with a code.
+  4. Erase the 2 saved passwords (a one-time change to the live `auth.users` table).
+  5. Confirm the old passwords no longer work.
 
 **Supabase settings needed (not visible to me, set in the dashboard later).** The email template must send the 6-digit code (`{{ .Token }}`), the code must expire after 10 minutes (Supabase's default is 1 hour), and the Google provider needs its client ID and secret. Five wrong tries and the 30-second resend delay need checking against Supabase's built-in rate limits.
 
@@ -62,10 +67,12 @@ Recommendation: option 2 now, and option 3 if the hook is available on your plan
 
 1. **An existing user keeps their account.** Create a test account the old way (email and password, with a profile). Sign in with an email code using the same address. Expect the same `auth.users` id, the same profile (handle, name, bio) and the same data. No second account or profile is created.
 2. **A new user picks their identity before their profile is public.** Sign in with an email code using an address that has no account. Expect a profile-setup step that asks for a display name and a handle (3–30 characters, not taken, not reserved). Until setup is finished, a signed-out visitor and a second account can't find the profile by handle or through any listing or API, and no generated handle appears anywhere.
-3. **Passwords behave as decision G says.** Use a test account that has a password.
-   - **Option 1:** the app shows no password field anywhere. Signing in with the password directly through Supabase's API still works, and this is recorded as a known limit.
-   - **Options 2 and 3:** after the test account's password is cleared, a direct API sign-in with the old password fails, while email-code sign-in reaches the same account.
-   - **Option 3:** additionally, a signed-in user who sets a new password through the API still can't sign in with it.
+3. **Old passwords stop working.** Use a test account that has a password. Erase its password the same way the live erase will be done. Then:
+   - the app shows no password field anywhere;
+   - a direct API sign-in with the old password fails;
+   - email-code sign-in still reaches the same account and profile.
+
+   Record the known gap: a signed-in user can still set a new password through the API.
 
 ## 3. Create and drafts (Flow 1, Task 2)
 
@@ -204,4 +211,4 @@ The migration history is still untouched.
 - **D. Sign-in:** as the spec says: email code + Google, no passwords. Sessions last about 90 days per device, so a code is only needed on a new device or after logging out. Password sign-in is removed in Task 1a.
 - **E. Old content:** all 6 Stacks (and their comment) were deleted for a fresh start. No old-format conversion, draft migration, slug backfill or `/s/{id}` redirects are needed for existing data.
 - **F. Follow notifications:** following someone notifies the person followed. Applied to the live database (section 6).
-- **G. Old passwords after Task 1a:** open; see section 2. Recommendation: remove the form and clear the 2 saved passwords, plus the Password Verification Hook if the plan allows it.
+- **G. Old passwords after Task 1a:** remove the form and erase the 2 saved passwords during the Task 1a rollout, once email-code sign-in works (section 2). The Password Verification Hook needs a Teams or Enterprise plan, so it is left out on the Free plan.
