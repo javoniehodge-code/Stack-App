@@ -1,6 +1,6 @@
 # Party Mode v1 · Task 0 audit
 
-Nov 24, 2026. Branch `claude/party-mode-task-0-audit`, from `main` at `811d378`. No feature code was changed. The only database changes are the cleanup steps you approved (section 7). The schema, access rules and migration history were not touched.
+Nov 24, 2026. Branch `claude/party-mode-task-0-audit`, from `main` at `811d378`. No feature code was changed. The only database changes are the cleanup steps and the follow-notifications fix you approved (sections 6 and 7). Access rules and the migration history were not touched.
 
 ## 1. Live database (Stack project `pgxobjxyqorsdzjdjbtz`)
 
@@ -131,7 +131,7 @@ I then fingerprinted every object in the `public` schema in both databases and c
 
 Neither database has views or custom types in `public`.
 
-**Result.** 284 of the clean database's 288 objects match the live database exactly. The 4 that differ are all from one migration, `20260929000000_follow_notifications.sql` ("started following you" notifications), which was never applied to the live database:
+**Result (before the follow fix).** 284 of the clean database's 288 objects match the live database exactly. The 4 that differ are all from one migration, `20260929000000_follow_notifications.sql` ("started following you" notifications), which was never applied to the live database:
 
 | Object | In repo | In live |
 | --- | --- | --- |
@@ -140,7 +140,7 @@ Neither database has views or custom types in `public`.
 | Unique index `notifications_follow_uniq` | Yes | Missing |
 | Who can run `notify_on_follow()` | Yes | Missing (follows from the function) |
 
-The same migration also widens `notifications_type_check` to allow `'follow'`. The live database already allows it, because a later migration (`20260930000000_reposts.sql`) redefined that constraint with `'follow'` included. So today, following someone on the live app creates no notification.
+The same migration also widens `notifications_type_check` to allow `'follow'`. The live database already allows it, because a later migration (`20260930000000_reposts.sql`) redefined that constraint with `'follow'` included. Before the fix, following someone on the live app created no notification.
 
 Nothing exists in the live database that the repo doesn't create.
 
@@ -152,13 +152,26 @@ Nothing exists in the live database that the repo doesn't create.
 
 Postgres 16 and 17 printed identical definitions for all 284 matching objects, so the version difference didn't affect the result.
 
-**Revised migration recommendation.** Don't mark all 19 migrations as applied yet, because one of them isn't. Before recording any history:
+**Follow notifications (applied Nov 24, with approval).** You decided that following someone should create a notification, so the missing pieces were applied to the live database:
+- the `notify_on_follow()` function
+- the `follows_notify` trigger
+- the `notifications_follow_uniq` index
+- the 30-day catch-up of recent follows (it added nothing, because the one existing follow is older)
 
-1. Decide how to handle the missing follow-notifications migration. Either apply `20260929000000_follow_notifications.sql` to the live database (it is additive and safe to re-run), or skip it on purpose. Party Mode's Activity list (spec Flow 9) has no follow notification type, so skipping it is reasonable. The migration's backfill step only adds rows for follows from the last 30 days.
-2. Then record the 19 migrations as applied, so Supabase's history matches the schema. Both steps change the live database and need your approval.
-3. Add a schema-comparison check like this one to the release checks (plan Task 26), so the live database and the repo can't drift apart unnoticed again.
+The migration's first step, which resets `notifications_type_check`, was skipped on purpose. Its older list leaves out `'repost'`, so running the file as written would have broken repost notifications. The live constraint already allows `'follow'`.
 
-The live database and its migration history were left untouched during this review.
+Afterwards:
+- All 288 objects in the live database match the clean build from the repo.
+- A test follow, made inside a transaction and then undone, created exactly one unread follow notification. Nothing from the test was kept: there is still 1 follow and there are still 4 notifications.
+
+The spec now lists `follow` as an Activity type (Core concepts, Flow 9 › Activity). Settings already had a "New followers" switch.
+
+**Revised migration recommendation.**
+
+1. Record all 19 migrations as applied, with their repo version numbers, so Supabase's history matches the schema. The follow migration was applied by hand, not through the migration tool, so it isn't recorded yet either. This changes the live database's history table and needs your approval. Do it before the first new migration in Task 1a.
+2. Add a schema-comparison check like this one to the release checks (plan Task 26), so the live database and the repo can't drift apart unnoticed again.
+
+The migration history is still untouched.
 
 **Before building Task 1a or 2:** choose a safe test setup, such as a Supabase preview branch (a paid feature) or test accounts with made-up data in this project.
 
@@ -169,3 +182,4 @@ The live database and its migration history were left untouched during this revi
 - **C. Drafts:** use a new owner-only `drafts` table (section 3).
 - **D. Sign-in:** as the spec says: email code + Google, no passwords. Sessions last about 90 days per device, so a code is only needed on a new device or after logging out. Password sign-in is removed in Task 1a.
 - **E. Old content:** all 6 Stacks (and their comment) were deleted for a fresh start. No old-format conversion, draft migration, slug backfill or `/s/{id}` redirects are needed for existing data.
+- **F. Follow notifications:** following someone notifies the person followed. Applied to the live database (section 6).

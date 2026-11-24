@@ -38,7 +38,7 @@ Every object below needs a server-side record. The mockup keeps everything in br
 | Social records | like, save, repost (+ note), comment, follow, block | Each is per user per stack (or per user pair). |
 | Ask | id, author, text, expiresAt, answers (stack ids) | Shown on the asker's profile (D-9). Text ≤100, open 1 or 3 days. |
 | Message | thread, sender, either text or a pick card | Inbox › Messages. |
-| Activity | recipient, actor, type (like, comment, remix, save, repost, pin, ask), stack, pick (for pins), read | Inbox › Activity. |
+| Activity | recipient, actor, type (like, comment, remix, save, repost, pin, ask, follow), stack, pick (for pins), read | Inbox › Activity. A follow has no stack; one per follower per person (Agreed). |
 
 **Categories (Agreed).** Every Stack has 1 or 2 of these 12 categories (Proposed default for the count). They power Explore tiles, topic chips and search; creators can't type their own.
 
@@ -686,7 +686,7 @@ These are the social loops: friends ask for recommendations, people answer with 
 
 **Who and where.** Inbox in the nav bar. Signed-out users see a sign-in prompt (Proposed default). Header **Inbox** with **Mark all read**, which clears unread state in both Activity and Messages (Agreed). Tabs: **Activity** and **Messages** (with an unread badge).
 
-**Activity.** Filter chips All, Comments, Likes, Remixes, Saves, Pins, Reposts. Items are grouped New, Today, Earlier: avatar, "Kenji liked Mexico City Bars", the comment text for comments, and time. Unread items have a tint and a dot. Tapping an item marks it read and opens the Stack; tapping the avatar opens that person's profile. Empty: "Nothing yet · When people like, save, remix, or comment on your stacks, you'll see it here."
+**Activity.** Filter chips All, Comments, Likes, Remixes, Saves, Pins, Reposts. Items are grouped New, Today, Earlier: avatar, "Kenji liked Mexico City Bars", the comment text for comments, and time. Unread items have a tint and a dot. Tapping an item marks it read and opens the Stack; tapping the avatar opens that person's profile. A new follower appears as "Kenji started following you" under All; tapping it opens Kenji's profile. Following again after an unfollow doesn't notify twice (Agreed). Empty: "Nothing yet · When people like, save, remix, or comment on your stacks, you'll see it here."
 
 **Messages.** A thread shows the other person ("Kenji Sato @kenji.eats"), text bubbles and pick cards. A pick card shows the Stack emoji, "Pick 2 · {Stack}", the pick and its note, with **Open in stack** (opens the Stack at that pick) and **📌 Pin it** (opens Flow 6; shows "📌 Pinned" once pinned). Empty: "Send any pick from a stack with 📨 Send." If the pick or its Stack is no longer visible to the reader, the card shows "This pick isn't available" (Proposed default). Messages opens on a thread list: each row shows the person, the last message ("You: …" for your own, "📌 {pick}" for a pick), its time and an unread dot; unread threads are tinted. Tapping a row opens the thread and marks it read. The thread header shows the person (tap for their profile); the composer says "Message Renata…", sends on Enter or the send button, and the send button is disabled while empty. A thread with no messages says "Say hi, or send Renata a pick from any stack." The Inbox badge counts unread threads plus unread Activity.
 
