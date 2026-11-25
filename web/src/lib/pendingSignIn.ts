@@ -10,10 +10,25 @@ const MAX_AGE_MS = 15 * 60 * 1000;
 
 export type PendingSignIn = { path: string; message: string; resume: string | null; state: unknown; at: number };
 
-/** A same-site path to return to, or "/" for anything else (other sites, protocol-relative URLs). */
+/**
+ * A same-site path to return to, or "/" for anything else: other sites, protocol-relative URLs, and paths with
+ * backslashes or control characters (URL parsers drop tabs and newlines, so "/<tab>/evil.example" would become
+ * "//evil.example"). A first filter only: returnUrl() below is the check that counts.
+ */
 export function safePath(path: string | null | undefined): string {
-  if (!path || !path.startsWith("/") || path.startsWith("//") || path.startsWith("/\\")) return "/";
+  if (!path || !path.startsWith("/") || path.startsWith("//") || /[\\\u0000-\u001f\u007f]/.test(path)) return "/";
   return path;
+}
+
+/** The URL to send the browser back to: `path` on `origin`, or the home page if the parsed result isn't on `origin`. */
+export function returnUrl(path: string | null | undefined, origin: string): URL {
+  const home = new URL("/", origin);
+  try {
+    const url = new URL(safePath(path), home);
+    return url.origin === home.origin ? url : home;
+  } catch {
+    return home;
+  }
 }
 
 export function savePending(p: Omit<PendingSignIn, "at">) {

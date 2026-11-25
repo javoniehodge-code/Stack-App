@@ -55,6 +55,7 @@ export APP_URL=http://localhost:3000 API_URL=http://localhost:54321 MAILPIT_URL=
   TEST_ENV_TOKEN=<the token from step 4> EXISTING_EMAIL=existing.user@stack.test
 node web/e2e/target-guard.test.mjs   # invalid targets are refused before any write
 node web/e2e/sign-in.e2e.mjs         # the browser checks
+node web/e2e/callback-redirect.test.mjs   # /auth/callback only returns to the app's own origin
 ```
 
 The app was built and started with `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321` and the local anon key. It was started with `SIGN_IN_RESOLVER_TOKEN` set to a random test token, whose SHA-256 hash is stored in the test database's `private.server_tokens` (see `docs/gmail-aliases-rollout.md`, setup step 4).

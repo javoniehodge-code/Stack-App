@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { safePath } from "@/lib/pendingSignIn";
+import { returnUrl } from "@/lib/pendingSignIn";
 import { createClient } from "@/lib/supabase/server";
 
 // Where Supabase Auth sends the browser back after Continue with Google (or Connect Google). It finishes the sign-in (the code is
@@ -14,7 +14,8 @@ import { createClient } from "@/lib/supabase/server";
 //   connected, cancelled, taken (that Google account already belongs to another Stack account), failed.
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
-  const dest = new URL(safePath(searchParams.get("next")), origin);
+  // Only ever back to Stack itself: the final, parsed address must be on this origin.
+  const dest = returnUrl(searchParams.get("next"), origin);
   const link = searchParams.get("mode") === "link";
   const code = searchParams.get("code");
   const error = searchParams.get("error");

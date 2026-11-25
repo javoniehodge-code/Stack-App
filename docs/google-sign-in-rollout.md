@@ -1,5 +1,7 @@
 # Task 1b: Continue with Google, rollout
 
+**Scope: Google sign-in for the owner only.** The Google app stays in Google's Testing status, where only listed test users can sign in with Google. Everyone else uses email codes. Opening Google sign-in to the public is a later step (below).
+
 This covers the "Continue with Google" button in the sign-in sheet, the `/auth/callback` route, and finishing the action that asked for sign-in after the trip to Google. No database changes: the one-account-per-inbox rule from PR #34 already covers Google. Each step that changes Google Cloud, live Supabase, Vercel or production needs a go-ahead.
 
 ## What changes
@@ -44,14 +46,26 @@ These steps need your accounts. Each will be walked through one at a time.
 4. **Preview check**, on this PR's preview:
    - Google with your own Gmail account reaches your existing profile. No setup screen, no second account.
    - A Like started before signing in is on afterwards.
-5. **Google Cloud: publish the app** (Audience → Publish app). Until then, only test users added there can use Google sign-in.
-6. **Merge, then a production check:** repeat step 4 on the real site.
+5. **Merge, then a production check:** repeat step 4 on the real site. The Google app stays in Testing.
+
+## Later: open Google sign-in to everyone (not part of Task 1b)
+
+While the Google app is in Testing, Google itself refuses every account that isn't on its test-user list (Google Auth Platform → Audience → Test users). That list is the only thing keeping Google sign-in to the owner. Don't publish until all of this is in place:
+1. **Terms and Privacy pages** live on the site, with real (not placeholder) wording.
+2. **Google Auth Platform → Branding:** homepage `https://stack-app-livid.vercel.app` and the privacy policy page's address. Google won't allow publishing without both.
+3. **Publish:** Audience → Publish app. Then check that a Google account that isn't a test user can sign in.
 
 ## Rollback
 
 - **Fastest:** turn Google off in Supabase (step 2). The button then shows an error, and email sign-in keeps working.
 - **Full:** promote the previous production deployment in Vercel.
 - **Google identities already added stay on their accounts.** They're harmless with Google off.
+
+## Return address
+
+`/auth/callback` sends the browser back only to Stack's own site. The `next` path is filtered first: it must start with one `/`, with no backslashes or control characters. Then the final, parsed address must be on the same origin, or the browser goes to the home page.
+
+The parsed check matters because URL parsers drop tabs and newlines. Before this fix, `next=/<tab>/evil.example` passed the text check, then parsed to `//evil.example`: another site.
 
 ## Known limits
 
@@ -98,6 +112,10 @@ These steps need your accounts. Each will be walked through one at a time.
   - connecting this inbox's Google account (reported without dots) added it: "Connected", with Google's address;
   - still one account for the inbox, with the same id and email;
   - after logging out, Continue with Google went straight to that account's profile, with no setup and no new account.
+- **Return address** (`web/e2e/callback-redirect.test.mjs`, 40/40): 20 `next` values, each in sign-in and Connect Google mode.
+  - **Tricky values:** tab, newline, CR and NUL tricks, backslashes, absolute and protocol-relative URLs, and a look-alike host. All return to Stack's home page.
+  - **Legitimate paths:** keep their path and query.
+  - **Control:** against the earlier callback, 10 checks failed. 8 of them sent the browser to `evil.example`.
 - **The earlier checks still pass:**
   - email-code sign-in, Gmail aliases, the stale-sign-in and keyboard checks;
   - the browser-suite guard (11/11).
