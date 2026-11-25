@@ -15,7 +15,7 @@ This spec defines what Stack v1 (Party Mode) does from each user's point of view
 - **Decision needed (D-n):** a choice about publishing, privacy, access or someone's work. All are now decided; see Decisions for me.
 - **Conflict (C-n):** the mockup does something an agreed decision or another rule contradicts. See Conflicts.
 
-**In scope for v1.** Creating, editing, publishing and deleting Stacks; visibility (Public, Unlisted, Private); per-pick micro-tags and themes; Home feed, Explore and search; profiles (own, own public view, other users); Save, Like, Repost, Comment, Follow; sharing as a Reels/TikTok video and a link-in-bio web page; the bucket list (pins, buckets, check-offs); asks on profiles; Inbox (Activity and Messages); sign-in with Google or an email code; profile photos; settings, blocking and reporting; the content rules for every Stack.
+**In scope for v1.** Creating, editing, publishing and deleting Stacks; visibility (Public, Unlisted, Private); per-pick micro-tags and themes; Home feed, Explore and search; profiles (your own, and the public profile everyone else sees); Save, Like, Repost, Comment, Follow; sharing as a Reels/TikTok video and a link-in-bio web page; the bucket list (pins, buckets, check-offs); asks on profiles; Inbox (Activity and Messages); sign-in with Google or an email code; profile photos; settings, blocking and reporting; the content rules for every Stack.
 
 **Out of scope for v1 (Agreed).** Quarterly Wrapped (designed but hidden; keep the code path off). Per-pick replies. Changes ported from Project Louie.
 
@@ -93,7 +93,7 @@ Example item: **Café Regina** · "Excellent iced coffee and a small patio." · 
 | Unlisted | Anyone with the link; people who have it can pass it on | No |
 | Private | Only the owner | No |
 
-A creator's public profile shows only Public Stacks and gives no sign of anything else: no Unlisted or Private titles, thumbnails or counts. The stack count visitors see counts Public Stacks only. The owner's "Private view / Public view" toggle on their own profile stays (Agreed): it is only a preview of what visitors see, not a privacy setting, and changes nothing for anyone else.
+A creator's public profile shows only Public Stacks and gives no sign of anything else: no Unlisted or Private titles, thumbnails or counts. The stack count visitors see counts Public Stacks only. There is no "Private view / Public view" toggle (Agreed, removed): the owner always sees their own profile with everything they own, and everyone else always gets the public profile at /{handle}.
 
 Known limit: v1 can't do "only my friends can view this." Unlisted links can spread, and Private is owner-only. If sharing with chosen people becomes a common request, that justifies adding restricted sharing later.
 
@@ -107,7 +107,7 @@ These apply to every flow unless a flow says otherwise.
 
 **Navigation (Agreed).** A floating bottom bar with five items, left to right: Home, Explore, Create (centre, yellow +), Profile, Inbox. Inbox shows an unread badge (Activity unread + unread message threads, capped at "9+"). Tapping a bar item resets the back history and opens that tab's root. The bar is hidden on Stack detail and inside Create. Everywhere else on mobile it hides while scrolling and returns 200 ms after scrolling stops (see Bottom navigation on mobile below).
 
-**Back.** Every pushed screen (Stack detail, another user's profile, own public view, Manage stacks, Settings, Blocked accounts) has a Back control that returns to the exact previous screen, scroll position and tab. Back must sit below the device status bar and stay tappable (Agreed fix). With no history (for example a deep link), Back goes to Home.
+**Back.** Every pushed screen (Stack detail, another user's profile, Manage stacks, Settings, Blocked accounts) has a Back control that returns to the exact previous screen, scroll position and tab. Back must sit below the device status bar and stay tappable (Agreed fix). With no history (for example a deep link), Back goes to Home.
 
 **URLs (Agreed).** Every screen has a URL so refresh and shared links work:
 
@@ -548,7 +548,7 @@ The full view of every bucket, unlike Home, which shows only what's left:
 - Checking and unchecking work exactly as in Flow 6.
 - Empty bucket: "Empty for now. Tap 📌 Pin on a pick in any stack and choose this bucket."
 
-In the owner's private view the tab shows every bucket. Visitors and the owner's Public view see only Public buckets (see Bucket visibility below).
+On the owner's own profile the tab shows every bucket. Visitors see only Public buckets (see Bucket visibility below).
 
 ### Bucket visibility (Agreed, D-7)
 
@@ -574,28 +574,28 @@ Each bucket has the same three settings as a Stack, chosen in the bucket editor 
 
 - Create "2026 Concerts" from Home, then pin Kanye West and Dua Lipa from two different Stacks into it. Expect both on its card, each showing its own Stack and author.
 - Delete "Tokyo eats" with 1 to do and 2 done. Expect all three in Unsorted, done ones still done.
-- Make "2026 Concerts" Public and leave "Date ideas" Private. In Public view, expect a Buckets tab with only 2026 Concerts and no sign that Date ideas exists.
+- Make "2026 Concerts" Public and leave "Date ideas" Private. Open the profile signed out and expect a Buckets tab with only 2026 Concerts and no sign that Date ideas exists.
 
 ## Flow 8: Profiles, remix, settings and Manage stacks
 
-A user's own profile has a private view (everything they own) and a public view (exactly what visitors see). Other people's profiles use the same public layout (Agreed).
+A user's own profile shows everything they own. Everyone else sees the public profile: the other-user layout with Public content only (Agreed). There is no switch between the two.
 
-### Own profile, private view
+### Own profile
 
 **Who and where.** The signed-in owner, from Profile in the nav bar. Signed out, the tab shows "Sign in to see your profile · Create a free account to save your lists, follow people, and track your remixes." with **Sign in / Create account**.
 
-- **Top bar:** the view toggle pill "🔒 Private view ⇆" (Agreed: keep this design, tap to switch) and a share icon that opens the profile share sheet.
+- **Top bar:** the stack. wordmark and a share icon that opens the profile share sheet. No view toggle (Agreed, removed).
 - **Header:** photo, name, @handle, "N Stacks · N Followers · N Following", bio, **Edit profile**, **Connect ▾** (dropdown of their links, "No links added yet", **Edit links**).
 - **Tabs:** Stacks, Buckets (Flow 7), Saved, Reposts, Drafts (with a count badge).
-- **Stacks:** "All stacks" with **Manage** (opens Manage stacks) and a reorder toggle. Rows show title, "N lines", visibility and a FEATURED label. In reorder mode, up and down arrows set the order visitors see, and a star features one Stack ("Use the arrows to set the order visitors see. Tap the star to feature a stack."). Empty: "No stacks yet."
+- **Stacks (Agreed: no "All stacks" view; designed):** the Stacks tab itself is a dropdown. It opens on Public and reads **Stacks ▾**; tapping it again opens a menu: **🌐 Public** ("What visitors see", count, ✓ when selected), **🔒 Private & unlisted** ("Only you see this list", count), a divider, **Reorder** and **Manage stacks**. Choosing Private & unlisted changes the tab to **🔒 Private ▾** and shows one note above the grid: "Only you see this list. Unlisted stacks open for anyone with the link." Its tiles are labelled Unlisted or Private; Public tiles carry no label. There is no extra row of buttons. Reorder shows a yellow bar "↕ Reordering public stacks" (or private) with **Done**. The arrows change the order of the list on screen without changing the other list or any Stack’s visibility. The star features a Public Stack, which stays first in the Public list. Tapping outside the menu closes it. Empty: "No public stacks yet. Visitors see an empty profile until you publish one." / "No private or unlisted stacks."
 - **Feature sheet (Agreed rename from "pin"):** "Feature a stack · Shows at the top of your profile. Change it anytime." Choose a Stack, add a one-line caption ("One line on why this one"), **Save**. Only one featured Stack. Proposed default: only a Public Stack can be featured; if it later becomes Unlisted, Private or deleted, it stops being featured.
 - **Saved:** "Filter saved stacks" box and rows; the ◆ button unsaves. Empty: "Nothing saved yet." / "No saved stacks match."
 - **Reposts:** each row shows the note, title and "Originally curated by @handle · N lines". Empty: "No reposts yet. Tap ↻ on any stack to share it here."
 - **Drafts:** title, "Draft · N lines", **Delete**. Tapping opens the editor. Empty: "No drafts yet."
 
-### Own profile, public view (Agreed)
+### Public profile: what everyone else sees (Agreed)
 
-Tapping the pill switches to "👀 Public view ⇆", which renders the other-user layout with only Public Stacks, the featured Stack, Stacks and Reposts tabs, and the follower counts only if the user allows them. Public buckets appear in a Buckets tab (D-7). Unlisted and Private Stacks and buckets, Saved and Drafts never appear. **Follow** shows the toast "Visitors see this button. You can't follow yourself." Tapping the pill again returns to the private view.
+Anyone other than the owner who opens `/{handle}` (signed out, or signed in as someone else) gets the other-user layout: only Public Stacks, the featured Stack, Stacks and Reposts tabs, and follower counts only if the user allows them. Public buckets appear in a Buckets tab (D-7). Unlisted and Private Stacks and buckets, Saved and Drafts never appear. The owner has no preview toggle (Agreed, removed); this public profile exists for everyone else regardless, and the share sheet's Copy link gives the owner the same URL visitors use.
 
 ### Another user's profile
 
@@ -656,7 +656,9 @@ Tabs All, Public, Unlisted, Private, Drafts, each with a count and a one-line hi
 
 **Test examples.**
 
-- With 3 Public, 1 Unlisted and 1 Private Stack and no Public buckets, switch to Public view. Expect 3 Stacks and no Buckets, Saved or Drafts tabs.
+- With 2 Public, 1 Unlisted and 1 Private Stack, open your own profile. Expect the Public list by default. Switch to **Private & unlisted** and expect two tiles labeled Unlisted and Private.
+- Reorder the Private & unlisted list and tap **Done**. Expect the Public order and every Stack’s visibility to stay the same. Repeat from Public with no featured Stack in the test list and verify the Private & unlisted order stays the same. A featured Stack stays first in Public.
+- With 3 Public, 1 Unlisted and 1 Private Stack and no Public buckets, open the profile signed out and as another signed-in user. Expect 3 Stacks and no Buckets, Saved or Drafts tabs.
 - Feature a Stack, then make it Private. Expect it to stop being featured on the public profile.
 - Block a user from their profile. Expect to return to the previous screen and their Stacks to disappear from Home and Explore.
 
@@ -666,7 +668,7 @@ These are the social loops: friends ask for recommendations, people answer with 
 
 ### Asks (on profiles)
 
-**Where (Agreed, D-9).** Asks live on the asker's profile, not on Home, so people visit each other's pages. An **Asking** card sits under the profile header, above the tabs, on the private view, the public view and other people's profiles. Home no longer has an Ask the group section.
+**Where (Agreed, D-9).** Asks live on the asker's profile, not on Home, so people visit each other's pages. An **Asking** card sits under the profile header, above the tabs, on the owner's own profile and on the public profile everyone else sees. Home no longer has an Ask the group section.
 
 **Posting an ask (Agreed).** On their own profile, the owner taps **＋ Ask**. A sheet takes the question (up to 100 characters) and how long it stays open (1 day or 3 days), then **Post**. Proposed default: up to 3 open asks at once. With no open ask, the owner sees a dashed "Need a rec? Ask your followers." card that opens the sheet. Each open ask the owner sees has **Close** (moves it to Past asks if it has answers) and **Delete** (asks for a second tap).
 
@@ -880,8 +882,8 @@ Ten places where the current mockup contradicted an agreed decision or a rule ab
 | C-5 | The Following feed includes followed users' Unlisted and Private Stacks. Explore's Recently added, category samples and featured category include non-public Stacks. Another user's Reposts tab can list Stacks the viewer can't open. | Agreed visibility: Unlisted and Private never appear in feeds or discovery. | Decided: every feed, Explore section, search result and profile list shows only Public Stacks, and never lists a Stack the viewer can't open. |
 | C-6 | "Answer with a stack" marks the ask "Answered ✓" as soon as it's tapped. | An unpublished draft isn't an answer. | Decided: mark answered only on publish, and notify the asker then (Flow 9). |
 | C-7 | The original's remix count goes up when the remix editor opens. | Counts should reflect real remixes. | Decided: count the remix and notify the owner only on publish. |
-| C-8 | The private profile shows a fixed 128 followers; the public view shows 142. | Agreed: public view must look like what visitors see. | Decided: show the real count in both. If the owner hides counts, Public view hides them too; Private view always shows them. |
-| C-9 | Hidden leftovers: an old public-profile screen ("Previewing your public profile · Done"), the old create editor, a "Contact button" sheet that duplicates Edit links, the Wrapped overlay and banner. | Agreed: public view uses the other-user layout; Wrapped is off; the new create flow replaces the old. | Decided: remove the old public-profile screen, old create editor and Contact button sheet; nothing reaches them. Keep the current Public view, which reuses the other-user layout. Keep Wrapped behind a flag that stays off. |
+| C-8 | The private profile shows a fixed 128 followers; the public view shows 142. | Agreed: public view must look like what visitors see. | Decided: show the real count in both. If the owner hides counts, visitors don't see them; the owner always does. |
+| C-9 | Hidden leftovers: an old public-profile screen ("Previewing your public profile · Done"), the old create editor, a "Contact button" sheet that duplicates Edit links, the Wrapped overlay and banner. | Agreed: public view uses the other-user layout; Wrapped is off; the new create flow replaces the old. | Decided: remove the old public-profile screen, old create editor and Contact button sheet; nothing reaches them. The public profile reuses the other-user layout; the owner's Public view toggle was later removed (Agreed). Keep Wrapped behind a flag that stays off. |
 | C-10 | Create offers categories Food & Drink, Books, Travel, Home, Shopping, Tech; Explore shows Food & Drink, Travel, Books, Home, Art & Design, Tech. | One taxonomy is needed for search and Explore to work. | Decided: one list of 12 platform categories, used in Create, Explore and search (see Core concepts). |
 
 ## Decisions for me
@@ -925,8 +927,8 @@ Every screen, sheet and menu in the current mockups, the flow that defines it, a
 | Bucket editor sheet (name, emoji, color, items reorder/remove, visibility, Copy link, Delete) | Flow 7 | None |
 | Bucket page (owner and visitor) | Flow 7 | None |
 | Send sheet | Flow 9 | Who appears as a recipient (Proposed default: mutual follows). |
-| Own profile, private view (Asking card, Stacks, Buckets, Saved, Reposts, Drafts) | Flows 7, 8, 9 | Follower and following counts aren't tappable; Proposed default keeps them that way in v1. Draft Delete has no undo; Proposed default adds one. |
-| Own profile, public view (with public Buckets tab and asks) | Flows 7, 8, 9 | None |
+| Own profile (Asking card, Stacks, Buckets, Saved, Reposts, Drafts) | Flows 7, 8, 9 | Follower and following counts aren't tappable; Proposed default keeps them that way in v1. Draft Delete has no undo; Proposed default adds one. |
+| Public profile (with public Buckets tab and asks) | Flows 7, 8, 9 | None |
 | Another user's profile (Asking card, Stacks, Buckets, Reposts) | Flows 7, 8, 9 | None |
 | Ask sheet, Asking card, Past asks | Flow 9 | None |
 | Private-answer warning sheet | Flow 9 | None |

@@ -1396,7 +1396,7 @@
       <div style="padding:56px 20px 0;flex-shrink:0;border-bottom:2px solid oklch(22% 0.04 300);">
         <div style="display:flex;align-items:center;justify-content:space-between;height:44px;">
           <span style="font-family:Outfit,Inter,sans-serif;font-weight:800;font-size:19px;color:oklch(14.8% 0.035 300);letter-spacing:-0.6px;">stack<span style="color:oklch(55% 0.22 350);">.</span></span>
-          <div style="display:flex;align-items:center;gap:2px;margin-right:-8px;"><button type="button" onClick="{{ openPublicView }}" aria-label="Private view. Switch to public view" style="height:32px;padding:0 12px;border-radius:999px;background:oklch(99.5% 0.01 95);color:oklch(22% 0.04 300);border:2px solid oklch(22% 0.04 300);font-family:Inter,sans-serif;font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:6px;margin-right:4px;">🔒 Private view <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 4L3 8l4 4"></path><path d="M3 8h14"></path><path d="M17 20l4-4-4-4"></path><path d="M21 16H7"></path></svg></button><span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="Share profile" onClick="{{ openOwnShare }}" title="Share profile" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="oklch(19.4% 0.035 300)" stroke="oklch(19.4% 0.035 300)" strokeWidth="1" strokeLinejoin="round"><path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z"></path></svg></span></div>
+          <div style="display:flex;align-items:center;gap:2px;margin-right:-8px;"><span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="Share profile" onClick="{{ openOwnShare }}" title="Share profile" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="oklch(19.4% 0.035 300)" stroke="oklch(19.4% 0.035 300)" strokeWidth="1" strokeLinejoin="round"><path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z"></path></svg></span></div>
         </div>
       </div>
       <div style="flex:1;overflow-y:auto;">
@@ -1479,14 +1479,30 @@
             </sc-if>
           </div>
         </sc-if>
-        <div style="padding:16px 20px 0;border-bottom:1px solid oklch(91.8% 0.025 95);">
+        <div style="position:relative;padding:16px 20px 0;border-bottom:1px solid oklch(91.8% 0.025 95);">
         <div role="tablist" aria-label="Profile sections" style="display:flex;gap:4px;overflow-x:auto;padding:3px;border-radius:999px;background:oklch(93% 0.04 95);border:2px solid oklch(22% 0.04 300);width:max-content;max-width:100%;margin-bottom:12px;">
-          <span role="tab" onClick="{{ selectTabMine }}" style="flex-shrink:0;height:30px;padding:0 11px;border-radius:999px;display:flex;align-items:center;font-family:Inter,sans-serif;font-size:12.5px;font-weight:800;color:{{ mineTabColor }};background:{{ mineTabBorder }};cursor:pointer;">Stacks</span>
+          <span role="tab" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-selected="{{ mineTabActive }}" aria-haspopup="menu" aria-expanded="{{ stacksMenuOpen }}" onClick="{{ selectTabMine }}" style="flex-shrink:0;height:30px;padding:0 11px;border-radius:999px;display:flex;align-items:center;gap:4px;font-family:Inter,sans-serif;font-size:12.5px;font-weight:800;color:{{ mineTabColor }};background:{{ mineTabBorder }};cursor:pointer;">{{ mineTabLabel }}<sc-if value="{{ mineTabActive }}" hint-placeholder-val="{{ true }}"><svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style="transform:rotate({{ stacksChevron }});transition:transform 150ms;"><path d="M6 9l6 6 6-6"></path></svg></sc-if></span>
           <span role="tab" onClick="{{ selectTabBuckets }}" style="flex-shrink:0;height:30px;padding:0 11px;border-radius:999px;display:flex;align-items:center;font-family:Inter,sans-serif;font-size:12.5px;font-weight:800;color:{{ bucketsTabColor }};background:{{ bucketsTabBorder }};cursor:pointer;">Buckets</span>
           <span role="tab" onClick="{{ selectTabSaved }}" style="flex-shrink:0;height:30px;padding:0 11px;border-radius:999px;display:flex;align-items:center;font-family:Inter,sans-serif;font-size:12.5px;font-weight:800;color:{{ savedTabColor }};background:{{ savedTabBorder }};cursor:pointer;">Saved</span>
           <span role="tab" onClick="{{ selectTabReposts }}" style="flex-shrink:0;height:30px;padding:0 11px;border-radius:999px;display:flex;align-items:center;font-family:Inter,sans-serif;font-size:12.5px;font-weight:800;color:{{ repostsTabColor }};background:{{ repostsTabBorder }};cursor:pointer;">Reposts</span>
           <span role="tab" onClick="{{ selectTabDrafts }}" style="flex-shrink:0;height:30px;padding:0 11px;border-radius:999px;display:flex;align-items:center;font-family:Inter,sans-serif;font-size:12.5px;font-weight:800;color:{{ draftsTabColor }};background:{{ draftsTabBorder }};cursor:pointer;">Drafts{{ draftsBadge }}</span>
         </div>
+        <sc-if value="{{ stacksMenuOpen }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ closeStacksMenu }}" style="position:fixed;inset:0;z-index:24;"></div>
+          <div role="menu" aria-label="Stacks" style="position:absolute;left:20px;top:58px;z-index:25;width:262px;border-radius:20px;border:2px solid oklch(22% 0.04 300);background:oklch(100% 0 0);box-shadow:4px 4px 0 oklch(22% 0.04 300);padding:6px;font-family:Inter,sans-serif;">
+            <sc-for list="{{ stacksMenu }}" as="mi" hint-placeholder-count="2">
+              <button type="button" role="menuitemradio" aria-checked="{{ mi.on }}" onClick="{{ mi.pick }}" style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:14px;background:{{ mi.bg }};text-align:left;">
+                <span aria-hidden="true" style="font-size:17px;width:22px;text-align:center;">{{ mi.icon }}</span>
+                <span style="flex:1;min-width:0;"><span style="display:block;font-size:14px;font-weight:800;color:oklch(22% 0.04 300);">{{ mi.label }}</span><span style="display:block;font-size:11.5px;color:oklch(45% 0.035 300);margin-top:1px;">{{ mi.sub }}</span></span>
+                <span style="font-size:12px;font-weight:800;color:oklch(45% 0.035 300);">{{ mi.count }}</span>
+                <span aria-hidden="true" style="width:16px;font-size:14px;font-weight:900;color:oklch(55% 0.22 350);">{{ mi.check }}</span>
+              </button>
+            </sc-for>
+            <div style="height:1px;background:oklch(91% 0.02 95);margin:6px 8px;"></div>
+            <button type="button" role="menuitem" onClick="{{ menuReorder }}" style="width:100%;display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;text-align:left;font-size:14px;font-weight:700;color:oklch(22% 0.04 300);"><span aria-hidden="true" style="width:22px;text-align:center;">↕</span>{{ menuReorderLabel }}</button>
+            <button type="button" role="menuitem" onClick="{{ menuManage }}" style="width:100%;display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;text-align:left;font-size:14px;font-weight:700;color:oklch(22% 0.04 300);"><span aria-hidden="true" style="width:22px;text-align:center;">⚙︎</span>Manage stacks</button>
+          </div>
+        </sc-if>
       </div>
       <div>
         <sc-if value="{{ isBucketsTab }}" hint-placeholder-val="{{ false }}">
@@ -1579,10 +1595,8 @@
         <sc-if value="{{ isMineTab }}" hint-placeholder-val="{{ true }}">
           <div style="padding:16px 20px 28px;font-family:Inter,sans-serif;">
             
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-              <span style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:oklch(45.2% 0.035 300);">All stacks</span>
-              <div style="display:flex;align-items:center;gap:16px;"><span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ openManage }}" style="font-size:12.5px;font-weight:600;color:oklch(55% 0.22 350);cursor:pointer;padding:4px 0;">Manage</span><span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" onClick="{{ toggleReorder }}" style="font-size:12.5px;font-weight:600;color:{{ reorderColor }};cursor:pointer;padding:4px 0;">{{ reorderLabel }}</span></div>
-            </div>
+            <sc-if value="{{ mineIsPrivate }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:12px;background:oklch(94.5% 0.025 95);font-size:12px;color:oklch(38% 0.035 300);line-height:1.4;margin-bottom:6px;"><span aria-hidden="true">🔒</span><span>Only you see this list. Unlisted stacks open for anyone with the link.</span></div></sc-if>
+            <sc-if value="{{ reordering }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:10px;padding:8px 8px 8px 14px;border-radius:999px;border:2px solid oklch(22% 0.04 300);background:oklch(92% 0.17 100);margin-bottom:8px;"><span style="flex:1;font-size:13px;font-weight:800;color:oklch(22% 0.04 300);">↕ Reordering {{ mineGroupName }}</span><button type="button" onClick="{{ toggleReorder }}" style="height:30px;padding:0 14px;border-radius:999px;background:oklch(22% 0.04 300);color:oklch(98% 0.02 95);font-size:12.5px;font-weight:800;">Done</button></div></sc-if>
             <sc-if value="{{ showMyGrid }}" hint-placeholder-val="{{ false }}">
               <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin:8px -20px -28px;padding:16px 20px 28px;background:oklch(98% 0.02 95);border-top:1px solid oklch(91.8% 0.025 95);">
                 <sc-for list="{{ mineGrid }}" as="g" hint-placeholder-count="4">
@@ -1599,7 +1613,7 @@
                     </div>
                                         <div style="display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid oklch(91.8% 0.025 95);font-family:Inter,sans-serif;font-size:10.5px;color:oklch(41.5% 0.035 300);">
                       <span style="font-weight:600;color:oklch(36% 0.035 300);">{{ g.lineCount }}</span>
-                      <sc-if value="{{ true }}" hint-placeholder-val="{{ true }}"><span style="margin-left:auto;display:flex;align-items:center;gap:4px;color:{{ g.visColor }};"><sc-if value="{{ g.vis.is_public }}" hint-placeholder-val="{{ false }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(55% 0.22 350)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M3.5 12h17"></path><ellipse cx="12" cy="12" rx="3.8" ry="8.5"></ellipse></svg></sc-if><sc-if value="{{ g.vis.is_unlisted }}" hint-placeholder-val="{{ false }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(55% 0.22 350)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></sc-if><sc-if value="{{ g.vis.is_private }}" hint-placeholder-val="{{ false }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(55% 0.22 350)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg></sc-if>{{ g.vis.label }}</span></sc-if>
+                      <sc-if value="{{ g.showVis }}" hint-placeholder-val="{{ true }}"><span style="margin-left:auto;display:flex;align-items:center;gap:4px;color:{{ g.visColor }};"><sc-if value="{{ g.vis.is_public }}" hint-placeholder-val="{{ false }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(55% 0.22 350)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M3.5 12h17"></path><ellipse cx="12" cy="12" rx="3.8" ry="8.5"></ellipse></svg></sc-if><sc-if value="{{ g.vis.is_unlisted }}" hint-placeholder-val="{{ false }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(55% 0.22 350)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"></path><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"></path></svg></sc-if><sc-if value="{{ g.vis.is_private }}" hint-placeholder-val="{{ false }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="oklch(55% 0.22 350)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg></sc-if>{{ g.vis.label }}</span></sc-if>
                     </div>
                   </div>
                 </sc-for>
@@ -1618,7 +1632,7 @@
                 </sc-if>
                 <sc-if value="{{ r.editing }}" hint-placeholder-val="{{ false }}">
                   <div style="display:flex;gap:6px;flex-shrink:0;">
-                    <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="{{ r.pinTitle }}" onClick="{{ r.onPin }}" title="{{ r.pinTitle }}" style="width:30px;height:30px;border-radius:8px;border:1px solid {{ r.pinBorder }};background:{{ r.pinBg }};display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="{{ r.pinFill }}" stroke="{{ r.pinStroke }}" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8-4.2-4.1 5.9-.9z"></path></svg></span>
+                    <sc-if value="{{ r.canFeature }}" hint-placeholder-val="{{ true }}"><span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="{{ r.pinTitle }}" onClick="{{ r.onPin }}" title="{{ r.pinTitle }}" style="width:30px;height:30px;border-radius:8px;border:1px solid {{ r.pinBorder }};background:{{ r.pinBg }};display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="{{ r.pinFill }}" stroke="{{ r.pinStroke }}" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8-4.2-4.1 5.9-.9z"></path></svg></span></sc-if>
                     <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="Move up" onClick="{{ r.onUp }}" title="Move up" style="width:30px;height:30px;border-radius:8px;border:1px solid oklch(90.7% 0.025 95);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;opacity:{{ r.upOpacity }};"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(28.6% 0.035 300)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 14l6-6 6 6"></path></svg></span>
                     <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="Move down" onClick="{{ r.onDown }}" title="Move down" style="width:30px;height:30px;border-radius:8px;border:1px solid oklch(90.7% 0.025 95);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;opacity:{{ r.downOpacity }};"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(28.6% 0.035 300)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 10l6 6 6-6"></path></svg></span>
                   </div>
@@ -1627,10 +1641,10 @@
             </sc-for>
             </sc-if>
             <sc-if value="{{ reordering }}" hint-placeholder-val="{{ false }}">
-              <div style="border-top:1px solid oklch(91.8% 0.025 95);padding-top:12px;font-size:12px;color:oklch(47.1% 0.035 300);line-height:1.45;">Use the arrows to set the order visitors see. Tap the star to feature a stack.</div>
+              <div style="border-top:1px solid oklch(91.8% 0.025 95);padding-top:12px;font-size:12px;color:oklch(47.1% 0.035 300);line-height:1.45;">{{ reorderHelp }}</div>
             </sc-if>
             <sc-if value="{{ myRowsEmpty }}" hint-placeholder-val="{{ false }}">
-              <div style="padding:30px 0;text-align:center;font-size:13px;color:oklch(41.5% 0.035 300);border-top:1px solid oklch(91.8% 0.025 95);">No stacks yet.</div>
+              <div style="padding:30px 0;text-align:center;font-size:13px;color:oklch(41.5% 0.035 300);border-top:1px solid oklch(91.8% 0.025 95);">{{ mineEmptyText }}</div>
             </sc-if>
           </div>
         </sc-if>
@@ -2739,7 +2753,7 @@ class Component extends DCLogic {
     linkDraft: { label: '', url: '' },
     profileSheet: null, reordering: false,
     myBio: "Collecting the small decisions so I don't have to remember them twice.",
-    bioDraft: '', myName: 'You', myHandle: 'you', myPhoto: null, helpQ: '', helpTopic: 'start', helpOpen: null, legalDoc: 'terms', cmConfirm: null, cmUndo: null, exploreAllCats: false, delAcct: null, acctDeleting: null, notifPrefs: { push: false, email: 'weekly', news: false, types: { comment: true, message: true, follow: true, answer: true, fork: true, pin: true, repost: false, save: false, like: true } }, netMode: 'normal', loading: null, pubErr: null, conflict: null, videoJob: null, photoMenu: false, crop: null, report: null, reports: [], nameDraft: '', handleDraft: '', photoDraft: null, showEditLinks: false,
+    bioDraft: '', myName: 'You', myHandle: 'you', myPhoto: null, helpQ: '', helpTopic: 'start', helpOpen: null, legalDoc: 'terms', cmConfirm: null, cmUndo: null, exploreAllCats: false, mineVis: 'public', delAcct: null, acctDeleting: null, notifPrefs: { push: false, email: 'weekly', news: false, types: { comment: true, message: true, follow: true, answer: true, fork: true, pin: true, repost: false, save: false, like: true } }, netMode: 'normal', loading: null, pubErr: null, conflict: null, videoJob: null, photoMenu: false, crop: null, report: null, reports: [], nameDraft: '', handleDraft: '', photoDraft: null, showEditLinks: false,
     mySocials: { x: 'you', instagram: 'you', tiktok: '', facebook: '', email: 'you@example.com', customType: 'Newsletter', customUrl: 'you.substack.com', site1Label: 'My newsletter', site1Url: 'you.substack.com', site2Label: 'Portfolio', site2Url: 'you.studio' },
     socialDraft: { x: '', instagram: '', tiktok: '', facebook: '', email: '', customType: 'Newsletter', customUrl: '' },
     showAuthModal: false,
@@ -3781,20 +3795,26 @@ class Component extends DCLogic {
     const profileCards = profileFiltered.map(cardVM);
     const mineAll = list.filter(l => l.isMine);
     const orderIdx = (id) => { const i = s.myOrder.indexOf(id); return i < 0 ? -1 : i; };
-    const mineOrdered = [...mineAll].sort((a, b) => ((b.id === s.pinnedId) - (a.id === s.pinnedId)) || (orderIdx(a.id) - orderIdx(b.id)));
+    // Only a Public Stack can be featured; a featured Stack that is no longer Public stops being featured.
+    const featId = (() => { const f = mineAll.find(l => l.id === s.pinnedId); return f && (f.visibility || 'public') === 'public' ? f.id : null; })();
+    const mineOrdered = [...mineAll].sort((a, b) => ((b.id === featId) - (a.id === featId)) || (orderIdx(a.id) - orderIdx(b.id)));
     const unitFor = (l) => { const t = l.tags || []; return t.includes('Travel & Places') || t.includes('Food & Drink') ? 'places' : t.includes('Learning') ? 'books' : 'lines'; };
     const metaFor = (l) => this._flatten(l).length + ' ' + unitFor(l) + ' · ' + (l.updatedAt ? 'Updated ' + this._ago(l.updatedAt) : l.timeAgo === 'just now' ? 'Updated just now' : 'Updated ' + l.timeAgo + ' ago');
-    const pinnedList = mineAll.find(l => l.id === s.pinnedId) || null;
+    const pinnedList = mineAll.find(l => l.id === featId) || null;
+    const mineGroup = s.mineVis === 'private' ? 'private' : 'public';
+    const isPubL = (l) => (l.visibility || 'public') === 'public';
+    const mineShown = mineOrdered.filter(l => mineGroup === 'public' ? isPubL(l) : !isPubL(l));
+    const minePubN = mineOrdered.filter(isPubL).length, minePrivN = mineOrdered.length - minePubN;
     const moveMine = (id, dir) => this.setState(st => {
-      const ids = [...mineOrdered.map(l => l.id)];
-      const i = ids.indexOf(id), j = i + dir;
-      if (i < 0 || j < 0 || j >= ids.length) return null;
-      [ids[i], ids[j]] = [ids[j], ids[i]];
+      const shown = mineShown.map(l => l.id), i = shown.indexOf(id), j = i + dir;
+      if (i < 0 || j < 0 || j >= shown.length) return null;
+      const ids = [...mineOrdered.map(l => l.id)]; const a = ids.indexOf(shown[i]), b = ids.indexOf(shown[j]);
+      [ids[a], ids[b]] = [ids[b], ids[a]];
       return { myOrder: ids };
     });
-    const myRows = mineOrdered.map((l, i) => {
-      const pinned = l.id === s.pinnedId;
-      return { ...this._themeVM(l),
+    const myRows = mineShown.map((l, i) => {
+      const pinned = l.id === featId;
+      return { ...this._themeVM(l), canFeature: mineGroup === 'public',
         visSuffix: (l.visibility || 'public') === 'public' ? '' : ' · ' + this.VIS[l.visibility].label,
         title: l.title, arrow: s.reordering ? '' : ' ↗', meta: metaFor(l),
         editing: s.reordering, showPinnedTag: pinned && !s.reordering,
@@ -3802,8 +3822,8 @@ class Component extends DCLogic {
         onOpen: () => { if (!this.state.reordering) this.openList(l.id, 'profile'); },
         onUp: (e) => { e.stopPropagation(); moveMine(l.id, -1); },
         onDown: (e) => { e.stopPropagation(); moveMine(l.id, 1); },
-        upOpacity: i === 0 ? 0.3 : 1, downOpacity: i === mineOrdered.length - 1 ? 0.3 : 1,
-        onPin: (e) => { e.stopPropagation(); this.setState({ pinnedId: pinned ? null : l.id }); },
+        upOpacity: i === 0 ? 0.3 : 1, downOpacity: i === mineShown.length - 1 ? 0.3 : 1,
+        onPin: (e) => { e.stopPropagation(); if (isPubL(l)) this.setState({ pinnedId: pinned ? null : l.id }); },
         pinTitle: pinned ? 'Remove from featured' : 'Feature on profile',
         pinBg: pinned ? 'oklch(91.8% 0.05 350)' : 'transparent',
         pinBorder: pinned ? 'oklch(56.3% 0.05 350)' : 'oklch(90.7% 0.025 95)',
@@ -3811,15 +3831,15 @@ class Component extends DCLogic {
         pinStroke: pinned ? 'oklch(55% 0.22 350)' : 'oklch(28.6% 0.035 300)',
       };
     });
-    const pinDraftId = s.pinDraft || s.pinnedId;
-    const pinChoices = mineOrdered.map(l => {
+    const pinDraftId = s.pinDraft || featId;
+    const pinChoices = mineOrdered.filter(isPubL).map(l => {
       const on = l.id === pinDraftId;
       return { title: l.title, meta: metaFor(l), onPick: () => this.setState({ pinDraft: l.id }),
         bg: on ? 'oklch(91.8% 0.05 350)' : 'transparent', ring: on ? 'oklch(55% 0.22 350)' : 'oklch(86.3% 0.025 95)', dot: on ? 'oklch(55% 0.22 350)' : 'transparent' };
     });
     const linkPresets = [['Get in touch', 'mailto:you@example.com'], ['Subscribe to my newsletter', 'you.substack.com'], ['Book a call', 'calendly.com/you'], ['Shop my picks', 'yourshop.com']]
       .map(([label, url]) => ({ label, onUse: () => this.setState({ linkDraft: { label, url } }) }));
-    const mineGrid = s.profileTab === 'mine' ? mineOrdered.map(l => {
+    const mineGrid = s.profileTab === 'mine' ? mineShown.map(l => {
       const flat = this._flatten(l);
       return { ...this._themeVM(l),
         title: l.title, lines: flat.slice(0, 3).map(f => ({ num: f.num, text: f.text })),
@@ -3827,8 +3847,8 @@ class Component extends DCLogic {
         visColor: (l.visibility || 'public') === 'public' ? 'oklch(41.5% 0.035 300)' : 'oklch(55% 0.22 350)',
         likes: this._fmt(l.likes), saves: this._fmt(l.saves), forks: this._fmt(l.forks),
         onOpen: () => this.openList(l.id, 'profile'),
-        vis: this._visVM(l.visibility), isPinned: l.id === s.pinnedId, titlePad: l.id === s.pinnedId ? '24px' : '0',
-        border: l.id === s.pinnedId ? 'oklch(86.3% 0.05 350)' : 'oklch(90.7% 0.025 95)',
+        vis: this._visVM(l.visibility), showVis: (l.visibility || 'public') !== 'public', isPinned: l.id === featId, titlePad: l.id === featId ? '24px' : '0',
+        border: l.id === featId ? 'oklch(86.3% 0.05 350)' : 'oklch(90.7% 0.025 95)',
       };
     }) : [];
 
@@ -4584,7 +4604,14 @@ class Component extends DCLogic {
       draftsBadge: s.drafts.length > 0 ? ' · ' + s.drafts.length : '',
 
       mineCount: list.filter(l => l.isMine).length,
-      selectTabMine: () => this.setState({ profileTab: 'mine' }),
+      selectTabMine: () => this.setState(st => st.profileTab === 'mine' ? { stacksMenuOpen: !st.stacksMenuOpen } : { profileTab: 'mine', stacksMenuOpen: false }),
+      mineTabActive: s.profileTab === 'mine', stacksMenuOpen: !!s.stacksMenuOpen && s.profileTab === 'mine', stacksChevron: s.stacksMenuOpen ? '180deg' : '0deg',
+      mineTabLabel: s.profileTab === 'mine' && s.mineVis === 'private' ? '\ud83d\udd12 Private' : 'Stacks',
+      mineIsPrivate: s.profileTab === 'mine' && s.mineVis === 'private', mineGroupName: s.mineVis === 'private' ? 'private stacks' : 'public stacks',
+      closeStacksMenu: () => this.setState({ stacksMenuOpen: false }),
+      stacksMenu: [['public', '\ud83c\udf10', 'Public', 'What visitors see'], ['private', '\ud83d\udd12', 'Private & unlisted', 'Only you see this list']].map(([k, icon, label, sub]) => { const on = (s.mineVis || 'public') === k; const n = s.lists.filter(l => l.isMine && (((l.visibility || 'public') === 'public') === (k === 'public'))).length; return { icon, label, sub, count: String(n), on, check: on ? '\u2713' : '', bg: on ? 'oklch(95% 0.05 350)' : 'transparent', pick: () => this.setState({ mineVis: k, stacksMenuOpen: false, reordering: false }) }; }),
+      menuReorder: () => this.setState(st => ({ reordering: !st.reordering, stacksMenuOpen: false })), menuReorderLabel: s.reordering ? 'Stop reordering' : 'Reorder',
+      menuManage: () => { this.setState({ stacksMenuOpen: false }); this.openScreen('manage'); },
       selectTabSaved: () => this.setState({ profileTab: 'saved' }),
       selectTabForked: () => this.setState({ profileTab: 'forked' }),
       selectTabDrafts: () => this.setState({ profileTab: 'drafts' }),
@@ -4592,7 +4619,11 @@ class Component extends DCLogic {
       draftsTabBorder: s.profileTab === 'drafts' ? 'oklch(22% 0.04 300)' : 'transparent',
       isDraftsTab: s.profileTab === 'drafts', showProfileCards: s.profileTab === 'forked' || (s.profileTab === 'mine' && profileCards.length === 0),
       isMineTab: s.profileTab === 'mine', mineGrid,
-      myRows, myRowsEmpty: myRows.length === 0, reordering: s.reordering,
+      mineSeg: [['public', '\ud83c\udf10 Public', minePubN], ['private', '\ud83d\udd12 Private', minePrivN]].map(([k, label, n]) => { const on = mineGroup === k; return { label: label + ' \u00b7 ' + n, on, bg: on ? 'oklch(22% 0.04 300)' : 'transparent', fg: on ? 'oklch(98% 0.02 95)' : 'oklch(22% 0.04 300)', pick: () => this.setState({ mineVis: k, reordering: false }) }; }),
+      mineNote: mineGroup === 'public' ? 'Everyone sees these on your profile.' : 'Only you see this list. Unlisted stacks open for anyone with the link; Private stacks only for you.',
+      mineEmptyText: mineGroup === 'public' ? 'No public stacks yet. Visitors see an empty profile until you publish one.' : 'No private or unlisted stacks.',
+      myRows, myRowsEmpty: mineShown.length === 0, reordering: s.reordering,
+      reorderHelp: mineGroup === 'public' ? 'Use the arrows to set the order visitors see. Tap the star to feature a stack.' : 'The arrows reorder only this list.',
       showMyGrid: (this.props.stacksLayout ?? 'grid') === 'grid' && !s.reordering && myRows.length > 0,
       showMyList: (this.props.stacksLayout ?? 'grid') !== 'grid' || s.reordering,
       toggleReorder: () => this.setState(st => ({ reordering: !st.reordering })),
@@ -4608,7 +4639,7 @@ class Component extends DCLogic {
       openPinPicker: (e) => { if (e) e.stopPropagation(); this.setState(st => ({ profileSheet: 'pin', pinDraft: st.pinnedId, pinNoteDraft: st.pinNote })); },
       pinChoices, pinNoteDraft: s.pinNoteDraft,
       onPinNote: (e) => this.setState({ pinNoteDraft: e.target.value.slice(0, 60) }),
-      savePin: () => this.setState(st => ({ pinnedId: st.pinDraft || st.pinnedId, pinNote: st.pinNoteDraft.trim(), profileSheet: null })),
+      savePin: () => this.setState(st => { const pick = st.lists.find(l => l.id === st.pinDraft && l.isMine && (l.visibility || 'public') === 'public'); return { pinnedId: pick ? pick.id : st.pinnedId, pinNote: st.pinNoteDraft.trim(), profileSheet: null }; }),
       openLinkEditor: () => this.setState(st => ({ profileSheet: 'link', linkDraft: st.featuredLink ? { label: st.featuredLink.label, url: st.featuredLink.url.replace(/^https?:\/\//, '') } : { label: '', url: '' } })),
       linkDraft: s.linkDraft, linkPresets,
       onLinkLabel: (e) => { const v = e.target.value.slice(0, 40); this.setState(st => ({ linkDraft: { ...st.linkDraft, label: v } })); },
