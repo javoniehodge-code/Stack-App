@@ -20,6 +20,15 @@ This covers migrations `20261126000000_gmail_alias_accounts` and `20261127000000
 
 It can do one thing: tell Stack's server which saved address owns an inbox. That's far narrower than the old `SUPABASE_SECRET_KEY`.
 
+## Current state (Nov 25, after rollout)
+
+**Rolled out and live.** PR #34 is merged and deployed to production.
+- **History:** live has both migrations recorded (22 rows).
+- **Token:** the sign-in token was replaced before the merge. The token whose raw value had been pasted into the SQL editor is retired and refused.
+- **Accounts:** 2 accounts, each with its correct inbox key. No shared inboxes.
+
+The full record is in "Rollout record" below.
+
 ## Live status, and the follow-up migration
 
 An earlier version of `20261126000000` is already applied and recorded on live (21 history rows). That version filled in keys for existing accounts first and installed the trigger after, without holding off sign-ups. So an account created or re-addressed in that gap could have been left without a key. The file in the repo is now the safe version, but live keeps what it recorded. Migrations aren't run twice under the same version.
@@ -31,13 +40,15 @@ An earlier version of `20261126000000` is already applied and recorded on live (
 - It changes no email address and no account id.
 - It also lets `resolve_sign_in_email` accept a second, "next" token, so the token can be rotated without downtime (below).
 
-A read-only check of live on Nov 25 found 2 accounts, 2 correct keys, none missing and no shared inboxes. On live it will therefore change no keys and only add rotation support. It hasn't been applied to live yet.
+A read-only check of live on Nov 25 found 2 accounts, 2 correct keys, none missing and no shared inboxes. On live it would therefore change no keys and only add rotation support. It was applied on Nov 25, and changed no keys (see "Rollout record").
 
 It's applied as step 1 of "Live rollout" below.
 
 ## Live rollout: from today's state to production
 
-Live today:
+This is the procedure that was followed on Nov 25 (see "Rollout record" below). It's kept as written, for reference.
+
+Live before the rollout:
 - `SIGN_IN_RESOLVER_TOKEN` is set in Vercel, and the earlier `20261126000000` is recorded (21 history rows).
 - A token hash is stored.
 - But that token's raw value was pasted into the Supabase SQL editor during setup. The editor can keep queries in its history and in saved snippets, and the database's logs can record statement text. So treat that token as exposed, and replace it before merging.
@@ -144,6 +155,27 @@ Undo the newest migration first.
    - then run `supabase migration repair --status reverted 20261126000000`;
    - check that the history shows 20 rows.
 4. Remove `SIGN_IN_RESOLVER_TOKEN` from Vercel.
+
+## Rollout record (Nov 25)
+
+Each step that changed live was approved by the owner before it ran.
+
+1. **Follow-up migration.** A read-only pre-check found 21 history rows, `20261127000000` not yet recorded, 2 accounts with correct keys and no shared inboxes.
+   - The migration was applied in one transaction, with its history row (`20261127000000`, `reconcile_email_keys`) inserted in the same transaction. This is the same method used for `20261126000000`; the file text was checked against the PR before it ran.
+   - After: 22 history rows. The key fingerprint was unchanged, nothing was missing or shared, and the trigger and grants were in place. The resolver accepts a "next" token.
+2. **New token**, made on the owner's Mac.
+3. **Vercel:** `SIGN_IN_RESOLVER_TOKEN` updated for Production and Preview.
+4. **New hash stored** as `sign_in_resolver_next`. Both tokens accepted.
+5. **Fresh PR #34 preview** (`dpl_4Q363HiT5A4biieYk9LtbMvHmM9y`), redeployed about 5 minutes after the last variable edit.
+6. **Preview check:** the regular Gmail address and its `+test` version both reached the same account, with no setup screen.
+7. **Old token retired**, in one transaction. Afterwards: one row, holding the former "next" hash; the old hash gone.
+8. **Preview check repeated** with only the new token: both passed.
+9. **SQL editor:** saved queries containing the old raw token were deleted.
+10. **PR #34 merged.** Production deployment `dpl_4KTsJdJKE6jhAokFZ62JxcP1nmAa` went Ready. The previous production deployment, `dpl_3b25pe7Lrcx5i2trX2QJuruW1eQB`, is the rollback target.
+11. **Production smoke test**, all passing:
+    - the regular Gmail address reached its profile;
+    - its `+test` version reached the same profile, with no setup screen;
+    - the other account (a non-Gmail address) reached its own profile.
 
 ## Known limit
 
