@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useAuth } from "@/components/AppProviders";
 import sheet from "@/components/Sheet.module.css";
 import { SocialIcon } from "@/components/SocialLinks";
+import { handleProblem, normalizeHandle } from "@/lib/handles";
 import { fetchProfile } from "@/lib/queries";
 import { CONTACT_TYPES, SOCIAL_FIELDS, toUrl } from "@/lib/socials";
 import { createClient } from "@/lib/supabase/client";
@@ -31,9 +32,10 @@ export default function EditProfileSheet({ mode = "profile", onClose }: { mode?:
     e.preventDefault();
     const changes: Partial<Profile> = {};
     if (mode === "profile") {
-      const h = handle.trim().replace(/^@/, "").toLowerCase();
-      if (!/^[a-z0-9._]{2,30}$/.test(h)) {
-        setError("Usernames are 2–30 characters: letters, numbers, dots and underscores.");
+      const h = normalizeHandle(handle);
+      const problem = h === viewer!.handle ? null : handleProblem(h);
+      if (problem) {
+        setError(problem);
         return;
       }
       if (!name.trim()) {
@@ -61,7 +63,7 @@ export default function EditProfileSheet({ mode = "profile", onClose }: { mode?:
     const data = error ? null : await fetchProfile(sb, "id", viewer!.id);
     setBusy(false);
     if (error) {
-      setError(error.code === "23505" ? "That handle is taken." : error.message);
+      setError(error.code === "23505" ? "That handle is taken." : error.code === "23514" ? "That username isn’t available. Try another." : error.message);
       return;
     }
     if (data) setViewer(data);

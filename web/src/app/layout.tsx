@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Mono, Inter } from "next/font/google";
+import { IBM_Plex_Mono, Inter, Outfit } from "next/font/google";
 import AppProviders from "@/components/AppProviders";
 import TabBar from "@/components/TabBar";
 import styles from "@/components/AppShell.module.css";
@@ -10,6 +10,7 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-inter" });
 const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-plex-mono" });
+const outfit = Outfit({ subsets: ["latin"], weight: ["600", "700", "800", "900"], variable: "--font-outfit" });
 
 export const metadata: Metadata = {
   title: { default: "Stack", template: "%s · Stack" },
@@ -32,7 +33,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     viewer = await fetchProfile(sb, "id", viewerId);
   }
   return (
-    <html lang="en" className={`${inter.variable} ${plexMono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${plexMono.variable} ${outfit.variable}`}>
       <body>
         <div className={styles.app}>
           <AppProviders initialViewer={viewer}>

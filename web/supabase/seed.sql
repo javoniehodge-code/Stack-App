@@ -10,10 +10,12 @@ values
   ('00000000-0000-0000-0000-000000000000', '33333333-3333-4333-8333-333333333333', 'authenticated', 'authenticated', 'june@example.com',   '', now(), '{"provider":"email","providers":["email"]}', '{"name":"June Ostrander"}', now(), now()),
   ('00000000-0000-0000-0000-000000000000', '44444444-4444-4444-8444-444444444444', 'authenticated', 'authenticated', 'kenji@example.com',  '', now(), '{"provider":"email","providers":["email"]}', '{"name":"Kenji Sato"}', now(), now());
 
-update public.profiles set handle = 'renata.diaz',  bio = 'Bartender turned travel writer. Mostly Mexico City, sometimes Oaxaca.' where id = '11111111-1111-4111-8111-111111111111';
-update public.profiles set handle = 'marcus.reads', bio = 'Reading 50 books a year and ranking all of them.' where id = '22222222-2222-4222-8222-222222222222';
-update public.profiles set handle = 'junehome',     bio = 'Small apartment, good objects. Etsy archaeologist.' where id = '33333333-3333-4333-8333-333333333333';
-update public.profiles set handle = 'kenji.eats',   bio = 'Will wait in any line for noodles.' where id = '44444444-4444-4444-8444-444444444444';
+-- Profiles are made when someone finishes sign-up (create_profile), so seeded accounts get theirs directly.
+insert into public.profiles (id, handle, name, bio) values
+  ('11111111-1111-4111-8111-111111111111', 'renata.diaz',  'Renata Díaz',    'Bartender turned travel writer. Mostly Mexico City, sometimes Oaxaca.'),
+  ('22222222-2222-4222-8222-222222222222', 'marcus.reads', 'Marcus Webb',    'Reading 50 books a year and ranking all of them.'),
+  ('33333333-3333-4333-8333-333333333333', 'junehome',     'June Ostrander', 'Small apartment, good objects. Etsy archaeologist.'),
+  ('44444444-4444-4444-8444-444444444444', 'kenji.eats',   'Kenji Sato',     'Will wait in any line for noodles.');
 
 insert into public.stacks (id, author_id, title, style, status, published_at, sections) values
 (

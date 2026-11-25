@@ -29,6 +29,22 @@
 
   --sans: var(--font-inter), Inter, -apple-system, sans-serif;
   --mono: var(--font-plex-mono), "IBM Plex Mono", monospace;
+  --display: var(--font-outfit), Outfit, var(--sans);
+
+  /* Party Mode tokens (docs/stack-spec.md › Shared styles). New Party Mode screens use these. */
+  --pm-ink: oklch(22% 0.04 300);
+  --pm-ink-strong: oklch(15% 0.05 300);
+  --pm-cream: oklch(98% 0.02 95);
+  --pm-paper: oklch(100% 0 0);
+  --pm-surface-muted: oklch(94.5% 0.025 95);
+  --pm-text-muted: oklch(42% 0.035 300);
+  --pm-divider: oklch(92% 0.02 95);
+  --pm-pink: oklch(55% 0.22 350);
+  --pm-yellow: oklch(92% 0.17 100);
+  --pm-danger: oklch(52% 0.2 25);
+  --pm-danger-text: oklch(45% 0.2 25);
+  --pm-success: oklch(90% 0.1 150);
+  --pm-success-text: oklch(42% 0.14 150);
 
   /* Device safe areas. The design's top paddings include a ~44px status bar. */
   --safe-top: env(safe-area-inset-top, 0px);
