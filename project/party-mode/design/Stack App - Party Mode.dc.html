@@ -1632,7 +1632,7 @@
                 </sc-if>
                 <sc-if value="{{ r.editing }}" hint-placeholder-val="{{ false }}">
                   <div style="display:flex;gap:6px;flex-shrink:0;">
-                    <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="{{ r.pinTitle }}" onClick="{{ r.onPin }}" title="{{ r.pinTitle }}" style="width:30px;height:30px;border-radius:8px;border:1px solid {{ r.pinBorder }};background:{{ r.pinBg }};display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="{{ r.pinFill }}" stroke="{{ r.pinStroke }}" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8-4.2-4.1 5.9-.9z"></path></svg></span>
+                    <sc-if value="{{ r.canFeature }}" hint-placeholder-val="{{ true }}"><span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="{{ r.pinTitle }}" onClick="{{ r.onPin }}" title="{{ r.pinTitle }}" style="width:30px;height:30px;border-radius:8px;border:1px solid {{ r.pinBorder }};background:{{ r.pinBg }};display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="{{ r.pinFill }}" stroke="{{ r.pinStroke }}" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8-4.2-4.1 5.9-.9z"></path></svg></span></sc-if>
                     <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="Move up" onClick="{{ r.onUp }}" title="Move up" style="width:30px;height:30px;border-radius:8px;border:1px solid oklch(90.7% 0.025 95);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;opacity:{{ r.upOpacity }};"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(28.6% 0.035 300)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 14l6-6 6 6"></path></svg></span>
                     <span role="button" tabIndex="0" onKeyDown="{{ a11yKey }}" aria-label="Move down" onClick="{{ r.onDown }}" title="Move down" style="width:30px;height:30px;border-radius:8px;border:1px solid oklch(90.7% 0.025 95);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;opacity:{{ r.downOpacity }};"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(28.6% 0.035 300)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 10l6 6 6-6"></path></svg></span>
                   </div>
@@ -1641,7 +1641,7 @@
             </sc-for>
             </sc-if>
             <sc-if value="{{ reordering }}" hint-placeholder-val="{{ false }}">
-              <div style="border-top:1px solid oklch(91.8% 0.025 95);padding-top:12px;font-size:12px;color:oklch(47.1% 0.035 300);line-height:1.45;">Use the arrows to set the order visitors see. Tap the star to feature a stack.</div>
+              <div style="border-top:1px solid oklch(91.8% 0.025 95);padding-top:12px;font-size:12px;color:oklch(47.1% 0.035 300);line-height:1.45;">{{ reorderHelp }}</div>
             </sc-if>
             <sc-if value="{{ myRowsEmpty }}" hint-placeholder-val="{{ false }}">
               <div style="padding:30px 0;text-align:center;font-size:13px;color:oklch(41.5% 0.035 300);border-top:1px solid oklch(91.8% 0.025 95);">{{ mineEmptyText }}</div>
@@ -3795,10 +3795,12 @@ class Component extends DCLogic {
     const profileCards = profileFiltered.map(cardVM);
     const mineAll = list.filter(l => l.isMine);
     const orderIdx = (id) => { const i = s.myOrder.indexOf(id); return i < 0 ? -1 : i; };
-    const mineOrdered = [...mineAll].sort((a, b) => ((b.id === s.pinnedId) - (a.id === s.pinnedId)) || (orderIdx(a.id) - orderIdx(b.id)));
+    // Only a Public Stack can be featured; a featured Stack that is no longer Public stops being featured.
+    const featId = (() => { const f = mineAll.find(l => l.id === s.pinnedId); return f && (f.visibility || 'public') === 'public' ? f.id : null; })();
+    const mineOrdered = [...mineAll].sort((a, b) => ((b.id === featId) - (a.id === featId)) || (orderIdx(a.id) - orderIdx(b.id)));
     const unitFor = (l) => { const t = l.tags || []; return t.includes('Travel & Places') || t.includes('Food & Drink') ? 'places' : t.includes('Learning') ? 'books' : 'lines'; };
     const metaFor = (l) => this._flatten(l).length + ' ' + unitFor(l) + ' · ' + (l.updatedAt ? 'Updated ' + this._ago(l.updatedAt) : l.timeAgo === 'just now' ? 'Updated just now' : 'Updated ' + l.timeAgo + ' ago');
-    const pinnedList = mineAll.find(l => l.id === s.pinnedId) || null;
+    const pinnedList = mineAll.find(l => l.id === featId) || null;
     const mineGroup = s.mineVis === 'private' ? 'private' : 'public';
     const isPubL = (l) => (l.visibility || 'public') === 'public';
     const mineShown = mineOrdered.filter(l => mineGroup === 'public' ? isPubL(l) : !isPubL(l));
@@ -3811,8 +3813,8 @@ class Component extends DCLogic {
       return { myOrder: ids };
     });
     const myRows = mineShown.map((l, i) => {
-      const pinned = l.id === s.pinnedId;
-      return { ...this._themeVM(l),
+      const pinned = l.id === featId;
+      return { ...this._themeVM(l), canFeature: mineGroup === 'public',
         visSuffix: (l.visibility || 'public') === 'public' ? '' : ' · ' + this.VIS[l.visibility].label,
         title: l.title, arrow: s.reordering ? '' : ' ↗', meta: metaFor(l),
         editing: s.reordering, showPinnedTag: pinned && !s.reordering,
@@ -3821,7 +3823,7 @@ class Component extends DCLogic {
         onUp: (e) => { e.stopPropagation(); moveMine(l.id, -1); },
         onDown: (e) => { e.stopPropagation(); moveMine(l.id, 1); },
         upOpacity: i === 0 ? 0.3 : 1, downOpacity: i === mineShown.length - 1 ? 0.3 : 1,
-        onPin: (e) => { e.stopPropagation(); this.setState({ pinnedId: pinned ? null : l.id }); },
+        onPin: (e) => { e.stopPropagation(); if (isPubL(l)) this.setState({ pinnedId: pinned ? null : l.id }); },
         pinTitle: pinned ? 'Remove from featured' : 'Feature on profile',
         pinBg: pinned ? 'oklch(91.8% 0.05 350)' : 'transparent',
         pinBorder: pinned ? 'oklch(56.3% 0.05 350)' : 'oklch(90.7% 0.025 95)',
@@ -3829,8 +3831,8 @@ class Component extends DCLogic {
         pinStroke: pinned ? 'oklch(55% 0.22 350)' : 'oklch(28.6% 0.035 300)',
       };
     });
-    const pinDraftId = s.pinDraft || s.pinnedId;
-    const pinChoices = mineOrdered.map(l => {
+    const pinDraftId = s.pinDraft || featId;
+    const pinChoices = mineOrdered.filter(isPubL).map(l => {
       const on = l.id === pinDraftId;
       return { title: l.title, meta: metaFor(l), onPick: () => this.setState({ pinDraft: l.id }),
         bg: on ? 'oklch(91.8% 0.05 350)' : 'transparent', ring: on ? 'oklch(55% 0.22 350)' : 'oklch(86.3% 0.025 95)', dot: on ? 'oklch(55% 0.22 350)' : 'transparent' };
@@ -3845,8 +3847,8 @@ class Component extends DCLogic {
         visColor: (l.visibility || 'public') === 'public' ? 'oklch(41.5% 0.035 300)' : 'oklch(55% 0.22 350)',
         likes: this._fmt(l.likes), saves: this._fmt(l.saves), forks: this._fmt(l.forks),
         onOpen: () => this.openList(l.id, 'profile'),
-        vis: this._visVM(l.visibility), showVis: (l.visibility || 'public') !== 'public', isPinned: l.id === s.pinnedId, titlePad: l.id === s.pinnedId ? '24px' : '0',
-        border: l.id === s.pinnedId ? 'oklch(86.3% 0.05 350)' : 'oklch(90.7% 0.025 95)',
+        vis: this._visVM(l.visibility), showVis: (l.visibility || 'public') !== 'public', isPinned: l.id === featId, titlePad: l.id === featId ? '24px' : '0',
+        border: l.id === featId ? 'oklch(86.3% 0.05 350)' : 'oklch(90.7% 0.025 95)',
       };
     }) : [];
 
@@ -4621,6 +4623,7 @@ class Component extends DCLogic {
       mineNote: mineGroup === 'public' ? 'Everyone sees these on your profile.' : 'Only you see this list. Unlisted stacks open for anyone with the link; Private stacks only for you.',
       mineEmptyText: mineGroup === 'public' ? 'No public stacks yet. Visitors see an empty profile until you publish one.' : 'No private or unlisted stacks.',
       myRows, myRowsEmpty: mineShown.length === 0, reordering: s.reordering,
+      reorderHelp: mineGroup === 'public' ? 'Use the arrows to set the order visitors see. Tap the star to feature a stack.' : 'The arrows reorder only this list.',
       showMyGrid: (this.props.stacksLayout ?? 'grid') === 'grid' && !s.reordering && myRows.length > 0,
       showMyList: (this.props.stacksLayout ?? 'grid') !== 'grid' || s.reordering,
       toggleReorder: () => this.setState(st => ({ reordering: !st.reordering })),
@@ -4636,7 +4639,7 @@ class Component extends DCLogic {
       openPinPicker: (e) => { if (e) e.stopPropagation(); this.setState(st => ({ profileSheet: 'pin', pinDraft: st.pinnedId, pinNoteDraft: st.pinNote })); },
       pinChoices, pinNoteDraft: s.pinNoteDraft,
       onPinNote: (e) => this.setState({ pinNoteDraft: e.target.value.slice(0, 60) }),
-      savePin: () => this.setState(st => ({ pinnedId: st.pinDraft || st.pinnedId, pinNote: st.pinNoteDraft.trim(), profileSheet: null })),
+      savePin: () => this.setState(st => { const pick = st.lists.find(l => l.id === st.pinDraft && l.isMine && (l.visibility || 'public') === 'public'); return { pinnedId: pick ? pick.id : st.pinnedId, pinNote: st.pinNoteDraft.trim(), profileSheet: null }; }),
       openLinkEditor: () => this.setState(st => ({ profileSheet: 'link', linkDraft: st.featuredLink ? { label: st.featuredLink.label, url: st.featuredLink.url.replace(/^https?:\/\//, '') } : { label: '', url: '' } })),
       linkDraft: s.linkDraft, linkPresets,
       onLinkLabel: (e) => { const v = e.target.value.slice(0, 40); this.setState(st => ({ linkDraft: { ...st.linkDraft, label: v } })); },
