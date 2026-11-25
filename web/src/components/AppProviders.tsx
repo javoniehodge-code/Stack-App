@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { clearPending, savePending, takePending, type PendingSignIn } from "@/lib/pendingSignIn";
 import { createClient } from "@/lib/supabase/client";
 import { resetStore } from "@/lib/store";
 import type { Profile } from "@/lib/types";
@@ -11,11 +12,57 @@ import styles from "./AppShell.module.css";
 type AuthCtx = {
   viewer: Profile | null;
   setViewer: (p: Profile | null) => void;
-  /** Runs `action` now if signed in; otherwise asks the viewer to sign in first. */
-  requireAuth: (action: (() => void) | null, message: string) => void;
+  /**
+   * Runs `action` now if signed in; otherwise asks the viewer to sign in first. `resume` names the action for a
+   * sign-in that leaves the page (Google): a component registers it with useResume, so it can be finished on return.
+   */
+  requireAuth: (action: (() => void) | null, message: string, resume?: string) => void;
 };
 const AuthContext = createContext<AuthCtx | null>(null);
-type Attempt = { id: number; message: string; action: (() => void) | null; opener: HTMLElement | null };
+type Attempt = { id: number; message: string; action: (() => void) | null; resume: string | null; notice: string; opener: HTMLElement | null };
+
+/**
+ * Finishes a named action after a sign-in that left the page. `rest` is what follows the registered key in the
+ * action's name (for `reply:<stack>` registered and `reply:<stack>:<comment>` resumed, it's the comment id);
+ * `state` is what `stash` returned before leaving. It runs once, with the viewer signed in, and must do the work
+ * directly rather than through requireAuth.
+ */
+type Resumer = { run: (rest: string, state: unknown) => void; stash?: () => unknown };
+const ResumeContext = createContext<Map<string, Resumer> | null>(null);
+
+/** Registers how to finish the action named `key` (see Resumer). Null registers nothing. */
+export function useResume(key: string | null, run: Resumer["run"], stash?: Resumer["stash"]) {
+  const map = useContext(ResumeContext);
+  const latest = useRef({ run, stash });
+  useEffect(() => {
+    latest.current = { run, stash };
+  });
+  useEffect(() => {
+    if (!map || !key) return;
+    const r: Resumer = { run: (rest, state) => latest.current.run(rest, state), stash: () => latest.current.stash?.() };
+    map.set(key, r);
+    return () => {
+      if (map.get(key) === r) map.delete(key);
+    };
+  }, [map, key]);
+}
+
+/** The registered resumer whose key is the longest `:`-separated prefix of `name`, and the rest of the name. */
+function findResumer(map: Map<string, Resumer>, name: string): [Resumer, string] | null {
+  const parts = name.split(":");
+  for (let i = parts.length; i > 0; i--) {
+    const r = map.get(parts.slice(0, i).join(":"));
+    if (r) return [r, parts.slice(i).join(":")];
+  }
+  return null;
+}
+
+// What the sign-in sheet says when it reopens after Google.
+const GOOGLE_NOTICE: Record<string, string> = {
+  cancelled: "",
+  existing: "This Gmail inbox already has a Stack account. Continue with email to sign in to it.",
+  failed: "Couldn’t sign in with Google. Try again, or continue with email.",
+};
 /** A button on a toast, such as Undo. */
 export type ToastAction = { label: string; run: () => void };
 const ToastContext = createContext<(msg: string, action?: ToastAction) => void>(() => {});
@@ -40,6 +87,7 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
   const attempts = useRef(0);
   const [toast, setToast] = useState<{ msg: string; action?: ToastAction } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [resumers] = useState(() => new Map<string, Resumer>());
 
   // Count in-app navigations so Back knows whether there is anywhere to go back to.
   const depth = useRef(0);
@@ -64,19 +112,65 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
     return () => data.subscription.unsubscribe();
   }, []);
 
+  /** Opens the sign-in sheet for a new attempt, replacing any open one. */
+  const openAttempt = useCallback((message: string, action: (() => void) | null, resume: string | null, notice = "") => {
+    const opener = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
+    const a: Attempt = { id: ++attempts.current, message, action, resume, notice, opener };
+    attempt.current = a;
+    setSheet(a);
+  }, []);
+
   const requireAuth = useCallback(
-    (action: (() => void) | null, message: string) => {
+    (action: (() => void) | null, message: string, resume?: string) => {
       if (viewer) {
         action?.();
         return;
       }
-      const opener = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
-      const a: Attempt = { id: ++attempts.current, message, action, opener };
-      attempt.current = a;
-      setSheet(a);
+      openAttempt(message, action, resume ?? null);
     },
-    [viewer],
+    [viewer, openAttempt],
   );
+
+  /**
+   * Continue with Google for attempt `a`: saves what's needed to finish its action on return, then leaves for
+   * Google. Resolves with an error message if Google couldn't be reached (the page stays).
+   */
+  const startGoogle = async (a: Attempt): Promise<string | null> => {
+    const path = window.location.pathname + window.location.search;
+    const found = a.resume ? findResumer(resumers, a.resume) : null;
+    savePending({ path, message: a.message, resume: a.resume, state: found?.[0].stash?.() ?? null });
+    const { error } = await createClient().auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(path)}` },
+    });
+    if (!error) return null;
+    clearPending();
+    return "Couldn’t reach Google. Check your connection and try again.";
+  };
+
+  const runResume = (p: PendingSignIn) => {
+    const found = p.resume ? findResumer(resumers, p.resume) : null;
+    found?.[0].run(found[1], p.state);
+  };
+
+  // Back from Google (the callback adds ?signin=<result>): finish the saved action, or reopen the sheet. Any other
+  // page load drops a saved action, since the visitor left the sign-in. Runs after the page's own effects, so the
+  // page's resumers are registered by then.
+  useEffect(() => {
+    const pending = takePending();
+    const url = new URL(window.location.href);
+    const result = url.searchParams.get("signin");
+    if (!result) return;
+    url.searchParams.delete("signin");
+    window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+    const resume = pending?.resume ? () => runResume(pending) : null;
+    // Signed in to an account with a profile: the page already shows it signed in.
+    if (result === "google" && initialViewer) return resume?.();
+    // Signed in without a profile yet: the sheet continues at choosing a name. Otherwise it starts over.
+    openAttempt(pending?.message ?? "Sign in or create an account.", resume, pending?.resume ?? null, GOOGLE_NOTICE[result] ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   /** Puts focus back on what opened the sheet, once the sheet is gone, if it's still on the page. */
   const refocus = (a: Attempt) =>
@@ -116,6 +210,7 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
 
   return (
     <AuthContext.Provider value={{ viewer, setViewer, requireAuth }}>
+      <ResumeContext.Provider value={resumers}>
       <ToastContext.Provider value={showToast}>
         <BackContext.Provider value={back}>
           {children}
@@ -141,6 +236,8 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
             <AuthSheet
               key={sheet.id}
               message={sheet.message}
+              notice={sheet.notice}
+              onGoogle={() => startGoogle(sheet)}
               isCurrent={() => attempt.current?.id === sheet.id}
               onCancel={() => cancelAttempt(sheet.id)}
               onSignedIn={(p) => completeAttempt(sheet.id, p)}
@@ -148,6 +245,7 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
           )}
         </BackContext.Provider>
       </ToastContext.Provider>
+      </ResumeContext.Provider>
     </AuthContext.Provider>
   );
 }

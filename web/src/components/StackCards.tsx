@@ -9,7 +9,7 @@ import { useEngagement, useIsFollowing, useVisibility } from "@/lib/store";
 import type { Comment, FeedItem, Stack } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 import { useStackActions } from "@/lib/useStackActions";
-import { useAuth, useToast } from "./AppProviders";
+import { useAuth, useResume, useToast } from "./AppProviders";
 import CommentBody from "./CommentBody";
 import { BookmarkIcon, RepostIcon } from "./icons";
 import { MentionList, useMentions } from "./Mentions";
@@ -147,7 +147,7 @@ function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode })
     const body = draft.trim();
     if (!body || posting) return;
     // Signed-out viewers get the sign-in sheet; the draft stays so they can post after.
-    if (!viewer) return requireAuth(null, "Sign in to join the conversation.");
+    if (!viewer) return requireAuth(null, "Sign in to join the conversation.", `comment:${stack.id}`);
     setPosting(true);
     const data = await postComment(createClient(), stack.id, body, replyTo?.id ?? null);
     setPosting(false);
@@ -161,13 +161,27 @@ function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode })
   }
 
   // Replies attach to the top-level comment and start with the person's @handle, so they're notified.
-  const startReply = (c: Comment) =>
-    requireAuth(() => {
-      const handle = c.author?.handle;
-      setReplyTo({ id: threadRoot(c), handle: handle ?? "deleted" });
-      if (handle && handle !== viewer?.handle && !draft.includes(`@${handle}`)) setDraft((d) => `@${handle} ${d}`.slice(0, 500));
-      inputRef.current?.focus();
-    }, "Sign in to reply.");
+  const beginReply = (c: Comment) => {
+    const handle = c.author?.handle;
+    setReplyTo({ id: threadRoot(c), handle: handle ?? "deleted" });
+    if (handle && handle !== viewer?.handle && !draft.includes(`@${handle}`)) setDraft((d) => `@${handle} ${d}`.slice(0, 500));
+    inputRef.current?.focus();
+  };
+  const startReply = (c: Comment) => requireAuth(() => beginReply(c), "Sign in to reply.", `comment:${stack.id}:${c.id}`);
+
+  // Back from a Google sign-in started by commenting or replying: the comments open again with what was typed,
+  // and a reply is started on the same comment.
+  useResume(
+    `comment:${stack.id}`,
+    (commentId, state) => {
+      setShowComments(true);
+      const typed = (state as { draft?: unknown } | null)?.draft;
+      if (typeof typed === "string") setDraft(typed);
+      const c = commentId ? comments.find((x) => x.id === commentId) : null;
+      if (c) beginReply(c);
+    },
+    () => ({ draft }),
+  );
 
   return (
     <article className={s.feedCard}>

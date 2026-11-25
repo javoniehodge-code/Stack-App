@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { useAuth, useBack, useToast } from "@/components/AppProviders";
+import { useAuth, useBack, useResume, useToast } from "@/components/AppProviders";
 import CommentBody from "@/components/CommentBody";
 import { BackIcon, BookmarkIcon } from "@/components/icons";
 import { RepostButton } from "@/components/Repost";
@@ -85,18 +85,32 @@ export default function DetailScreen({
   const saveColor = e.saved ? "var(--accent)" : "var(--muted-66)";
 
   // Replies attach to the top-level comment and start with the person's @handle, so they're notified.
-  const startReply = (c: Comment) =>
-    requireAuth(() => {
-      const handle = c.author?.handle;
-      setReplyTo({ id: threadRoot(c), handle: handle ?? "deleted" });
-      if (handle && handle !== viewer?.handle && !draft.includes(`@${handle}`)) setDraft((d) => `@${handle} ${d}`.slice(0, 500));
-    }, "Sign in to reply.");
+  const beginReply = (c: Comment) => {
+    const handle = c.author?.handle;
+    setReplyTo({ id: threadRoot(c), handle: handle ?? "deleted" });
+    if (handle && handle !== viewer?.handle && !draft.includes(`@${handle}`)) setDraft((d) => `@${handle} ${d}`.slice(0, 500));
+  };
+  const startReply = (c: Comment) => requireAuth(() => beginReply(c), "Sign in to reply.", `comment:${stack.id}:${c.id}`);
+
+  // Back from a Google sign-in started by commenting or replying: the comments open again with what was typed,
+  // and a reply is started on the same comment.
+  useResume(
+    `comment:${stack.id}`,
+    (commentId, state) => {
+      setSheetOpen(true);
+      const typed = (state as { draft?: unknown } | null)?.draft;
+      if (typeof typed === "string") setDraft(typed);
+      const c = commentId ? comments.find((x) => x.id === commentId) : null;
+      if (c) beginReply(c);
+    },
+    () => ({ draft }),
+  );
 
   async function post(ev: React.FormEvent) {
     ev.preventDefault();
     const body = draft.trim();
     if (!body) return;
-    if (!viewer) return requireAuth(null, "Sign in to join the conversation.");
+    if (!viewer) return requireAuth(null, "Sign in to join the conversation.", `comment:${stack.id}`);
     setPosting(true);
     const data = await postComment(createClient(), stack.id, body, replyTo?.id ?? null);
     setPosting(false);
@@ -236,7 +250,7 @@ export default function DetailScreen({
                     className={s.composerInput}
                     value={draft}
                     rows={1}
-                    onFocus={() => !viewer && requireAuth(null, "Sign in to join the conversation.")}
+                    onFocus={() => !viewer && requireAuth(null, "Sign in to join the conversation.", `comment:${stack.id}`)}
                     onChange={(ev) => {
                       setDraft(ev.target.value.slice(0, 500));
                       mentions.track(ev.target);

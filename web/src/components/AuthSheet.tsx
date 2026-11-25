@@ -33,19 +33,25 @@ const attemptClient = () =>
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: `stack-attempt-${crypto.randomUUID()}` },
   });
 
-// One screen for signing in and creating an account (spec Flow 10): email, a 6-digit code, and for a new
-// account a display name and username.
+// One screen for signing in and creating an account (spec Flow 10): Continue with Google, or email and a 6-digit
+// code; for a new account, then a display name and username. Google leaves the page (see AppProviders), so the
+// sheet only starts it; on return the app reopens the sheet where needed, with `notice` if it didn't work.
 //
 // Every sheet belongs to one sign-in attempt. `isCurrent` says whether that attempt is still the open one;
 // `onSignedIn` completes it (runs its pending action once) and returns false if it was already cancelled or
 // replaced. Results that arrive for a stale attempt are dropped, and their session is revoked.
 export default function AuthSheet({
   message,
+  notice = "",
+  onGoogle,
   isCurrent,
   onCancel,
   onSignedIn,
 }: {
   message: string;
+  notice?: string;
+  /** Leaves for Google; resolves with an error message if that wasn't possible. */
+  onGoogle: () => Promise<string | null>;
   isCurrent: () => boolean;
   onCancel: () => void;
   onSignedIn: (p: Profile) => boolean;
@@ -71,7 +77,8 @@ export default function AuthSheet({
   // Server answer for a username: whether it's free (null while unknown, for example after a network error).
   const [avail, setAvail] = useState<{ handle: string; free: boolean | null } | null>(null);
   const [verifiedEmail, setVerifiedEmail] = useState("");
-  const [busy, setBusy] = useState<null | "sending" | "checking" | "creating">(null);
+  const [busy, setBusy] = useState<null | "google" | "sending" | "checking" | "creating">(null);
+  const [startError, setStartError] = useState(notice);
   // While Create account is saving, the sheet stays open: closing it then would leave the outcome unclear.
   const committing = useRef(false);
   const close = () => {
@@ -147,10 +154,22 @@ export default function AuthSheet({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onCancel]);
 
-  // While checking a code there's nothing to focus, so the sheet itself holds focus.
+  // While checking a code or connecting to Google there's nothing to focus, so the sheet itself holds focus.
   useEffect(() => {
-    if (busy === "checking") dialog.current?.focus();
+    if (busy === "checking" || busy === "google") dialog.current?.focus();
   }, [busy]);
+
+  async function google() {
+    if (busy) return;
+    setBusy("google");
+    setStartError("");
+    const err = await onGoogle();
+    // On success the browser is already on its way to Google; the sheet stays as it is until then.
+    if (err) {
+      setStartError(err);
+      setBusy(null);
+    }
+  }
 
   // Ticks the resend countdown.
   useEffect(() => {
@@ -311,13 +330,13 @@ export default function AuthSheet({
       <div ref={dialog} tabIndex={-1} className={s.sheet} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="auth-title" aria-busy={busy === "creating"}>
         <div className={s.grabber} aria-hidden="true" />
 
-        {busy === "checking" ? (
+        {busy === "checking" || busy === "google" ? (
           <div className={s.busy} role="status">
             <span aria-hidden="true" className={s.bounce}>
-              ✉️
+              {busy === "google" ? "🔐" : "✉️"}
             </span>
             <div className={s.busyLabel} id="auth-title">
-              Checking your code…
+              {busy === "google" ? "Connecting to Google…" : "Checking your code…"}
             </div>
           </div>
         ) : step === "start" ? (
@@ -331,10 +350,21 @@ export default function AuthSheet({
               Sign in or join stack
             </h2>
             <p className={`${s.text} ${s.center}`}>{message}</p>
-            <button type="button" className={s.primary} onClick={() => setStep("email")} autoFocus>
-              <span aria-hidden="true">✉️</span>
-              <span>Continue with email</span>
-            </button>
+            {startError && (
+              <div role="alert" className={`${s.error} ${s.center}`} style={{ marginBottom: 14 }}>
+                {startError}
+              </div>
+            )}
+            <div className={s.choices}>
+              <button type="button" className={s.google} onClick={google} autoFocus>
+                <GoogleIcon />
+                <span>Continue with Google</span>
+              </button>
+              <button type="button" className={s.primary} onClick={() => setStep("email")}>
+                <span aria-hidden="true">✉️</span>
+                <span>Continue with email</span>
+              </button>
+            </div>
             <p className={s.fine}>New here? We’ll set up your account. Already have one? You’ll go straight in.</p>
             <button type="button" className={s.quiet} onClick={onCancel}>
               Not now
@@ -498,5 +528,16 @@ export default function AuthSheet({
         )}
       </div>
     </div>
+  );
+}
+
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6C43.9 38 46.5 31.8 46.5 24.5z" />
+      <path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z" />
+      <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.1 1.4-4.9 2.3-8.2 2.3-6.2 0-11.5-4.1-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z" />
+    </svg>
   );
 }

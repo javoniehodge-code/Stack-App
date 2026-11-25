@@ -195,6 +195,39 @@ async function delayFirstResponse(page, pattern, ms) {
 
 const browser = await chromium.launch();
 const phone = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true };
+// Accounts made by scenarios 3 (email code, work address) and 7 (email code, dotted Gmail), reused by 8.
+let s3Email = "";
+let s7Saved = "";
+
+/**
+ * Plays Google's consent screen. The next "Continue with Google" reaches Supabase Auth's /authorize, which would
+ * send the browser to accounts.google.com; instead the browser goes straight back to Auth's callback, as Google
+ * would after the visitor picks `googleEmail` (or, with `cancel`, backs out). Auth then exchanges the code with
+ * the fake Google server (e2e/fake-google.mjs), which vouches for that address. With `away`, the browser is left
+ * on a stand-in Google page instead, as if the visitor never came back.
+ */
+async function playGoogle(page, googleEmail, { cancel = false, away = false } = {}) {
+  await page.route(
+    "**/auth/v1/authorize?*",
+    async (route) => {
+      if (away) return route.fulfill({ status: 200, contentType: "text/html", body: "<title>Google</title>Choose an account" });
+      const res = await route.fetch({ maxRedirects: 0 });
+      const google = new URL(res.headers()["location"]);
+      if (google.hostname !== "accounts.google.com") throw new Error(`Auth sent the browser to ${google.hostname}`);
+      const back = new URL(google.searchParams.get("redirect_uri"));
+      back.searchParams.set("state", google.searchParams.get("state"));
+      if (cancel) {
+        back.searchParams.set("error", "access_denied");
+        back.searchParams.set("error_description", "The user denied access");
+      } else back.searchParams.set("code", Buffer.from(JSON.stringify({ email: googleEmail, sub: `google-${googleEmail}` })).toString("base64url"));
+      await route.fulfill({ status: 302, headers: { location: back.toString() } });
+    },
+    { times: 1 },
+  );
+}
+/** Providers linked to the account with `email`, e.g. "email,google". */
+const providersOf = (email) =>
+  sql(`select coalesce(string_agg(i.provider, ',' order by i.provider), '') from auth.users u left join auth.identities i on i.user_id = u.id where u.email = '${email}'`);
 
 // 0a. A slow code check that finishes after its sheet was closed and another opened from a different action.
 //     The late result must not run the first action, close the newer sheet, or sign the browser in.
@@ -374,6 +407,7 @@ const phone = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isM
 // 3. New user from Create (+): verify, then choose a name and username before any profile exists; then Create opens.
 {
   const email = newEmail("new");
+  s3Email = email;
   const newHandle = `tester.${RUN}`; // unique per run, so reruns don't collide
   const ctx = await browser.newContext(phone);
   const page = await ctx.newPage();
@@ -440,6 +474,7 @@ const phone = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isM
 //    whether an account exists.
 {
   const saved = track(`g.${RUN}.tester@gmail.com`);
+  s7Saved = saved;
   const key = `g${RUN}tester@gmail.com`;
   const handle = `g${RUN}`;
   const ctx = await browser.newContext(phone);
@@ -535,6 +570,162 @@ const phone = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isM
     accountsForInbox(`race${RUN}@gmail.com`) === "1" && sql(`select count(*) from auth.users where email in ('${raceA}', '${raceB}')`) === "1" && ra.status < 500 && rb.status < 500,
     `${ra.status} / ${rb.status}`,
   );
+}
+
+// 8. Continue with Google. The page is left for Google and reloaded on return, so the action that asked for
+//    sign-in is saved first and finished once on return; Google can't make a second account for a Gmail inbox.
+{
+  const stackId = FX.stack;
+  const likesOn = () => Number(sql(`select count(*) from public.likes where stack_id = '${stackId}'`));
+  const likesBy = (email) => sql(`select count(*) from public.likes l join auth.users u on u.id = l.user_id where l.stack_id = '${stackId}' and u.email = '${email}'`);
+  const card = (page) => page.locator("article", { hasText: STACK_TITLE }).first();
+
+  // 8a. A new person: Like → Google → back on the same page at "Make it yours" → the Like happens after setup.
+  {
+    const gmail = track(`goog.${RUN}.new@gmail.com`);
+    const ctx = await browser.newContext(phone);
+    const page = await ctx.newPage();
+    await page.goto(APP + "/");
+    await card(page).getByRole("button", { name: "Like", exact: true }).click();
+    await page.getByRole("dialog").waitFor();
+    await page.screenshot({ path: "/tmp/claude-0/testenv/shot-5-google-start-phone.png" });
+    await playGoogle(page, gmail);
+    await page.getByRole("button", { name: "Continue with Google" }).click();
+    await page.getByRole("heading", { name: "Make it yours" }).waitFor();
+    check("8a-1. Back from Google on the same page, without the result left in the address", new URL(page.url()).pathname === "/" && !page.url().includes("signin="), page.url());
+    check("8a-2. A new Google account continues at choosing a name, with its address shown as verified", await page.getByText(`✓ ${gmail} verified`).isVisible());
+    check("8a-3. The Like waits for the profile", likesBy(gmail) === "0");
+    await page.getByLabel("Display name").fill("Google Tester");
+    await page.getByLabel("Username").fill(`goog${RUN}`);
+    await page.getByText("✓ Available").waitFor();
+    await page.getByRole("button", { name: "Create account", exact: true }).click();
+    await page.getByRole("dialog").waitFor({ state: "detached" });
+    await card(page).getByRole("button", { name: "Unlike" }).waitFor({ timeout: 10000 }).catch(() => {});
+    check("8a-4. After setup the Like ran exactly once, for the new account", likesBy(gmail) === "1", `likes by the account: ${likesBy(gmail)}`);
+    check("8a-5. One account, signed in with Google", sql(`select count(*) from auth.users where email = '${gmail}'`) === "1" && providersOf(gmail) === "google", providersOf(gmail));
+    await page.reload();
+    check("8a-6. Still signed in and liked after a reload", await card(page).getByRole("button", { name: "Unlike" }).isVisible());
+    await ctx.close();
+  }
+
+  // 8b. The same address as an email-code account: Google is added to that account, which signs straight in.
+  {
+    const ctx = await browser.newContext(phone);
+    const page = await ctx.newPage();
+    const uid = sql(`select id from auth.users where email = '${s3Email}'`);
+    await page.goto(APP + "/");
+    await card(page).getByRole("button", { name: "Save", exact: true }).click();
+    await page.getByRole("dialog").waitFor();
+    await playGoogle(page, s3Email);
+    await page.getByRole("button", { name: "Continue with Google" }).click();
+    await card(page).getByRole("button", { name: "Unsave" }).waitFor({ timeout: 15000 }).catch(() => {});
+    const saves = sql(`select count(*) from public.saves where stack_id = '${stackId}' and user_id = '${uid}'`);
+    check("8b-1. Returning account: no sheet, signed straight in, and the Save ran once", !(await page.getByRole("dialog").isVisible()) && saves === "1", `saves ${saves}`);
+    check("8b-2. Same account: one user for the address, now with both email and Google", sql(`select count(*) from auth.users where email = '${s3Email}'`) === "1" && providersOf(s3Email) === "email,google" && sql(`select id from auth.users where email = '${s3Email}'`) === uid, providersOf(s3Email));
+    // Create from the tab bar, after logging out: Google brings the returning account to Create.
+    await logout(page);
+    await page.getByRole("link", { name: "Create" }).click();
+    await page.getByRole("dialog").waitFor();
+    await playGoogle(page, s3Email);
+    await page.getByRole("button", { name: "Continue with Google" }).click();
+    await page.waitForURL(/\/create/, { timeout: 15000 }).catch(() => {});
+    check("8b-3. Create, via Google: the editor opens after sign-in", new URL(page.url()).pathname === "/create", page.url());
+    await ctx.close();
+  }
+
+  // 8c. Task 1b acceptance check: a Google address that's an undotted version of an email-code Gmail account is
+  //     refused, pointing to email sign-in; no second account; email sign-in then works and finishes the Like.
+  {
+    const key = s7Saved.replace(/\./g, "").replace("@gmailcom", "@gmail.com");
+    const variant = key; // what Google reports for the same inbox, without the dots
+    const ctx = await browser.newContext(phone);
+    const page = await ctx.newPage();
+    const total0 = likesOn();
+    await page.goto(APP + "/");
+    await card(page).getByRole("button", { name: "Like", exact: true }).click();
+    await page.getByRole("dialog").waitFor();
+    await playGoogle(page, variant);
+    await page.getByRole("button", { name: "Continue with Google" }).click();
+    await page.getByText("This Gmail inbox already has a Stack account").waitFor({ timeout: 15000 }).catch(() => {});
+    await page.screenshot({ path: "/tmp/claude-0/testenv/shot-6-google-existing-phone.png" });
+    check("8c-1. Refused with a message pointing to email sign-in", await page.getByText("This Gmail inbox already has a Stack account. Continue with email to sign in to it.").isVisible());
+    check("8c-2. No second account: no user for Google's address, and one account holds the inbox", sql(`select count(*) from auth.users where email = '${variant}'`) === "0" && accountsForInbox(key) === "1", `inbox accounts ${accountsForInbox(key)}`);
+    check("8c-3. Not signed in (no auth cookies at all), and the Like didn't run", (await authCookies(ctx)).length === 0 && likesOn() === total0, (await authCookies(ctx)).join(", "));
+    check("8c-4. The sheet still has the original action's message", await page.getByText("Sign in to like stacks").isVisible());
+    const after = await enterEmail(page, variant, s7Saved);
+    await page.getByLabel("6-digit code").fill((await latestCode(s7Saved, after)).code);
+    await page.getByRole("dialog").waitFor({ state: "detached" });
+    await card(page).getByRole("button", { name: "Unlike" }).waitFor({ timeout: 10000 }).catch(() => {});
+    check("8c-5. Continuing with email signs in to that account and finishes the Like once", likesBy(s7Saved) === "1" && likesOn() === total0 + 1, `likes ${total0} → ${likesOn()}`);
+    check("8c-6. Still one account for the inbox, with email only", accountsForInbox(key) === "1" && providersOf(s7Saved) === "email", providersOf(s7Saved));
+    await ctx.close();
+  }
+
+  // 8d. Backing out on Google's screen returns to the sign-in sheet; nothing runs, and Not now drops it.
+  {
+    const ctx = await browser.newContext(phone);
+    const page = await ctx.newPage();
+    const total0 = likesOn();
+    await page.goto(APP + "/");
+    await card(page).getByRole("button", { name: "Like", exact: true }).click();
+    await page.getByRole("dialog").waitFor();
+    await playGoogle(page, "", { cancel: true });
+    await page.getByRole("button", { name: "Continue with Google" }).click();
+    await page.waitForURL((u) => u.origin === APP && !u.pathname.startsWith("/auth/"), { timeout: 15000 });
+    await page.getByRole("dialog").waitFor({ timeout: 10000 }).catch(() => {});
+    check("8d-1. Cancelled: back to the sign-in sheet with the original message, no error", (await page.getByText("Sign in to like stacks").isVisible()) && (await page.getByRole("dialog").getByRole("alert").count()) === 0);
+    check("8d-2. Not signed in (no auth cookies at all), nothing liked", (await authCookies(ctx)).length === 0 && likesOn() === total0, (await authCookies(ctx)).join(", "));
+    await page.getByRole("button", { name: "Not now" }).click();
+    await page.getByRole("dialog").waitFor({ state: "detached" });
+    await page.reload();
+    await page.waitForTimeout(500);
+    check("8d-3. Not now, then a reload: no sheet and still nothing liked", !(await page.getByRole("dialog").isVisible()) && likesOn() === total0);
+    await ctx.close();
+  }
+
+  // 8e. Leaving for Google and coming back some other way drops the saved action.
+  {
+    const ctx = await browser.newContext(phone);
+    const page = await ctx.newPage();
+    const total0 = likesOn();
+    await page.goto(APP + "/");
+    await card(page).getByRole("button", { name: "Like", exact: true }).click();
+    await page.getByRole("dialog").waitFor();
+    await playGoogle(page, "", { away: true });
+    await page.getByRole("button", { name: "Continue with Google" }).click();
+    await page.waitForURL(/\/auth\/v1\/authorize/);
+    await page.goto(APP + "/");
+    await page.waitForTimeout(500);
+    const left = await page.evaluate(() => sessionStorage.getItem("stack-pending-sign-in"));
+    check("8e. Left Google without signing in: no sheet, the saved action is gone, nothing liked", !(await page.getByRole("dialog").isVisible()) && left === null && likesOn() === total0);
+    await ctx.close();
+  }
+
+  // 8f. A comment typed while signed out comes back after Google (and isn't posted without the person).
+  {
+    const gmail = track(`goog.${RUN}.comment@gmail.com`);
+    const ctx = await browser.newContext(phone);
+    const page = await ctx.newPage();
+    const comments0 = sql(`select count(*) from public.comments where stack_id = '${stackId}'`);
+    await page.goto(APP + "/");
+    const c = card(page);
+    await c.getByRole("button", { name: /comment/i }).first().click();
+    await c.getByLabel(`Comment on ${STACK_TITLE}`).fill("Great list!");
+    await c.getByRole("button", { name: "Post", exact: true }).click();
+    await page.getByRole("dialog").waitFor();
+    await playGoogle(page, gmail);
+    await page.getByRole("button", { name: "Continue with Google" }).click();
+    await page.getByRole("heading", { name: "Make it yours" }).waitFor();
+    await page.getByLabel("Display name").fill("Comment Tester");
+    await page.getByLabel("Username").fill(`gc${RUN}`);
+    await page.getByText("✓ Available").waitFor();
+    await page.getByRole("button", { name: "Create account", exact: true }).click();
+    await page.getByRole("dialog").waitFor({ state: "detached" });
+    const field = card(page).getByLabel(`Comment on ${STACK_TITLE}`);
+    await field.waitFor({ timeout: 10000 }).catch(() => {});
+    check("8f. The typed comment is back in the open comments, and wasn't posted for them", (await field.inputValue().catch(() => "")) === "Great list!" && sql(`select count(*) from public.comments where stack_id = '${stackId}'`) === comments0);
+    await ctx.close();
+  }
 }
 
 // 6. Keyboard only: Tab and Shift+Tab stay inside the sheet on each step, and closing returns focus to the opener.

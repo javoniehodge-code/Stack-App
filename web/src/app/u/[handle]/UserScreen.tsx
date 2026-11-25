@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth, useBack } from "@/components/AppProviders";
+import { useAuth, useBack, useResume } from "@/components/AppProviders";
 import { BackIcon } from "@/components/icons";
 import { ProfileShareButton } from "@/components/ProfileShare";
 import { FollowButton, GridCard } from "@/components/StackCards";
@@ -31,6 +31,8 @@ export default function UserScreen({
   const a = useStackActions();
   const [tab, setTab] = useState<"stacks" | "reposts">("stacks");
   const [blocking, setBlocking] = useState(false);
+  // Back from a Google sign-in started by Block: the block confirmation opens.
+  useResume(`block:${profile.id}`, () => setBlocking(true));
   const { requireAuth } = useAuth();
   const isFollowing = useIsFollowing(profile.id, following);
   const followers = counts.followers - (following ? 1 : 0) + (isFollowing ? 1 : 0);
@@ -49,7 +51,7 @@ export default function UserScreen({
             profile={profile}
             stackCount={stacks.length}
             own={false}
-            onBlock={() => requireAuth(() => setBlocking(true), "Sign in to block accounts.")}
+            onBlock={() => requireAuth(() => setBlocking(true), "Sign in to block accounts.", `block:${profile.id}`)}
           />
         }
       >

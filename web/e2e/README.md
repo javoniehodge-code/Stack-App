@@ -1,4 +1,4 @@
-# Sign-in test environment (Task 1a)
+# Sign-in test environment (Tasks 1a and 1b)
 
 `sign-in.e2e.mjs` drives the real app in a browser against an isolated, local copy of Supabase, with Mailpit as the test inbox. It refuses to run unless every URL points at `localhost` or `127.0.0.1`. It never touches the live Supabase project.
 
@@ -21,6 +21,20 @@ Auth settings matched `supabase/config.toml`:
 - the `sign-in-code.html` template for both the confirmation and magic-link emails
 
 Keys were local test JWTs signed with a throwaway secret.
+
+### Google (Task 1b)
+
+Supabase Auth has Google's addresses built in, so the test copy reaches a stand-in for Google instead (`fake-google.mjs`):
+1. Make a throwaway test CA and a certificate signed by it for `accounts.google.com`, `oauth2.googleapis.com`, `www.googleapis.com` and `openidconnect.googleapis.com`.
+2. Start the stand-in: `node web/e2e/fake-google.mjs 8899 leaf.pem leaf.key test-client.apps.googleusercontent.com`.
+3. Start Auth with:
+   - Google turned on: `GOTRUE_EXTERNAL_GOOGLE_ENABLED=true`, client id `test-client.apps.googleusercontent.com`, any secret, and redirect URI `http://localhost:54321/auth/v1/callback`;
+   - `HTTPS_PROXY=http://127.0.0.1:8899` and `NO_PROXY=localhost,127.0.0.1`;
+   - `SSL_CERT_FILE` set to the test CA.
+
+   Auth then gets Google's settings, keys and tokens from the stand-in. The stand-in refuses every other host.
+
+The browser test plays Google's consent screen: it answers Auth's `/authorize` step by sending the browser straight back to Auth's callback, with a code naming the Google address to sign in as.
 
 ## Order used
 
@@ -88,4 +102,10 @@ It also checks that the real target passes `--verify-only` without writing, and 
 - **Existing user, Not now, new user, and setup closed midway** (1–4).
 - **Keyboard** (6): Tab, Shift+Tab, Escape and focus return.
 - **Gmail aliases** (7): signing in again with the regular address, and with dotless, `+test` and `+tag` aliases, reaches the saved account, and the code goes to the saved address. Dotted work addresses stay distinct. The sign-in routes answer the same with or without an account. Simultaneous sign-ups for one inbox create one account.
+- **Continue with Google** (8):
+  - a new account picks a name, then its Like runs once;
+  - the same address as an email-code account signs in to it, and Save and Create resume;
+  - a Gmail variation of an existing account is refused, pointing to email (the Task 1b acceptance check);
+  - backing out returns to the sheet, and leaving drops the saved action;
+  - a typed comment comes back.
 - **Desktop layout** (5).
