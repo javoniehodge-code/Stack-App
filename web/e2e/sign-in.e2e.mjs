@@ -17,6 +17,7 @@
 import { execFileSync } from "node:child_process";
 import { appendFileSync } from "node:fs";
 import { createRequire } from "node:module";
+import { verifyTestDatabase } from "./test-target.mjs";
 
 const refuse = (why) => {
   console.error(`refusing to run: ${why}`);
@@ -49,20 +50,7 @@ async function verifyTarget() {
     const h = new URL(u).hostname;
     if (h !== "localhost" && h !== "127.0.0.1") refuse(`${u} isn't local`);
   }
-  const parts = Object.fromEntries([...DB.matchAll(/(\w+)=('[^']*'|\S+)/g)].map((m) => [m[1], m[2].replace(/^'|'$/g, "")]));
-  if (!parts.host?.startsWith("/") || parts.hostaddr || /[,]/.test(parts.host)) refuse("TEST_DB must be a single local Unix socket (host=/…)");
-  if (!/^stack_test_[a-z0-9_]+$/.test(parts.dbname ?? "")) refuse("TEST_DB must name a disposable database called stack_test_*");
-  let marker;
-  try {
-    if (read("select current_database()") !== parts.dbname) refuse("connected to a different database than TEST_DB names");
-    if (read("select to_regclass('stack_test_env.marker') is not null") !== "t") refuse("the database has no test marker");
-    marker = read("select json_agg(m) from stack_test_env.marker m");
-  } catch (e) {
-    refuse(`couldn't read the test database (${String(e.stderr || e.message).trim().split("\n")[0]})`);
-  }
-  const rows = JSON.parse(marker || "[]");
-  if (rows.length !== 1 || rows[0].token !== TOKEN) refuse("the test marker's token doesn't match TEST_ENV_TOKEN");
-  const m = rows[0];
+  const m = verifyTestDatabase({ conn: DB, token: TOKEN, read, refuse });
   if (m.fixture_email !== EXISTING || !/@[^@]+\.test$/.test(EXISTING)) refuse("EXISTING_EMAIL isn't the marker's fixture account");
   const fx = read(
     `select json_build_object('user', u.id, 'title', s.title, 'handle', p.handle) from auth.users u join public.profiles p on p.id = u.id
@@ -471,20 +459,22 @@ const phone = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isM
   await logout(page);
 
   for (const [label, typed] of [
-    ["7b. Undotted", `g${RUN}tester@gmail.com`],
-    ["7c. Plus alias in mixed case", `G${RUN}Tester+stack@Gmail.com`],
+    ["7b. The regular address, signing in again", saved],
+    ["7c. Undotted", `g${RUN}tester@gmail.com`],
+    ["7d. The regular address with +test", `g.${RUN}.tester+test@gmail.com`],
+    ["7e. Plus alias in mixed case", `G${RUN}Tester+stack@Gmail.com`],
   ]) {
     await page.goto(APP + "/profile");
     await page.getByRole("button", { name: "Sign in / Create account" }).click();
     after = await enterEmail(page, typed, saved);
     const { code } = await latestCode(saved, after);
-    const strayed = await mailCount(typed.toLowerCase(), after);
+    const strayed = typed.toLowerCase() === saved ? 0 : await mailCount(typed.toLowerCase(), after);
     await page.getByLabel("6-digit code").fill(code);
     const signedIn = await page.getByRole("dialog").waitFor({ state: "detached", timeout: 10000 }).then(() => true, () => false);
     const sameProfile = signedIn && (await page.getByText("@" + handle).first().waitFor({ timeout: 10000 }).then(() => true, () => false));
     check(
       `${label} (${typed}): code sent to the saved address, no setup, same account and profile`,
-      sameProfile && strayed === 0 && accountsForInbox(key) === "1" && sql(`select count(*) from auth.users where lower(email) = lower('${typed}')`) === "0",
+      sameProfile && strayed === 0 && accountsForInbox(key) === "1" && (typed.toLowerCase() === saved || sql(`select count(*) from auth.users where lower(email) = lower('${typed}')`) === "0"),
       `codes at saved address: 1, at typed address: ${strayed}`,
     );
     await logout(page);
@@ -510,7 +500,7 @@ const phone = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isM
   await page.getByLabel("6-digit code").fill((await latestCode(workAlias, after)).code);
   const setup = await page.getByRole("heading", { name: "Make it yours" }).waitFor({ timeout: 10000 }).then(() => true, () => false);
   check(
-    "7d. A dotted work address stays distinct: the undotted one gets its own code and a new-account setup",
+    "7f. A dotted work address stays distinct: the undotted one gets its own code and a new-account setup",
     setup && (await mailCount(work, after)) === 0 && sql(`select count(*) from auth.users where email in ('${work}', '${workAlias}')`) === "2",
   );
   await page.keyboard.press("Escape");
@@ -525,23 +515,23 @@ const phone = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isM
   const verifyNobody = await postJson("/auth/email-code/verify", { email: `nobody.${RUN}@gmail.com`, code: "000000" });
   const leaks = [sendExisting, sendFresh, verifyExisting, verifyNobody].some((r) => r.body.toLowerCase().includes(saved.toLowerCase()));
   check(
-    "7e. Send: an existing account's alias and an unknown address get the same answer",
+    "7g. Send: an existing account's alias and an unknown address get the same answer",
     sendExisting.status === sendFresh.status && sendExisting.body === sendFresh.body,
     `${sendExisting.status} ${sendExisting.body} vs ${sendFresh.status} ${sendFresh.body}`,
   );
   check(
-    "7f. Verify: a wrong code for an existing account's alias and for an address with no account get the same answer",
+    "7h. Verify: a wrong code for an existing account's alias and for an address with no account get the same answer",
     verifyExisting.status === verifyNobody.status && verifyExisting.body === verifyNobody.body,
     `${verifyExisting.status} ${verifyExisting.body}`,
   );
-  check("7g. No response contains the saved address", !leaks);
+  check("7i. No response contains the saved address", !leaks);
 
   // Two sign-ups for the same new inbox at the same moment create one account.
   const raceA = track(`race.${RUN}@gmail.com`);
   const raceB = track(`race${RUN}+b@gmail.com`);
   const [ra, rb] = await Promise.all([postJson("/auth/email-code/send", { email: raceA }), postJson("/auth/email-code/send", { email: raceB })]);
   check(
-    "7h. Simultaneous sign-ups for one new Gmail inbox create exactly one account, and neither request fails with a server error",
+    "7j. Simultaneous sign-ups for one new Gmail inbox create exactly one account, and neither request fails with a server error",
     accountsForInbox(`race${RUN}@gmail.com`) === "1" && sql(`select count(*) from auth.users where email in ('${raceA}', '${raceB}')`) === "1" && ra.status < 500 && rb.status < 500,
     `${ra.status} / ${rb.status}`,
   );

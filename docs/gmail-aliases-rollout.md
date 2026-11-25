@@ -33,13 +33,73 @@ An earlier version of `20261126000000` is already applied and recorded on live (
 
 A read-only check of live on Nov 25 found 2 accounts, 2 correct keys, none missing and no shared inboxes. On live it will therefore change no keys and only add rotation support. It hasn't been applied to live yet.
 
-**To apply it to live** (needs a go-ahead), use the same history-safe method as Task 1a: the Supabase CLI `db push`.
-1. Do a dry run first. It must list only `20261127000000_reconcile_email_keys`.
-2. Push it.
-3. Confirm the history shows 22 rows.
-4. Run `select * from private.email_key_collisions;` and expect no rows.
+It's applied as step 1 of "Live rollout" below.
+
+## Live rollout: from today's state to production
+
+Live today:
+- `SIGN_IN_RESOLVER_TOKEN` is set in Vercel, and the earlier `20261126000000` is recorded (21 history rows).
+- A token hash is stored.
+- But that token's raw value was pasted into the Supabase SQL editor during setup. The editor can keep queries in its history and in saved snippets, and the database's logs can record statement text. So treat that token as exposed, and replace it before merging.
+
+Production (`main`) doesn't use the token yet. Only the PR #34 preview does. So the whole replacement is done and checked on the preview, before merging. Each step that changes live Supabase or Vercel needs a go-ahead.
+
+1. **Apply the follow-up migration** with the Supabase CLI `db push`, the same history-safe method as Task 1a:
+   - do a dry run first; it must list only `20261127000000_reconcile_email_keys`;
+   - push it;
+   - check that the history shows 22 rows;
+   - run `select * from private.email_key_collisions;` and expect no rows.
+
+   After this, the database accepts a second, "next" token alongside the current one.
+2. **Make a new token and its hash on your Mac**, exactly as in step 1 of "Steps for a fresh setup" below. Keep the Terminal window open until step 3 is done.
+3. **Store the new hash as the "next" token.** In the SQL editor, put the printed hash in place of `NEW_HASH`:
+
+   ```sql
+   insert into private.server_tokens (name, token_sha256)
+   values ('sign_in_resolver_next', decode('NEW_HASH', 'hex'))
+   on conflict (name) do update set token_sha256 = excluded.token_sha256;
+   ```
+
+   Check it with `select name, encode(token_sha256, 'hex') from private.server_tokens;`. It must show two rows: `sign_in_resolver` (the old hash) and `sign_in_resolver_next` (the hash you just printed). Both tokens now work. Then run `unset TOKEN` and close the Terminal window.
+4. **Vercel: give the new token to Preview and Production.**
+   - Edit `SIGN_IN_RESOLVER_TOKEN` and paste the new token (it's still on the clipboard from step 2).
+   - Set it for both Preview and Production. Production doesn't use it until the merge, but it then has the right value from its first deployment.
+   - Afterwards, copy something else, so the token isn't left on the clipboard.
+5. **Redeploy the PR #34 preview, fresh.** A variable change only reaches deployments made after it.
+   - In Vercel, open the project, then Deployments.
+   - Find the newest deployment for the branch `claude/gmail-alias-accounts`. Choose ⋯, then Redeploy.
+   - Wait until it shows Ready. Use **that** deployment's URL from here on, and check that its creation time is later than step 4.
+6. **Preview check, with both tokens stored.** On the new preview URL, in a private window:
+   - sign in with your regular Gmail address. You reach your own profile;
+   - sign out, then sign in with the same address plus `+test` before the `@` (for example `yourname+test@gmail.com`). The code arrives in the same inbox, there's no "create your account" step, and you reach the same profile;
+   - if either fails, stop here. The old token is still stored, so nothing is broken for anyone else.
+7. **Retire the old token.** In the SQL editor, run this as one statement:
+
+   ```sql
+   with next as (delete from private.server_tokens where name = 'sign_in_resolver_next' returning token_sha256)
+   update private.server_tokens set token_sha256 = (select token_sha256 from next) where name = 'sign_in_resolver';
+   ```
+
+   Then check that `select name, encode(token_sha256, 'hex') from private.server_tokens;` shows one row, `sign_in_resolver`, holding the new hash from step 2. The old token is now refused.
+8. **Preview check again**, on the same preview URL: repeat both sign-ins from step 6. Now they can only work through the new token. So this proves the preview runs with it, and nothing still depends on the old one.
+9. **Clean up:** in the Supabase SQL editor, delete any saved snippet or history entry that contains the old raw token. It's useless once retired, but there's no reason to keep it.
+10. **Merge PR #34.** Vercel deploys production with the new token.
+11. **Production smoke test**, once the production deployment shows Ready, in a private window:
+    - sign in with your regular Gmail address;
+    - sign in with its `+test` version. It must reach the same profile, with no setup step;
+    - sign in with your other account's address. It must reach that account's profile.
+
+    If any of these fails, follow "Rollback" below.
+
+## Rotating the token later (after the merge)
+
+Do this whenever the token may have been seen anywhere other than Vercel. It's the same as steps 2–9 above, with production in place of the preview:
+- in step 5, redeploy production (Deployments, the current production deployment, ⋯, Redeploy), plus the preview if you use one;
+- in steps 6 and 8, check on the production site.
 
 ## Steps for a fresh setup
+
+This is for a project that has never had this feature, such as a new Supabase project. Live is already past these steps: use "Live rollout" above instead.
 
 1. **Make the token and its hash on your Mac.** In Terminal:
 
@@ -65,41 +125,10 @@ A read-only check of live on Nov 25 found 2 accounts, 2 correct keys, none missi
 
    To check it, run `select name, encode(token_sha256, 'hex') from private.server_tokens;`. It must show the same hash.
 5. **Review collisions:** run `select * from private.email_key_collisions;`. It's expected to be empty on live.
-6. **Preview check**, on the PR's Vercel preview:
-   - sign in with your saved address;
-   - sign in again with a dotless or `+tag` version of it. It must reach the same profile, and the code must arrive at the saved address;
-   - sign-in with a brand-new outside address still works.
-7. **Merge and deploy.** Repeat the step 6 checks on production.
+6. **Redeploy the preview and check it**, as in steps 5 and 6 of "Live rollout" above. Also check that sign-in with a brand-new outside address still works.
+7. **Merge and deploy.** Then do the production smoke test (step 11 of "Live rollout").
 
 **Until steps 2–4 are all done,** the new sign-in routes answer "unavailable". So don't merge before them.
-
-## Rotating the token
-
-Rotate whenever the raw token may have been seen anywhere other than Vercel. **That's the case for live now:** during the first setup, the raw token was pasted into the Supabase SQL editor. The editor can keep queries in its history and in saved snippets, and the database's logs can record statement text. So treat that token as exposed.
-
-1. **Apply `20261127000000` first** (see "Live status" above). Before it, the database only accepts the current token, so step 3 would briefly break sign-in.
-2. **Make a new token and its hash on your Mac**, exactly as in step 1 of the setup above.
-3. **Store the new hash as the "next" token.** In the SQL editor:
-
-   ```sql
-   insert into private.server_tokens (name, token_sha256)
-   values ('sign_in_resolver_next', decode('NEW_HASH', 'hex'))
-   on conflict (name) do update set token_sha256 = excluded.token_sha256;
-   ```
-
-   From now on both the old and the new token work.
-4. **Vercel:** edit `SIGN_IN_RESOLVER_TOKEN` for Production and Preview, and paste the new token. Then redeploy production, because a variable change only takes effect in new deployments. Redeploy the preview too, if you use one.
-5. **Check sign-in on production** with your saved address.
-6. **Retire the old token.** In the SQL editor, run this as one statement:
-
-   ```sql
-   with next as (delete from private.server_tokens where name = 'sign_in_resolver_next' returning token_sha256)
-   update private.server_tokens set token_sha256 = (select token_sha256 from next) where name = 'sign_in_resolver';
-   ```
-
-   Then check that `select name, encode(token_sha256, 'hex') from private.server_tokens;` shows one row, `sign_in_resolver`, holding the new hash.
-7. **Check sign-in on production again.** The old token now gets "not allowed".
-8. **Clean up after the first setup:** in the Supabase SQL editor, delete any saved snippet or history entry that contains the old raw token. It's harmless once rotated, but there's no reason to keep it.
 
 ## Rollback
 
@@ -185,7 +214,29 @@ The test database was set up like live: Task 1a applied, 20 history rows. Before
   - the Task 1a tests, the Gmail alias tests and the concurrency script;
   - the target-guard test;
   - the browser suite, 52/52.
-- **Browser and API** (`web/e2e/sign-in.e2e.mjs`, 52/52):
+
+### Test-target guard and the rotation runbook (Nov 25, third round)
+
+- **The reconcile test refuses wrong targets before its first write.** It commits, so it now checks its target first, read-only. It runs only on a disposable `stack_test_*` database, reached through a local Unix socket, whose test marker holds the token it was given.
+  - The check sits at the top of the test file, so it also applies when someone runs the file with plain psql.
+  - It has to be in that file itself: psql carries on with a file after an error in a file it includes, even with `ON_ERROR_STOP` set. This was tried and confirmed.
+  - The runner, `web/supabase/tests/run-db-test.mjs`, runs the same database checks first. It uses the guard shared with the browser suite, `web/e2e/test-target.mjs`, which the browser suite now uses too.
+- **Proof** (`web/supabase/tests/reconcile-guard.test.mjs`, 17/17):
+  - The runner refused 8 bad targets, with zero writes logged: a remote host, a forced network address, TCP to the real test database, a non-test database, a missing database, a database without the marker, a wrong token and no token.
+  - Plain psql refused 6 bad targets, sending only the check's read-only statements: no token, a wrong token, a wrong token with `ON_ERROR_STOP` switched off by the caller, TCP with the right token, a database without the marker, and a non-test database.
+  - The real target passed the runner's `--verify-only` without writing.
+  - The Postgres server assigned no new transaction id during the whole run, so nothing wrote anywhere, and the marked database was unchanged.
+  - **Control:** with the check removed from the file, the proof failed 7 checks, including the transaction-id check.
+- **The rotation runbook, rehearsed** on the live-like copy, steps 2–8 of "Live rollout". The app server stood in for the preview, restarted as a new process the way a fresh deployment starts. Each time, its environment was checked for the intended token.
+  - Step 3 stored a hash made outside the database as the "next" token. Both tokens were accepted.
+  - Steps 4–5: a new app process, started after the change, holding the new token.
+  - Step 6: the browser suite passed, 54/54. It now also checks signing in again with the regular address, and with the regular address plus `+test`: the code went to the saved address, with no setup, and reached the same account and profile.
+  - Step 7: one row was left, holding the new hash. The old token was refused (401) and the new one accepted.
+  - Step 8: the same process, same suite: 54/54.
+  - **Control:** a server still holding the old token answered "unavailable" after step 7. That's why step 5 has to redeploy the preview.
+  - One unplanned confirmation: in a first attempt, the restart silently failed and the old server kept running. Step 6 passed, since both tokens were still stored, and step 8 failed. That's the situation the step 8 recheck is there to catch.
+- **Also run:** the browser-suite guard test (11/11), the Task 1a and Gmail alias database tests, the concurrency script, the reconcile test through the runner, lint and type checks.
+- **Browser and API** (`web/e2e/sign-in.e2e.mjs`, 52/52 at the time; 54/54 since the regular-address and `+test` checks were added):
   - A Gmail account created as `g.<run>.tester@gmail.com`.
   - Signing in typed `g<run>tester@gmail.com`, and `G<run>Tester+stack@Gmail.com`: each time the code went to the saved address (none to the typed one), with no setup, the same account and the same profile.
   - A dotted work address stayed distinct: the undotted one got its own code and a new-account setup.

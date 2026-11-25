@@ -2,7 +2,51 @@
 -- 20261126000000 applied (never on live). Builds the damage an unguarded install could leave, applies the
 -- migration twice, and checks the result. The migration commits its own transaction, so this test can't simply roll
 -- back: it removes its own test accounts at the start and end, and restores the stored tokens afterwards.
---   psql "host=/tmp port=55433 dbname=<test db> user=postgres" -v ON_ERROR_STOP=1 -f web/supabase/tests/reconcile_email_keys.test.sql
+-- It refuses to run (before its first write) unless the target is a marked, disposable local test database:
+--   TEST_DB="host=/tmp port=55433 dbname=stack_test_x user=postgres" TEST_ENV_TOKEN=<marker token> \
+--     node web/supabase/tests/run-db-test.mjs web/supabase/tests/reconcile_email_keys.test.sql
+-- or, equivalently, psql "<same TEST_DB>" -v test_env_token=<marker token> -f web/supabase/tests/reconcile_email_keys.test.sql
+
+-- Target check: stops psql (exit code 3) before any write unless it is connected, through a local Unix socket, to
+-- a disposable stack_test_* database whose test marker (stack_test_env.marker, from web/e2e/fixtures.sql) holds the
+-- token passed as -v test_env_token. It runs read-only and mirrors the shared runner guard, web/e2e/test-target.mjs.
+-- It must stay in this file, not an included one: psql carries on with the including file after an error in an
+-- included file, even with ON_ERROR_STOP set.
+\set ON_ERROR_STOP 1
+\if :{?test_env_token}
+\else
+  \set test_env_token ''
+\endif
+
+begin transaction read only;
+
+select current_database() ~ '^stack_test_[a-z0-9_]+$' as test_target_named,
+       inet_server_addr() is null                      as test_target_local,
+       to_regclass('stack_test_env.marker') is not null as test_target_marked
+\gset
+
+\if :test_target_named
+\else
+  do $$ begin raise exception 'refusing to run: this is not a disposable stack_test_* database'; end $$;
+\endif
+\if :test_target_local
+\else
+  do $$ begin raise exception 'refusing to run: connect through a local Unix socket (host=/...)'; end $$;
+\endif
+\if :test_target_marked
+\else
+  do $$ begin raise exception 'refusing to run: this database has no test marker (web/e2e/fixtures.sql)'; end $$;
+\endif
+
+select count(*) = 1 and bool_and(token = :'test_env_token') and :'test_env_token' <> '' as test_target_token_ok
+  from stack_test_env.marker
+\gset
+\if :test_target_token_ok
+\else
+  do $$ begin raise exception 'refusing to run: pass -v test_env_token=<the token in this database''s test marker>'; end $$;
+\endif
+
+commit;
 
 -- Leftovers from an earlier, interrupted run of this test.
 delete from private.email_key_collisions where user_id in ('e1e1e1e1-0000-4000-8000-0000000000e1', 'e2e2e2e2-0000-4000-8000-0000000000e2', 'e3e3e3e3-0000-4000-8000-0000000000e3', 'e4e4e4e4-0000-4000-8000-0000000000e4');
