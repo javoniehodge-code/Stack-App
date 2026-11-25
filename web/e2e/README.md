@@ -30,7 +30,8 @@ Supabase Auth has Google's addresses built in, so the test copy reaches a stand-
 3. Start Auth with:
    - Google turned on: `GOTRUE_EXTERNAL_GOOGLE_ENABLED=true`, client id `test-client.apps.googleusercontent.com`, any secret, and redirect URI `http://localhost:54321/auth/v1/callback`;
    - `HTTPS_PROXY=http://127.0.0.1:8899` and `NO_PROXY=localhost,127.0.0.1`;
-   - `SSL_CERT_FILE` set to the test CA.
+   - `SSL_CERT_FILE` set to the test CA;
+   - `GOTRUE_SECURITY_MANUAL_LINKING_ENABLED=true`, for Connect Google.
 
    Auth then gets Google's settings, keys and tokens from the stand-in. The stand-in refuses every other host.
 
@@ -107,5 +108,6 @@ It also checks that the real target passes `--verify-only` without writing, and 
   - the same address as an email-code account signs in to it, and Save and Create resume;
   - a Gmail variation of an existing account is refused, pointing to email (the Task 1b acceptance check);
   - backing out returns to the sheet, and leaving drops the saved action;
-  - a typed comment comes back.
+  - a typed comment comes back;
+  - Connect Google in Settings links this inbox's Google account, refuses one that belongs to another account, and then signs straight in.
 - **Desktop layout** (5).

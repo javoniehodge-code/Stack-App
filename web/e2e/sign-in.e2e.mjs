@@ -207,6 +207,17 @@ let s7Saved = "";
  * on a stand-in Google page instead, as if the visitor never came back.
  */
 async function playGoogle(page, googleEmail, { cancel = false, away = false } = {}) {
+  const answer = (google) => {
+    const back = new URL(google.searchParams.get("redirect_uri"));
+    back.searchParams.set("state", google.searchParams.get("state"));
+    if (cancel) {
+      back.searchParams.set("error", "access_denied");
+      back.searchParams.set("error_description", "The user denied access");
+    } else back.searchParams.set("code", Buffer.from(JSON.stringify({ email: googleEmail, sub: `google-${googleEmail}` })).toString("base64url"));
+    return back.toString();
+  };
+  // Connect Google (linking while signed in) gets Google's address from Auth and goes there directly.
+  await page.route("https://accounts.google.com/**", (route) => route.fulfill({ status: 302, headers: { location: answer(new URL(route.request().url())) } }), { times: 1 });
   await page.route(
     "**/auth/v1/authorize?*",
     async (route) => {
@@ -214,13 +225,7 @@ async function playGoogle(page, googleEmail, { cancel = false, away = false } = 
       const res = await route.fetch({ maxRedirects: 0 });
       const google = new URL(res.headers()["location"]);
       if (google.hostname !== "accounts.google.com") throw new Error(`Auth sent the browser to ${google.hostname}`);
-      const back = new URL(google.searchParams.get("redirect_uri"));
-      back.searchParams.set("state", google.searchParams.get("state"));
-      if (cancel) {
-        back.searchParams.set("error", "access_denied");
-        back.searchParams.set("error_description", "The user denied access");
-      } else back.searchParams.set("code", Buffer.from(JSON.stringify({ email: googleEmail, sub: `google-${googleEmail}` })).toString("base64url"));
-      await route.fulfill({ status: 302, headers: { location: back.toString() } });
+      await route.fulfill({ status: 302, headers: { location: answer(google) } });
     },
     { times: 1 },
   );
@@ -658,6 +663,32 @@ const providersOf = (email) =>
     await card(page).getByRole("button", { name: "Unlike" }).waitFor({ timeout: 10000 }).catch(() => {});
     check("8c-5. Continuing with email signs in to that account and finishes the Like once", likesBy(s7Saved) === "1" && likesOn() === total0 + 1, `likes ${total0} → ${likesOn()}`);
     check("8c-6. Still one account for the inbox, with email only", accountsForInbox(key) === "1" && providersOf(s7Saved) === "email", providersOf(s7Saved));
+
+    // 8g. Connect Google (Settings › Account and sign-in), signed in with email. A Google account that already
+    //     belongs to another Stack account is refused; this inbox's own Google account connects, and from then on
+    //     Continue with Google opens this account even though Google reports the address without the dots.
+    const uid = sql(`select id from auth.users where email = '${s7Saved}'`);
+    await page.goto(APP + "/settings");
+    await page.getByRole("link", { name: "Account and sign-in" }).click();
+    await page.getByRole("button", { name: "Connect" }).waitFor();
+    check("8g-1. Account and sign-in shows the account email and Google not connected", (await page.getByText(s7Saved).isVisible()) && (await page.getByText("Sign in with your Google account").isVisible()));
+    await playGoogle(page, s3Email);
+    await page.getByRole("button", { name: "Connect" }).click();
+    await page.getByText("already signs in to a different Stack account").waitFor({ timeout: 15000 }).catch(() => {});
+    check("8g-2. A Google account that belongs to another Stack account is refused", (await page.getByText("That Google account already signs in to a different Stack account.").isVisible()) && providersOf(s7Saved) === "email" && providersOf(s3Email) === "email,google", `${providersOf(s7Saved)} / ${providersOf(s3Email)}`);
+    await playGoogle(page, variant);
+    await page.getByRole("button", { name: "Connect" }).click();
+    await page.getByText("Connected", { exact: true }).waitFor({ timeout: 15000 }).catch(() => {});
+    await page.screenshot({ path: "/tmp/claude-0/testenv/shot-7-account-connected-phone.png" });
+    check("8g-3. Connected: Google is added to this account, shown with Google's address", (await page.getByText("Connected", { exact: true }).isVisible()) && (await page.getByText(variant, { exact: true }).isVisible()) && providersOf(s7Saved) === "email,google", providersOf(s7Saved));
+    check("8g-4. Still one account for the inbox, and the account's email is unchanged", accountsForInbox(key) === "1" && sql(`select count(*) from auth.users where email = '${variant}'`) === "0" && sql(`select id from auth.users where email = '${s7Saved}'`) === uid);
+    await logout(page);
+    await page.goto(APP + "/profile");
+    await page.getByRole("button", { name: "Sign in / Create account" }).click();
+    await playGoogle(page, variant);
+    await page.getByRole("button", { name: "Continue with Google" }).click();
+    await page.getByText(`@g${RUN}`).first().waitFor({ timeout: 15000 }).catch(() => {});
+    check("8g-5. Continue with Google now opens this account: straight to its profile, no setup, no new account", (await page.getByText(`@g${RUN}`).first().isVisible()) && !(await page.getByRole("dialog").isVisible()) && sql(`select count(*) from auth.users where email = '${variant}'`) === "0");
     await ctx.close();
   }
 

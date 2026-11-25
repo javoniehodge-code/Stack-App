@@ -60,7 +60,7 @@ function findResumer(map: Map<string, Resumer>, name: string): [Resumer, string]
 // What the sign-in sheet says when it reopens after Google.
 const GOOGLE_NOTICE: Record<string, string> = {
   cancelled: "",
-  existing: "This Gmail inbox already has a Stack account. Continue with email to sign in to it.",
+  existing: "This Gmail inbox already has a Stack account. Continue with email to sign in to it. To use Google next time, connect it in Settings › Account and sign-in.",
   failed: "Couldn’t sign in with Google. Try again, or continue with email.",
 };
 /** A button on a toast, such as Undo. */

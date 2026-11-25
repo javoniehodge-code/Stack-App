@@ -18,6 +18,11 @@ This covers the "Continue with Google" button in the sign-in sheet, the `/auth/c
   - **Same address as an email-code account:** Supabase adds Google to that account. No new account is made.
   - **A Gmail variation of an existing account** (dots or a `+tag`, for example Google reports `firstlast@gmail.com` and the account is `first.last@gmail.com`): the database refuses a second account for the inbox. The sheet says "This Gmail inbox already has a Stack account. Continue with email to sign in to it."
 - **Backing out on Google** returns to the sign-in sheet. Leaving and coming back any other way drops the saved action.
+- **Connect Google** (Settings → Account and sign-in, as in the design) shows the account email and the ways to sign in.
+  - While signed in, Connect sends you to Google's own sign-in, then adds that Google account to this Stack account. Two proofs are needed: this account's session, and a sign-in on Google's page.
+  - From then on, Continue with Google opens this account, even when Google reports the address differently (a Gmail address without its dots).
+  - A Google account that already belongs to another Stack account is refused.
+  - It uses Supabase's "manual linking", which must be turned on (setup step 3).
 
 ## Setup steps (live)
 
@@ -35,6 +40,7 @@ These steps need your accounts. Each will be walked through one at a time.
    - `https://*-project-stack.vercel.app/**` (previews)
 
    They must end in `/**`. The app returns to `/auth/callback?next=…`, and Supabase compares the whole address, so an entry ending in `/auth/callback` doesn't match. A non-matching address makes Supabase fall back to the Site URL, and sign-in doesn't finish there.
+3b. **Supabase: allow manual linking**, for Connect Google: Authentication → Sign In / Providers → **Allow manual linking** → on → Save.
 4. **Preview check**, on this PR's preview:
    - Google with your own Gmail account reaches your existing profile. No setup screen, no second account.
    - A Like started before signing in is on afterwards.
@@ -51,6 +57,7 @@ These steps need your accounts. Each will be walked through one at a time.
 
 - **In-app browsers.** Google refuses to sign in inside other apps' built-in browsers, such as Instagram or TikTok. People who open a Stack link there can use email, or open the link in their browser.
 - **Google's screen names Supabase.** It says "to continue to pgxobjxyqorsdzjdjbtz.supabase.co". Showing Stack's own domain there needs a Supabase custom domain, which is a paid add-on.
+- **Gmail written differently.** If Google reports a Gmail address differently from the account's saved one (for example without dots), Continue with Google is refused until Google is connected in Settings once. The refusal message says so.
 - **"Already has an account" relies on Supabase's wording.** The sheet shows that message when Supabase reports "Database error saving new user". That's what the one-inbox rule causes today. Any other failure shows "Couldn't sign in with Google. Try again, or continue with email."
 
 ## Evidence (isolated test environment, Nov 25)
@@ -65,7 +72,7 @@ These steps need your accounts. Each will be walked through one at a time.
 - The exact address of an email-code account was linked to it: one account, with providers email and Google.
 - An undotted variation of a dotted Gmail account was refused with "Database error saving new user", and the inbox kept one account.
 
-**Browser (`web/e2e/sign-in.e2e.mjs`, 74/74 including the earlier 52):**
+**Browser (`web/e2e/sign-in.e2e.mjs`, 79/79 including the earlier 52):**
 - **8a. New person:**
   - came back to the same page at "Make it yours", with their address shown as verified;
   - the Like waited for the profile, then ran exactly once;
@@ -85,6 +92,12 @@ These steps need your accounts. Each will be walked through one at a time.
   - Not now, then a reload: no sheet.
 - **8e. Leaving for Google and coming back another way:** no sheet, the saved action gone, nothing liked.
 - **8f. A comment typed while signed out:** back in the open comments after sign-in, and not posted.
+- **8g. Connect Google**, signed in with email as the dotted Gmail account:
+  - Account and sign-in showed the email, and Google not connected;
+  - connecting a Google account that belongs to another Stack account was refused;
+  - connecting this inbox's Google account (reported without dots) added it: "Connected", with Google's address;
+  - still one account for the inbox, with the same id and email;
+  - after logging out, Continue with Google went straight to that account's profile, with no setup and no new account.
 - **The earlier checks still pass:**
   - email-code sign-in, Gmail aliases, the stale-sign-in and keyboard checks;
   - the browser-suite guard (11/11).
