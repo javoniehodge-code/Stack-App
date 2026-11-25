@@ -68,6 +68,11 @@ export default function AuthSheet({
   const [avail, setAvail] = useState<{ handle: string; free: boolean | null } | null>(null);
   const [verifiedEmail, setVerifiedEmail] = useState("");
   const [busy, setBusy] = useState<null | "sending" | "checking" | "creating">(null);
+  // While Create account is saving, the sheet stays open: closing it then would leave the outcome unclear.
+  const committing = useRef(false);
+  const close = () => {
+    if (!committing.current) onCancel();
+  };
   const [formError, setFormError] = useState("");
 
   /** Ends this attempt's session on the server without touching the app's (other devices stay signed in). */
@@ -115,7 +120,7 @@ export default function AuthSheet({
   // Escape closes; Tab and Shift+Tab stay inside the sheet.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") return onCancel();
+      if (e.key === "Escape") return close();
       if (e.key !== "Tab" || !dialog.current) return;
       const items = [...dialog.current.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) => el.getClientRects().length > 0);
       if (!items.length) {
@@ -135,6 +140,7 @@ export default function AuthSheet({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onCancel]);
 
   // While checking a code there's nothing to focus, so the sheet itself holds focus.
@@ -250,6 +256,7 @@ export default function AuthSheet({
     const nm = name.trim();
     if (!nm) return setFormError("Add a display name.");
     if (problem || handleState.state === "bad") return;
+    committing.current = true;
     setBusy("creating");
     setFormError("");
     try {
@@ -271,6 +278,7 @@ export default function AuthSheet({
     } catch {
       if (isCurrent()) setFormError("Couldn’t create your account. Check your connection and try again.");
     } finally {
+      committing.current = false;
       setBusy(null);
     }
   }
@@ -291,8 +299,8 @@ export default function AuthSheet({
 
 
   return (
-    <div className={s.scrim} onClick={onCancel}>
-      <div ref={dialog} tabIndex={-1} className={s.sheet} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="auth-title">
+    <div className={s.scrim} onClick={close}>
+      <div ref={dialog} tabIndex={-1} className={s.sheet} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="auth-title" aria-busy={busy === "creating"}>
         <div className={s.grabber} aria-hidden="true" />
 
         {busy === "checking" ? (
@@ -475,6 +483,9 @@ export default function AuthSheet({
             <button type="submit" className={s.primary} style={{ marginTop: 20 }} aria-disabled={!canCreate} disabled={busy === "creating"}>
               {busy === "creating" ? "Creating account…" : "Create account"}
             </button>
+            <p role="status" className={s.fine}>
+              {busy === "creating" ? "Setting up your profile. Keep this open." : ""}
+            </p>
           </form>
         )}
       </div>

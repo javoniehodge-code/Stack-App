@@ -24,25 +24,53 @@ Keys were local test JWTs signed with a throwaway secret.
 
 ## Order used
 
-1. Apply every migration up to `20261011000000_link_only_lines.sql`.
-2. Create the "existing user" the old way. Sign up through Auth with a password and `{name, handle}` metadata, then confirm with the code from Mailpit. The old trigger makes their profile.
-3. Apply `20261125000000_email_code_sign_in.sql`, as an upgrade, and reload PostgREST's schema cache.
-4. Run `supabase/tests/email_code_sign_in.test.sql`, then this script:
+1. Create a database named `stack_test_*` and apply every migration up to `20261011000000_link_only_lines.sql`.
+2. Create the fixture account the old way. Sign up through Auth with a password and `{name, handle}` metadata, then confirm with the code from Mailpit. The old trigger makes their profile.
+3. Apply `20261125000000_email_code_sign_in.sql`, as an upgrade, and reload PostgREST's schema cache. For the rollout check this was done with the Supabase CLI: `migration repair` for the 19 existing versions, then `db push`.
+4. Mark the database as the disposable test target, and add the fixture Stack:
+
+   ```bash
+   psql "host=/tmp port=55433 dbname=stack_test_x user=postgres" -v token=<random> -v email=existing.user@stack.test -f web/e2e/fixtures.sql
+   ```
+5. Run `supabase/tests/email_code_sign_in.test.sql`, then the guard test and the browser test, with the same environment:
 
 ```bash
-APP_URL=http://localhost:3000 API_URL=http://localhost:54321 MAILPIT_URL=http://127.0.0.1:8025 \
-ANON_KEY=<local anon JWT> TEST_DB="host=/tmp port=55433 dbname=<test db> user=postgres" \
-EXISTING_EMAIL=existing.user@stack.test LIKE_STACK_TITLE="Test Tacos" node web/e2e/sign-in.e2e.mjs
+export APP_URL=http://localhost:3000 API_URL=http://localhost:54321 MAILPIT_URL=http://127.0.0.1:8025 \
+  ANON_KEY=<local anon JWT> TEST_DB="host=/tmp port=55433 dbname=stack_test_x user=postgres" \
+  TEST_ENV_TOKEN=<the token from step 4> EXISTING_EMAIL=existing.user@stack.test
+node web/e2e/target-guard.test.mjs   # invalid targets are refused before any write
+node web/e2e/sign-in.e2e.mjs         # the browser checks
 ```
 
-The app was built and started with `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321` and the local anon key. A Public Stack titled "Test Tacos", owned by the existing user, gives the Like and Save checks something to act on.
+The app was built and started with `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321` and the local anon key.
 
-The script checks:
-- **Stale attempts (0a, 0b).** A slow code check, and a slow profile setup, finish after their sheet was closed and another was opened from a different action. Playwright holds back only the response, so the server does the work.
+## Safety: what the browser test may write
+
+Before any write, `sign-in.e2e.mjs` checks the target with read-only queries, and refuses (exit 2) unless all of these hold:
+- every URL is local;
+- `TEST_DB` is a single local Unix socket to a `stack_test_*` database;
+- that database carries the marker from `fixtures.sql`, with the same token as `TEST_ENV_TOKEN`;
+- `EXISTING_EMAIL` is the marker's fixture account (an `@….test` address), and owns the fixture Stack;
+- the API serves the fixture Stack;
+- the app's home page shows it;
+- `MAILPIT_URL` answers as Mailpit.
+
+Reads run in read-only transactions. Writes throw if attempted before the target is verified. The only writes are:
+- the fixture account's likes, saves and sessions on the fixture Stack, reset at the start and end;
+- the accounts this run creates (`*.<run id>@stack.test`), deleted at the end, including after a crash.
+
+`target-guard.test.mjs` runs the browser test against 9 invalid targets and checks each one:
+- exits with code 2;
+- logs no write statement;
+- runs no browser check.
+
+It also checks that the real target passes `--verify-only` without writing, and that the database's row counts and timestamps don't change.
+
+## What the browser test covers
+
+- **Stale code check (0a).** A slow code check finishes after its sheet was closed and another was opened from a different action. Playwright holds back only the response, so the server does the work.
+- **Create account while committing (0b).** A slow Create account keeps the sheet open with its progress shown; Escape and the backdrop don't close it; the flow then completes.
+- **Create account failure (0c).** A failed Create account keeps the sheet and the typed values, saves nothing, and a retry works.
 - **Existing user, Not now, new user, and setup closed midway** (1–4).
 - **Keyboard** (6): Tab, Shift+Tab, Escape and focus return.
 - **Desktop layout** (5).
-
-Against the sheet code from before the stale-attempt fix, 0a fails three of its checks: the newer sheet closed, the browser was signed in, and a session stayed active. That shows the test catches the bug.
-
-The rollback in `docs/party-mode-task-1a-rollout.md` was exercised on the same database: rollback script, then the old sign-up screen, then the migration re-applied and the database test rerun.
