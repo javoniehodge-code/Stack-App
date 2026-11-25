@@ -8,7 +8,7 @@
 | Unlisted | Anyone with the link | Excluded from public profiles and discovery. Links can be passed on. |
 | Private | The owner | Excluded from public profiles and discovery. A shared URL grants no access. |
 
-New Stacks default to Public and new buckets default to Private. Drafts are owner-only. Profiles are public, and only Public Stacks contribute to the public Stack count. **Private view / Public view** is the owner's preview toggle. Buckets follow [Flow 7](../stack-spec.md#bucket-visibility-agreed-d-7).
+New Stacks default to Public and new buckets default to Private. Drafts are owner-only. Profiles are public, and only Public Stacks contribute to the public Stack count. There is no owner preview toggle: the owner always sees everything they own, and everyone else gets the public profile at `/{handle}`. On the owner's profile the Stacks tab is a dropdown: **Public** or **Private & unlisted** ([Flow 8](../stack-spec.md#own-profile)). Buckets follow [Flow 7](../stack-spec.md#bucket-visibility-agreed-d-7).
 
 ## Changes and sharing
 
