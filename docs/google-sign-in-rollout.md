@@ -31,8 +31,10 @@ These steps need your accounts. Each will be walked through one at a time.
    - Keep the client ID and client secret for step 2. The secret never goes into chat.
 2. **Supabase: turn Google on.** Authentication → Sign In / Providers → Google: enable it, and paste the client ID and secret.
 3. **Supabase: allow the return address.** Authentication → URL Configuration → Redirect URLs. Add:
-   - `https://stack-app-livid.vercel.app/auth/callback`
-   - `https://*-project-stack.vercel.app/auth/callback` (previews)
+   - `https://stack-app-livid.vercel.app/**`
+   - `https://*-project-stack.vercel.app/**` (previews)
+
+   They must end in `/**`. The app returns to `/auth/callback?next=…`, and Supabase compares the whole address, so an entry ending in `/auth/callback` doesn't match. A non-matching address makes Supabase fall back to the Site URL, and sign-in doesn't finish there.
 4. **Preview check**, on this PR's preview:
    - Google with your own Gmail account reaches your existing profile. No setup screen, no second account.
    - A Like started before signing in is on afterwards.
