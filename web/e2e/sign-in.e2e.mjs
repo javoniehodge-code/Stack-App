@@ -17,6 +17,7 @@
 import { execFileSync } from "node:child_process";
 import { appendFileSync } from "node:fs";
 import { createRequire } from "node:module";
+import { verifyTestDatabase } from "./test-target.mjs";
 
 const refuse = (why) => {
   console.error(`refusing to run: ${why}`);
@@ -49,20 +50,7 @@ async function verifyTarget() {
     const h = new URL(u).hostname;
     if (h !== "localhost" && h !== "127.0.0.1") refuse(`${u} isn't local`);
   }
-  const parts = Object.fromEntries([...DB.matchAll(/(\w+)=('[^']*'|\S+)/g)].map((m) => [m[1], m[2].replace(/^'|'$/g, "")]));
-  if (!parts.host?.startsWith("/") || parts.hostaddr || /[,]/.test(parts.host)) refuse("TEST_DB must be a single local Unix socket (host=/…)");
-  if (!/^stack_test_[a-z0-9_]+$/.test(parts.dbname ?? "")) refuse("TEST_DB must name a disposable database called stack_test_*");
-  let marker;
-  try {
-    if (read("select current_database()") !== parts.dbname) refuse("connected to a different database than TEST_DB names");
-    if (read("select to_regclass('stack_test_env.marker') is not null") !== "t") refuse("the database has no test marker");
-    marker = read("select json_agg(m) from stack_test_env.marker m");
-  } catch (e) {
-    refuse(`couldn't read the test database (${String(e.stderr || e.message).trim().split("\n")[0]})`);
-  }
-  const rows = JSON.parse(marker || "[]");
-  if (rows.length !== 1 || rows[0].token !== TOKEN) refuse("the test marker's token doesn't match TEST_ENV_TOKEN");
-  const m = rows[0];
+  const m = verifyTestDatabase({ conn: DB, token: TOKEN, read, refuse });
   if (m.fixture_email !== EXISTING || !/@[^@]+\.test$/.test(EXISTING)) refuse("EXISTING_EMAIL isn't the marker's fixture account");
   const fx = read(
     `select json_build_object('user', u.id, 'title', s.title, 'handle', p.handle) from auth.users u join public.profiles p on p.id = u.id
@@ -93,6 +81,11 @@ const newEmail = (prefix) => {
   const e = `${prefix}.${RUN}.${created.length}@stack.test`;
   created.push(e);
   return e;
+};
+/** Registers an address this run will create an account for, so cleanup removes it. */
+const track = (email) => {
+  created.push(email.toLowerCase());
+  return email;
 };
 // Start from a known state for the fixture account: no likes, saves or sessions on the fixture Stack.
 const resetFixture = () => {
@@ -155,8 +148,9 @@ async function waitForResendWindow(email) {
   }
 }
 
-async function enterEmail(page, email) {
-  await waitForResendWindow(email);
+// `inbox` is the account's saved address when `email` is a Gmail alias of it (the code goes there).
+async function enterEmail(page, email, inbox = email) {
+  await waitForResendWindow(inbox);
   await page.getByRole("button", { name: "Continue with email" }).click();
   await page.getByLabel("Email address").fill(email);
   const sentAfter = Date.now() - 1000;
@@ -164,6 +158,21 @@ async function enterEmail(page, email) {
   await page.getByRole("heading", { name: "Check your email" }).waitFor();
   return sentAfter;
 }
+
+/** Messages Mailpit received for `email` after `after` (ms). */
+async function mailCount(email, after) {
+  const r = await (await fetch(`${MAIL}/api/v1/search?query=${encodeURIComponent(`to:"${email}"`)}`)).json();
+  return (r.messages || []).filter((x) => new Date(x.Created).getTime() > after).length;
+}
+async function logout(page) {
+  await page.goto(APP + "/settings");
+  await page.getByRole("button", { name: "Log out" }).click();
+  await page.waitForURL(APP + "/");
+}
+const postJson = (path, body) =>
+  fetch(APP + path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).then(async (r) => ({ status: r.status, body: await r.text() }));
+/** Accounts that hold an inbox key. */
+const accountsForInbox = (key) => sql(`select count(*) from private.account_email_keys where email_key = '${key}'`);
 
 /** Auth cookies the app's own client stores. None means the browser isn't signed in. */
 const authCookies = async (ctx) => (await ctx.cookies()).filter((c) => c.name.startsWith("sb-")).map((c) => c.name);
@@ -196,7 +205,7 @@ const phone = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isM
   resetFixture();
   const likes0 = sql(`select count(*) from public.likes where stack_id = '${stackId}'`);
   const saves0 = sql(`select count(*) from public.saves where stack_id = '${stackId}'`);
-  await delayFirstResponse(page, "**/auth/v1/verify", 4000);
+  await delayFirstResponse(page, "**/auth/email-code/verify", 4000);
   await page.goto(APP + "/");
   const card = page.locator("article", { hasText: STACK_TITLE }).first();
   await card.getByRole("button", { name: "Like", exact: true }).click();
@@ -425,6 +434,107 @@ const phone = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isM
   await page.getByRole("heading", { name: "Make it yours" }).waitFor({ timeout: 10000 }).catch(() => {});
   check("4c. Signing in again with a new code returns to “Make it yours”", await page.getByRole("heading", { name: "Make it yours" }).isVisible());
   await ctx.close();
+}
+
+// 7. Gmail aliases reach one account, work addresses with dots stay separate, and the server routes don't reveal
+//    whether an account exists.
+{
+  const saved = track(`g.${RUN}.tester@gmail.com`);
+  const key = `g${RUN}tester@gmail.com`;
+  const handle = `g${RUN}`;
+  const ctx = await browser.newContext(phone);
+  const page = await ctx.newPage();
+  await page.goto(APP + "/profile");
+  await page.getByRole("button", { name: "Sign in / Create account" }).click();
+  let after = await enterEmail(page, saved);
+  await page.getByLabel("6-digit code").fill((await latestCode(saved, after)).code);
+  await page.getByRole("heading", { name: "Make it yours" }).waitFor();
+  await page.getByLabel("Display name").fill("Gmail Tester");
+  await page.getByLabel("Username").fill(handle);
+  await page.getByText("✓ Available").waitFor();
+  await page.getByRole("button", { name: "Create account", exact: true }).click();
+  await page.getByRole("dialog").waitFor({ state: "detached" });
+  const uid = sql(`select id from auth.users where email = '${saved}'`);
+  check("7a. A Gmail account is created with its address saved exactly as typed", !!uid && sql(`select handle from public.profiles where id = '${uid}'`) === handle, saved);
+  await logout(page);
+
+  for (const [label, typed] of [
+    ["7b. The regular address, signing in again", saved],
+    ["7c. Undotted", `g${RUN}tester@gmail.com`],
+    ["7d. The regular address with +test", `g.${RUN}.tester+test@gmail.com`],
+    ["7e. Plus alias in mixed case", `G${RUN}Tester+stack@Gmail.com`],
+  ]) {
+    await page.goto(APP + "/profile");
+    await page.getByRole("button", { name: "Sign in / Create account" }).click();
+    after = await enterEmail(page, typed, saved);
+    const { code } = await latestCode(saved, after);
+    const strayed = typed.toLowerCase() === saved ? 0 : await mailCount(typed.toLowerCase(), after);
+    await page.getByLabel("6-digit code").fill(code);
+    const signedIn = await page.getByRole("dialog").waitFor({ state: "detached", timeout: 10000 }).then(() => true, () => false);
+    const sameProfile = signedIn && (await page.getByText("@" + handle).first().waitFor({ timeout: 10000 }).then(() => true, () => false));
+    check(
+      `${label} (${typed}): code sent to the saved address, no setup, same account and profile`,
+      sameProfile && strayed === 0 && accountsForInbox(key) === "1" && (typed.toLowerCase() === saved || sql(`select count(*) from auth.users where lower(email) = lower('${typed}')`) === "0"),
+      `codes at saved address: 1, at typed address: ${strayed}`,
+    );
+    await logout(page);
+  }
+
+  // Work addresses: dots matter, so w.first.last and wfirstlast are different people.
+  const work = track(`w.${RUN}.tester@company.test`);
+  const workAlias = track(`w${RUN}tester@company.test`);
+  await page.goto(APP + "/profile");
+  await page.getByRole("button", { name: "Sign in / Create account" }).click();
+  after = await enterEmail(page, work);
+  await page.getByLabel("6-digit code").fill((await latestCode(work, after)).code);
+  await page.getByRole("heading", { name: "Make it yours" }).waitFor();
+  await page.getByLabel("Display name").fill("Work Tester");
+  await page.getByLabel("Username").fill(`w${RUN}`);
+  await page.getByText("✓ Available").waitFor();
+  await page.getByRole("button", { name: "Create account", exact: true }).click();
+  await page.getByRole("dialog").waitFor({ state: "detached" });
+  await logout(page);
+  await page.goto(APP + "/profile");
+  await page.getByRole("button", { name: "Sign in / Create account" }).click();
+  after = await enterEmail(page, workAlias);
+  await page.getByLabel("6-digit code").fill((await latestCode(workAlias, after)).code);
+  const setup = await page.getByRole("heading", { name: "Make it yours" }).waitFor({ timeout: 10000 }).then(() => true, () => false);
+  check(
+    "7f. A dotted work address stays distinct: the undotted one gets its own code and a new-account setup",
+    setup && (await mailCount(work, after)) === 0 && sql(`select count(*) from auth.users where email in ('${work}', '${workAlias}')`) === "2",
+  );
+  await page.keyboard.press("Escape");
+  await ctx.close();
+
+  // The routes answer the same for an alias of an existing account and for an address nobody has.
+  const fresh = track(`n.${RUN}.probe@gmail.com`);
+  await waitForResendWindow(saved);
+  const sendExisting = await postJson("/auth/email-code/send", { email: `G.${RUN}TESTER+probe@gmail.com` });
+  const sendFresh = await postJson("/auth/email-code/send", { email: fresh });
+  const verifyExisting = await postJson("/auth/email-code/verify", { email: `g${RUN}tester+probe@gmail.com`, code: "000000" });
+  const verifyNobody = await postJson("/auth/email-code/verify", { email: `nobody.${RUN}@gmail.com`, code: "000000" });
+  const leaks = [sendExisting, sendFresh, verifyExisting, verifyNobody].some((r) => r.body.toLowerCase().includes(saved.toLowerCase()));
+  check(
+    "7g. Send: an existing account's alias and an unknown address get the same answer",
+    sendExisting.status === sendFresh.status && sendExisting.body === sendFresh.body,
+    `${sendExisting.status} ${sendExisting.body} vs ${sendFresh.status} ${sendFresh.body}`,
+  );
+  check(
+    "7h. Verify: a wrong code for an existing account's alias and for an address with no account get the same answer",
+    verifyExisting.status === verifyNobody.status && verifyExisting.body === verifyNobody.body,
+    `${verifyExisting.status} ${verifyExisting.body}`,
+  );
+  check("7i. No response contains the saved address", !leaks);
+
+  // Two sign-ups for the same new inbox at the same moment create one account.
+  const raceA = track(`race.${RUN}@gmail.com`);
+  const raceB = track(`race${RUN}+b@gmail.com`);
+  const [ra, rb] = await Promise.all([postJson("/auth/email-code/send", { email: raceA }), postJson("/auth/email-code/send", { email: raceB })]);
+  check(
+    "7j. Simultaneous sign-ups for one new Gmail inbox create exactly one account, and neither request fails with a server error",
+    accountsForInbox(`race${RUN}@gmail.com`) === "1" && sql(`select count(*) from auth.users where email in ('${raceA}', '${raceB}')`) === "1" && ra.status < 500 && rb.status < 500,
+    `${ra.status} / ${rb.status}`,
+  );
 }
 
 // 6. Keyboard only: Tab and Shift+Tab stay inside the sheet on each step, and closing returns focus to the opener.

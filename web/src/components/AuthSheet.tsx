@@ -19,6 +19,10 @@ const MAX_TRIES = 5;
 const NAME_MAX = 40;
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+/** Posts JSON to one of Stack's own routes. */
+const postJson = (url: string, body: unknown) =>
+  fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), cache: "no-store" });
+
 /**
  * A Supabase client for one sign-in attempt. It keeps the session in memory only, so a verification that
  * finishes after the attempt was cancelled or replaced never signs the app in. The app's own client adopts the
@@ -163,11 +167,12 @@ export default function AuthSheet({
     setEmailError("");
     setCodeError("");
     try {
-      const { error } = await client.auth.signInWithOtp({ email: addr, options: { shouldCreateUser: true } });
+      // Stack's server sends the code, so Gmail aliases reach the account that owns the inbox.
+      const res = await postJson("/auth/email-code/send", { email: addr });
       if (!isCurrent()) return;
-      if (error) {
+      if (!res.ok) {
         const msg =
-          error.status === 429 || error.code === "over_email_send_rate_limit"
+          res.status === 429
             ? "Too many codes requested. Wait a minute, then try again."
             : "Couldn’t send a code. Check your connection and try again.";
         if (isResend) setCodeError(msg);
@@ -192,14 +197,17 @@ export default function AuthSheet({
     setBusy("checking");
     setCodeError("");
     try {
-      const { data, error } = await client.auth.verifyOtp({ email: email.trim(), token, type: "email" });
+      const res = await postJson("/auth/email-code/verify", { email: email.trim(), code: token });
+      const tokens = res.ok ? ((await res.json()) as { access_token: string; refresh_token: string }) : null;
+      // The session lives only in this attempt's client until the attempt completes.
+      const { data, error } = tokens ? await client.auth.setSession(tokens) : { data: { user: null, session: null }, error: null };
       // Cancelled or replaced while the code was being checked: drop the result and end its session.
       if (!isCurrent()) return revoke();
-      if (error || !data.user) {
+      if (!res.ok || error || !data.user) {
         setCode("");
-        // A dropped connection or server error isn't a wrong guess, so it doesn't count as a try.
-        if (error?.name === "AuthRetryableFetchError" || (error?.status ?? 0) >= 500) {
-          setCodeError("Couldn’t check the code. Check your connection and try again.");
+        // A dropped connection, rate limit or server error isn't a wrong guess, so it doesn't count as a try.
+        if (res.status !== 400 || error) {
+          setCodeError(res.status === 429 ? "Too many tries for now. Wait a minute, then try again." : "Couldn’t check the code. Check your connection and try again.");
           return;
         }
         const n = tries + 1;
@@ -212,7 +220,7 @@ export default function AuthSheet({
       const profile = await fetchProfile(client, "id", data.user.id);
       if (!isCurrent()) return revoke();
       if (profile) return await complete(profile, data.session);
-      setVerifiedEmail(data.user.email ?? email.trim());
+      setVerifiedEmail(email.trim());
       setStep("profile");
     } catch {
       if (isCurrent()) setCodeError("Couldn’t check the code. Check your connection and try again.");

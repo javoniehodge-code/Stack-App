@@ -42,11 +42,25 @@ node web/e2e/target-guard.test.mjs   # invalid targets are refused before any wr
 node web/e2e/sign-in.e2e.mjs         # the browser checks
 ```
 
-The app was built and started with `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321` and the local anon key.
+The app was built and started with `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321` and the local anon key. It was started with `SIGN_IN_RESOLVER_TOKEN` set to a random test token, whose SHA-256 hash is stored in the test database's `private.server_tokens` (see `docs/gmail-aliases-rollout.md`, setup step 4).
+
+The Gmail migrations have their own database checks, run against a local `stack_test_*` database:
+- `supabase/tests/gmail_alias_accounts.test.sql`;
+- `gmail_alias_concurrency.sh`: two sign-ups at once;
+- `gmail_alias_migration_race.sh`: sign-ups and an email change while the migration runs. It builds its own scratch database.
+- `reconcile_email_keys.test.sql`: this one commits, so it needs the marked test database and its token. Run it through the guarded runner:
+
+  ```bash
+  TEST_DB="host=/tmp port=55433 dbname=stack_test_x user=postgres" TEST_ENV_TOKEN=<the token from step 4> \
+    node web/supabase/tests/run-db-test.mjs web/supabase/tests/reconcile_email_keys.test.sql
+  node web/supabase/tests/reconcile-guard.test.mjs   # same environment; proves bad targets are refused before any write
+  ```
+
+  The runner uses the same database guard as the browser test (`e2e/test-target.mjs`). The test file also checks its target itself, so plain psql is refused too unless it's given `-v test_env_token=<token>` on that database.
 
 ## Safety: what the browser test may write
 
-Before any write, `sign-in.e2e.mjs` checks the target with read-only queries, and refuses (exit 2) unless all of these hold:
+Before any write, `sign-in.e2e.mjs` checks the target with read-only queries (the database part lives in `test-target.mjs`, shared with `supabase/tests/run-db-test.mjs`), and refuses (exit 2) unless all of these hold:
 - every URL is local;
 - `TEST_DB` is a single local Unix socket to a `stack_test_*` database;
 - that database carries the marker from `fixtures.sql`, with the same token as `TEST_ENV_TOKEN`;
@@ -73,4 +87,5 @@ It also checks that the real target passes `--verify-only` without writing, and 
 - **Create account failure (0c).** A failed Create account keeps the sheet and the typed values, saves nothing, and a retry works.
 - **Existing user, Not now, new user, and setup closed midway** (1–4).
 - **Keyboard** (6): Tab, Shift+Tab, Escape and focus return.
+- **Gmail aliases** (7): signing in again with the regular address, and with dotless, `+test` and `+tag` aliases, reaches the saved account, and the code goes to the saved address. Dotted work addresses stay distinct. The sign-in routes answer the same with or without an account. Simultaneous sign-ups for one inbox create one account.
 - **Desktop layout** (5).
