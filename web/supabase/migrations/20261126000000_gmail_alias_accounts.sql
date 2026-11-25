@@ -11,7 +11,8 @@
 --   account is created (or its email changes); a second account for the same inbox fails on the table's primary
 --   key, including when two sign-ups race. This applies however the account is created: email code today, Google
 --   sign-in later.
--- * Backfills keys for existing accounts without changing any email or account id. If two existing accounts
+-- * Backfills keys for existing accounts without changing any email or account id, under a lock that holds off
+--   sign-ups and email changes until the trigger and the backfill are both in place. If two existing accounts
 --   already share an inbox, the older one keeps the key, both stay as they are, and both are listed in
 --   private.email_key_collisions for review.
 -- * Adds resolve_sign_in_email(), which Stack's server uses to send the code to the saved address of the account
@@ -19,6 +20,10 @@
 --   find out whether an account exists. An exact address always resolves to itself.
 --
 -- Nothing here is readable through the Data API: the private schema isn't exposed and grants nothing.
+
+-- One transaction, so the lock holds until the end and a failure leaves nothing half-applied (the Supabase CLI
+-- doesn't wrap migration files in a transaction itself).
+begin;
 
 create schema if not exists private;
 revoke all on schema private from public, anon, authenticated;
@@ -51,23 +56,6 @@ create table if not exists private.email_key_collisions (
   primary key (email_key, user_id)
 );
 
--- Backfill: the oldest account for each inbox keeps the key.
-insert into private.account_email_keys (email_key, user_id)
-select distinct on (private.email_key(u.email)) private.email_key(u.email), u.id
-  from auth.users u
- where u.email is not null and u.email <> ''
- order by private.email_key(u.email), u.created_at, u.id
-on conflict do nothing;
-
--- Existing accounts that already share an inbox: kept as they are, listed for review.
-insert into private.email_key_collisions (email_key, user_id, email)
-select private.email_key(u.email), u.id, u.email
-  from auth.users u
- where u.email is not null and u.email <> ''
-   and private.email_key(u.email) in (
-     select private.email_key(email) from auth.users where email is not null and email <> '' group by 1 having count(*) > 1)
-on conflict do nothing;
-
 -- Claims the inbox key for a new account, or moves it when an account's email changes.
 create or replace function private.claim_email_key()
 returns trigger
@@ -94,10 +82,33 @@ $$;
 
 revoke execute on function private.claim_email_key() from public, anon, authenticated;
 
+-- Install the trigger and backfill existing accounts as one step. The lock waits for sign-ups and email changes
+-- already in progress to finish, then makes new ones (and sign-ins, which update the account row) wait until this
+-- migration commits, a moment later; reading accounts isn't blocked. So every account either exists before the
+-- backfill and is backfilled, or is written after the trigger exists and claims its key through it.
+lock table auth.users in share row exclusive mode;
+
 drop trigger if exists claim_email_key on auth.users;
 create trigger claim_email_key
   after insert or update of email on auth.users
   for each row execute function private.claim_email_key();
+
+-- Backfill: the oldest account for each inbox keeps the key.
+insert into private.account_email_keys (email_key, user_id)
+select distinct on (private.email_key(u.email)) private.email_key(u.email), u.id
+  from auth.users u
+ where u.email is not null and u.email <> ''
+ order by private.email_key(u.email), u.created_at, u.id
+on conflict do nothing;
+
+-- Existing accounts that already share an inbox: kept as they are, listed for review.
+insert into private.email_key_collisions (email_key, user_id, email)
+select private.email_key(u.email), u.id, u.email
+  from auth.users u
+ where u.email is not null and u.email <> ''
+   and private.email_key(u.email) in (
+     select private.email_key(email) from auth.users where email is not null and email <> '' group by 1 having count(*) > 1)
+on conflict do nothing;
 
 -- Server-side secrets, stored as SHA-256 hashes. The sign-in token's hash is added during rollout (see
 -- docs/gmail-aliases-rollout.md); until then resolve_sign_in_email() refuses every call.
@@ -138,3 +149,5 @@ $$;
 
 revoke execute on function public.resolve_sign_in_email(text, text) from public;
 grant execute on function public.resolve_sign_in_email(text, text) to anon, authenticated;
+
+commit;

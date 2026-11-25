@@ -42,7 +42,9 @@ node web/e2e/target-guard.test.mjs   # invalid targets are refused before any wr
 node web/e2e/sign-in.e2e.mjs         # the browser checks
 ```
 
-The app was built and started with `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321` and the local anon key. It was started with `SIGN_IN_RESOLVER_TOKEN` set to a random test token, whose SHA-256 hash is stored in the test database's `private.server_tokens` (see `docs/gmail-aliases-rollout.md`, step 4).
+The app was built and started with `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321` and the local anon key. It was started with `SIGN_IN_RESOLVER_TOKEN` set to a random test token, whose SHA-256 hash is stored in the test database's `private.server_tokens` (see `docs/gmail-aliases-rollout.md`, setup step 4).
+
+The Gmail migrations have their own database checks, run against a local `stack_test_*` database: `supabase/tests/gmail_alias_accounts.test.sql`, `reconcile_email_keys.test.sql`, `gmail_alias_concurrency.sh` (two sign-ups at once) and `gmail_alias_migration_race.sh` (sign-ups and an email change while the migration runs; builds its own scratch database).
 
 ## Safety: what the browser test may write
 
