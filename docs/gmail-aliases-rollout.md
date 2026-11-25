@@ -182,9 +182,28 @@ Each step that changed live was approved by the owner before it ran.
 Supabase Auth now sees Stack's server, rather than each person's browser, as the source of every code request. Supabase's per-IP limits on code requests and checks therefore apply to all users together.
 - With today's handful of users this doesn't matter.
 - The project-wide email limit (about 30 an hour, set during Task 1a) still applies too.
-- Before real traffic, choose one:
-  - forward each visitor's IP to Supabase, which needs a privileged key on the server; or
-  - add Stack's own per-address and per-IP limits in the sign-in routes.
+
+### Vercel firewall rule (added Nov 25)
+
+One rate-limit rule in the Vercel project's Firewall, named **Sign-in codes**:
+- **Applies to:** `POST` requests to `/auth/email-code/send` and `/auth/email-code/verify`, on every deployment (production and previews).
+- **Limit:** 20 requests per IP address per 10 minutes (fixed window), shared between sending and checking codes.
+- **Over the limit:** Vercel answers 429 itself, so the request never reaches Stack or Supabase. The sign-in sheet shows "Too many codes requested. Wait a minute, then try again." or "Too many tries for now. Wait a minute, then try again."
+
+Why it's set up this way:
+- **One shared limit:** the current Vercel plan allows only one rate-limit rule. Separate limits for sending and checking need a plan upgrade.
+- **Why 20:** one sign-in usually takes about 5 requests (a code or two, a few checks), so several people on the same Wi-Fi still fit.
+- **Supabase's limits are unchanged** on purpose. Anyone calling Supabase directly skips this rule, so Supabase's own per-IP limits, its one-code-per-inbox-a-minute rule and the email cap are what protect that path. Raising them would weaken that protection.
+
+Tested on the PR #34 preview before it was turned on everywhere:
+- normal sign-in, with a Gmail address and its `+test` version, still worked;
+- over 20 requests, sending and checking were both blocked with 429;
+- the sheet showed the message above;
+- a production sign-in worked afterwards.
+
+Still open:
+- **Busy moments:** many people signing in at once from different connections can still use up Supabase's shared per-IP allowance.
+- **No per-code guess limit:** a code isn't locked after several wrong guesses yet.
 
 ## Evidence (isolated test environment, Nov 25)
 
