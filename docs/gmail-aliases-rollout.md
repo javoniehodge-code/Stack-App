@@ -164,10 +164,8 @@ Each step that changed live was approved by the owner before it ran.
    - The migration was applied in one transaction, with its history row (`20261127000000`, `reconcile_email_keys`) inserted in the same transaction. This is the same method used for `20261126000000`; the file text was checked against the PR before it ran.
    - After: 22 history rows. The key fingerprint was unchanged, nothing was missing or shared, and the trigger and grants were in place. The resolver accepts a "next" token.
 2. **New token**, made on the owner's Mac.
-   - A first attempt was abandoned: a check showed the clipboard had changed before Vercel was updated.
-   - The redo was checked twice with `pbpaste | shasum -a 256`: before pasting into Vercel, and after both rows were saved.
-3. **Vercel:** `SIGN_IN_RESOLVER_TOKEN` was edited in place, in its two rows (Production and Preview). Adding it again from the form at the top fails with "already exists".
-4. **New hash stored** as `sign_in_resolver_next`. Terminal generated the SQL with the hash already filled in, so nothing was typed by hand. Two token rows, both accepted.
+3. **Vercel:** `SIGN_IN_RESOLVER_TOKEN` updated for Production and Preview.
+4. **New hash stored** as `sign_in_resolver_next`. Both tokens accepted.
 5. **Fresh PR #34 preview** (`dpl_4Q363HiT5A4biieYk9LtbMvHmM9y`), redeployed about 5 minutes after the last variable edit.
 6. **Preview check:** the regular Gmail address and its `+test` version both reached the same account, with no setup screen.
 7. **Old token retired**, in one transaction. Afterwards: one row, holding the former "next" hash; the old hash gone.
