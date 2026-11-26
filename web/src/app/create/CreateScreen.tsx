@@ -384,7 +384,7 @@ function RichInput({
  * The four-step create flow: title, description, build (edit in place), finalize. Drafts save automatically.
  * With `edit`, it edits a published stack instead: only the build step, with Publish and Publish & Share Update.
  */
-export default function CreateScreen({ initial, start, edit: target = null }: { initial: Draft; start: "title" | "build"; edit?: EditTarget | null }) {
+export default function CreateScreen({ initial, start, edit: target = null }: { initial: Draft; start: Step; edit?: EditTarget | null }) {
   const router = useRouter();
   const back = useBack();
   const { viewer, requireAuth } = useAuth();
@@ -427,52 +427,63 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const shareState = target ? shareInfo(target, now, contentKey(work) !== liveKey) : null;
   const selLine = sel?.kind === "line" ? (work.sections.flatMap((sec) => sec.lines).find((l) => l.id === sel.id) ?? null) : null;
 
-  // The draft's id once it has been saved, and a queue so saves never overlap (the first one creates the row).
-  const idRef = useRef<string | null>(initial.id);
+  // The draft's id. The app makes it before the first save, and every save is an upsert on it, so a save that's
+  // retried (say its reply was lost) updates the same draft instead of making a second one. Publishing gives the
+  // stack the same id, so a retried publish can't make a second stack either. `saved` is whether the draft row
+  // exists yet; a queue keeps saves from overlapping.
+  const [newId] = useState(() => crypto.randomUUID());
+  const idRef = useRef<string>(initial.id ?? newId);
+  const saved = useRef(!!initial.id);
   const queue = useRef<Promise<unknown>>(Promise.resolve());
   const dirty = useRef(false);
   const workRef = useRef(work);
+  const stepRef = useRef(step);
   useEffect(() => {
     workRef.current = work;
-  }, [work]);
+    stepRef.current = step;
+  }, [work, step]);
 
   const persist = useCallback(
     (status: "draft" | "published", title?: string) => {
+      // Drafts keep everything as typed, even over a limit; limits are checked when it's published.
+      const row = (w: Work) => ({
+        id: idRef.current,
+        content: { v: 1, title: w.title, description: w.description, sections: sectionsArg(w), tags: w.tags, style: initial.style, visibility: w.visibility, location: w.location },
+        step: stepRef.current,
+        edit_of: target?.stackId ?? null,
+        base_version: target?.baseVersion ?? null,
+        remixed_from: initial.forkedFromId,
+      });
       const run = async (): Promise<string | null> => {
         const w = workRef.current;
-        const t = (title ?? w.title).trim();
-        const args = {
+        const sb = createClient();
+        let { error } = await sb.from("drafts").upsert(row(w), { onConflict: "id" });
+        // Edits to a published stack: another tab may have started its edits draft first. Carry on in that one.
+        if (error?.code === "23505" && target) {
+          const { data } = await sb.from("drafts").select("id").eq("edit_of", target.stackId).maybeSingle();
+          if (data) {
+            idRef.current = data.id;
+            ({ error } = await sb.from("drafts").upsert(row(w), { onConflict: "id" }));
+          }
+        }
+        if (error) return error.message;
+        if (!saved.current) {
+          saved.current = true;
+          // A new stack's address becomes its draft's, so a refresh reopens it where it was.
+          if (!target) window.history.replaceState(window.history.state, "", `/drafts/${idRef.current}`);
+        }
+        if (status === "draft") return null;
+        const { error: pub } = await sb.rpc("publish_draft", {
           p_id: idRef.current,
-          p_title: status === "draft" && !t ? UNTITLED : t,
+          p_title: (title ?? w.title).trim(),
           p_sections: sectionsArg(w),
           p_tags: w.tags,
-          p_status: status,
-          p_forked_from: initial.forkedFromId,
           p_style: initial.style,
           p_description: w.description.trim(),
           p_visibility: w.visibility,
-        };
-        const sb = createClient();
-        if (target) {
-          // Edits to a published stack are kept in a draft that points at it.
-          const { data, error } = await sb.rpc("save_stack", { ...args, p_location: w.location.trim(), p_edit_of: target.stackId });
-          if (error) return error.code === "PGRST202" ? "Editing published stacks isn't available yet." : error.message;
-          idRef.current = data as string;
-          return null;
-        }
-        let { data, error } = await sb.rpc("save_stack", { ...args, p_location: w.location.trim() });
-        // Before the line_notes_location migration runs, save_stack has no p_location and the database drops
-        // line notes. Keep them by writing "Line — note", which stacks show as the same head and gray note.
-        if (error?.code === "PGRST202") {
-          const folded = w.sections.map((sec) => ({
-            label: sec.headed ? sec.label : "",
-            lines: sec.lines.map((l) => ({ text: plainText(l.text).slice(0, 500), link: l.link || null })),
-          }));
-          ({ data, error } = await sb.rpc("save_stack", { ...args, p_sections: folded }));
-        }
-        if (error) return error.message;
-        idRef.current = data as string;
-        return null;
+          p_location: w.location.trim(),
+        });
+        return pub ? pub.message : null;
       };
       const next = queue.current.then(run, run);
       queue.current = next;
@@ -480,6 +491,20 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     },
     [initial.forkedFromId, initial.style, target],
   );
+
+  // Moving between steps is saved too (once the draft exists), so it reopens at the same step.
+  useEffect(() => {
+    if (saved.current && viewer && !published) persist("draft");
+  }, [step, viewer, published, persist]);
+
+  // While a change hasn't been saved yet, leaving the page asks first (a refresh would lose it).
+  useEffect(() => {
+    const warn = (e: BeforeUnloadEvent) => {
+      if (dirty.current) e.preventDefault();
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, []);
 
   const edit = (fn: (w: Work) => Work) => {
     setWork(fn);
@@ -494,9 +519,11 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     const t = setTimeout(async () => {
       // Saving (or publishing) since cleared it; nothing left to autosave.
       if (!dirty.current) return;
-      if (!hasContent(workRef.current)) return setSave("idle");
-      // Over a limit: nothing is saved until it's trimmed (the banner says what to change).
-      if (limitProblems(workRef.current).length) return setSave("over");
+      // Nothing typed yet: no draft. (A draft that exists keeps saving, even emptied, so it matches the screen.)
+      if (!hasContent(workRef.current) && !saved.current) {
+        dirty.current = false;
+        return setSave("idle");
+      }
       dirty.current = false;
       const err = await persist("draft");
       setSave(err ? "error" : "saved");
@@ -919,11 +946,6 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   }
 
   const flush = async () => {
-    const over = limitProblems(workRef.current)[0];
-    if (over) {
-      setSave("over");
-      return over;
-    }
     dirty.current = false;
     setSave("saving");
     const err = await persist("draft");
@@ -946,7 +968,12 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
         back("/settings/stacks?filter=drafts");
       }, "Sign in to keep these changes.");
     }
-    if (!hasContent(work)) return router.push("/");
+    // Nothing in it: leave without a draft (removing the one saved earlier, if any).
+    if (!hasContent(work)) {
+      dirty.current = false;
+      if (saved.current) queue.current.then(() => createClient().from("drafts").delete().eq("id", idRef.current));
+      return router.push("/");
+    }
     requireAuth(async () => {
       const err = await flush();
       if (err) return toast(`Couldn't save: ${err}`);
@@ -1011,6 +1038,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     setWork((w) => ({ ...w, title }));
     const id = idRef.current;
     setPublished(id);
+    // The draft is gone now; the address becomes the stack's, so a refresh opens it.
+    window.history.replaceState(window.history.state, "", `/s/${id}`);
     router.refresh();
     if (id) setPublishedStack(await fetchStack(createClient(), viewer?.id ?? null, id));
   }
@@ -1317,7 +1346,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               <div className={s.buildBody}>
                 {problems.length > 0 && (
                   <div className={s.limitBanner} role="alert">
-                    <strong>This stack is over a size limit, so it won&apos;t save yet.</strong>
+                    <strong>This stack is over a size limit. Your draft is saved; fix this before publishing.</strong>
                     <ul>
                       {problems.map((m) => (
                         <li key={m}>{m}</li>

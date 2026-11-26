@@ -11,7 +11,8 @@ import { plural } from "@/lib/format";
 import { SHOW_DRAFTS } from "@/lib/navFlags";
 import { useVisibilityLookup } from "@/lib/store";
 import { createClient } from "@/lib/supabase/client";
-import type { Stack, StackRow, Visibility } from "@/lib/types";
+import { deleteDraft as removeDraft, type DraftSummary } from "@/lib/drafts";
+import type { Stack, Visibility } from "@/lib/types";
 import p from "../../profile/Profile.module.css";
 import SettingsHeader from "../SettingsHeader";
 import s from "./Manage.module.css";
@@ -35,7 +36,7 @@ const HINTS: Record<Filter, string> = {
 };
 
 /** Your stacks and drafts, filtered by who can see them, with an Edit pill on each stack. */
-export default function ManageScreen({ data, initialFilter = "all" }: { data: { stacks: Stack[]; drafts: StackRow[] } | null; initialFilter?: Filter }) {
+export default function ManageScreen({ data, initialFilter = "all" }: { data: { stacks: Stack[]; drafts: DraftSummary[] } | null; initialFilter?: Filter }) {
   const router = useRouter();
   const toast = useToast();
   const { requireAuth } = useAuth();
@@ -92,7 +93,7 @@ export default function ManageScreen({ data, initialFilter = "all" }: { data: { 
 
   async function deleteDraft(id: string) {
     setRemoved((r) => new Set(r).add(id));
-    const { error } = await createClient().from("stacks").delete().eq("id", id);
+    const { error } = await removeDraft(createClient(), id);
     if (error) {
       setRemoved((r) => {
         const next = new Set(r);
@@ -152,11 +153,11 @@ export default function ManageScreen({ data, initialFilter = "all" }: { data: { 
           );
         })}
         {shownDrafts.map((d) => (
-          <div key={d.id} className={s.row} role="link" tabIndex={0} onClick={go(`/create?draft=${d.id}`)} onKeyDown={(e) => e.target === e.currentTarget && e.key === "Enter" && go(`/create?draft=${d.id}`)()}>
+          <div key={d.id} className={s.row} role="link" tabIndex={0} onClick={go(`/drafts/${d.id}`)} onKeyDown={(e) => e.target === e.currentTarget && e.key === "Enter" && go(`/drafts/${d.id}`)()}>
             <div className={s.main}>
               <div className={s.title}>{d.title || "Untitled stack"}</div>
               <div className={s.meta}>
-                {d.edit_of ? "Unsaved edits to a published stack" : `${plural(d.line_count, "line")} · publishes as ${VIS[d.visibility ?? "public"].label.toLowerCase()}`}
+                {d.editOf ? "Unsaved edits to a published stack" : `${plural(d.lineCount, "line")} · publishes as ${VIS[d.visibility].label.toLowerCase()}`}
               </div>
             </div>
             <div className={s.draftSide}>

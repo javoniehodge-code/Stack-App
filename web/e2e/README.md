@@ -1,4 +1,4 @@
-# Sign-in test environment (Tasks 1a and 1b)
+# Test environment (sign-in, Tasks 1a and 1b; drafts, Task 2a)
 
 `sign-in.e2e.mjs` drives the real app in a browser against an isolated, local copy of Supabase, with Mailpit as the test inbox. It refuses to run unless every URL points at `localhost` or `127.0.0.1`. It never touches the live Supabase project.
 
@@ -56,6 +56,7 @@ export APP_URL=http://localhost:3000 API_URL=http://localhost:54321 MAILPIT_URL=
 node web/e2e/target-guard.test.mjs   # invalid targets are refused before any write
 node web/e2e/sign-in.e2e.mjs         # the browser checks
 node web/e2e/callback-redirect.test.mjs   # /auth/callback only returns to the app's own origin
+node web/e2e/drafts.e2e.mjs          # drafts: autosave, own address, retries, leaving, publish once, edits
 ```
 
 The app was built and started with `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321` and the local anon key. It was started with `SIGN_IN_RESOLVER_TOKEN` set to a random test token, whose SHA-256 hash is stored in the test database's `private.server_tokens` (see `docs/gmail-aliases-rollout.md`, setup step 4).
@@ -112,3 +113,12 @@ It also checks that the real target passes `--verify-only` without writing, and 
   - a typed comment comes back;
   - Connect Google in Settings links this inbox's Google account, refuses one that belongs to another account, and then signs straight in.
 - **Desktop layout** (5).
+
+`drafts.e2e.mjs` runs the same read-only target checks first. It writes only to accounts it creates (`drafts.<run>.*@stack.test`), and removes them, with their drafts and Stacks, at the end. It covers:
+- the first save, the `/drafts/<id>` address, and a refresh;
+- a lost reply on a save and on a publish (neither duplicates);
+- an over-limit draft;
+- leaving an empty or a filled editor, and deleting a draft;
+- edits to a published Stack.
+
+The database checks are `supabase/tests/drafts.test.sql`.
