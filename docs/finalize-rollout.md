@@ -4,20 +4,26 @@ This covers migration `20261130000000_finalize` and the new Finalize step (spec,
 
 ## What changes
 
-- **One Finalize screen, with an Arrange / Preview switch.** The top bar (Exit, save status, Save draft) stays in both.
+The screen follows the design (Create Flow prototype, Finalize). The spec's categories and Order cards, which the design doesn't draw, use the same card style.
+
+- **Finalize:** a "Preview your Stack" card, then the theme card, Privacy, the place question, Categories and Order.
 - **Theme card.**
+  - Its header shows the emoji and title on the theme colour: "This is how your card looks in feeds".
   - The emoji and colour are suggested from the title: "Suggested from your title. Tap to change."
   - 12 emoji and 6 colours to choose from. Once changed: "You picked this theme."
   - An untouched suggestion is what gets published, so it doesn't change later.
-- **Is this about a place?**
-  - Yes / No. Until answered, it starts at Yes when there's a city or the theme's emoji suggests a place (🍸 🍜 ☕ ✈️ 🌮 🌴).
-  - Yes shows the city field (up to 80 characters) and "A city is required for place stacks."
+- **Is this Stack about a place?**
+  - A Yes / No switch. Until answered, it starts at Yes when there's a city or the theme's emoji suggests a place (🍸 🍜 ☕ ✈️ 🌮 🌴): "Looks like a place stack. A city is required for place stacks."
+  - Yes shows the city field (up to 80 characters), and "Add a city to publish." while it's empty.
   - No says "Not about a place. No city needed." A city typed earlier isn't published.
-- **Who can see this stack:** Public, Invite Only (Unlisted) or Private, as before.
+- **Privacy:** Public, Unlisted or Private, worded as in the design.
 - **Categories:** pick 1 or 2 of the spec's 12. At 2, the rest are off and the card says "You picked 2. Tap one to remove it, then pick another."
 - **Order:** move sections and picks up or down, the same as Reorder in Build.
-- **Preview:** the theme band (colour, emoji wallpaper, emoji, "N picks"), the city, the Stack as visitors see it, and its categories.
-- **Back to Build** returns to step 3 with everything kept.
+- **Preview** (from "Preview your Stack"), as in the design:
+  - a full screen in the theme colour with the emoji wallpaper, an "‹ Edit" pill and "👀 Preview · Public";
+  - the Stack card, with a slim band ("🌮 3 picks", "just now"), author, title, description, sections and picks (subheadings, links, "You say" tags, Pin and Send);
+  - Back returns to Finalize.
+- **Back** returns to Build with everything kept.
 - **Everything is kept in the draft** and comes back after a refresh, at Finalize.
 - **Publishing saves the choices on the Stack.** The new `stacks` columns are `theme_emoji`, `theme_color`, `is_place` and `categories`; the city stays in `location`. The database accepts only the listed emoji, colours and categories, at most 2 categories.
 
@@ -26,6 +32,7 @@ This covers migration `20261130000000_finalize` and the new Finalize step (spec,
 - **Later tasks:**
   - showing the theme on the Stack page and in feeds;
   - the feed-card preview;
+  - the city and categories in Preview (the design's Preview doesn't show them);
   - Explore and search using the new categories;
   - changing these choices when editing a published Stack. Edits keep them as they are.
 
@@ -68,8 +75,8 @@ The new app sends the choices with Publish, which works only after step 1, so st
   3. No hides the city; Yes brings it back, and the city saves;
   4. 2 categories save, a third is off with the reason, and tapping one removes it;
   5. Order moves a pick up;
-  6. Who can see this stack saves the choice;
-  7. Preview shows the theme band, the city and the categories;
+  6. Privacy saves the choice;
+  7. Preview matches the design: theme background, Edit and "Preview · Unlisted", a 52 px band with "📖 3 picks" and "just now", and the picks in their new order;
   8. publishing keeps the theme, place and city, categories, visibility and order on the Stack;
   9. "Books I loved" starts at No, its suggested theme (📖) is published, and a city typed before answering No isn't kept.
 - **The window between the steps:** the current live app (built from `main`) passed its own pick-editor (34/34) and drafts (26/26) browser tests against the migrated test copy.

@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth, useBack, useToast } from "@/components/AppProviders";
 import shell from "@/components/AppShell.module.css";
 import { ShareSheet, systemShare } from "@/components/Share";
-import { StackPaper, TagChips } from "@/components/StackView";
+import { TagChips } from "@/components/StackView";
 import {
   firstTextLink,
   initials,
@@ -78,11 +78,6 @@ type SaveState = "idle" | "saving" | "saved" | "error" | "over";
 type LinkSheet = { lineId: string; index: number | null; url: string; name: string; reselect: boolean };
 
 const STEPS: Record<Step, [number, string]> = { title: [1, "Title"], description: [2, "Description"], build: [3, "Build"], review: [4, "Finalize"] };
-const PRIVACY: [Visibility, string, string][] = [
-  ["public", "Public", "Anyone can find it on your profile and in search"],
-  ["unlisted", "Invite Only", "Only people with the link"],
-  ["private", "Private", "Only you"],
-];
 /** The formats in the toolbar, then Section. */
 const FORMATS: [Pick, string, React.ReactNode][] = [
   [
@@ -117,6 +112,12 @@ const FORMATS: [Pick, string, React.ReactNode][] = [
   ],
 ];
 const UNTITLED = "Untitled draft";
+/** Finalize › Privacy, worded as in the design. */
+const FINAL_PRIVACY: [Visibility, string, string][] = [
+  ["public", "Public", "Anyone can find it on your profile and in search"],
+  ["unlisted", "Unlisted", "Hidden from your profile and discovery. Anyone with the link can view."],
+  ["private", "Private", "Only you can view it"],
+];
 const FULL_ITEMS = `${MAX_ITEMS} of ${MAX_ITEMS} items · remove one to add another`;
 const FULL_SECTIONS = `A Stack can have up to ${MAX_SECTIONS} sections.`;
 const FULL_LINKS = `A pick can have up to ${MAX_LINKS} links. Remove one to add another.`;
@@ -1239,7 +1240,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     </svg>
   );
 
-  const header = (
+  const header = !(step === "review" && preview) && (
     <header className={s.header}>
       <div className={s.headerRow}>
         <div>
@@ -1808,170 +1809,137 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
         </>
       )}
 
-      {step === "review" && (
+      {step === "review" && !preview && (
         <>
           <div className={s.scroll} style={{ paddingTop: 10 }}>
             <h1 className={s.finalHeading}>Finalize</h1>
-            <div className={s.modeSwitch} role="tablist" aria-label="Finalize">
-              <button role="tab" aria-selected={!preview} className={s.modeTab} data-on={!preview || undefined} onClick={() => setPreview(false)}>
-                Arrange
-              </button>
-              <button role="tab" aria-selected={preview} className={s.modeTab} data-on={preview || undefined} onClick={() => setPreview(true)}>
-                Preview
-              </button>
-            </div>
+            <button className={s.previewCard} onClick={() => setPreview(true)}>
+              <span className={s.previewIcon}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </span>
+              <span className={s.previewText}>
+                <span className={s.previewTitle}>Preview your Stack</span>
+                <span className={s.previewSub}>See exactly what visitors will see</span>
+              </span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted-66)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M9.5 5.5L16 12l-6.5 6.5" />
+              </svg>
+            </button>
 
-            {preview ? (
-              <div className={s.pvWrap}>
-                <div className={s.pvBand} style={{ background: fin.color }}>
-                  <div className={s.pvWall} aria-hidden>
-                    {Array(60).fill(fin.emoji).join(" ")}
-                  </div>
-                  <span className={s.pvEmoji} aria-hidden>
-                    {fin.emoji}
-                  </span>
-                  <span className={s.pvBadge}>
-                    {n} {n === 1 ? "pick" : "picks"}
-                  </span>
-                </div>
-                <StackPaper
-                  updated={`Updated ${new Date().toLocaleString("en-US", { month: "short", year: "numeric" })}`}
-                  author={
-                    <div className={s.pvAuthor}>
-                      <span className={s.pvAvatar}>{initials(viewer.name)}</span>
-                      <span className={s.pvName}>{viewer.name}</span>
-                      <span className={s.pvHandle}>@{viewer.handle}</span>
-                    </div>
-                  }
-                  banner={
-                    fin.isPlace && fin.city ? (
-                      <div className={s.pvCity}>📍 {fin.city}</div>
-                    ) : undefined
-                  }
-                  title={shownTitle}
-                  description={work.description.trim()}
-                  lines={work.sections.flatMap((sec) =>
-                    sec.lines
-                      .filter((l) => !isEmpty(l))
-                      .map((l, i) => ({
-                        num: l.format === "num" ? String(++pn).padStart(2, "0") : "•",
-                        label: i === 0 && sec.headed && sec.label.trim() ? sec.label : null,
-                        head: l.text.trim(),
-                        note: l.sub.trim(),
-                        link: l.links[0]?.url ?? null,
-                        linkLabel: l.links[0] ? linkLabel(l.links[0]) : "",
-                        links: l.links.slice(1).map((k) => ({ href: k.url, label: linkLabel(k) })),
-                        plain: true,
-                        format: l.format,
-                        tags: l.tags,
-                      })),
-                  )}
-                />
-                {work.categories.length > 0 && (
-                  <div className={s.pvCats}>
-                    {work.categories.map((c) => (
-                      <span key={c} className={s.catChip} data-on style={{ background: CATEGORIES.find((x) => x.name === c)?.color }}>
-                        {c}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
+            {(
               <>
-                <section className={s.card} aria-labelledby="theme-title">
-                  <div className={s.themeRow}>
-                    <span className={s.themeSwatch} style={{ background: fin.color }} aria-hidden>
+                {/* As in the design (Create Flow, Finalize): the theme card, Privacy, then the place question. */}
+                <section className={s.fzTheme} aria-label="Theme">
+                  <div className={s.fzThemeHead} style={{ background: fin.color }}>
+                    <span key={fin.emoji} className={s.fzPop} aria-hidden>
                       {fin.emoji}
                     </span>
-                    <span>
-                      <span id="theme-title" className={s.cardLabel}>
-                        Theme
-                      </span>
-                      <span className={s.themeHint}>{work.theme ? "You picked this theme." : "Suggested from your title. Tap to change."}</span>
-                    </span>
+                    <div style={{ minWidth: 0 }}>
+                      <div className={s.fzThemeTitle}>{shownTitle}</div>
+                      <div className={s.fzThemeSub}>This is how your card looks in feeds</div>
+                    </div>
                   </div>
-                  <div className={s.emojiGrid}>
-                    {THEME_EMOJIS.map((e) => (
-                      <button key={e} className={s.emojiBtn} aria-pressed={e === fin.emoji} aria-label={`Theme emoji ${e}`} onClick={() => pickTheme(e, fin.color)}>
-                        {e}
-                      </button>
-                    ))}
-                  </div>
-                  <div className={s.colorRow}>
-                    {THEME_COLORS.map((c, i) => (
-                      <button key={c} className={s.colorBtn} style={{ background: c }} aria-pressed={c === fin.color} aria-label={`Theme colour ${i + 1}`} onClick={() => pickTheme(fin.emoji, c)} />
-                    ))}
+                  <div className={s.fzThemeBody}>
+                    <div className={s.fzLabel}>Theme · emoji</div>
+                    <div className={s.emojiGrid}>
+                      {THEME_EMOJIS.map((e) => (
+                        <button
+                          key={e}
+                          className={s.emojiBtn}
+                          style={e === fin.emoji ? { background: fin.color } : undefined}
+                          aria-pressed={e === fin.emoji}
+                          aria-label={`Theme emoji ${e}`}
+                          onClick={() => pickTheme(e, fin.color)}
+                        >
+                          {e}
+                        </button>
+                      ))}
+                    </div>
+                    <div className={s.fzLabel} style={{ margin: "12px 0 8px" }}>
+                      Theme · color
+                    </div>
+                    <div className={s.colorRow}>
+                      {THEME_COLORS.map((c, i) => (
+                        <button key={c} className={s.colorBtn} style={{ background: c }} aria-pressed={c === fin.color} aria-label={`Theme colour ${i + 1}`} onClick={() => pickTheme(fin.emoji, c)} />
+                      ))}
+                    </div>
+                    <div className={s.fzHint}>{work.theme ? "You picked this theme." : "Suggested from your title. Tap to change."}</div>
                   </div>
                 </section>
 
-                <section className={s.card} style={{ marginTop: 14 }} aria-labelledby="place-title">
-                  <div id="place-title" className={s.placeTitle}>
-                    Is this about a place?
+                <section className={s.fzCard} style={{ paddingBottom: 8 }} aria-labelledby="privacy-title">
+                  <div id="privacy-title" className={s.fzLabel} style={{ marginBottom: 6 }}>
+                    Privacy
                   </div>
-                  <div className={s.yesNo} role="radiogroup" aria-labelledby="place-title">
-                    {([true, false] as const).map((v) => (
-                      <button key={String(v)} role="radio" aria-checked={fin.isPlace === v} className={s.yesNoBtn} data-on={fin.isPlace === v || undefined} onClick={() => edit((w) => ({ ...w, isPlace: v }))}>
-                        {v ? "Yes" : "No"}
-                      </button>
-                    ))}
-                  </div>
-                  {fin.isPlace ? (
-                    <>
-                      <label className={s.placeField}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                          <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" />
-                          <circle cx="12" cy="10" r="2.4" />
-                        </svg>
-                        <input
-                          className={s.placeInput}
-                          value={work.location}
-                          onChange={(e) => {
-                            const v = oneLine(e.target.value);
-                            edit((w) => ({ ...w, location: v }));
-                          }}
-                          placeholder="e.g. Mexico City, or Brooklyn, NY"
-                          aria-label="City"
-                        />
-                      </label>
-                      <div className={s.placeHelp}>
-                        A city is required for place stacks.
-                        {cityCount.text && (
-                          <span className={s.fieldCount} data-full={cityCount.full || undefined} style={{ marginLeft: 8 }}>
-                            {cityCount.text}
-                          </span>
-                        )}
-                      </div>
-                    </>
-                  ) : (
-                    <div className={s.placeHelp}>Not about a place. No city needed.</div>
-                  )}
-                </section>
-
-                <section className={s.card} style={{ marginTop: 14, paddingBottom: 8 }} aria-labelledby="privacy-title">
-                  <div id="privacy-title" className={s.cardLabel}>
-                    Who can see this stack
-                  </div>
-                  {PRIVACY.map(([key, label, desc]) => {
+                  {FINAL_PRIVACY.map(([key, label, desc], i) => {
                     const on = work.visibility === key;
                     return (
-                      <button key={key} className={s.privacyRow} onClick={() => edit((w) => ({ ...w, visibility: key }))} aria-pressed={on}>
-                        <span className={s.radio} data-on={on || undefined}>
+                      <button key={key} className={s.fzVis} data-divided={i > 0 || undefined} onClick={() => edit((w) => ({ ...w, visibility: key }))} aria-pressed={on}>
+                        <span className={s.fzRadio} data-on={on || undefined}>
                           <span />
                         </span>
-                        <span className={s.privacyText}>
-                          <span className={s.privacyLabel} style={{ fontWeight: on ? 700 : 600 }}>
+                        <span className={s.fzVisText}>
+                          <span className={s.fzVisLabel} style={{ fontWeight: on ? 700 : 600 }}>
                             {label}
                           </span>
-                          <span className={s.privacyDesc}>{desc}</span>
+                          <span className={s.fzVisDesc}>{desc}</span>
                         </span>
                       </button>
                     );
                   })}
                 </section>
 
-                <section className={s.card} style={{ marginTop: 14 }} aria-labelledby="cats-title">
-                  <div id="cats-title" className={s.cardLabel}>
+                <section className={s.fzCard} style={{ marginTop: 14 }}>
+                  <div className={s.fzPlaceRow}>
+                    <div id="place-title" className={s.fzPlaceTitle}>
+                      Is this Stack about a place?
+                    </div>
+                    <div className={s.fzSwitch} role="radiogroup" aria-labelledby="place-title">
+                      {([true, false] as const).map((v) => (
+                        <button key={String(v)} role="radio" aria-checked={fin.isPlace === v} className={s.fzSwitchBtn} data-on={fin.isPlace === v || undefined} onClick={() => edit((w) => ({ ...w, isPlace: v }))}>
+                          {v ? "Yes" : "No"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className={s.fzPlaceHint}>
+                    {fin.isPlace ? (work.isPlace === null ? "Looks like a place stack. A city is required for place stacks." : "A city is required for place stacks.") : "Not about a place. No city needed."}
+                  </div>
+                  {fin.isPlace && (
+                    <>
+                      <div style={{ height: 12 }} />
+                      <label className={s.fzCity}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(55% 0.22 350)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }} aria-hidden>
+                          <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" />
+                          <circle cx="12" cy="10" r="2.4" />
+                        </svg>
+                        <input
+                          className={s.fzCityInput}
+                          value={work.location}
+                          onChange={(e) => {
+                            const v = oneLine(e.target.value);
+                            edit((w) => ({ ...w, location: v }));
+                          }}
+                          placeholder="City (required), e.g. Mexico City"
+                          aria-label="City"
+                          aria-required="true"
+                        />
+                      </label>
+                      {!work.location.trim() && <div className={s.fzMissing}>Add a city to publish.</div>}
+                      {cityCount.text && (
+                        <div className={s.fieldCount} data-full={cityCount.full || undefined}>
+                          {cityCount.text}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </section>
+
+                <section className={s.fzCard} style={{ marginTop: 14 }} aria-labelledby="cats-title">
+                  <div id="cats-title" className={s.fzLabel}>
                     Categories
                   </div>
                   <div className={s.placeHelp}>
@@ -1998,8 +1966,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                   </div>
                 </section>
 
-                <section className={s.card} style={{ marginTop: 14 }} aria-labelledby="order-title">
-                  <div id="order-title" className={s.cardLabel}>
+                <section className={s.fzCard} style={{ marginTop: 14 }} aria-labelledby="order-title">
+                  <div id="order-title" className={s.fzLabel}>
                     Order
                   </div>
                   <div className={s.placeHelp}>Move sections and picks up or down.</div>
@@ -2064,7 +2032,145 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d="M14.5 5.5L8 12l6.5 6.5" />
               </svg>
-              Back to Build
+              Back
+            </button>
+            <button className={s.primary} style={{ flex: 1 }} aria-disabled={!n} disabled={busy} onClick={publish}>
+              {busy ? "Publishing…" : "Publish"}
+            </button>
+          </footer>
+        </>
+      )}
+
+      {step === "review" && preview && (
+        <>
+          {/* Preview, as in the design: the Stack's page in its theme, with Edit to go back. */}
+          <div className={s.pmScreen} style={{ background: fin.color }}>
+            <div className={s.pmWallLong} aria-hidden>
+              {Array(240).fill(fin.emoji).join("")}
+            </div>
+            <div className={s.pmTop}>
+              <button className={s.pmEdit} onClick={() => setPreview(false)}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
+                  <path d="M14.5 5.5L8 12l6.5 6.5" />
+                </svg>
+                Edit
+              </button>
+              <span className={s.pmBadge}>👀 Preview · {{ public: "Public", unlisted: "Unlisted", private: "Private" }[work.visibility]}</span>
+            </div>
+            <div className={s.pmCardWrap}>
+              <article className={s.pmCard}>
+                <div className={s.pmBand} style={{ background: fin.color }}>
+                  <span className={s.pmWallShort} aria-hidden>
+                    {Array(24).fill(fin.emoji).join("")}
+                  </span>
+                  <span className={s.pmPicks}>
+                    <span aria-hidden>{fin.emoji}</span>
+                    {n} {n === 1 ? "pick" : "picks"}
+                  </span>
+                  <span className={s.pmWhen}>just now</span>
+                </div>
+                <div className={s.pmBody}>
+                  <div className={s.pmAuthor}>
+                    <span className={s.pmAvatar}>{initials(viewer.name)}</span>
+                    <span className={s.pmName}>{viewer.name}</span>
+                    <span className={s.pmHandle}>@{viewer.handle}</span>
+                    <span style={{ flex: 1 }} />
+                    <span className={s.pmFollow} aria-hidden>
+                      Follow
+                    </span>
+                  </div>
+                  <h2 className={s.pmTitle}>{shownTitle}</h2>
+                  {work.description.trim() && <p className={s.pmDesc}>{work.description.trim()}</p>}
+                  <div style={{ height: 22 }} />
+                  {work.sections.map((sec, si) => {
+                    const lines = sec.lines.filter((l) => !isEmpty(l));
+                    if (!lines.length && !sec.headed) return null;
+                    return (
+                      <div key={sec.id}>
+                        {sec.headed && (
+                          <div className={s.pmSecHead} data-first={si === 0 || undefined}>
+                            <span className={s.pmSecBar} />
+                            <span className={s.pmSecLabel}>{sec.label.trim() || "Untitled section"}</span>
+                          </div>
+                        )}
+                        {lines.map((l, li) => (
+                          <div key={l.id} className={s.pmLine} data-last={li === lines.length - 1 || undefined}>
+                            {l.format === "num" ? (
+                              <span className={s.pmNum}>{String(++pn).padStart(2, "0")}</span>
+                            ) : (
+                              <span className={s.pmBullet}>
+                                <span />
+                              </span>
+                            )}
+                            <div className={s.pmLineBody}>
+                              <div className={s.pmHead}>{l.text.trim()}</div>
+                              {l.sub.trim() && <div className={s.pmSub}>{l.sub.trim()}</div>}
+                              {l.links.length > 0 && (
+                                <div className={s.pmLinks}>
+                                  {l.links.map((k) => (
+                                    <a key={k.url} className={s.pmLink} href={k.url} target="_blank" rel="noopener noreferrer nofollow ugc">
+                                      {linkIcon(11)}
+                                      {linkLabel(k)}
+                                    </a>
+                                  ))}
+                                </div>
+                              )}
+                              {l.tags.length > 0 && (
+                                <div className={s.pmTags}>
+                                  <span className={s.pmYouSay}>You say</span>
+                                  {l.tags.map((t) => (
+                                    <span key={t} className={s.pmTag} data-group={tagInfo(t).group || "own"}>
+                                      {tagInfo(t).emoji && `${tagInfo(t).emoji} `}
+                                      {tagInfo(t).name}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                              <div className={s.pmActions} aria-hidden>
+                                <span>📌 Pin</span>
+                                <span>📨 Send</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className={s.pmBar} aria-hidden>
+                  <span className={s.pmBarIcon} style={{ fontSize: 18 }}>
+                    ♡
+                  </span>
+                  <span className={s.pmBarIcon}>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+                      <path d="M6.5 3.5h11v17l-5.5-4-5.5 4z" />
+                    </svg>
+                  </span>
+                  <span className={s.pmBarIcon}>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17 2l4 4-4 4" />
+                      <path d="M3 11V9a3 3 0 0 1 3-3h15" />
+                      <path d="M7 22l-4-4 4-4" />
+                      <path d="M21 13v2a3 3 0 0 1-3 3H3" />
+                    </svg>
+                  </span>
+                  <span style={{ flex: 1 }} />
+                  <span className={s.pmShare}>
+                    Share
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinejoin="round">
+                      <path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z" />
+                    </svg>
+                  </span>
+                </div>
+              </article>
+            </div>
+          </div>
+          <footer className={s.footer}>
+            <button className={s.back} onClick={() => setPreview(false)}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M14.5 5.5L8 12l6.5 6.5" />
+              </svg>
+              Back
             </button>
             <button className={s.primary} style={{ flex: 1 }} aria-disabled={!n} disabled={busy} onClick={publish}>
               {busy ? "Publishing…" : "Publish"}

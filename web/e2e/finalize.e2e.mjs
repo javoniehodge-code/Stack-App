@@ -172,21 +172,30 @@ await shot(page, "finalize-cats-order");
 check("5. Order moves a pick up, and the draft keeps the new order", content(id).sections[0].lines.map((l) => l.text).join() === "Orinoco,Los Cocuyos,El Huequito");
 
 // 6. Who can see this stack.
-await page.getByRole("button", { name: /^Invite Only/ }).click();
+await page.getByRole("button", { name: /^Unlisted/ }).click();
 await untilDraft(id, (c) => c.visibility === "unlisted");
-check("6. Who can see this stack saves the choice", content(id).visibility === "unlisted");
+check("6. Privacy saves the choice", content(id).visibility === "unlisted");
 
-// 7. Preview: the theme band with the emoji and pick count, the city and the categories.
-await page.getByRole("tab", { name: "Preview" }).click();
+// 7. Preview, as in the design: full screen in the theme colour with Edit and "Preview · Unlisted", then the card
+//    with the slim band ("📖 3 picks", "just now"), the title and the picks in their new order.
+await page.getByRole("button", { name: /Preview your Stack/ }).click();
 await page.getByText("3 picks").waitFor({ timeout: 5000 }).catch(() => {});
 await shot(page, "finalize-preview");
-const band = await page.locator("[class*=pvBand]").evaluate((el) => getComputedStyle(el).backgroundColor).catch(() => "");
+const screenBg = await page.locator("[class*=pmScreen]").evaluate((el) => getComputedStyle(el).backgroundColor).catch(() => "");
+const bandH = await page.locator("[class*=pmBand]").evaluate((el) => el.getBoundingClientRect().height).catch(() => 0);
 check(
-  "7. Preview shows the theme band (picked colour, emoji, 3 picks), the city and the categories",
-  (await page.getByText("3 picks").isVisible()) && (await page.getByText("📍 Mexico City").isVisible()) && (await page.getByText("Travel & Places").isVisible()) && !!band && band !== "rgba(0, 0, 0, 0)",
-  band,
+  "7. Preview matches the design: theme background, Edit and Preview · Unlisted, a 52px band with 📖 3 picks and just now, and the picks in order",
+  !!screenBg && screenBg !== "rgba(0, 0, 0, 0)" &&
+    (await page.getByRole("button", { name: "Edit", exact: true }).isVisible()) &&
+    (await page.getByText("👀 Preview · Unlisted").isVisible()) &&
+    Math.round(bandH) === 52 &&
+    (await page.locator("[class*=pmPicks]").innerText()).replace(/\s+/g, " ").trim() === "📖 3 picks" &&
+    (await page.getByText("just now").isVisible()) &&
+    (await page.locator("[class*=pmHead]").allInnerTexts()).join() === "Orinoco,Los Cocuyos,El Huequito" &&
+    !(await page.getByText("Saved just now").isVisible()),
+  `${screenBg} · band ${bandH}px`,
 );
-await page.getByRole("tab", { name: "Arrange" }).click();
+await page.getByRole("button", { name: "Edit", exact: true }).click();
 
 // 8. Publishing keeps every choice on the Stack.
 await page.getByRole("button", { name: "Publish", exact: true }).click();
