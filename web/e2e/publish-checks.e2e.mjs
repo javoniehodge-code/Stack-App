@@ -6,7 +6,7 @@
 // (checks.<run>.*@stack.test) and removes it at the end, with its drafts and stacks.
 //
 //   APP_URL API_URL MAILPIT_URL ANON_KEY TEST_DB TEST_ENV_TOKEN [SHOTS=<dir>]  node web/e2e/publish-checks.e2e.mjs
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { verifyTestDatabase } from "./test-target.mjs";
 
@@ -107,22 +107,6 @@ async function untilDraft(id, ok) {
   }
   return false;
 }
-const stackRow = (id) =>
-  JSON.parse(sql(`select row_to_json(x) from (select theme_emoji, theme_color, is_place, location, categories, visibility, sections from public.stacks where id = '${id}') x`) || "null");
-const C3 = "oklch(84% 0.09 260)";
-const TODAY = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
-/** The band holds only the picks pill, against its right edge. */
-const bandRight = (page) =>
-  page.locator("[class*=pmBand]").evaluate((band) => {
-    const pill = band.querySelector("[class*=pmPicks]");
-    const b = band.getBoundingClientRect(), p = pill.getBoundingClientRect();
-    return b.right - p.right < 24 && p.left - b.left > b.width / 2 && band.innerText.replace(/\s+/g, " ").trim().endsWith("picks");
-  }).catch(() => false);
-/** The small row after the last pick. */
-const metaText = async (page) => {
-  await page.locator("[class*=pmMeta]").scrollIntoViewIfNeeded().catch(() => {});
-  return (await page.locator("[class*=pmMeta]").innerText().catch(() => "")).trim();
-};
 
 
 const toastText = async () => (await page.locator("[role=status], [class*=toast]").allInnerTexts().catch(() => [])).join(" | ");
@@ -237,7 +221,7 @@ await page.getByRole("button", { name: "Keep editing" }).click();
 
 // 6. The publish doesn't arrive (the connection drops on the way), and the status check says it's still a draft:
 //    no sheet, a toast, and editing goes on with everything kept.
-const STACK_CHECK = /\/rest\/v1\/stacks\?/;
+const STACK_CHECK = /\/rest\/v1\/rpc\/publish_status/;
 await page.route("**/rest/v1/rpc/publish_draft*", (r) => r.abort("internetdisconnected"));
 await publishBtn().click({ force: true });
 await page.getByText("Your stack is still a draft").waitFor({ timeout: 10000 }).catch(() => {});
@@ -307,6 +291,96 @@ check(
   unknown7 && committed === "1" && live7 && sql(`select count(*) from public.stacks where author_id = '${uid}' and title = 'Rooftop bars'`) === "1" &&
     sql(`select count(*) from public.drafts where id = '${id7}'`) === "0",
   `unknown ${unknown7} / committed ${committed} / live ${live7} / ${page.url()}`,
+);
+
+// 7c. A slow publish: the server is still working on it when its reply is lost, and commits only after the status
+//     check has started. The check waits for it and finds it live: the app opens the published Stack, never goes
+//     back to draft editing, and there's one Stack.
+async function newDraft(title, item) {
+  await page.goto(APP + "/new");
+  await page.getByLabel("Title").fill(title);
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Skip" }).click();
+  await page.getByRole("textbox", { name: "Item heading" }).fill(item);
+  await page.getByRole("button", { name: "Done", exact: true }).last().click();
+  const d = await page.waitForURL(/\/drafts\//).then(() => draftIdOf(page));
+  await page.getByRole("button", { name: "Finalize" }).click();
+  await readyToPublish(page);
+  return d;
+}
+/** Hands the browser's publish to `onSent` (which may send it on from here first), then tells the browser its
+ *  connection dropped. */
+const sendOnAndDrop = (onSent) => async (route) => {
+  const q = route.request();
+  await onSent({ url: q.url(), headers: q.headers(), body: q.postData() });
+  await route.abort("connectionreset");
+};
+const replay = (req) => fetch(req.url, { method: "POST", headers: req.headers, body: req.body }).then(async (r) => ({ status: r.status, text: await r.text() }));
+/** A database session holding a lock until release(): while it holds stacks in share mode, a publish can't insert. */
+function holdStacks() {
+  const p = spawn("psql", ["-X", "-At", "-q", "-v", "ON_ERROR_STOP=1", DB], { stdio: ["pipe", "pipe", "pipe"] });
+  const held = new Promise((ok) => p.stdout.on("data", (b) => String(b).includes("held") && ok()));
+  p.stdin.write("begin;\nlock table public.stacks in share mode;\nselect 'held';\n");
+  return { held, release: () => new Promise((ok) => (p.on("exit", ok), p.stdin.end("commit;\n"))) };
+}
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const waiting = (fn) => sql(`select count(*) from pg_stat_activity where datname = current_database() and wait_event_type = 'Lock' and query like '%${fn}%' and query not like '%pg_stat_activity%'`);
+async function until(ok, ms = 15000) {
+  for (const end = Date.now() + ms; Date.now() < end; await sleep(100)) if (await ok()) return true;
+  return false;
+}
+
+const id7c = await newDraft("Late bakeries", "Pastelería Ideal");
+const lock = holdStacks();
+await lock.held;
+let slow;
+let publishHeld = false;
+// The publish reaches the server first and is held at its insert; only then does the browser lose its connection.
+await page.route(
+  "**/rest/v1/rpc/publish_draft*",
+  sendOnAndDrop(async (req) => {
+    slow = replay(req);
+    publishHeld = await until(() => waiting("publish_draft") === "1");
+  }),
+  { times: 1 },
+);
+const toasts7c = [];
+await page.exposeFunction("noteToast7c", (t) => toasts7c.push(t));
+await page.evaluate(() => new MutationObserver(() => document.querySelectorAll("[role=status]").forEach((n) => n.textContent && window.noteToast7c(n.textContent))).observe(document.body, { subtree: true, childList: true, characterData: true }));
+await publishBtn().click({ force: true });
+// The app's status check has started and is waiting for the held publish.
+const checkWaits = await until(() => waiting("publish_status") === "1");
+const notYet = sql(`select count(*) from public.stacks where id = '${id7c}'`) === "0" && !(await page.getByText("Your Stack is live").isVisible());
+await lock.release();
+const slowReply = await slow;
+await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
+const live7c = (await page.getByText("Your Stack is live").isVisible()) && new URL(page.url()).pathname === `/s/${id7c}`;
+await page.waitForTimeout(2500);
+const noDraftAgain = sql(`select count(*) from public.drafts where id = '${id7c}'`) === "0";
+check(
+  "7c. A slow publish that commits after the status check started: the check waits, the app opens the live Stack, never says it's still a draft or reopens editing (no draft comes back), and there's exactly one Stack",
+  publishHeld && checkWaits && notYet && slowReply.status === 200 && live7c && noDraftAgain && !toasts7c.some((t) => t.includes("still a draft")) &&
+    !(await sheet.count()) && sql(`select count(*) from public.stacks where author_id = '${uid}' and title = 'Late bakeries'`) === "1",
+  `held ${publishHeld} / check waits ${checkWaits} / not yet ${notYet} / reply ${slowReply.status} / live ${live7c} / no draft ${noDraftAgain} / toasts ${JSON.stringify(toasts7c)}`,
+);
+
+// 7d. A publish that arrives only after the status check answered "still a draft": the server refuses it, so the
+//     draft the app went back to editing stays a draft. Publishing again works.
+const id7d = await newDraft("Night markets", "Mercado de Coyoacán");
+let late;
+await page.route("**/rest/v1/rpc/publish_draft*", sendOnAndDrop((req) => (late = req)), { times: 1 });
+await publishBtn().click({ force: true });
+await page.getByText("Your stack is still a draft").waitFor({ timeout: 15000 }).catch(() => {});
+const draftSaid = await page.getByText("Your stack is still a draft").isVisible();
+const lateReply = late ? await replay(late) : { status: 0, text: "not sent" };
+const stillDraft = sql(`select count(*) from public.stacks where id = '${id7d}'`) === "0" && sql(`select count(*) from public.drafts where id = '${id7d}'`) === "1";
+await publishBtn().click({ force: true });
+await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
+check(
+  "7d. A publish arriving after the check said still a draft is refused (this publish was stopped), the draft stays; publishing again works",
+  draftSaid && lateReply.status >= 400 && lateReply.text.includes("this publish was stopped") && stillDraft && (await page.getByText("Your Stack is live").isVisible()) &&
+    sql(`select count(*) from public.stacks where id = '${id7d}'`) === "1",
+  `${draftSaid} / ${lateReply.status} ${lateReply.text.slice(0, 80)} / ${stillDraft}`,
 );
 
 // 8. The database refuses what the app blocks, and gives each Stack its own slug (as this account, then rolled back).

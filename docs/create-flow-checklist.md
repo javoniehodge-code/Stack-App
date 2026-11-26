@@ -63,7 +63,7 @@ Every detail of creating and publishing a Stack, and where it's built. Tick item
 - [x] A section with no items: "“Roma Norte” has no items. Add one or remove the section."
 - [x] On failure (agreed Nov 26): a sheet with **Try again** and **Keep editing**. Everything is kept.
   - If the draft couldn't be saved, nothing was published: "Your latest changes couldn't be saved, so nothing was published. They're still here. Check your connection and try again." The save status says "Not saved · Retry".
-  - If the publish was sent but no answer came, the app first looks whether it went through:
+  - If the publish was sent but no answer came, the app first asks the server whether it went through. The server waits for a publish of that draft that's still running to finish, and refuses one that arrives after it answered "still a draft", so the answer holds:
     - live: it opens the published Stack ("Your Stack is live");
     - still a draft: editing goes on, with the toast "Couldn't publish. Your stack is still a draft. Check your connection and try again.";
     - the look fails too: "Publish status unknown", with only **Check again** (editing stays closed until it knows). A failed Check again says "Still couldn't check. Try again in a moment."

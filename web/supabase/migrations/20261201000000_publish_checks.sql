@@ -15,6 +15,10 @@
 --     - Stacks published before this get one now, oldest first.
 --     - A check makes sure no published Stack is without one.
 --     - Links still use the Stack's id for now (agreed Nov 26); the readable links come in a later task.
+-- * publish_status(): after a publish with no answer, whether the Stack is live or still a draft. It waits for a
+--   publish of that draft that's still running to finish, and it stops one that hasn't arrived yet: each publish
+--   carries an attempt id, and an attempt the check has answered "draft" for is refused if it turns up later. So
+--   "draft" means the draft is safe to edit, and "live" means it's published, never both.
 -- * apply_stack_edit() is unchanged: editing a published Stack keeps its slug.
 
 begin;
@@ -129,7 +133,21 @@ end;
 $$;
 revoke execute on function public.check_publishable(text, jsonb, text[], boolean, text) from public, anon, authenticated;
 
--- publish_draft: as in 20261130000000_finalize, with the shared checks. The slug comes from the trigger above.
+-- Publish attempts that publish_status answered "draft" for: refused if they arrive later. Only these functions
+-- read or write it.
+create table if not exists public.publish_attempts (
+  id         uuid primary key,
+  draft_id   uuid not null,
+  owner_id   uuid not null references auth.users (id) on delete cascade,
+  stopped_at timestamptz not null default now()
+);
+alter table public.publish_attempts enable row level security;
+revoke all on public.publish_attempts from public, anon, authenticated;
+
+-- publish_draft: as in 20261130000000_finalize, with the shared checks, and p_attempt (see publish_status). The slug
+-- comes from the trigger above. The old signature goes, so a call without p_attempt (an older app version) reaches
+-- this one.
+drop function if exists public.publish_draft(uuid, text, jsonb, text[], text, text, text, text, text, text, boolean, text[]);
 create or replace function public.publish_draft(
   p_id          uuid,
   p_title       text,
@@ -142,7 +160,8 @@ create or replace function public.publish_draft(
   p_theme_emoji text default null,
   p_theme_color text default null,
   p_is_place    boolean default null,
-  p_categories  text[] default null
+  p_categories  text[] default null,
+  p_attempt     uuid default null
 )
 returns uuid
 language plpgsql
@@ -164,6 +183,8 @@ begin
   if uid is null then
     raise exception 'sign in required' using errcode = '42501';
   end if;
+  -- One at a time per draft, with publish_status too: a check waits for this publish to finish.
+  perform pg_advisory_xact_lock(hashtextextended('publish:' || p_id::text, 0));
   select * into d from drafts where id = p_id and owner_id = uid for update;
   -- Published already (this is a retry, whose save may have brought the draft back): the same answer, the draft
   -- removed, and nothing new.
@@ -171,8 +192,12 @@ begin
     delete from drafts where id = p_id and owner_id = uid;
     return p_id;
   end if;
-  if not found then
+  if d.id is null then
     raise exception 'draft not found' using errcode = 'P0002';
+  end if;
+  -- A check already said this attempt didn't publish (its answer came first), so the draft went back to editing.
+  if p_attempt is not null and exists (select 1 from publish_attempts a where a.id = p_attempt) then
+    raise exception 'this publish was stopped: publish again' using errcode = '55000';
   end if;
   if d.edit_of is not null then
     raise exception 'edits to a published stack are saved, not published' using errcode = '22023';
@@ -230,8 +255,37 @@ begin
 end;
 $$;
 
-revoke execute on function public.publish_draft(uuid, text, jsonb, text[], text, text, text, text, text, text, boolean, text[]) from public, anon;
-grant execute on function public.publish_draft(uuid, text, jsonb, text[], text, text, text, text, text, text, boolean, text[]) to authenticated;
+revoke execute on function public.publish_draft(uuid, text, jsonb, text[], text, text, text, text, text, text, boolean, text[], uuid) from public, anon;
+grant execute on function public.publish_draft(uuid, text, jsonb, text[], text, text, text, text, text, text, boolean, text[], uuid) to authenticated;
+
+-- After a publish with no answer: 'live' when the Stack is published, otherwise 'draft'. It waits for a publish of
+-- this draft that's running to finish first (they share a lock), and it stops p_attempt from publishing if it
+-- arrives later, so 'draft' means it's safe to go on editing.
+create or replace function public.publish_status(p_id uuid, p_attempt uuid default null)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  uid uuid := auth.uid();
+begin
+  if uid is null then
+    raise exception 'sign in required' using errcode = '42501';
+  end if;
+  perform pg_advisory_xact_lock(hashtextextended('publish:' || p_id::text, 0));
+  if exists (select 1 from stacks s where s.id = p_id and s.author_id = uid and s.status = 'published') then
+    return 'live';
+  end if;
+  if p_attempt is not null then
+    insert into publish_attempts (id, draft_id, owner_id) values (p_attempt, p_id, uid) on conflict (id) do nothing;
+    delete from publish_attempts where owner_id = uid and stopped_at < now() - interval '7 days';
+  end if;
+  return 'draft';
+end;
+$$;
+revoke execute on function public.publish_status(uuid, uuid) from public, anon;
+grant execute on function public.publish_status(uuid, uuid) to authenticated;
 
 -- save_stack (older app versions): as in 20261007000000_edit_published_stacks, with the shared checks on publishing.
 create or replace function public.save_stack(

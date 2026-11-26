@@ -1,9 +1,9 @@
 -- Rollback for 20261201000000_publish_checks.sql. Run by hand, then mark the migration reverted:
 --   supabase migration repair --status reverted 20261201000000
 -- Puts back publish_draft as in 20261130000000_finalize and save_stack as in 20261007000000_edit_published_stacks
--- (without the publish checks), and removes the slug trigger, its check and the helper functions. stacks.slug, its
--- index and stack_slug() stay, with the slugs already set; the previous app doesn't read them. Re-applying the
--- migration works over them (Stacks published meanwhile get their slug then).
+-- (without the publish checks), and removes the slug trigger, its check, publish_status, publish_attempts and the
+-- helper functions. stacks.slug, its index and stack_slug() stay, with the slugs already set; the previous app
+-- doesn't read them. Re-applying the migration works over them (Stacks published meanwhile get their slug then).
 
 begin;
 
@@ -11,6 +11,9 @@ alter table public.stacks drop constraint if exists stacks_published_slug;
 drop trigger if exists stacks_set_slug on public.stacks;
 drop function if exists public.stacks_set_slug();
 drop function if exists public.claim_stack_slug(uuid, text);
+drop function if exists public.publish_status(uuid, uuid);
+drop function if exists public.publish_draft(uuid, text, jsonb, text[], text, text, text, text, text, text, boolean, text[], uuid);
+drop table if exists public.publish_attempts;
 
 create or replace function public.publish_draft(
   p_id          uuid,

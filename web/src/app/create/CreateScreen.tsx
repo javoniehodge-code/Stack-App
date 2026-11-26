@@ -595,8 +595,10 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   // Which step of a publish failed: saving the draft (nothing was sent to publish), or the publish itself (it may
   // have gone through, with the reply lost).
   const failStage = useRef<"save" | "publish" | null>(null);
+  // The id of the last publish sent (see publishStatus).
+  const attempt = useRef<string | null>(null);
   const persist = useCallback(
-    (status: "draft" | "published", title?: string) => {
+    (status: "draft" | "published", title?: string, attempt?: string) => {
       // Drafts keep everything as typed, even over a limit; limits are checked when it's published.
       const row = (w: Work) => ({
         id: idRef.current,
@@ -657,6 +659,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
           p_theme_color: finalChoices(w).color,
           p_is_place: finalChoices(w).isPlace,
           p_categories: w.categories,
+          p_attempt: attempt ?? null,
         });
         failCode.current = pub?.code ?? null;
         failStage.current = pub ? "publish" : null;
@@ -1236,7 +1239,9 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     if (title !== work.title) edit((w) => ({ ...w, title }));
     setBusy(true);
     dirty.current = false;
-    const err = await persist("published", title);
+    // Each publish has its own id, so a status check can tell the server to refuse it if it arrives late.
+    attempt.current = crypto.randomUUID();
+    const err = await persist("published", title, attempt.current);
     if (err) {
       if (err.includes("sign in")) return (setBusy(false), toast("Sign in to continue."));
       // A rule refused it (the checks above should have caught it first): say which.
@@ -1257,11 +1262,15 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     finishPublish(title);
   }
 
-  /** Whether this Stack is live, still a draft, or (when the check itself fails) unknown. */
+  /**
+   * Whether this Stack is live, still a draft, or (when the check itself fails) unknown. The server waits for a
+   * publish of this draft that's still running to finish, and stops the last attempt from publishing if it arrives
+   * later, so "draft" means it's safe to go on editing (publish_status, migration 20261201000000_publish_checks).
+   */
   async function publishStatus(): Promise<"live" | "draft" | "unknown"> {
-    const { data, error } = await createClient().from("stacks").select("id").eq("id", idRef.current).eq("status", "published").maybeSingle();
-    if (error) return "unknown";
-    return data ? "live" : "draft";
+    const { data, error } = await createClient().rpc("publish_status", { p_id: idRef.current, p_attempt: attempt.current });
+    if (error || (data !== "live" && data !== "draft")) return "unknown";
+    return data;
   }
 
   /**
