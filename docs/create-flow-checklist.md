@@ -59,10 +59,14 @@ Every detail of creating and publishing a Stack, and where it's built. Tick item
 - [x] Publish looks off, with the reason under it, while a check fails ("Fix 3 things on this page to publish.", or "Add a city to publish."). Tapping it anyway publishes nothing and shows the first problem in a toast.
 - [x] A place Stack with no city: the city field is highlighted, with the toast "Add a city to publish this place stack."
 - [x] At least 1 category.
+- [x] A place Stack's city: "City is 5 over 80 characters." is in the list too.
 - [x] A section with no items: "“Roma Norte” has no items. Add one or remove the section."
-- [x] On failure (agreed Nov 26): a sheet, "Couldn't publish. Your stack is safe as a draft. Check your connection and try again.", with **Try again** and **Keep editing**. Everything is kept.
+- [x] On failure (agreed Nov 26): a sheet with **Try again** and **Keep editing**. Everything is kept.
+  - If the draft couldn't be saved, nothing was published: "Your latest changes couldn't be saved, so nothing was published. They're still here. Check your connection and try again." The save status says "Not saved · Retry".
+  - If the publish was sent but no answer came, the app first looks whether it went through, and if so shows "Your Stack is live". Otherwise: "Your stack is safe as a draft. Check your connection and try again. If it went through, trying again won't publish it twice."
+- [x] A title typed in "Name your Stack to publish" is saved to the draft at once, so it's kept if the publish fails and after a refresh.
 - [x] The slug at first publish (agreed Nov 26): saved from the title and never changed; Stacks published earlier got theirs too. Links still use the Stack's id for now (see "Readable links" below).
-- The server refuses the same things: no category, a place Stack with no city, no items, a titled section with no items.
+- The server refuses the same things: no title, no category, a place Stack with no city, a city over 80 characters, no items, a titled section with no items. The older save path (from app versions before drafts) still saves drafts, but publishing through it gets the same checks, so it's refused (it has no categories). Every published Stack gets a slug, whichever way it was published.
 
 ## Later tasks
 

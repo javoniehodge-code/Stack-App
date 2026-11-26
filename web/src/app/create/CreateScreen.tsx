@@ -448,6 +448,8 @@ function publishProblems(w: Work): string[] {
   if (!w.sections.some((sec) => sec.lines.some((l) => !isEmpty(l)))) out.unshift("Add at least one item.");
   if (!w.categories.length) out.push("Pick at least 1 category.");
   if (cityMissing(w)) out.push("Add a city, or answer No to the place question.");
+  const city = w.location.trim().length;
+  if (finalChoices(w).isPlace && city > MAX_CITY) out.push(`City is ${over(city, MAX_CITY)} over ${MAX_CITY} characters.`);
   return out;
 }
 
@@ -540,8 +542,9 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const [descFocus, setDescFocus] = useState(false);
   const [linkSheet, setLinkSheet] = useState<LinkSheet | null>(null);
   const [sheet, setSheet] = useState(false);
-  // The title of a publish that couldn't reach the server, while its "Couldn't publish" sheet is open.
-  const [publishFailed, setPublishFailed] = useState<string | null>(null);
+  // A publish that failed, while its sheet is open: its title, and whether the draft couldn't be saved ("save", so
+  // nothing was published) or the publish wasn't confirmed ("publish": it may have gone through).
+  const [publishFailed, setPublishFailed] = useState<{ title: string; kind: "save" | "publish" } | null>(null);
   // Bumped when Publish is tapped with only the city missing, to highlight the city field again.
   const [cityFlag, setCityFlag] = useState(0);
   const [titleDraft, setTitleDraft] = useState("");
@@ -588,6 +591,9 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const unsaved = () => confirmed.current < version.current && (saved.current || hasContent(workRef.current));
   // The code of the last save's or publish's error, if any: "22023" means a rule refused it (not the connection).
   const failCode = useRef<string | null>(null);
+  // Which step of a publish failed: saving the draft (nothing was sent to publish), or the publish itself (it may
+  // have gone through, with the reply lost).
+  const failStage = useRef<"save" | "publish" | null>(null);
   const persist = useCallback(
     (status: "draft" | "published", title?: string) => {
       // Drafts keep everything as typed, even over a limit; limits are checked when it's published.
@@ -612,7 +618,9 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
         remixed_from: initial.forkedFromId,
       });
       const run = async (): Promise<string | null> => {
-        const w = workRef.current;
+        // A title typed in the "Name your Stack" sheet is saved into the draft too, so a failed publish or a refresh
+        // keeps it (the screen's state may not have caught up yet).
+        const w = title === undefined ? workRef.current : { ...workRef.current, title };
         const v = version.current;
         const sb = createClient();
         let { error } = await sb.from("drafts").upsert(row(w), { onConflict: "id" });
@@ -626,6 +634,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
         }
         // Any error counts, even one without a message.
         failCode.current = error?.code ?? null;
+        failStage.current = error ? "save" : null;
         if (error) return error.message || "Couldn't save";
         confirmed.current = Math.max(confirmed.current, v);
         if (!saved.current) {
@@ -649,6 +658,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
           p_categories: w.categories,
         });
         failCode.current = pub?.code ?? null;
+        failStage.current = pub ? "publish" : null;
         return pub ? pub.message || "Couldn't publish" : null;
       };
       const next = queue.current.then(run, run);
@@ -1221,18 +1231,29 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   }
 
   async function doPublish(title: string) {
+    // A title from the "Name your Stack" sheet becomes the Stack's title right away, so it stays after a failure.
+    if (title !== work.title) edit((w) => ({ ...w, title }));
     setBusy(true);
     dirty.current = false;
-    const err = await persist("published", title);
+    let err = await persist("published", title);
+    // The publish was sent but no answer came back (say the connection dropped): it may have gone through. Look.
+    if (err && failStage.current === "publish" && failCode.current !== "22023" && !err.includes("sign in")) {
+      const { data } = await createClient().from("stacks").select("id").eq("id", idRef.current).eq("status", "published").maybeSingle();
+      if (data) err = null;
+    }
     setBusy(false);
     if (err) {
       if (err.includes("sign in")) return toast("Sign in to continue.");
       // A rule refused it (the checks above should have caught it first): say which.
       if (failCode.current === "22023") return toast(`Couldn't publish: ${err.charAt(0).toUpperCase()}${err.slice(1)}.`);
       // Otherwise it's most likely the connection: everything stays, and the sheet offers to try again.
+      const kind = failStage.current === "save" ? "save" : "publish";
+      // The save status says what's true: "Not saved · Retry" when the draft didn't save, otherwise saved.
+      if (kind === "save") setSave("error");
+      else settle(null);
       setSheet(false);
       focusId.current = "retry";
-      setPublishFailed(title);
+      setPublishFailed({ title, kind });
       return;
     }
     setPublishFailed(null);
@@ -2554,9 +2575,11 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               {"Couldn't publish"}
             </div>
             <div id="fail-text" className={s.sheetText}>
-              Your stack is safe as a draft. Check your connection and try again.
+              {publishFailed.kind === "save"
+                ? "Your latest changes couldn't be saved, so nothing was published. They're still here. Check your connection and try again."
+                : "Your stack is safe as a draft. Check your connection and try again. If it went through, trying again won't publish it twice."}
             </div>
-            <button data-fid="retry" className={s.primary} style={{ marginTop: 14, width: "100%" }} disabled={busy} onClick={() => requireAuth(() => doPublish(publishFailed), "Sign in to publish this stack and share it with others.")}>
+            <button data-fid="retry" className={s.primary} style={{ marginTop: 14, width: "100%" }} disabled={busy} onClick={() => requireAuth(() => doPublish(publishFailed.title), "Sign in to publish this stack and share it with others.")}>
               {busy ? "Publishing…" : "Try again"}
             </button>
             <button className={s.quiet} style={{ width: "100%", marginTop: 4 }} onClick={() => setPublishFailed(null)}>

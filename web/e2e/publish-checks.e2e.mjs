@@ -46,6 +46,16 @@ process.on("uncaughtException", (e) => {
   }
 });
 
+/** Task 3: publishing needs a category, and a city for a place Stack. Picks Food & Drink when none is picked, and answers
+ *  No to the place question when the city is empty, so the checks below publish as before. */
+async function readyToPublish(page) {
+  const cat = page.getByRole("button", { name: "Food & Drink" });
+  await cat.waitFor({ timeout: 5000 }).catch(() => {});
+  if ((await cat.count()) && !(await page.locator("button[class*=catChip][aria-pressed=true]").count())) await cat.click();
+  const city = page.getByLabel("City");
+  if ((await city.isVisible().catch(() => false)) && !(await city.inputValue())) await page.getByRole("radio", { name: "No" }).click();
+}
+
 const results = [];
 const check = (name, ok, detail = "") => {
   results.push(!!ok);
@@ -191,6 +201,15 @@ check(
     t4.includes("Add a city to publish this place stack.") && flagged && focused && stackCount() === 0,
   `${box4a} / ${box4b} / ${why4} / ${t4} / flag ${flagged} focus ${focused}`,
 );
+// 4b. The city's 80-character limit is in the list too.
+await page.getByLabel("City").fill("M".repeat(85));
+await untilDraft(id, (c) => (c.location ?? "").length === 85);
+const box4c = await boxText();
+check(
+  "4b. A city over 80 characters is listed: City is 5 over 80 characters., and Publish stays off",
+  box4c === "Fix this before publishing: City is 5 over 80 characters." && (await publishBtn().getAttribute("aria-disabled")) === "true" && (await why()) === "Fix 1 thing on this page to publish.",
+  `${box4c} / ${await why()}`,
+);
 await page.getByLabel("City").fill("Mexico City");
 await untilDraft(id, (c) => c.location === "Mexico City");
 check(
@@ -198,16 +217,34 @@ check(
   !(await page.locator("[class*=fixBox]").count()) && !(await why()) && (await publishBtn().getAttribute("aria-disabled")) !== "true" && (await city.getAttribute("data-flag")) === null,
 );
 
-// 6. Publishing fails (the connection drops): the sheet, nothing published, the draft kept. Keep editing closes it.
+const sheet = page.getByRole("alertdialog");
+const sheetNow = async () => (await sheet.innerText().catch(() => "")).replace(/\s+/g, " ").trim();
+
+// 5b. The draft can't be saved on the way to publishing: nothing was sent to publish, and the sheet says so (not
+//     "safe as a draft"); the save status says Not saved.
+await page.route("**/rest/v1/drafts*", (r) => (r.request().method() === "POST" ? r.abort("internetdisconnected") : r.fallback()), { times: 1 });
+await publishBtn().click({ force: true });
+await sheet.waitFor({ timeout: 10000 }).catch(() => {});
+const saveFail = await sheetNow();
+const pill = (await page.getByText("Not saved").isVisible().catch(() => false));
+check(
+  "5b. A draft save that fails while publishing: Your latest changes couldn't be saved, so nothing was published., Not saved in the status, and no Stack",
+  saveFail === "Couldn't publish Your latest changes couldn't be saved, so nothing was published. They're still here. Check your connection and try again. Try again Keep editing" &&
+    pill && stackCount() === 0,
+  `${saveFail} / pill ${pill}`,
+);
+await page.getByRole("button", { name: "Keep editing" }).click();
+
+// 6. The publish itself fails (the connection drops before it arrives): the sheet, nothing published, the draft
+//    kept. Keep editing closes it.
 await page.route("**/rest/v1/rpc/publish_draft*", (r) => r.abort("internetdisconnected"));
 await publishBtn().click({ force: true });
-const sheet = page.getByRole("alertdialog");
 await sheet.waitFor({ timeout: 10000 }).catch(() => {});
 await shot(page, "checks-failed");
-const sheetText = (await sheet.innerText().catch(() => "")).replace(/\s+/g, " ").trim();
+const sheetText = await sheetNow();
 check(
-  "6. A failed publish opens Couldn't publish. Your stack is safe as a draft. Check your connection and try again. with Try again and Keep editing, and keeps the draft",
-  sheetText === "Couldn't publish Your stack is safe as a draft. Check your connection and try again. Try again Keep editing" && stackCount() === 0 &&
+  "6. An unconfirmed publish opens Couldn't publish. Your stack is safe as a draft. … won't publish it twice. with Try again and Keep editing, and keeps the draft",
+  sheetText === "Couldn't publish Your stack is safe as a draft. Check your connection and try again. If it went through, trying again won't publish it twice. Try again Keep editing" && stackCount() === 0 &&
     sql(`select count(*) from public.drafts where id = '${id}'`) === "1",
   sheetText,
 );
@@ -268,6 +305,72 @@ check(
   "9. Slugs: lowercase with accents removed and words joined by dashes, stack when nothing is left, and -2 when the same person already has it",
   slugs.split("\n").pop() === "late-night-tacos-in-cdmx cafe-sao-paulo-mas stack top-10-ramen" && second.split("\n").pop() === "late-night-tacos-in-cdmx-2",
   `${slugs} / ${second}`,
+);
+
+// 10. A title typed in the Name your Stack sheet is kept when the publish fails, and after a refresh.
+await page.goto(APP + "/new");
+await page.getByRole("button", { name: "Skip" }).click();
+await page.getByRole("button", { name: "Skip" }).click();
+await page.getByRole("textbox", { name: "Item heading" }).fill("Café de Tacuba");
+await page.getByRole("button", { name: "Done", exact: true }).last().click();
+const id10 = await page.waitForURL(/\/drafts\//).then(() => draftIdOf(page));
+await page.getByRole("button", { name: "Finalize" }).click();
+await readyToPublish(page);
+await page.route("**/rest/v1/rpc/publish_draft*", (r) => r.abort("internetdisconnected"));
+await publishBtn().click({ force: true });
+await page.getByLabel("Title").fill("Quiet cafés");
+await page.getByRole("dialog").getByRole("button", { name: "Publish", exact: true }).click();
+await sheet.waitFor({ timeout: 10000 }).catch(() => {});
+const failed10 = (await sheetNow()).startsWith("Couldn't publish Your stack is safe as a draft.");
+const saved10 = await untilDraft(id10, (c) => c.title === "Quiet cafés");
+await page.unroute("**/rest/v1/rpc/publish_draft*");
+await page.reload();
+await page.getByRole("button", { name: "Publish", exact: true }).waitFor({ timeout: 10000 }).catch(() => {});
+await readyToPublish(page);
+await publishBtn().click({ force: true });
+await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
+const r10 = sql(`select title || '|' || slug from public.stacks where id = '${id10}'`);
+check(
+  "10. A title typed in Name your Stack is saved to the draft when the publish fails, is still there after a refresh (Publish doesn't ask again), and is published with its slug",
+  failed10 && saved10 && r10 === "Quiet cafés|quiet-cafes",
+  `${failed10} / ${saved10} / ${r10}`,
+);
+
+// 11. The older save_stack: drafts still save; publishing through it gets the same checks (it has no categories, so
+//     it's refused), both new and from one of its drafts. Rolled back.
+const legacyLines = '[{"label":null,"lines":[{"text":"Orinoco","format":"num"}]}]';
+const l11 = {
+  // Saved, then read in a statement of its own (a statement doesn't see its own function's writes).
+  draft: asUser(`select public.save_stack(null, 'Old draft', '${legacyLines}'::jsonb, null, 'draft') as sid \\gset\nselect status || '|' || coalesce(slug, '-') from public.stacks where id = :'sid'`),
+  publish: asUser(`select public.save_stack(null, 'Old publish', '${legacyLines}'::jsonb, null, 'published')`),
+  fromDraft: asUser(`select public.save_stack(public.save_stack(null, 'Old draft', '${legacyLines}'::jsonb, null, 'draft'), 'Old draft', '${legacyLines}'::jsonb, null, 'published')`),
+  empty: asUser(`select public.save_stack(null, 'Nothing', '[]'::jsonb, null, 'published')`),
+};
+check(
+  "11. save_stack still saves drafts (no slug), but publishing through it, new or from its draft, is refused by the publish checks",
+  l11.draft === "draft|-" && l11.publish.includes("pick at least 1 category") && l11.fromDraft.includes("pick at least 1 category") && l11.empty.includes("pick at least 1 category"),
+  JSON.stringify(l11),
+);
+
+// 12. Whatever way a Stack becomes published, it gets a slug, and keeps it; one can't be published without one.
+//     (As the database owner, the only one who can write to stacks directly; rolled back.)
+const owner = (q) => {
+  try {
+    return execFileSync("psql", ["-X", "-At", "-q", "-v", "ON_ERROR_STOP=1", DB], { encoding: "utf8", input: `begin;\n${q};\nrollback;\n` }).trim();
+  } catch (e) {
+    return String(e.stderr || e.message);
+  }
+};
+const own = {
+  set: owner(`insert into public.stacks (id, author_id, title, status, sections) values ('00000000-0000-4000-8000-0000000000aa', '${uid}', 'Quiet cafés', 'published', '${legacyLines}'::jsonb) returning slug`),
+  kept: owner(`update public.stacks set slug = 'changed', title = 'Renamed' where id = '${id}' returning slug`),
+  none: owner(`alter table public.stacks disable trigger stacks_set_slug; insert into public.stacks (author_id, title, status, sections) values ('${uid}', 'No slug', 'published', '${legacyLines}'::jsonb)`),
+  city: tryPublish("Long city", one, { place: "true", city: `'${"M".repeat(81)}'` }),
+};
+check(
+  "12. A Stack published any way gets the next free slug (quiet-cafes-2) and keeps it through a rename; none is published without one; publish_draft refuses a city over 80",
+  own.set === "quiet-cafes-2" && own.kept === "late-night-tacos-in-cdmx" && own.none.includes("stacks_published_slug") && own.city.includes("locations are limited to 80 characters"),
+  JSON.stringify(own),
 );
 
 await browser.close();

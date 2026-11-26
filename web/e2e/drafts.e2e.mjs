@@ -329,12 +329,12 @@ let uid, draftId;
   await page.getByRole("button", { name: "Publish", exact: true }).click();
   await page.waitForTimeout(1500);
   const afterLost = stacksOf(uid);
-  // Task 3: a publish whose reply never came opens the "Couldn't publish" sheet; Try again publishes again.
-  const failSheet = await page.getByRole("alertdialog", { name: "Couldn't publish" }).isVisible();
-  check("3a. The first publish reached the server (its reply was lost), and the Couldn't publish sheet opens", afterLost === "1" && failSheet, `stacks ${afterLost}, sheet ${failSheet}`);
-  await page.getByRole("button", { name: "Try again" }).click();
+  // Task 3: when a publish's reply never comes, the app looks whether it went through. It did, so it says so, with
+  // no "Couldn't publish" sheet.
   await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
-  check("3b. Try again shows the published screen", await page.getByText("Your Stack is live").isVisible());
+  const failSheet = await page.getByRole("alertdialog").isVisible();
+  check("3a. The first publish reached the server (its reply was lost); the app finds it published, with no Couldn't publish sheet", afterLost === "1" && !failSheet, `stacks ${afterLost}, sheet ${failSheet}`);
+  check("3b. It shows the published screen", await page.getByText("Your Stack is live").isVisible());
   check(
     "3c. Exactly one stack, with the draft's id; the draft is gone",
     stacksOf(uid) === "1" && sql(`select count(*) from public.stacks where id = '${draftId}' and status = 'published'`) === "1" && draftsOf(uid) === "0",
