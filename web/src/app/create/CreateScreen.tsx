@@ -2021,9 +2021,9 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               </>
             )}
           </div>
-          <footer className={s.footer}>
+          <footer className={`${s.footer} ${s.fzFooter}`}>
             <button
-              className={s.back}
+              className={`${s.back} ${s.fzBack}`}
               onClick={() => {
                 setPreview(false);
                 setStep("build");
@@ -2034,7 +2034,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               </svg>
               Back
             </button>
-            <button className={s.primary} style={{ flex: 1 }} aria-disabled={!n} disabled={busy} onClick={publish}>
+            <button className={s.fzPublish} aria-disabled={!n} disabled={busy} onClick={publish}>
               {busy ? "Publishing…" : "Publish"}
             </button>
           </footer>
@@ -2165,14 +2165,14 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               </article>
             </div>
           </div>
-          <footer className={s.footer}>
-            <button className={s.back} onClick={() => setPreview(false)}>
+          <footer className={`${s.footer} ${s.fzFooter}`}>
+            <button className={`${s.back} ${s.fzBack}`} onClick={() => setPreview(false)}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d="M14.5 5.5L8 12l6.5 6.5" />
               </svg>
               Back
             </button>
-            <button className={s.primary} style={{ flex: 1 }} aria-disabled={!n} disabled={busy} onClick={publish}>
+            <button className={s.fzPublish} aria-disabled={!n} disabled={busy} onClick={publish}>
               {busy ? "Publishing…" : "Publish"}
             </button>
           </footer>

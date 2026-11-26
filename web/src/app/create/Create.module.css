@@ -2261,3 +2261,61 @@ button.tagChip {
 .colorBtn[aria-pressed="true"] {
   border: 3px solid oklch(22% 0.04 300);
 }
+
+/* Finalize's bottom bar, as in the design: a quiet Back and a dark Publish. */
+.fzFooter {
+  border-top: 1px solid oklch(91.8% 0.025 95);
+  background: oklch(99.5% 0.01 95);
+}
+.fzBack {
+  height: 48px;
+  font-size: 14px;
+  font-weight: 600;
+  color: oklch(36% 0.035 300);
+}
+.fzPublish {
+  flex: 1;
+  height: 48px;
+  border: none;
+  border-radius: 999px;
+  background: oklch(22% 0.04 300);
+  color: oklch(99.5% 0.01 95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.fzPublish[aria-disabled="true"] {
+  opacity: 0.45;
+}
+.fzPublish:disabled {
+  opacity: 0.6;
+}
+
+/* Finalize's "Preview your Stack" card, in the design's colours. */
+.previewCard {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: oklch(96.5% 0.02 60);
+  border: 1px solid oklch(90% 0.04 60);
+}
+.previewIcon {
+  width: 36px;
+  height: 36px;
+  background: oklch(22% 0.04 300);
+}
+.previewIcon svg {
+  stroke: oklch(99.5% 0.01 95);
+}
+.previewTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: oklch(19.4% 0.035 300);
+}
+.previewSub {
+  font-size: 12.5px;
+  color: oklch(41.5% 0.035 300);
+}

@@ -24,6 +24,7 @@ The screen follows the design (Create Flow prototype, Finalize). The spec's cate
   - the Stack card, with a slim band ("🌮 3 picks", "just now"), author, title, description, sections and picks (subheadings, links, "You say" tags, Pin and Send);
   - Back returns to Finalize.
 - **Back** returns to Build with everything kept.
+- **Buttons in the design's colours on Finalize** (agreed Nov 26): a dark Publish and a quiet Back, and the dark eye icon on "Preview your Stack". The rest of the app keeps its current orange until a later restyle.
 - **Everything is kept in the draft** and comes back after a refresh, at Finalize.
 - **Publishing saves the choices on the Stack.** The new `stacks` columns are `theme_emoji`, `theme_color`, `is_place` and `categories`; the city stays in `location`. The database accepts only the listed emoji, colours and categories, at most 2 categories.
 
