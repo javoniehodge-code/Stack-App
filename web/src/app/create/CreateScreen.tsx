@@ -428,6 +428,29 @@ function limitProblems(w: Work): string[] {
   return out;
 }
 
+/** A place Stack with no city (it has its own message and highlight on Finalize). */
+const cityMissing = (w: Work) => finalChoices(w).isPlace && !w.location.trim();
+
+/**
+ * Everything to fix before publishing, for Finalize's red box, in the design's order: the content rules, then the
+ * category and the city. Mirrors publish_draft's checks (migration 20261201000000_publish_checks).
+ */
+function publishProblems(w: Work): string[] {
+  const out = limitProblems(w);
+  let si = 0;
+  for (const sec of w.sections) {
+    if (!sec.headed) continue;
+    si++;
+    if (sec.lines.some((l) => !isEmpty(l))) continue;
+    const name = sec.label.trim();
+    out.push(`${name ? `“${name.slice(0, 24)}${name.length > 24 ? "…" : ""}”` : `Section ${si}`} has no items. Add one or remove the section.`);
+  }
+  if (!w.sections.some((sec) => sec.lines.some((l) => !isEmpty(l)))) out.unshift("Add at least one item.");
+  if (!w.categories.length) out.push("Pick at least 1 category.");
+  if (cityMissing(w)) out.push("Add a city, or answer No to the place question.");
+  return out;
+}
+
 /** The sections as publish_draft and apply_stack_edit take them (and as drafts keep them). */
 const sectionsArg = (w: Work) =>
   w.sections.map((sec) => ({
@@ -517,6 +540,10 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const [descFocus, setDescFocus] = useState(false);
   const [linkSheet, setLinkSheet] = useState<LinkSheet | null>(null);
   const [sheet, setSheet] = useState(false);
+  // The title of a publish that couldn't reach the server, while its "Couldn't publish" sheet is open.
+  const [publishFailed, setPublishFailed] = useState<string | null>(null);
+  // Bumped when Publish is tapped with only the city missing, to highlight the city field again.
+  const [cityFlag, setCityFlag] = useState(0);
   const [titleDraft, setTitleDraft] = useState("");
   const [save, setSave] = useState<SaveState>(initial.id ? "saved" : "idle");
   const [published, setPublished] = useState<string | null>(null);
@@ -559,6 +586,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const version = useRef(0);
   const confirmed = useRef(0);
   const unsaved = () => confirmed.current < version.current && (saved.current || hasContent(workRef.current));
+  // The code of the last save's or publish's error, if any: "22023" means a rule refused it (not the connection).
+  const failCode = useRef<string | null>(null);
   const persist = useCallback(
     (status: "draft" | "published", title?: string) => {
       // Drafts keep everything as typed, even over a limit; limits are checked when it's published.
@@ -596,6 +625,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
           }
         }
         // Any error counts, even one without a message.
+        failCode.current = error?.code ?? null;
         if (error) return error.message || "Couldn't save";
         confirmed.current = Math.max(confirmed.current, v);
         if (!saved.current) {
@@ -618,6 +648,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
           p_is_place: finalChoices(w).isPlace,
           p_categories: w.categories,
         });
+        failCode.current = pub?.code ?? null;
         return pub ? pub.message || "Couldn't publish" : null;
       };
       const next = queue.current.then(run, run);
@@ -1194,7 +1225,17 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     dirty.current = false;
     const err = await persist("published", title);
     setBusy(false);
-    if (err) return toast(err.includes("sign in") ? "Sign in to continue." : `Couldn't publish: ${err}`);
+    if (err) {
+      if (err.includes("sign in")) return toast("Sign in to continue.");
+      // A rule refused it (the checks above should have caught it first): say which.
+      if (failCode.current === "22023") return toast(`Couldn't publish: ${err.charAt(0).toUpperCase()}${err.slice(1)}.`);
+      // Otherwise it's most likely the connection: everything stays, and the sheet offers to try again.
+      setSheet(false);
+      focusId.current = "retry";
+      setPublishFailed(title);
+      return;
+    }
+    setPublishFailed(null);
     setSheet(false);
     setWork((w) => ({ ...w, title }));
     const id = idRef.current;
@@ -1209,9 +1250,20 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   }
 
   function publish() {
-    if (!counts(work).n) return toast("Add an item to publish.");
-    const over = limitProblems(work)[0];
-    if (over) return toast(over);
+    // Spec, Flow 1 Publish: anything to fix shows on Finalize's settings (out of Preview), with the first problem in a
+    // toast. A missing city on its own gets its toast, and its field is highlighted.
+    const problems = publishProblems(work);
+    if (problems.length) {
+      setPreview(false);
+      setStep("review");
+      if (problems.length === 1 && cityMissing(work)) {
+        toast("Add a city to publish this place stack.");
+        setCityFlag((k) => k + 1);
+        focusId.current = "city";
+        return;
+      }
+      return toast(problems[0] + (problems.length > 1 ? ` (+${problems.length - 1} more)` : ""));
+    }
     if (!work.title.trim()) {
       focusId.current = "sheet";
       setTitleDraft("");
@@ -1374,6 +1426,13 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const titleCount = counter("", work.title.trim().length, MAX_TITLE);
   const descCount = counter("", work.description.trim().length, MAX_DESCRIPTION);
   const fin = finalChoices(work);
+  // Finalize's red box, and the reason under Publish while it can't publish (spec, Flow 1 Publish).
+  const problems = publishProblems(work);
+  const blockedWhy = !problems.length
+    ? ""
+    : problems.length === 1 && cityMissing(work)
+      ? "Add a city to publish."
+      : `Fix ${problems.length === 1 ? "1 thing" : `${problems.length} things`} on this page to publish.`;
   const cityCount = counter("", work.location.trim().length, MAX_CITY);
   const pickTheme = (emoji: string, color: string) => edit((w) => ({ ...w, theme: { emoji, color } }));
   function toggleCategory(name: string) {
@@ -2096,7 +2155,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                   {fin.isPlace && (
                     <>
                       <div style={{ height: 12 }} />
-                      <label className={s.fzCity}>
+                      <label className={s.fzCity} data-flag={cityFlag && !work.location.trim() ? cityFlag % 2 : undefined}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(55% 0.22 350)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }} aria-hidden>
                           <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" />
                           <circle cx="12" cy="10" r="2.4" />
@@ -2105,6 +2164,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                           autoComplete="off"
                           className={s.fzCityInput}
                           value={work.location}
+                          data-fid="city"
                           onChange={(e) => {
                             const v = oneLine(e.target.value);
                             edit((w) => ({ ...w, location: v }));
@@ -2208,7 +2268,16 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                     ));
                   })()}
                 </section>
-                {!n && <div className={s.cantPublish}>Add an item to publish.</div>}
+                {problems.length > 0 && (
+                  <div className={s.fixBox} role="alert">
+                    <div className={s.fixTitle}>{problems.length === 1 ? "Fix this before publishing:" : `Fix ${problems.length} things before publishing:`}</div>
+                    <ul className={s.fixList}>
+                      {problems.map((t, i) => (
+                        <li key={i}>{t}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -2225,9 +2294,16 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               </svg>
               Back
             </button>
-            <button className={s.fzPublish} aria-disabled={!n} disabled={busy} onClick={publish}>
-              {busy ? "Publishing…" : "Publish"}
-            </button>
+            <div className={s.fzPublishWrap}>
+              <button className={s.fzPublish} aria-disabled={problems.length > 0} aria-describedby={blockedWhy ? "publish-why" : undefined} disabled={busy} onClick={publish}>
+                {busy ? "Publishing…" : "Publish"}
+              </button>
+              {blockedWhy && (
+                <div id="publish-why" className={s.fzWhy}>
+                  {blockedWhy}
+                </div>
+              )}
+            </div>
           </footer>
         </>
       )}
@@ -2302,9 +2378,16 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               </svg>
               Back
             </button>
-            <button className={s.fzPublish} aria-disabled={!n} disabled={busy} onClick={publish}>
-              {busy ? "Publishing…" : "Publish"}
-            </button>
+            <div className={s.fzPublishWrap}>
+              <button className={s.fzPublish} aria-disabled={problems.length > 0} aria-describedby={blockedWhy ? "publish-why" : undefined} disabled={busy} onClick={publish}>
+                {busy ? "Publishing…" : "Publish"}
+              </button>
+              {blockedWhy && (
+                <div id="publish-why" className={s.fzWhy}>
+                  {blockedWhy}
+                </div>
+              )}
+            </div>
           </footer>
         </>
       )}
@@ -2458,6 +2541,26 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
             </button>
             <button className={s.quiet} style={{ width: "100%", marginTop: 4 }} onClick={() => setSheet(false)}>
               Not now
+            </button>
+          </div>
+        </div>
+      )}
+
+      {publishFailed !== null && (
+        <div className={s.scrim} onClick={() => setPublishFailed(null)}>
+          <div className={s.sheet} onClick={(e) => e.stopPropagation()} role="alertdialog" aria-modal="true" aria-labelledby="fail-title" aria-describedby="fail-text">
+            <div className={s.grabber} />
+            <div id="fail-title" className={s.sheetTitle}>
+              {"Couldn't publish"}
+            </div>
+            <div id="fail-text" className={s.sheetText}>
+              Your stack is safe as a draft. Check your connection and try again.
+            </div>
+            <button data-fid="retry" className={s.primary} style={{ marginTop: 14, width: "100%" }} disabled={busy} onClick={() => requireAuth(() => doPublish(publishFailed), "Sign in to publish this stack and share it with others.")}>
+              {busy ? "Publishing…" : "Try again"}
+            </button>
+            <button className={s.quiet} style={{ width: "100%", marginTop: 4 }} onClick={() => setPublishFailed(null)}>
+              Keep editing
             </button>
           </div>
         </div>
