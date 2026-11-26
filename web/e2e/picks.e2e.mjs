@@ -125,12 +125,15 @@ const first = lines(id)[0];
 check("2. A pick saves its heading and subheading (line breaks become spaces) with a stable id", first?.text === "Taquería Orinoco" && first.note === "Trompo tacos until 3am." && UUID.test(first.id ?? ""), JSON.stringify(first));
 const pickId = first?.id;
 
+// No per-item note (over a limit, missing a heading, an older web address) shows anywhere.
+const noNotes = async () => !(await page.getByText(/^(heading|subheading) \d+\/\d+ · \d+ over$|^Needs a (heading|title)\.$|^Still has /).first().isVisible());
+
 // 3. The tags tray: suggested tags, one price at a time, a typed tag, and at most 3.
 await page.getByRole("button", { name: "Tags", exact: true }).click();
-const tray = page.getByRole("dialog", { name: "Tags" });
-await tray.getByRole("button", { name: "Late night", exact: true }).click();
-await tray.getByRole("button", { name: "$", exact: true }).click();
-await tray.getByRole("button", { name: "$$", exact: true }).click();
+const tray = page.getByRole("menu", { name: "Tags" });
+await tray.getByRole("menuitemcheckbox", { name: "Late night", exact: true }).click();
+await tray.getByRole("menuitemcheckbox", { name: "$", exact: true }).click();
+await tray.getByRole("menuitemcheckbox", { name: "$$", exact: true }).click();
 await until(page, id, (ls) => (ls[0]?.tags ?? []).join() === "Late night,$$");
 check("3a. Choosing a second price swaps it in: Late night and $$", (lines(id)[0]?.tags ?? []).join() === "Late night,$$", JSON.stringify(lines(id)[0]?.tags));
 const own = tray.getByLabel("Your own");
@@ -143,7 +146,7 @@ await own.fill("Outdoor seating");
 await tray.getByRole("button", { name: "Add", exact: true }).click();
 await until(page, id, (ls) => (ls[0]?.tags ?? []).length === 3);
 await shot(page, "tags-tray-full");
-const brunch = tray.getByRole("button", { name: "Brunch", exact: true });
+const brunch = tray.getByRole("menuitemcheckbox", { name: "Brunch", exact: true });
 await brunch.click({ force: true });
 await page.waitForTimeout(1500);
 check(
@@ -154,7 +157,7 @@ check(
 await tray.getByRole("button", { name: "Remove tag $$" }).click();
 await until(page, id, (ls) => (ls[0]?.tags ?? []).length === 2);
 check("3d. Tapping a chosen tag removes it", (lines(id)[0]?.tags ?? []).join() === "Late night,Outdoor seating");
-await tray.getByRole("button", { name: "$", exact: true }).click();
+await tray.getByRole("menuitemcheckbox", { name: "$", exact: true }).click();
 await tray.getByRole("button", { name: "Done", exact: true }).click();
 await until(page, id, (ls) => (ls[0]?.tags ?? []).length === 3);
 
@@ -163,15 +166,15 @@ const long = "Tacos al pastor, suadero and campechano at the stand by the metro,
 await heading.fill(long);
 await until(page, id, (ls) => ls[0]?.text === long);
 await shot(page, "heading-over");
-const banner = page.getByRole("alert").filter({ hasText: "Fix these before publishing" });
+const overText = `heading ${long.length}/80 · ${long.length - 80} over`;
 check(
-  "4a. A long heading isn't cut: the counter says how far over, and the banner lists it",
-  (await heading.inputValue()) === long && (await page.getByText(`heading ${long.length}/80 · ${long.length - 80} over`).isVisible()) && (await banner.getByText(`Item 1 heading is ${long.length - 80} over 80 characters.`).isVisible()),
+  "4a. A long heading isn't cut: the counter says how far over, and there's no warning box above the picks",
+  (await heading.inputValue()) === long && (await page.getByText(overText).isVisible()) && !(await page.getByText("Fix these before publishing").isVisible()),
   `${long.length} characters saved`,
 );
 await heading.fill("Taquería Orinoco");
 await until(page, id, (ls) => ls[0]?.text === "Taquería Orinoco");
-check("4b. Once it fits, the banner goes and the pick keeps its id", !(await banner.isVisible()) && lines(id)[0]?.id === pickId);
+check("4b. Once it fits, the counter goes and the pick keeps its id", !(await page.getByText(/^heading \d+\/80 · \d+ over$/).isVisible()) && lines(id)[0]?.id === pickId);
 
 // 5. Enter adds the next pick in the same format; a link shows its domain.
 await heading.press("Enter");
@@ -254,7 +257,7 @@ await page.goto(APP + `/create?edit=${id}`);
 await page.getByText("Trompo tacos until 3am.").click();
 await page.getByRole("textbox", { name: "Item subheading" }).fill("Trompo tacos until 4am.");
 await page.getByRole("button", { name: "Done", exact: true }).first().click();
-await page.getByRole("button", { name: "Publish", exact: true }).click();
+await page.getByRole("button", { name: "Save", exact: true }).click();
 await page.waitForURL(new RegExp(`/s/${id}`), { timeout: 15000 }).catch(() => {});
 const edited = JSON.parse(sql(`select sections from public.stacks where id = '${id}'`) || "[]").flatMap((s) => s.lines);
 check("8. Publishing an edit updates the pick and keeps its id", edited[1]?.id === pickId && edited[1]?.note === "Trompo tacos until 4am.", JSON.stringify(edited[1]));
@@ -297,8 +300,8 @@ const old = await seed(page, uid, {
 await page.getByText("A great paragraph").waitFor({ timeout: 10000 }).catch(() => {});
 await shot(page, "older-content");
 check(
-  "11a. Older lines show as picks: plain headings, the old detail as a subheading, and the over-limit one listed",
-  (await page.getByText("A great paragraph").isVisible()) && (await page.getByText("Its older detail").isVisible()) && (await page.getByText("Item 4 heading is 40 over 80 characters.").isVisible()),
+  "11a. Older lines show as picks: plain headings, the old detail as a subheading, and the over-limit one says how far over",
+  (await page.getByText("A great paragraph").isVisible()) && (await page.getByText("Its older detail").isVisible()) && (await page.getByText("heading 120/80 · 40 over").isVisible()),
 );
 await page.getByText("Bold line").click();
 await page.getByRole("textbox", { name: "Item heading" }).press("End");
@@ -331,7 +334,7 @@ const shown = (await page.getByText("Ramen at fuunji.jp").isVisible()) && (await
 await page.getByLabel("Title").fill(`Ramen ${RUN}!`);
 await page.getByLabel("Title").blur();
 await until(page, ramen, () => sql(`select content->>'title' from public.drafts where id = '${ramen}'`) === `Ramen ${RUN}!`);
-const draft12 = asTyped(lines(ramen)) && !(await page.getByRole("alert").filter({ hasText: "Fix these before publishing" }).isVisible());
+const draft12 = asTyped(lines(ramen)) && (await noNotes());
 await page.getByRole("button", { name: "Finalize" }).click();
 await page.getByRole("button", { name: "Publish", exact: true }).click();
 await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
@@ -352,13 +355,13 @@ await seed(page, uid, {
 await page.getByText("Fuunji menu").waitFor({ timeout: 10000 }).catch(() => {});
 check(
   "13. A legacy line with two addresses opens with both as links (the first keeps its name) and nothing to fix",
-  (await page.getByText("Fuunji menu").isVisible()) && (await page.getByText("tsuta.jp", { exact: true }).isVisible()) && (await page.getByText("Menus: and", { exact: true }).isVisible()) && !(await page.getByRole("alert").filter({ hasText: "Fix these before publishing" }).isVisible()),
+  (await page.getByText("Fuunji menu").isVisible()) && (await page.getByText("tsuta.jp", { exact: true }).isVisible()) && (await page.getByText("Menus: and", { exact: true }).isVisible()) && (await noNotes()),
 );
 const twoUrls = await seed(page, uid, {
   title: "Older links",
   sections: [{ label: "", lines: [{ text: "Menus: fuunji.jp, ichiran.com and tsuta.jp/menu", link: null, format: "num", linkNames: { "https://fuunji.jp": "Fuunji menu" } }] }],
 });
-const leftover = "Item 1 heading still has a web address from an older version (tsuta.jp). Make it a link or remove it (up to 2 links per item).";
+const leftover = "Still has a web address from an older version (tsuta.jp). Make it a link or remove it (up to 2 links per item).";
 await page.getByText(leftover).waitFor({ timeout: 10000 }).catch(() => {});
 const before13 = (await page.getByText("Fuunji menu").isVisible()) && (await page.getByText("ichiran.com", { exact: true }).isVisible()) && (await page.getByText("Menus:, and tsuta.jp/menu").isVisible()) && (await page.getByText(leftover).isVisible());
 await page.getByLabel("Title").fill("Older links!");
@@ -537,6 +540,87 @@ check(
   live17 && (await page.getByText("Stays up").isVisible()) && !(await page.getByText("Nothing here").isVisible()),
   page.url(),
 );
+
+// 18. The create flow's small details (2d): the item count by the step, the heading placeholder, Shift+Enter,
+//     a note on a pick that needs a heading, and the published screen's three buttons.
+await page.goto(APP + "/new");
+await page.getByLabel("Title").fill(`Details ${RUN}`);
+await page.getByRole("button", { name: "Next" }).click();
+await page.getByRole("button", { name: "Skip" }).click();
+const h18 = page.getByRole("textbox", { name: "Item heading" });
+const placeholder18 = await h18.getAttribute("placeholder");
+const empty18 = !(await page.getByText(/3\/4 · Build · /).isVisible());
+await h18.fill("First pick");
+await h18.press("Shift+Enter");
+await page.waitForTimeout(300);
+const one18 = (await page.getByRole("textbox", { name: "Item heading" }).count()) === 1 && (await h18.inputValue()) === "First pick";
+await page.getByRole("button", { name: "Done", exact: true }).first().click();
+check(
+  "18a. The step shows the item count once there's an item, the heading says it's required, and Shift+Enter adds nothing",
+  empty18 && placeholder18 === "Item name (required)" && one18 && (await page.getByText("3/4 · Build · 1 item").isVisible()),
+  `${placeholder18} · ${one18}`,
+);
+await page.getByRole("button", { name: "Add item" }).click();
+await page.getByRole("textbox", { name: "Item subheading" }).fill("Only a reason");
+await page.getByRole("button", { name: "Done", exact: true }).first().click();
+check("18b. A pick with only a subheading says it needs a heading, with no warning box", (await page.getByText("Needs a heading.").isVisible()) && !(await page.getByText("Fix these before publishing").isVisible()));
+await page.getByText("Only a reason").click();
+await page.getByRole("textbox", { name: "Item heading" }).fill("Second pick");
+await page.getByRole("button", { name: "Done", exact: true }).first().click();
+check("18c. Once it has a heading, the note goes", !(await page.getByText("Needs a heading.").isVisible()) && (await page.getByText("3/4 · Build · 2 items").isVisible()));
+await page.getByRole("button", { name: "Finalize" }).click();
+await page.getByRole("button", { name: "Publish", exact: true }).click();
+await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
+await shot(page, "published");
+check(
+  "18d. The published screen offers Share your Stack, Start another stack and Done",
+  (await page.getByRole("button", { name: "Share your Stack" }).isVisible()) && (await page.getByRole("button", { name: "Start another stack" }).isVisible()) && (await page.getByRole("button", { name: "Done", exact: true }).isVisible()),
+);
+await page.getByRole("button", { name: "Done", exact: true }).click();
+await page.waitForURL(/\/profile/, { timeout: 10000 }).catch(() => {});
+await page.getByText(`Details ${RUN}`).first().waitFor({ timeout: 10000 }).catch(() => {});
+const text18 = await page.locator("main").innerText().catch(() => "");
+const [at18, before18] = [text18.indexOf(`Details ${RUN}`), text18.indexOf(`Stays ${RUN}`)];
+check("18e. Done goes to Profile › Stacks, with the new Stack before the earlier ones", new URL(page.url()).pathname === "/profile" && at18 >= 0 && before18 > at18, `${page.url()} · ${at18} ${before18}`);
+
+// 19. "Your own" takes focus when tapped: the field itself, or its "Your own" label. A tag typed with the keyboard
+//     is saved, and the pick's heading is unchanged.
+await page.goto(APP + "/new");
+await page.getByLabel("Title").fill(`Own tag ${RUN}`);
+await page.getByRole("button", { name: "Next" }).click();
+await page.getByRole("button", { name: "Skip" }).click();
+await page.getByRole("textbox", { name: "Item heading" }).fill("Heading stays");
+const own19 = await page.waitForURL(/\/drafts\//).then(() => draftIdOf(page));
+await until(page, own19, (ls) => ls[0]?.text === "Heading stays");
+await page.getByRole("button", { name: "Tags", exact: true }).click();
+const tray19 = page.getByRole("menu", { name: "Tags" });
+const focused = () => page.evaluate(() => document.activeElement?.id || document.activeElement?.getAttribute("aria-label") || "");
+await tray19.getByRole("textbox", { name: "Your own" }).tap();
+const afterFieldTap = await focused();
+await page.keyboard.type("Rooftop");
+await page.keyboard.press("Enter");
+await until(page, own19, (ls) => (ls[0]?.tags ?? []).join() === "Rooftop");
+const saved19 = lines(own19)[0];
+check(
+  "19a. Tapping the Your own field focuses it, and a tag typed with the keyboard saves without changing the heading",
+  afterFieldTap === "own-tag" && (saved19?.tags ?? []).join() === "Rooftop" && saved19?.text === "Heading stays" && (await page.getByRole("textbox", { name: "Item heading" }).inputValue()) === "Heading stays",
+  `${afterFieldTap} · ${JSON.stringify(saved19)}`,
+);
+await page.getByRole("textbox", { name: "Item heading" }).focus();
+await tray19.locator("label[for='own-tag']").tap();
+const afterLabelTap = await focused();
+await page.keyboard.type("Late");
+await page.keyboard.press("Enter");
+await until(page, own19, (ls) => (ls[0]?.tags ?? []).length === 2);
+const saved19b = lines(own19)[0];
+check(
+  "19b. Tapping the Your own label focuses the field too; the next typed tag saves and the heading is unchanged",
+  afterLabelTap === "own-tag" && (saved19b?.tags ?? []).join() === "Rooftop,Late" && saved19b?.text === "Heading stays",
+  `${afterLabelTap} · ${JSON.stringify(saved19b)}`,
+);
+await page.getByRole("textbox", { name: "Item heading" }).focus();
+await tray19.getByRole("menuitemcheckbox", { name: "Brunch", exact: true }).click();
+check("19c. A suggested tag still keeps the heading focused", (await focused()) === "Item heading");
 
 await browser.close();
 cleanup();

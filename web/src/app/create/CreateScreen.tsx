@@ -245,6 +245,28 @@ function takeLinks(text: string, links: EditLink[], done: boolean): { text: stri
   return { text: done ? tidy.trim() : tidy.replace(/^ +/, ""), links: out, refused };
 }
 
+/**
+ * What a pick needs before it can be published, shown in red under it on Build (the full list comes on Finalize):
+ * a heading, text within the limits, and web addresses from an older version moved out of the heading. `editing`
+ * leaves out what the live counters already say.
+ */
+function pickNotes(l: Line, editing: boolean): string[] {
+  if (isEmpty(l)) return [];
+  const out: string[] = [];
+  const h = l.text.trim().length;
+  const sb = l.sub.trim().length;
+  if (!h) out.push("Needs a heading.");
+  if (!editing && h > MAX_HEADING) out.push(`heading ${h}/${MAX_HEADING} · ${h - MAX_HEADING} over`);
+  if (!editing && sb > MAX_SUBHEADING) out.push(`subheading ${sb}/${MAX_SUBHEADING} · ${sb - MAX_SUBHEADING} over`);
+  if (l.tags.length > MAX_TAGS) out.push(`${l.tags.length} tags · remove ${l.tags.length - MAX_TAGS}`);
+  const left = leftoverUrls(l);
+  if (left.length)
+    out.push(
+      `Still has ${left.length === 1 ? "a web address" : `${left.length} web addresses`} from an older version (${left.map(linkDomain).join(", ")}). Make ${left.length === 1 ? "it a link or remove it" : "them links or remove them"} (up to ${MAX_LINKS} links per item).`,
+    );
+  return out;
+}
+
 /** Web addresses from an older line that are still in a pick's heading. */
 const leftoverUrls = (l: Line) => (l.legacyUrls?.length ? textLinks(l.text).links.filter((u) => l.legacyUrls!.includes(u)) : []);
 
@@ -1190,7 +1212,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   // Signed-out visitors sign in first (the Create tab asks before coming here).
   if (!viewer) {
     return (
-      <main className={`${shell.screen} ${p.gate}`}>
+      <main className={`${shell.screen} ${p.gate} ${s.pm}`}>
         <h1 className={p.gateTitle}>Sign in to start a stack</h1>
         <div className={p.gateText}>Create a free account to make stacks, save drafts, and share them.</div>
         <button className={p.gateButton} onClick={() => requireAuth(null, "Sign in or create an account to start a stack.")}>
@@ -1204,15 +1226,14 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   }
 
   const { n, k } = counts(work);
-  const problems = limitProblems(work);
   const countLabel = n === 0 ? "No items yet" : `${n} ${n === 1 ? "item" : "items"}${k ? ` · ${k} ${k === 1 ? "link" : "links"}` : ""}`;
   const shownTitle = work.title.trim() || "Untitled Stack";
 
   if (published) {
     return (
-      <main className={`${shell.screen} ${s.done}`}>
+      <main className={`${shell.screen} ${s.done} ${s.pm}`}>
         <div className={s.doneIcon}>
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="oklch(55% 0.22 350)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M5 12.5l4.5 4.5L19 7.5" />
           </svg>
         </div>
@@ -1231,12 +1252,13 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
           >
             Share your Stack
           </button>
-          {/* Replace, so leaving the stack page doesn't land back in the finished create flow. */}
-          <Link href={`/s/${published}?from=create`} replace className={s.secondary}>
-            View your Stack
-          </Link>
+          {/* A full load, so the new Stack starts from a blank editor (this one keeps its state). */}
+          {/* eslint-disable-next-line @next/next/no-location-assign-relative-destination */}
+          <button className={s.secondary} onClick={() => window.location.assign("/new")}>
+            Start another stack
+          </button>
           <button className={s.quiet} onClick={() => router.replace("/profile")}>
-            Exit
+            Done
           </button>
         </div>
         {shareSheet && publishedStack && <ShareSheet stack={publishedStack} onClose={() => setShareSheet(false)} />}
@@ -1266,15 +1288,18 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
             Exit
           </button>
         </div>
-        <div className={s.status}>
-          {(
+        <div className={s.status} role="status" aria-live="polite">
+          {save === "error" ? (
+            <button className={s.retry} onClick={() => requireAuth(() => void flush(), "Sign in to keep this draft.")}>
+              <span aria-hidden>⚠️</span>
+              Not saved · Retry
+            </button>
+          ) : (
             <>
               <span className={s.statusDot} data-state={save === "over" ? "error" : save} />
-              {save === "error"
-                ? "Couldn't save"
-                : save === "over"
-                  ? "Too long to save"
-                  : target
+              {save === "over"
+                ? "Too long to save"
+                : target
                     ? save === "saving" && edited
                       ? "Saving draft…"
                       : edited
@@ -1305,6 +1330,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
           </div>
           <span className={s.stepLabel}>
             {stepNum}/4 · {stepName}
+            {step === "build" && n > 0 ? ` · ${countLabel}` : ""}
           </span>
         </div>
       )}
@@ -1324,7 +1350,6 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const fullItems = lineCount(prune(work, null)) >= MAX_ITEMS;
   const titleCount = counter("", work.title.trim().length, MAX_TITLE);
   const descCount = counter("", work.description.trim().length, MAX_DESCRIPTION);
-  const tagLine = tagFor ? (work.sections.flatMap((sec) => sec.lines).find((l) => l.id === tagFor) ?? null) : null;
   const fin = finalChoices(work);
   const cityCount = counter("", work.location.trim().length, MAX_CITY);
   const pickTheme = (emoji: string, color: string) => edit((w) => ({ ...w, theme: { emoji, color } }));
@@ -1360,19 +1385,139 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
           {linkIcon(16)}
           <span className={s.toolLabel}>Link</span>
         </button>
-        <button className={s.tool} data-on={(!!selLine && tagFor === selLine.id) || undefined} disabled={!selLine} onMouseDown={keep} onClick={() => selLine && openTags(selLine.id)}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M3.5 12.5V4.5a1 1 0 0 1 1-1h8l8 8-9 9z" />
-            <circle cx="8.5" cy="8.5" r="1.6" />
-          </svg>
-          <span className={s.toolLabel}>{selLine?.tags.length ? `Tags · ${selLine.tags.length}` : "Tags"}</span>
-        </button>
+        {selLine && (
+          <button
+            className={`${s.tool} ${s.toolTags}`}
+            data-on={tagFor === selLine.id || undefined}
+            aria-expanded={tagFor === selLine.id}
+            aria-haspopup="true"
+            onMouseDown={keep}
+            onClick={() => (tagFor === selLine.id ? setTagFor(null) : openTags(selLine.id))}
+          >
+            <span className={s.toolEmoji} aria-hidden>
+              🏷️
+            </span>
+            <span className={s.toolLabel}>
+              {selLine.tags.length ? `Tags · ${selLine.tags.length}` : "Tags"}
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d={tagFor === selLine.id ? "M6 14.5l6-6 6 6" : "M6 9.5l6 6 6-6"} />
+              </svg>
+            </span>
+          </button>
+        )}
       </div>
       <button className={s.toolHide} onMouseDown={keep} onClick={() => setToolsHidden(true)} aria-label="Hide toolbar">
         {arrow("down")}
       </button>
     </div>
   );
+  /** The tags tray, as in the design: a panel under the toolbar, inside the pick being edited. */
+  const tagsPanel = (l: Line) => {
+    const full = l.tags.length >= MAX_TAGS;
+    const has = (t: string) => l.tags.some((x) => x.toLowerCase() === t.toLowerCase());
+    const price = l.tags.find((x) => PRICE_TAGS.includes(x));
+    const own = oneLine(ownTag).trim();
+    const ownOver = own.length - MAX_TAG;
+    const ownMsg = ownOver > 0 ? `${own.length}/${MAX_TAG} · ${ownOver} over. Shorten it to add.` : full ? `This item has ${MAX_TAGS} tags. Remove one to add another.` : "";
+    return (
+      <div
+        className={s.tagsPanel}
+        role="menu"
+        aria-label="Tags"
+        // Taps on the panel's background keep the pick's field focused; "Your own" and its field take focus.
+        onMouseDown={(e) => {
+          if (!(e.target as HTMLElement).closest("input, label")) e.preventDefault();
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") setTagFor(null);
+        }}
+      >
+        <div className={s.tagsTop}>
+          <div className={s.tagsPreview}>
+            {l.tags.length ? (
+              l.tags.map((t) => (
+                <button key={t} className={s.tagChip} data-group={tagInfo(t).group || "own"} data-on onMouseDown={keep} onClick={() => toggleTag(t)} aria-label={`Remove tag ${t}`}>
+                  {`${tagInfo(t).emoji ? `${tagInfo(t).emoji} ` : ""}${tagInfo(t).name}`}
+                </button>
+              ))
+            ) : (
+              <span className={s.tagsNone}>Pick up to {MAX_TAGS} tags</span>
+            )}
+          </div>
+          <span className={s.tagsCount} data-full={full || undefined}>
+            {l.tags.length}/{MAX_TAGS}
+          </span>
+        </div>
+        {TAG_GROUPS.map((g) => (
+          <div key={g.key} className={s.tagGroup}>
+            <div className={s.tagGroupName}>
+              {g.name} <span className={s.tagGroupHint}>· {g.hint}</span>
+            </div>
+            <div className={s.tagRow}>
+              {g.tags.map(([t, emoji]) => {
+                const on = has(t);
+                // A price can swap for another price even at 3 tags.
+                const off = !on && full && !(g.key === "price" && price);
+                return (
+                  <button
+                    key={t}
+                    className={s.tagOption}
+                    data-group={g.key}
+                    data-on={on || undefined}
+                    role="menuitemcheckbox"
+                    aria-checked={on}
+                    aria-label={t}
+                    aria-disabled={off || undefined}
+                    onMouseDown={keep}
+                    onClick={() => !off && toggleTag(t)}
+                  >
+                    {`${emoji ? `${emoji} ` : ""}${t}`}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+        <div className={s.tagGroup} style={{ marginTop: 12 }}>
+          <label className={s.tagGroupName} htmlFor="own-tag">
+            Your own <span className={s.tagGroupHint}>· up to {MAX_TAG} characters</span>
+          </label>
+          <div className={s.ownTagRow}>
+            <input
+              id="own-tag"
+              className={s.ownTagInput}
+              data-over={ownOver > 0 || undefined}
+              value={ownTag}
+              disabled={full}
+              onChange={(e) => setOwnTag(oneLine(e.target.value))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addOwnTag();
+                }
+              }}
+              placeholder="e.g. Outdoor seating"
+              aria-label="Your own"
+            />
+            <button className={s.ownTagAdd} aria-disabled={!own || ownOver > 0 || full || undefined} onMouseDown={keep} onClick={addOwnTag}>
+              Add
+            </button>
+          </div>
+          {ownMsg && (
+            <div className={s.ownTagMsg} data-over={ownOver > 0 || undefined}>
+              {ownMsg}
+            </div>
+          )}
+        </div>
+        <div className={s.tagsDoneRow}>
+          <button className={s.tagsDone} onMouseDown={keep} onClick={() => setTagFor(null)}>
+            Done
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const nextArrow = (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M5 12h14M13 6l6 6-6 6" />
@@ -1388,7 +1533,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     );
 
   return (
-    <main className={shell.screen}>
+    <main className={`${shell.screen} ${s.pm}`}>
       {header}
 
       {step !== "review" && (
@@ -1492,24 +1637,6 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
 
             {step === "build" && (
               <div className={s.buildBody}>
-                {problems.length > 0 && (
-                  <div className={s.limitBanner} role="alert">
-                    <strong>
-                      {save === "error"
-                        ? "Fix these before publishing. Your latest changes aren’t saved: check your connection."
-                        : save === "saving"
-                          ? "Fix these before publishing. Saving your draft…"
-                          : save === "saved"
-                            ? "Fix these before publishing. Your draft is saved."
-                            : "Fix these before publishing."}
-                    </strong>
-                    <ul>
-                      {problems.map((m) => (
-                        <li key={m}>{m}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
                 {canArrange ? (
                   <div className={s.arrangeRow}>
                     {editMenu && !arranging && (
@@ -1570,7 +1697,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                                     enterSec(sec);
                                   }
                                 }}
-                                placeholder="Section title"
+                                placeholder="Section heading"
                                 aria-label="Section title"
                               />
                               {secSel && (
@@ -1610,6 +1737,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                                 </div>
                               ) : null;
                             })()}
+                            {!sec.label.trim() && !secSel && sec.lines.some((l) => !isEmpty(l)) && <div className={s.pickNote}>Needs a title.</div>}
                             {secSel && (
                               <>
                                 <div className={s.headDoneRow}>
@@ -1646,6 +1774,11 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                                   {l.text.trim() || (isEmpty(l) ? "Empty item \u2014 tap to write" : "Add a heading")}
                                 </div>
                                 {l.sub.trim() && <div className={s.subView}>{l.sub}</div>}
+                                {pickNotes(l, false).map((m) => (
+                                  <div key={m} className={s.pickNote}>
+                                    {m}
+                                  </div>
+                                ))}
                                 <TagChips tags={l.tags} className={s.tagRow} chipClass={s.tagChip} />
                                 {l.links.length > 0 && (
                                   <div className={s.pills}>
@@ -1692,6 +1825,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                         const enter = (e: React.KeyboardEvent) => {
                           if (e.key !== "Enter") return;
                           e.preventDefault();
+                          // Shift+Enter does nothing: picks have no line breaks.
+                          if (e.shiftKey) return;
                           enterLine(sec.id, l);
                         };
                         return (
@@ -1710,7 +1845,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                                   onChange={(e) => writeText(l.id, "text", e.target.value, (e.nativeEvent as InputEvent).inputType === "insertFromPaste")}
                                   onBlur={() => finishLinks(l.id)}
                                   onKeyDown={enter}
-                                  placeholder="Item heading"
+                                  placeholder="Item name (required)"
                                   aria-label="Item heading"
                                 />
                                 <textarea
@@ -1721,10 +1856,15 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                                   onChange={(e) => writeText(l.id, "sub", e.target.value, (e.nativeEvent as InputEvent).inputType === "insertFromPaste")}
                                   onBlur={() => finishLinks(l.id)}
                                   onKeyDown={enter}
-                                  placeholder="Subheading (optional): a short reason or detail"
+                                  placeholder="Add a short reason or useful context (optional)"
                                   aria-label="Item subheading"
                                 />
                                 <TagChips tags={l.tags} className={s.tagRow} chipClass={s.tagChip} />
+                                {pickNotes(l, true).map((m) => (
+                                  <div key={m} className={s.pickNote}>
+                                    {m}
+                                  </div>
+                                ))}
                               </div>
                             </div>
                             <div className={s.lineTools} data-list>
@@ -1753,6 +1893,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                                 </button>
                               </div>
                               {toolbar}
+                              {tagFor === l.id && tagsPanel(l)}
                             </div>
                           </div>
                         );
@@ -1778,7 +1919,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
             (target ? (
               <footer className={`${s.footer} ${s.editFooter}`}>
                 <button className={s.primary} disabled={busy} onClick={() => applyEdit(false)}>
-                  {busy && !shareOpen ? "Publishing…" : "Publish"}
+                  {busy && !shareOpen ? "Saving…" : "Save"}
                 </button>
                 <button className={s.shareUpdate} aria-disabled={!shareState?.can} onClick={openShare}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -1787,7 +1928,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                     <path d="M20 12a8 8 0 0 1-13.7 5.7L4 15.5" />
                     <path d="M4 20v-4.5h4.5" />
                   </svg>
-                  Publish & Share Update
+                  Save and share update
                 </button>
                 <div className={s.shareHint}>{shareState?.hint}</div>
               </footer>
@@ -2281,98 +2422,6 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                 {linkSheet.index === null ? "Add" : "Save"}
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {tagLine && (
-        <div className={s.scrim} data-light onMouseDown={() => setTagFor(null)}>
-          <div className={s.sheet} onMouseDown={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="tags-title">
-            <div className={s.grabber} />
-            <div className={s.lsHead}>
-              <span id="tags-title" className={s.sheetTitle}>
-                Tags
-              </span>
-              <span className={s.tagsFor}>{tagLine.text.trim() || "This item"}</span>
-            </div>
-            {(() => {
-              const full = tagLine.tags.length >= MAX_TAGS;
-              const has = (t: string) => tagLine.tags.some((x) => x.toLowerCase() === t.toLowerCase());
-              const price = tagLine.tags.find((x) => PRICE_TAGS.includes(x));
-              const own = oneLine(ownTag).trim();
-              const ownOver = own.length - MAX_TAG;
-              return (
-                <>
-                  <div className={s.tagsChosen}>
-                    {tagLine.tags.length ? (
-                      <>
-                        {tagLine.tags.map((t) => (
-                          <button key={t} className={s.tagChip} data-group={tagInfo(t).group || "own"} data-on onClick={() => toggleTag(t)} aria-label={`Remove tag ${t}`}>
-                            {tagInfo(t).emoji && <span aria-hidden>{tagInfo(t).emoji} </span>}
-                            {tagInfo(t).name} ✕
-                          </button>
-                        ))}
-                        <span className={s.tagsHint}>{full ? `This item has ${MAX_TAGS} tags. Remove one to add another.` : "Tap a tag to remove it."}</span>
-                      </>
-                    ) : (
-                      <span className={s.tagsHint}>Up to {MAX_TAGS} tags: quick details like price or when to go.</span>
-                    )}
-                  </div>
-                  {TAG_GROUPS.map((g) => (
-                    <div key={g.key} className={s.tagGroup}>
-                      <div className={s.tagGroupName}>{g.name}</div>
-                      <div className={s.tagRow}>
-                        {g.tags.map(([t, emoji]) => {
-                          const on = has(t);
-                          // A price can swap for another price even at 3 tags.
-                          const off = !on && full && !(g.key === "price" && price);
-                          return (
-                            <button key={t} className={s.tagChip} data-group={g.key} data-on={on || undefined} aria-pressed={on} aria-disabled={off || undefined} onClick={() => !off && toggleTag(t)}>
-                              {emoji && <span aria-hidden>{emoji} </span>}
-                              {t}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                  <label className={s.lsLabel} htmlFor="own-tag">
-                    Your own
-                  </label>
-                  <div className={s.ownTagRow}>
-                    <input
-                      id="own-tag"
-                      className={s.lsInput}
-                      value={ownTag}
-                      disabled={full}
-                      onChange={(e) => setOwnTag(oneLine(e.target.value))}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addOwnTag();
-                        }
-                        if (e.key === "Escape") setTagFor(null);
-                      }}
-                      placeholder={full ? `This item has ${MAX_TAGS} tags.` : "e.g. Outdoor seating"}
-                    />
-                    <button className={s.lsSubmit} aria-disabled={!own || ownOver > 0 || full || undefined} onClick={addOwnTag}>
-                      Add
-                    </button>
-                  </div>
-                  {own && (
-                    <div className={s.fieldCount} data-full={ownOver > 0 || undefined}>
-                      {own.length}/{MAX_TAG}
-                      {ownOver > 0 ? ` · ${ownOver} over. Shorten it to add.` : ""}
-                    </div>
-                  )}
-                  <div className={s.lsButtons}>
-                    <button className={s.lsSubmit} onClick={() => setTagFor(null)}>
-                      Done
-                    </button>
-                  </div>
-                </>
-              );
-            })()}
           </div>
         </div>
       )}
