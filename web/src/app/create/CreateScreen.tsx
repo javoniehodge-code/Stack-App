@@ -1081,9 +1081,10 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     // Published: nothing is left unsaved.
     confirmed.current = version.current;
     setPublished(id);
-    // The draft is gone now; the address becomes the stack's, so a refresh opens it.
+    // The draft is gone now; the address becomes the stack's, so a refresh opens it. (No router.refresh() here:
+    // it would reset the address to the editor's old one, /new or the deleted draft's, and a reload of that, say
+    // when coming back to the app, would show "Nothing here".)
     window.history.replaceState(window.history.state, "", `/s/${id}`);
-    router.refresh();
     if (id) setPublishedStack(await fetchStack(createClient(), viewer?.id ?? null, id));
   }
 
