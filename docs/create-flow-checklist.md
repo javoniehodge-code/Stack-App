@@ -37,6 +37,11 @@ Every detail of creating and publishing a Stack, and where it's built. Tick item
 - [ ] "Your Stack is live" offers **Share your Stack, Start another stack, Done**. Done goes to Profile › Stacks, with the new Stack at the top (Flow 1, Published screen).
 - [ ] The save status and messages are announced politely to screen readers (Global rules, accessibility).
 
+## After 2d: the theme on the Stack page (agreed Nov 26)
+
+- [ ] The Stack page shows its theme as in the design: the theme band with the emoji wallpaper, the "🌮 N picks" pill and the date pill.
+- [ ] The city shows on the Stack page.
+
 ## Task 3: publish checks
 
 - [ ] The red "Fix N things before publishing" box on Finalize, listing each problem.
@@ -61,7 +66,7 @@ Every detail of creating and publishing a Stack, and where it's built. Tick item
   - Publish also in the top bar.
 - **Link titles:** "Fetching link…", then the page title and site icon, falling back to the domain after 6 seconds.
 - **Preview of the feed card** ("This is how your card looks in feeds", as a full feed card).
-- **Showing the Finalize choices** on the Stack page and in feeds: theme band, city. Categories in Explore and search.
+- **Showing the Finalize choices in feeds**, and categories in Explore and search. (The Stack page comes right after 2d, above.)
 - **Editing a published Stack:**
   - Save and Save and share update;
   - the theme, place and categories;
