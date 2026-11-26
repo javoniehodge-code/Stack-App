@@ -65,6 +65,8 @@ This covers migration `20261129000000_pick_model` and the new pick editor. The e
 
 The new editor saves picks that the new database rules accept, so step 1 comes first.
 
+**Live status (Nov 26):** step 1 is done. A read-only comparison of the repo's migrations with live's history listed only `20261129000000_pick_model`. It was applied and recorded in one step, and the history now shows 24 rows. Live had no Stacks or drafts. Live is now in the window between the two steps.
+
 **Between the two steps,** the current live app keeps working. Its drafts save as before. Publishing from it now follows the new limits, so a Stack with a paragraph, a bold line or something over a new limit is refused with a message saying why. To avoid that, don't publish between the two steps.
 
 ## Rollback
