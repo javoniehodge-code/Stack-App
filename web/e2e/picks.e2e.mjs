@@ -513,6 +513,31 @@ check(
   JSON.stringify(anchors),
 );
 
+// 17. After publishing a draft that was reopened from its own address (a refresh), "Your Stack is live" stays up,
+//     the address stays the Stack's, and coming back to the page (a reload) opens the Stack, not "Nothing here".
+await page.goto(APP + "/new");
+await page.getByLabel("Title").fill(`Stays ${RUN}`);
+await page.getByRole("button", { name: "Next" }).click();
+await page.getByRole("button", { name: "Skip" }).click();
+await page.getByRole("textbox", { name: "Item heading" }).fill("Stays up");
+await page.getByRole("button", { name: "Done", exact: true }).first().click();
+const stays = await page.waitForURL(/\/drafts\//).then(() => draftIdOf(page));
+await until(page, stays, (ls) => ls[0]?.text === "Stays up");
+await page.reload();
+await page.getByText("Stays up").waitFor({ timeout: 10000 });
+await page.getByRole("button", { name: "Finalize" }).click();
+await page.getByRole("button", { name: "Publish", exact: true }).click();
+await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
+await page.waitForTimeout(4000);
+const live17 = (await page.getByText("Your Stack is live").isVisible()) && new URL(page.url()).pathname === `/s/${stays}`;
+await page.reload();
+await page.getByText("Stays up").waitFor({ timeout: 10000 }).catch(() => {});
+check(
+  "17. After publishing, Your Stack is live stays up at the Stack's address, and a reload opens the Stack (not Nothing here)",
+  live17 && (await page.getByText("Stays up").isVisible()) && !(await page.getByText("Nothing here").isVisible()),
+  page.url(),
+);
+
 await browser.close();
 cleanup();
 const failed = results.filter((r) => !r).length;
