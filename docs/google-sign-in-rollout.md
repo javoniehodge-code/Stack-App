@@ -48,6 +48,10 @@ These steps need your accounts. Each will be walked through one at a time.
    - A Like started before signing in is on afterwards.
 5. **Merge, then a production check:** repeat step 4 on the real site. The Google app stays in Testing.
 
+**Open check:** an unlisted Google account should be refused by Google while the app is in Testing. This hasn't been tried yet: it needs a Google account that isn't on the test-user list. Try it before relying on the restriction.
+
+**Checked on the PR #38 preview (Nov 25):** Connect Google linked the owner's Google account to @stackapp (live: still 2 accounts, 1 Google identity). Continue with Google then opened @stackapp, and email-code sign-in still did too.
+
 ## Later: open Google sign-in to everyone (not part of Task 1b)
 
 While the Google app is in Testing, Google itself refuses every account that isn't on its test-user list (Google Auth Platform → Audience → Test users). That list is the only thing keeping Google sign-in to the owner. Don't publish until all of this is in place:
