@@ -24,13 +24,16 @@ This covers migration `20261128000000_drafts` and the editor's switch to it (Tas
   - Every change (typing, or moving between steps) is tracked until a save of it is confirmed by the server.
   - Until then, the status says "Saving…" or "Couldn't save", and the browser asks before you leave the page.
   - The over-limit banner says the same: "Saving your draft…", "your latest changes aren't saved", or "Your draft is saved".
+  - A change made while a save is still on its way (say, moving to the next step during a slow first save) is saved right after it.
 - **Opening a draft writes nothing.** A copy left open in another tab or device can't overwrite newer content unless it's edited.
 - **Leaving the editor:**
   - **Empty:** no draft is kept (one saved earlier is removed).
   - **With content:** the draft is kept, and Profile › Drafts opens.
   - **A change not yet saved:** the browser asks before you leave the page.
 - **Unsaved edits to a published Stack** are a draft too, one per Stack, and Publish removes them.
-- **Drafts the old app saves after the migration aren't lost.** Until the new app is deployed, the old app keeps saving drafts the old way, in `stacks`. The new app moves any it finds there into `drafts`, with the same id and contents, whenever it lists or opens your drafts. Repeating the move is harmless.
+- **Drafts the old app saves after the migration aren't lost.** Until the new app is deployed, the old app keeps saving drafts the old way, in `stacks`. The new app moves any it finds there into `drafts`, with the same id and contents, whenever it lists or opens your drafts.
+  - The copy is only added, never written over. If a copy is already there (an earlier move was cut short and the draft was edited since), the newer copy is kept.
+  - The original is removed only after the draft and its tags were read, and the copy is confirmed. If any part fails, the original stays and the next visit tries again.
 - **Existing drafts move over**, with their ids and contents. Live had none on Nov 26.
 
 ## Limits: still the old ones (on purpose)
@@ -67,7 +70,9 @@ Task 3 (publish) then adds the full publish checks: the "Fix N things before pub
 
 The new app needs `drafts`, which exists only after step 1, so step 1 comes first. Between the two steps, the old app still works: it saves drafts in `stacks`, and the new app picks them up after the merge.
 
-**Live status (Nov 26):** step 1 is done. The migration is applied and recorded (23 rows); there were no drafts to move. Live is now in the window between the two steps.
+**Live status (Nov 26):** step 1 is done. The migration is applied and recorded (23 rows); there were no drafts to move. Live is now in the window between the two steps. The later fixes in this PR are app-only: no further migration is needed.
+
+**Possible follow-up (not in 2a):** if an old-app draft is unsaved edits to a published Stack, and that Stack already has an edits draft in the new table, the move can't add a second one. The old-app draft then stays in `stacks`, unseen by the new app. Live had no drafts, so this can only happen if the old app saves edits during the window. A later change could show or tidy these.
 
 ## Rollback
 
@@ -113,13 +118,17 @@ The new app needs `drafts`, which exists only after step 1, so step 1 comes firs
   4. **Editing the published Stack:**
      - unsaved edits were kept in one draft for it, listed in Manage stacks as unsaved edits, and came back on reopening;
      - Publish updated the Stack and removed that draft.
-- **Saving, in the browser** (`drafts.e2e.mjs`, now 23/23):
+- **Saving, in the browser** (`drafts.e2e.mjs`, now 26/26):
   - **slow save:** while in flight, "Saving…", the banner said saving, and leaving the page asked first; once it landed, "Saved", the banner said saved, and leaving didn't ask;
   - **failed save:** "Couldn't save", the banner said the latest changes weren't saved, leaving asked, and the draft was unchanged. The next working save cleared both;
-  - **stale copy:** opening a draft sent no write. Content saved elsewhere after it opened wasn't overwritten, and leaving didn't ask.
-- **Rollout window** (`web/e2e/legacy-draft.e2e.mjs`, 7/7). The test copy had this migration applied:
+  - **stale copy:** opening a draft sent no write. Content saved elsewhere after it opened wasn't overwritten, and leaving didn't ask;
+  - **slow first save, then Next:** the first save was held for 4 seconds while the step moved on. The draft then saved with the new step, leaving didn't ask, and a refresh reopened that step.
+- **Rollout window** (`web/e2e/legacy-draft.e2e.mjs`, 10/10). The test copy had this migration applied:
   - the **current live app**, built from `main`, saved a draft the old way, in `stacks`;
-  - **this branch's app** then listed it in Profile › Drafts, moved it to `drafts` with the same id and contents, opened it at `/drafts/<id>`, saved an edit to it, and published it as one Stack with the same id.
+  - **this branch's app** then listed it in Profile › Drafts, moved it to `drafts` with the same id and contents, opened it at `/drafts/<id>`, saved an edit to it, and published it as one Stack with the same id;
+  - an old-style draft with two tags moved with both, and its original was removed;
+  - an interrupted move (the copy made and edited since, the original still in `stacks`): the edited title, step and tags were kept, and the original was removed.
+- **Recovery retries** (`web/e2e/legacy-adopt.test.mjs`, all pass; no network). Each step was made to fail, with an error or a dropped connection: listing, reading tags, copying, confirming the copy, removing the original. Every time the original stayed, no copy without its tags was made, and a retry finished the move. One failing draft didn't stop the others. The same checks fail on the earlier version of the move.
 - **Earlier suites still pass:**
   - the sign-in browser test, 79/79 (Create now opens `/new`);
   - the guard test, 11/11;

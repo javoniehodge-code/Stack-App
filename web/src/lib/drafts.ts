@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { lineFormat } from "./format";
+import { adoptLegacyDrafts } from "./legacyDrafts";
 import type { Draft, EditTarget, Section, Visibility } from "./types";
 
 // Drafts live in their own owner-only table (migration 20261128000000_drafts). Their content is loose JSON in the
@@ -108,38 +109,6 @@ function lineCount(c: DraftContent) {
     (n, sec) => n + asArray<Section["lines"][number]>(sec?.lines).filter((l) => asString(l?.text).trim() || asString(l?.link)).length,
     0,
   );
-}
-
-/**
- * Moves your drafts that an older app version saved in the stacks table (status 'draft') into the drafts table,
- * with the same id and contents, then removes them from stacks. Between the drafts migration and the new app's
- * deployment, the old app still saves drafts there; this makes them show up and open in the new app. Safe to
- * repeat: the move is an upsert on the same id, and a draft is removed from stacks only once it's in drafts.
- */
-export async function adoptLegacyDrafts(sb: SupabaseClient, viewerId: string) {
-  const { data: rows } = await sb
-    .from("stacks")
-    .select("id, title, description, sections, style, visibility, location, edit_of, forked_from_id, created_at")
-    .eq("author_id", viewerId)
-    .eq("status", "draft");
-  for (const r of rows ?? []) {
-    const { data: tags } = await sb.from("stack_tags").select("tag").eq("stack_id", r.id);
-    const content: DraftContent = {
-      v: 1,
-      title: r.title ?? "",
-      description: r.description ?? "",
-      sections: r.sections ?? [],
-      style: r.style === "bulleted" ? "bulleted" : "numbered",
-      visibility: asVisibility(r.visibility),
-      location: r.location ?? "",
-      tags: (tags ?? []).map((t) => t.tag as string),
-    };
-    const { error } = await sb
-      .from("drafts")
-      .upsert({ id: r.id, content, step: "build", edit_of: r.edit_of, remixed_from: r.forked_from_id, created_at: r.created_at }, { onConflict: "id" });
-    // Kept where it is if it can't move (say, the stack it edits already has newer edits in drafts).
-    if (!error) await sb.from("stacks").delete().eq("id", r.id).eq("author_id", viewerId).eq("status", "draft");
-  }
 }
 
 export async function fetchDrafts(sb: SupabaseClient, viewerId: string): Promise<DraftSummary[]> {

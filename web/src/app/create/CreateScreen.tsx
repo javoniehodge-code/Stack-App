@@ -448,8 +448,6 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const version = useRef(0);
   const confirmed = useRef(0);
   const unsaved = () => confirmed.current < version.current && (saved.current || hasContent(workRef.current));
-  const settle = (err: string | null) => setSave(err ? "error" : confirmed.current >= version.current ? "saved" : "saving");
-
   const persist = useCallback(
     (status: "draft" | "published", title?: string) => {
       // Drafts keep everything as typed, even over a limit; limits are checked when it's published.
@@ -502,6 +500,20 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     [initial.forkedFromId, initial.style, target],
   );
 
+  // After a save: if a newer change came in while it was on its way (say the step changed before the first save
+  // landed) and no autosave is waiting to pick it up, save again so the latest content and step get saved too.
+  const settle = useCallback(
+    function settle(err: string | null) {
+      if (!err && confirmed.current < version.current && !dirty.current && (saved.current || hasContent(workRef.current))) {
+        setSave("saving");
+        persist("draft").then(settle);
+        return;
+      }
+      setSave(err ? "error" : confirmed.current >= version.current ? "saved" : "saving");
+    },
+    [persist],
+  );
+
   // Moving to another step is saved too (once the draft exists), so it reopens at that step. Opening a draft
   // isn't a change: nothing is written until something actually changes.
   const lastStep = useRef(step);
@@ -510,7 +522,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     lastStep.current = step;
     version.current++;
     if (saved.current && viewer && !published) persist("draft").then(settle);
-  }, [step, viewer, published, persist]);
+  }, [step, viewer, published, persist, settle]);
 
   // Until the latest change is confirmed saved, leaving the page asks first (a refresh would lose it).
   useEffect(() => {
@@ -544,7 +556,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
       settle(await persist("draft"));
     }, 1200);
     return () => clearTimeout(t);
-  }, [work, viewer, persist, published]);
+  }, [work, viewer, persist, published, settle]);
 
   // Focus the field that was just added or selected, with the cursor at the end.
   const focusId = useRef<string | null>(start === "title" ? "title" : null);

@@ -91,6 +91,21 @@ if (phase === "old") {
   writeFileSync(STATE, JSON.stringify({ email, run, uid, id: row.split("|")[0] }));
 } else {
   const { email, run, uid, id } = JSON.parse(readFileSync(STATE, "utf8"));
+  // Two more old-style drafts for this account, made directly (it's this run's own account):
+  //  - one with tags;
+  //  - one whose recovery was interrupted after the copy, and the copy was then edited in the new app.
+  const tagged = sql("select gen_random_uuid()");
+  const interrupted = sql("select gen_random_uuid()");
+  const pick = `'[{"label":"","lines":[{"text":"A pick","link":null,"format":"num"}]}]'`;
+  psql(
+    `insert into public.stacks (id, author_id, title, sections, status) values
+       ('${tagged}', '${uid}', 'Tagged legacy ${run}', ${pick}, 'draft'),
+       ('${interrupted}', '${uid}', 'Interrupted legacy original ${run}', ${pick}, 'draft');
+     insert into public.stack_tags (stack_id, tag) values ('${tagged}', 'Late night'), ('${tagged}', 'Cash only'), ('${interrupted}', 'Old tag');
+     insert into public.drafts (id, owner_id, content, step) values
+       ('${interrupted}', '${uid}', '{"v":1,"title":"Edited after the first copy ${run}","tags":["New tag"],"sections":${pick.slice(1, -1)}}', 'review');`,
+    false,
+  );
   await emailCode(page, email);
   await page.getByRole("dialog").waitFor({ state: "detached" });
   await page.goto(APP + "/profile?tab=drafts");
@@ -101,6 +116,19 @@ if (phase === "old") {
     sql(`select (content->>'title') || '|' || (content->'sections'->0->'lines'->0->>'text') from public.drafts where id = '${id}' and owner_id = '${uid}'`) === `Old-app draft ${run}|Saved by the old app` &&
       sql(`select count(*) from public.stacks where id = '${id}'`) === "0",
   );
+  const tagRow = sql(`select (content->>'title') || '|' || (select string_agg(t, ',' order by t) from jsonb_array_elements_text(content->'tags') t) from public.drafts where id = '${tagged}'`);
+  check(
+    "new-6. A draft with tags moved with both tags, and its original is gone",
+    tagRow === `Tagged legacy ${run}|Cash only,Late night` && sql(`select count(*) from public.stacks where id = '${tagged}'`) === "0",
+    tagRow,
+  );
+  const intRow = sql(`select (content->>'title') || '|' || step || '|' || (content->'tags'->>0) from public.drafts where id = '${interrupted}'`);
+  check(
+    "new-7. An interrupted recovery: the copy's newer edits (title, step, tags) are kept, and the original is gone",
+    intRow === `Edited after the first copy ${run}|review|New tag` && sql(`select count(*) from public.stacks where id = '${interrupted}'`) === "0",
+    intRow,
+  );
+  check("new-8. Profile › Drafts lists all three", (await page.getByText(`Tagged legacy ${run}`).isVisible()) && (await page.getByText(`Edited after the first copy ${run}`).isVisible()));
   await page.getByText(`Old-app draft ${run}`).click();
   await page.waitForURL(new RegExp(`/drafts/${id}$`));
   await page.getByText("Saved by the old app").waitFor();
@@ -116,10 +144,11 @@ if (phase === "old") {
   await page.getByRole("button", { name: "Publish", exact: true }).click();
   await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
   check(
-    "new-5. It publishes as one stack with the same id, and the draft is gone",
+    "new-5. It publishes as one stack with the same id, and its draft is gone (the other two stay)",
     sql(`select count(*) from public.stacks where author_id = '${uid}' and status = 'published'`) === "1" &&
       sql(`select count(*) from public.stacks where id = '${id}' and status = 'published'`) === "1" &&
-      sql(`select count(*) from public.drafts where owner_id = '${uid}'`) === "0",
+      sql(`select count(*) from public.drafts where id = '${id}'`) === "0" &&
+      sql(`select count(*) from public.drafts where owner_id = '${uid}'`) === "2",
   );
   psql(`delete from auth.users where id = '${uid}'`, false);
   console.log("removed the test account");

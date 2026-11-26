@@ -238,6 +238,37 @@ let uid, draftId;
   await saved(page);
   check("6b. The next save works: saved, and leaving doesn't ask", titleOf(overId) === "L" && !(await warns(page)) && (await banner5()).includes("Your draft is saved"));
 
+  // 8. The first save is slow, and the next step is chosen while it's on its way. The editor still finishes
+  //    saving (the step too), leaving stops asking, and a refresh reopens that step.
+  await page.route(
+    "**/rest/v1/drafts*",
+    async (route) => {
+      if (route.request().method() !== "POST") return route.continue();
+      const res = await route.fetch();
+      await new Promise((r) => setTimeout(r, 4000));
+      await route.fulfill({ response: res });
+    },
+    { times: 1 },
+  );
+  await page.goto(APP + "/new");
+  await page.getByLabel("Title").fill(`Step test ${RUN}`);
+  await page.waitForTimeout(1800); // the first autosave is now on its way, held back
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByLabel("Description").waitFor();
+  const stepId = () => sql(`select id || '|' || step from public.drafts where owner_id = '${uid2}' and content->>'title' = 'Step test ${RUN}'`);
+  for (let i = 0; i < 40 && !stepId().endsWith("|description"); i++) await page.waitForTimeout(250);
+  await page.waitForTimeout(500);
+  const [sid, sstep] = stepId().split("|");
+  check("8a. The draft finishes saving with the step that was chosen while the first save was slow", sstep === "description", stepId());
+  check("8b. Leaving the page no longer asks", !(await warns(page)));
+  await page.reload();
+  await page.getByLabel("Description").waitFor({ timeout: 10000 }).catch(() => {});
+  check(
+    "8c. A refresh reopens the draft at that step",
+    new URL(page.url()).pathname === `/drafts/${sid}` && (await page.getByLabel("Description").isVisible()) && (await page.getByRole("button", { name: /^(Next|Skip)$/ }).isVisible()),
+    page.url(),
+  );
+
   // 7. Opening a draft writes nothing. A stale copy left open (another device saved newer content after it was
   //    opened) doesn't overwrite the newer content, and leaving doesn't ask.
   const staleId = sql("select gen_random_uuid()");
