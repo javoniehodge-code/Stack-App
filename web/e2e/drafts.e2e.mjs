@@ -140,8 +140,8 @@ let uid, draftId;
   // The next save reaches the server but its reply is lost: the editor says so, and the retry updates the same draft.
   await loseNextReply(page, "**/rest/v1/drafts*");
   await typeItem(page, " (late)", "Taquería Orinoco");
-  await page.getByText("Couldn't save").waitFor({ timeout: 10000 }).catch(() => {});
-  check("1e. A lost reply shows Couldn't save", await page.getByText("Couldn't save").isVisible());
+  await page.getByRole("button", { name: "Not saved · Retry" }).waitFor({ timeout: 10000 }).catch(() => {});
+  check("1e. A lost reply shows Not saved · Retry", await page.getByRole("button", { name: "Not saved · Retry" }).isVisible());
   await typeItem(page, "!", "(late)");
   await saved(page);
   const text = sql(`select content->'sections'->0->'lines'->0->>'text' from public.drafts where id = '${draftId}'`);
@@ -179,22 +179,22 @@ let uid, draftId;
   const longSections = JSON.stringify([{ label: "", lines: Array.from({ length: 18 }, (_, i) => ({ text: `${i} ` + "x".repeat(350), link: null, format: "num" })) }]);
   psql(`insert into public.drafts (id, owner_id, content, step) values ('${overId}', '${uid2}', '${JSON.stringify({ v: 1, title: "Too long", sections: JSON.parse(longSections) }).replace(/'/g, "''")}', 'build')`, false);
   await page.goto(APP + `/drafts/${overId}`);
-  const banner = page.getByRole("alert").filter({ hasText: "Fix these before publishing" });
-  await banner.waitFor({ timeout: 10000 }).catch(() => {});
+  const overNote = page.getByText(/^heading 35\d\/80 · 27\d over$/).first();
+  await overNote.waitFor({ timeout: 10000 }).catch(() => {});
   await page.getByLabel("Title").fill("Long");
   await page.getByLabel("Title").blur();
   const rowOf = () => sql(`select (content->>'title') || '|' || jsonb_array_length(content->'sections'->0->'lines') from public.drafts where id = '${overId}'`);
   for (let i = 0; i < 40 && !rowOf().startsWith("Long|"); i++) await page.waitForTimeout(250);
   const row = rowOf();
   check(
-    "2d. An over-limit draft shows the limit, says it's saved, and its edits save with every item kept",
-    (await banner.isVisible()) && (await banner.innerText()).includes("Your draft is saved") && row === "Long|18",
+    "2d. An over-limit draft shows the limit on the pick, says it's saved, and its edits save with every item kept",
+    (await overNote.isVisible()) && (await page.getByText("Saved just now").isVisible()) && row === "Long|18",
     row,
   );
 
-  // 5. A slow save: while it's on its way, the status and the banner say it's saving and leaving asks first;
-  //    once it lands, both say saved and leaving doesn't ask.
-  const banner5 = () => banner.innerText();
+  // 5. A slow save: while it's on its way, the status says it's saving and leaving asks first;
+  //    once it lands, it says saved and leaving doesn't ask.
+  const status5 = () => page.getByRole("status").first().innerText();
   await page.route(
     "**/rest/v1/drafts*",
     async (route) => {
@@ -209,33 +209,38 @@ let uid, draftId;
   await page.getByLabel("Title").blur();
   await page.waitForTimeout(2200);
   check(
-    "5a. Slow save in flight: status Saving…, banner says saving, and leaving asks first",
-    (await page.getByText("Saving…").isVisible()) && (await banner5()).includes("Saving your draft") && (await warns(page)),
-    await banner5(),
+    "5a. Slow save in flight: status Saving…, and leaving asks first",
+    (await page.getByText("Saving…").isVisible()) && (await warns(page)),
+    await status5(),
   );
   await saved(page);
   check(
-    "5b. Once it lands: status Saved, banner says saved, leaving doesn't ask, and the draft has the change",
-    (await banner5()).includes("Your draft is saved") && !(await warns(page)) && titleOf(overId) === "Lon",
+    "5b. Once it lands: status Saved just now, leaving doesn't ask, and the draft has the change",
+    (await status5()).includes("Saved just now") && !(await warns(page)) && titleOf(overId) === "Lon",
     titleOf(overId),
   );
 
-  // 6. A failed save: status Couldn't save, the banner says the changes aren't saved, and leaving still asks.
-  //    The next save that works clears both.
+  // 6. A failed save: the status says "Not saved · Retry", and leaving still asks. Retry saves the change;
+  //    the next save that works clears it.
   await page.route("**/rest/v1/drafts*", (route) => (route.request().method() === "POST" ? route.fulfill({ status: 500, body: "{}" }) : route.continue()), { times: 1 });
   await page.getByLabel("Title").fill("Lo");
   await page.getByLabel("Title").blur();
-  await page.getByText("Couldn't save").waitFor({ timeout: 10000 }).catch(() => {});
+  const retry = page.getByRole("button", { name: "Not saved · Retry" });
+  await retry.waitFor({ timeout: 10000 }).catch(() => {});
   check(
-    "6a. Failed save: Couldn't save, the banner says the latest changes aren't saved, leaving asks, and the draft is unchanged",
-    (await page.getByText("Couldn't save").isVisible()) && (await banner5()).includes("aren’t saved") && (await warns(page)) && titleOf(overId) === "Lon",
-    await banner5(),
+    "6a. Failed save: the status says Not saved · Retry, leaving asks, and the draft is unchanged",
+    (await retry.isVisible()) && (await warns(page)) && titleOf(overId) === "Lon",
+    await status5(),
   );
+  await retry.click();
+  for (let i = 0; i < 40 && titleOf(overId) !== "Lo"; i++) await page.waitForTimeout(250);
+  await saved(page).catch(() => {});
+  check("6c. Retry saves the change: Saved just now, and leaving doesn't ask", titleOf(overId) === "Lo" && !(await warns(page)) && (await status5()).includes("Saved just now"), titleOf(overId));
   await page.getByLabel("Title").fill("L");
   await page.getByLabel("Title").blur();
   for (let i = 0; i < 40 && titleOf(overId) !== "L"; i++) await page.waitForTimeout(250);
   await saved(page);
-  check("6b. The next save works: saved, and leaving doesn't ask", titleOf(overId) === "L" && !(await warns(page)) && (await banner5()).includes("Your draft is saved"));
+  check("6b. The next save works: saved, and leaving doesn't ask", titleOf(overId) === "L" && !(await warns(page)) && (await status5()).includes("Saved just now"));
 
   // 8. The first save is slow, and the next step is chosen while it's on its way. The editor still finishes
   //    saving (the step too), leaving stops asking, and a refresh reopens that step.
@@ -338,7 +343,7 @@ let uid, draftId;
   check("4c. Reopening the edit brings the unsaved title back", (await page.getByLabel("Title").inputValue()) === `Late-night tacos ${RUN}, edited`);
   // The footer shows once no field is being typed in.
   await page.getByLabel("Title").blur();
-  await page.getByRole("button", { name: "Publish", exact: true }).click();
+  await page.getByRole("button", { name: "Save", exact: true }).click();
   await page.waitForURL(new RegExp(`/s/${draftId}`), { timeout: 15000 }).catch(() => {});
   check(
     "4d. Publishing the changes updates the stack and removes the edits draft",

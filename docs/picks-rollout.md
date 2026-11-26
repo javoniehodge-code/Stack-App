@@ -31,7 +31,7 @@ This covers migration `20261129000000_pick_model` and the new pick editor. The e
 - **Counters, nothing cut off.**
   - A counter appears at 80% of a field's limit.
   - Past the limit it turns red and says how far over, for example "heading 92/80 · 12 over".
-  - Text is never cut off or blocked while typing. A box above the picks lists what to fix before publishing.
+  - Text is never cut off or blocked while typing. Since 2d, a short note under each pick says what to fix ("Needs a heading.", "heading 92/80 · 12 over"); the box above the picks is gone.
 - **Add controls at a limit.**
   - At 15 picks, Add item reads "15 of 15 items · remove one to add another" and adds nothing.
   - At 5 sections, Section says "A Stack can have up to 5 sections."

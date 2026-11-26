@@ -224,16 +224,17 @@ export const MAX_LINK_NAME = 40; // a link's name, shown on its pill
 export const MAX_LINKS = 2; // links per pick
 
 /** The suggested pick tags, in their 5 groups. A pick can have one price. Typed tags have no group. */
-export const TAG_GROUPS: { key: string; name: string; tags: [string, string][] }[] = [
-  { key: "highlight", name: "Highlight", tags: [["Must-do", "⭐"], ["Hidden gem", "💎"], ["New", "🆕"]] },
-  { key: "price", name: "Price · pick one", tags: [["Free", ""], ["$", ""], ["$$", ""], ["$$$", ""]] },
-  { key: "good", name: "Good for", tags: [["Kid-friendly", "👶"], ["Date night", "💑"], ["Solo-friendly", "🧍"], ["Groups", "👯"], ["Veg options", "🥗"]] },
+export const TAG_GROUPS: { key: string; name: string; hint: string; tags: [string, string][] }[] = [
+  { key: "highlight", name: "Highlight", hint: "what stands out", tags: [["Must-do", "⭐"], ["Hidden gem", "💎"], ["New", "🆕"]] },
+  { key: "price", name: "Price", hint: "pick one", tags: [["Free", ""], ["$", ""], ["$$", ""], ["$$$", ""]] },
+  { key: "good", name: "Good for", hint: "who it suits", tags: [["Kid-friendly", "👶"], ["Date night", "💑"], ["Solo-friendly", "🧍"], ["Groups", "👯"], ["Veg options", "🥗"]] },
   {
     key: "know",
     name: "Know before",
+    hint: "save them a surprise",
     tags: [["Cash only", "💵"], ["Book ahead", "📅"], ["Go early", "⏰"], ["Walk-in", "🚶"], ["Expect a line", "⏳"], ["Quick read", "📗"], ["Dense", "🧠"], ["Great on audio", "🎧"]],
   },
-  { key: "when", name: "When", tags: [["Brunch", "☀️"], ["Late night", "🌙"], ["Sunset", "🌅"]] },
+  { key: "when", name: "When", hint: "best time", tags: [["Brunch", "☀️"], ["Late night", "🌙"], ["Sunset", "🌅"]] },
 ];
 export const PRICE_TAGS = ["Free", "$", "$$", "$$$"];
 
