@@ -171,6 +171,27 @@ function toPick(l: DraftLine): Line {
 const FULL_URL = /(?:https?:\/\/|www\.)[^\s]+/gi;
 
 /**
+ * Where a written web address ends: sentence punctuation after it (".", ",", "!"…) isn't part of it, and neither is
+ * a closing bracket that closes one opened before the address ("(see https://x.com/a)"). A closing bracket that
+ * matches one inside the address stays ("https://example.com/wiki/It_(novel)").
+ */
+function urlEnd(m: string) {
+  let end = m.length;
+  for (;;) {
+    const c = m[end - 1];
+    if (".,;:!?'\"".includes(c)) end--;
+    else if (c === ")" || c === "]") {
+      const open = c === ")" ? "(" : "[";
+      const part = m.slice(0, end);
+      if (part.split(open).length - 1 < part.split(c).length - 1) end--;
+      else break;
+    } else break;
+    if (end === 0) break;
+  }
+  return m.slice(0, end);
+}
+
+/**
  * Turns full web addresses written into a pick's heading or subheading into its links (up to 2). An address is
  * taken once it's finished: something follows it (a space), or `done` (pasted, Enter, Done, or leaving the field).
  * One the pick already has just leaves the text; one past 2 links stays in the text (`refused`). Spacing is tidied.
@@ -180,8 +201,8 @@ function takeLinks(text: string, links: EditLink[], done: boolean): { text: stri
   const refused: string[] = [];
   let changed = false;
   const next = text.replace(FULL_URL, (m, offset: number) => {
-    const trail = m.match(/[.,;:!?)\]]+$/)?.[0] ?? "";
-    const raw = m.slice(0, m.length - trail.length);
+    const raw = urlEnd(m);
+    const trail = m.slice(raw.length);
     if (!done && offset + m.length >= text.length) return m;
     const url = /^https?:/i.test(raw) ? raw : `https://${raw}`;
     if (!/^https?:\/\/[^\s.]+\.\S+$/i.test(url) || url.length > 2048) return m;
@@ -198,7 +219,7 @@ function takeLinks(text: string, links: EditLink[], done: boolean): { text: stri
     return trail;
   });
   if (!changed) return { text, links, refused };
-  const tidy = next.replace(/ {2,}/g, " ").replace(/ +([,;.!?])/g, "$1");
+  const tidy = next.replace(/ {2,}/g, " ").replace(/ +([,;.!?)\]])/g, "$1").replace(/([([]) +/g, "$1");
   return { text: done ? tidy.trim() : tidy.replace(/^ +/, ""), links: out, refused };
 }
 

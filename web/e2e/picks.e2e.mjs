@@ -456,6 +456,63 @@ check(
   JSON.stringify(t15b),
 );
 
+// 16. A written address ending in a bracket that belongs to it keeps it; a sentence's period after it, or a bracket
+//     opened before it, stays in the text. The exact address survives save, refresh and publishing.
+const WIKI = "https://example.com/wiki/It_(novel)";
+await page.goto(APP + "/new");
+await page.getByLabel("Title").fill(`Books ${RUN}`);
+await page.getByRole("button", { name: "Next" }).click();
+await page.getByRole("button", { name: "Skip" }).click();
+await page.getByRole("textbox", { name: "Item heading" }).click();
+await page.keyboard.type(`Read ${WIKI}. Great book`);
+await page.getByRole("textbox", { name: "Item subheading" }).click();
+await page.keyboard.type("(see https://example.com/notes)");
+await page.getByRole("button", { name: "Done", exact: true }).first().click();
+const books = await page.waitForURL(/\/drafts\//).then(() => draftIdOf(page));
+const want16 = (l) => l?.text === "Read. Great book" && l?.note === "(see)" && (l?.links ?? []).map((k) => k.url).join() === `${WIKI},https://example.com/notes` && l?.link === WIKI;
+await until(page, books, (ls) => want16(ls[0]));
+const saved16 = lines(books)[0];
+await page.reload();
+await page.getByText("Read. Great book").waitFor({ timeout: 10000 }).catch(() => {});
+const pills16 = await page.getByRole("button", { name: "example.com", exact: true }).count();
+await page.getByLabel("Title").fill(`Books ${RUN}!`);
+await page.getByLabel("Title").blur();
+await until(page, books, () => sql(`select content->>'title' from public.drafts where id = '${books}'`) === `Books ${RUN}!`);
+const refreshed16 = lines(books)[0];
+await page.getByRole("button", { name: "Finalize" }).click();
+await page.getByRole("button", { name: "Publish", exact: true }).click();
+await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
+const pub16 = JSON.parse(sql(`select sections from public.stacks where id = '${books}'`) || "[]").flatMap((x) => x.lines)[0];
+await page.goto(APP + `/s/${books}`);
+await page.getByText("Read. Great book").waitFor({ timeout: 10000 }).catch(() => {});
+await shot(page, "written-link");
+const anchors = await page.locator("a[href^='https://example.com']").evaluateAll((as) =>
+  as.map((a) => ({ href: a.getAttribute("href"), text: a.textContent.trim(), color: getComputedStyle(a).color })),
+);
+const blue = (c) => {
+  // The browser reports the colour as lab(L a b) (blue: b well below 0), oklch(L C h) or rgb(r, g, b).
+  const lab = c.match(/^lab\(([-\d.]+) ([-\d.]+) ([-\d.]+)/);
+  if (lab) return Number(lab[3]) < -20;
+  const ok = c.match(/^oklch\(([\d.]+%?) ([\d.]+) ([\d.]+)/);
+  if (ok) return Number(ok[3]) > 200 && Number(ok[3]) < 290;
+  const rgb = c.match(/^rgb\((\d+), (\d+), (\d+)/);
+  return !!rgb && Number(rgb[3]) > Number(rgb[1]) + 40;
+};
+check(
+  "16a. Written as text, https://example.com/wiki/It_(novel) becomes a link with its closing bracket; the period stays in the text, and a bracket around another address stays outside it",
+  want16(saved16),
+  JSON.stringify(saved16),
+);
+check("16b. After a refresh (and another save) the destinations are unchanged and both show as link buttons", want16(refreshed16) && pills16 === 2, `${pills16} buttons`);
+check(
+  "16c. Published: the exact destinations, shown as blue link buttons; the period is outside the link",
+  want16(pub16) &&
+    anchors.map((a) => a.href).join() === `${WIKI},https://example.com/notes` &&
+    anchors.every((a) => blue(a.color) && !a.href.endsWith(".")) &&
+    (await page.getByText("Read. Great book", { exact: true }).isVisible()),
+  JSON.stringify(anchors),
+);
+
 await browser.close();
 cleanup();
 const failed = results.filter((r) => !r).length;
