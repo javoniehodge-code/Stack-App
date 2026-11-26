@@ -40,6 +40,10 @@ export type FlatLine = {
   /** Web addresses typed into the text, shown as pills (they're taken out of `head` and `note`). */
   links: { href: string; label: string }[];
   format: LineFormat;
+  /** The pick's tags. */
+  tags: string[];
+  /** A pick's heading is plain text, shown as typed (older lines can have ** bold marks). */
+  plain?: boolean;
 };
 
 /** Text without its ** bold marks. */
@@ -88,6 +92,24 @@ export function textLinks(text: string): { text: string; links: string[] } {
   };
 }
 
+/**
+ * The first web address typed into some text, and the text without just that one (any others stay in place).
+ * Null when there's none.
+ */
+export function firstTextLink(text: string): { href: string; rest: string } | null {
+  for (const m of text.matchAll(URL_RE)) {
+    const trail = m[0].match(/[.,;:!?)\]]+$/)?.[0] ?? "";
+    const u = m[0].slice(0, m[0].length - trail.length);
+    if (!u) continue;
+    const rest = (text.slice(0, m.index) + text.slice(m.index + u.length))
+      .replace(/[ \t]{2,}/g, " ")
+      .replace(/\s+([,;.!?])/g, "$1")
+      .trim();
+    return { href: /^https?:/i.test(u) ? u : `https://${u}`, rest };
+  }
+  return null;
+}
+
 const linkKey = (url: string) => url.replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, "").toLowerCase();
 
 /**
@@ -132,6 +154,25 @@ export function flatten(stack: Pick<Stack, "sections" | "style">): FlatLine[] {
     sec.lines.forEach((ln, i) => {
       const format = lineFormat(ln, stack.style);
       const list = isListFormat(format);
+      // A pick (it has an id) shows as saved: its heading as typed, its subheading, and its links in order.
+      if (typeof ln.id === "string") {
+        const links = (Array.isArray(ln.links) ? ln.links : ln.link ? [{ url: ln.link, name: ln.linkName ?? "" }] : []).filter((x) => typeof x?.url === "string" && x.url);
+        out.push({
+          num: format === "num" ? String(n++).padStart(2, "0") : "•",
+          label: i === 0 ? sec.label : null,
+          section: sec.label,
+          text: ln.text,
+          link: links[0]?.url ?? null,
+          linkLabel: links[0] ? links[0].name?.trim() || linkDomain(links[0].url) : "",
+          head: ln.text,
+          note: ln.note?.trim() ?? "",
+          links: links.slice(1).map((x) => ({ href: x.url, label: x.name?.trim() || linkDomain(x.url) })),
+          plain: true,
+          format,
+          tags: Array.isArray(ln.tags) ? ln.tags.filter((t): t is string => typeof t === "string" && !!t.trim()) : [],
+        });
+        return;
+      }
       out.push({
         num: format === "num" ? String(n++).padStart(2, "0") : format === "bullet" ? "•" : "",
         label: i === 0 ? sec.label : null,
@@ -145,6 +186,7 @@ export function flatten(stack: Pick<Stack, "sections" | "style">): FlatLine[] {
           return splitTextLinks(parts.head, parts.note, ln.link, ln.linkNames);
         })(),
         format,
+        tags: Array.isArray(ln.tags) ? ln.tags.filter((t): t is string => typeof t === "string" && !!t.trim()) : [],
       });
     });
   }
@@ -167,15 +209,36 @@ export const CATEGORY_DOTS: Record<string, string> = {
 };
 export const DEFAULT_DOT = "oklch(64% 0.16 50)";
 
-// Stack size limits. The database's save function enforces the same numbers.
+// Content limits (spec, Content rules). The database checks the same numbers when a stack is published
+// (migration 20261129000000_pick_model). Drafts can go over them; the editor shows what to fix.
 export const MAX_TITLE = 60;
-export const MAX_DESCRIPTION = 180;
-export const MAX_LABEL = 60; // section heading
-export const MAX_SECTIONS = 20;
-export const MAX_ITEMS = 100;
-export const MAX_LINE = 360; // a paragraph, numbered or bulleted line (** bold marks don't count)
-export const MAX_BOLD_LINE = 60; // a bold line
-export const MAX_NOTE = 300; // an older numbered or bulleted line's separate detail
+export const MAX_DESCRIPTION = 160;
+export const MAX_LABEL = 40; // a section's title
+export const MAX_SECTIONS = 5;
+export const MAX_ITEMS = 15;
+export const MAX_HEADING = 80; // a pick's heading
+export const MAX_SUBHEADING = 100; // a pick's subheading
+export const MAX_TAGS = 3; // tags per pick
+export const MAX_TAG = 20; // a tag's text
 export const MAX_LINK_NAME = 40; // a link's name, shown on its pill
-export const MAX_TOTAL = 6000; // title, description, section headings, lines and details together
+export const MAX_LINKS = 2; // links per pick
+
+/** The suggested pick tags, in their 5 groups. A pick can have one price. Typed tags have no group. */
+export const TAG_GROUPS: { key: string; name: string; tags: [string, string][] }[] = [
+  { key: "highlight", name: "Highlight", tags: [["Must-do", "⭐"], ["Hidden gem", "💎"], ["New", "🆕"]] },
+  { key: "price", name: "Price · pick one", tags: [["Free", ""], ["$", ""], ["$$", ""], ["$$$", ""]] },
+  { key: "good", name: "Good for", tags: [["Kid-friendly", "👶"], ["Date night", "💑"], ["Solo-friendly", "🧍"], ["Groups", "👯"], ["Veg options", "🥗"]] },
+  {
+    key: "know",
+    name: "Know before",
+    tags: [["Cash only", "💵"], ["Book ahead", "📅"], ["Go early", "⏰"], ["Walk-in", "🚶"], ["Expect a line", "⏳"], ["Quick read", "📗"], ["Dense", "🧠"], ["Great on audio", "🎧"]],
+  },
+  { key: "when", name: "When", tags: [["Brunch", "☀️"], ["Late night", "🌙"], ["Sunset", "🌅"]] },
+];
+export const PRICE_TAGS = ["Free", "$", "$$", "$$$"];
+const TAG_INFO = new Map(TAG_GROUPS.flatMap((g) => g.tags.map(([t, e]) => [t.toLowerCase(), { group: g.key, emoji: e, name: t }] as const)));
+/** A tag's group ("" for a typed one), emoji and name as shown (a suggested tag keeps its own spelling). */
+export const tagInfo = (t: string) => TAG_INFO.get(t.trim().toLowerCase()) ?? { group: "", emoji: "", name: t.trim() };
+/** Text with typed or pasted line breaks turned into spaces, as every field keeps it. */
+export const oneLine = (t: string) => t.replace(/\s*[\r\n]+\s*/g, " ");
 export const MAX_REPOST_NOTE = 500;

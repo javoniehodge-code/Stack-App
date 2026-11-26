@@ -38,6 +38,8 @@ This covers migration `20261128000000_drafts` and the editor's switch to it (Tas
 
 ## Limits: still the old ones (on purpose)
 
+**Update:** Task 2b switches to the new limits. See [picks-rollout.md](picks-rollout.md).
+
 2a changes where drafts are kept, not what's in them. The editor and the database still use the old limits:
 
 | | Old (still in use) | New (spec, Content rules) |

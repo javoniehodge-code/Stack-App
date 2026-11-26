@@ -81,7 +81,7 @@ if (phase === "old") {
   await page.getByLabel("Title").fill(`Old-app draft ${run}`);
   await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Skip" }).click();
-  await page.getByRole("textbox", { name: /^(Item|Paragraph)$/ }).first().click();
+  await page.getByRole("textbox", { name: "Item heading" }).first().click();
   await page.keyboard.type("Saved by the old app");
   await page.getByText("Saved just now").waitFor({ timeout: 15000 });
   const uid = sql(`select id from auth.users where email = '${email}'`);
