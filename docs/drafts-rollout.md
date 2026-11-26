@@ -27,6 +27,27 @@ This covers migration `20261128000000_drafts` and the editor's switch to it (Tas
 - **Unsaved edits to a published Stack** are a draft too, one per Stack, and Publish removes them.
 - **Existing drafts move over**, with their ids and contents. Live had none on Nov 26.
 
+## Limits: still the old ones (on purpose)
+
+2a changes where drafts are kept, not what's in them. The editor and the database still use the old limits:
+
+| | Old (still in use) | New (spec, Content rules) |
+| --- | --- | --- |
+| Title | 60 | 60 |
+| Description | 180 in the editor, 300 in the database | 160 |
+| Sections | 20 | 5 |
+| Section title | 60 | 40 |
+| Items | 100 | 15 |
+| Each item | one line, up to 360 | heading up to 80, subheading up to 100 |
+| Tags per item | none | 3, up to 20 characters each |
+| Total characters | 6,000 | none |
+
+**Plan (agreed Nov 26):** 2b, the new pick editor, switches both sides together, so they never disagree about what's allowed:
+- **The editor:** counters, explained over-limit text, nothing cut off while typing.
+- **The database:** the published-Stack checks in `stacks_before_write`, and the new pick model with stable ids, heading, subheading, link and tags.
+
+Task 3 (publish) then adds the full publish checks: the "Fix N things before publishing" list, the city for place Stacks, and categories.
+
 ## Steps (live)
 
 1. **Apply and record the migration** with the Supabase CLI `db push`:
