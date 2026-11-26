@@ -83,13 +83,15 @@ export function editedDay(publishedAt: string | null, updatedAt?: string | null)
   return day(updatedAt);
 }
 
-/** "Published Sep 3", or "Updated Sep 20" once the author has edited it since (the Stack page's bottom row). */
+/**
+ * "Published Sep 3", or "Updated Sep 20" once the author has saved an edit (the Stack page's bottom row). Publishing
+ * stamps both dates with the same time, and only edits to the title, description or picks move updated_at, so any
+ * later updated_at is an edit, even one saved a few seconds after publishing.
+ */
 export function dateLabel(publishedAt: string | null, updatedAt?: string | null) {
   if (!publishedAt) return "";
-  const edited = editedDay(publishedAt, updatedAt);
-  return edited ? `Updated ${edited}` : `Published ${day(publishedAt)}`;
+  return updatedAt && Date.parse(updatedAt) > Date.parse(publishedAt) ? `Updated ${day(updatedAt)}` : `Published ${day(publishedAt)}`;
 }
 
 /** "📍 Mexico City · Published Nov 24": a place Stack's city, then the date. */
 export const metaLabel = (city: string, date: string) => [city && `📍 ${city}`, date].filter(Boolean).join(" · ");
-

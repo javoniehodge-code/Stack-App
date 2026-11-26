@@ -299,9 +299,42 @@ check(
     (await gp.getByText("Reporting and blocking are coming soon.").isVisible()),
   followBg,
 );
+// 7e. On a short phone screen, once the picks scroll under it, the sticky tag filter stays fully visible and every
+//     chip can still be tapped (nothing covers it).
+await gp.setViewportSize({ width: 390, height: 560 });
+await gp.locator("[class*=pmBody]").evaluate((el) => el.scrollTo(0, el.scrollHeight));
+await gp.waitForTimeout(300);
+const stuck = await gp.locator("[class*=pmBody]").evaluate((body) => {
+  const box = body.getBoundingClientRect();
+  const chips = [...body.querySelectorAll("[class*=pmFilterRow] button")];
+  return {
+    scrolled: body.scrollTop > 0,
+    chips: chips.length,
+    ok: chips.filter((c) => {
+      const r = c.getBoundingClientRect();
+      const x = Math.min(r.left + r.width / 2, box.right - 4), y = r.top + r.height / 2;
+      return r.top >= box.top && r.bottom <= box.bottom && (r.left >= box.right || c.contains(document.elementFromPoint(x, y)));
+    }).length,
+  };
+});
+await gp.getByRole("button", { name: "Filter by 🌙 Late night" }).first().tap();
+const note7e = await gp.locator("[class*=pmFilterNote]").innerText().catch(() => "");
+check(
+  "7e. After scrolling on a short screen, the sticky tag filter's chips are fully visible and tappable",
+  stuck.scrolled && stuck.chips >= 3 && stuck.ok === stuck.chips && note7e === "Showing 1 of 2 · 🌙 Late night",
+  `${JSON.stringify(stuck)} · ${note7e}`,
+);
 await guest.close();
 
-// 8. Editing the published stack keeps pick ids too.
+// 8. Editing the published stack keeps pick ids too. Before it, the Stack page says Published; right after the edit
+//    is saved (seconds after publishing), it says Updated.
+const TODAY = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+const metaOf = async () => {
+  await page.locator("[class*=pmMeta]").waitFor({ timeout: 10000 }).catch(() => {});
+  return (await page.locator("[class*=pmMeta]").innerText().catch(() => "")).trim();
+};
+await page.goto(APP + `/s/${id}`);
+const before8 = await metaOf();
 await page.goto(APP + `/create?edit=${id}`);
 await page.getByText("Trompo tacos until 3am.").click();
 await page.getByRole("textbox", { name: "Item subheading" }).fill("Trompo tacos until 4am.");
@@ -310,6 +343,15 @@ await page.getByRole("button", { name: "Save", exact: true }).click();
 await page.waitForURL(new RegExp(`/s/${id}`), { timeout: 15000 }).catch(() => {});
 const edited = JSON.parse(sql(`select sections from public.stacks where id = '${id}'`) || "[]").flatMap((s) => s.lines);
 check("8. Publishing an edit updates the pick and keeps its id", edited[1]?.id === pickId && edited[1]?.note === "Trompo tacos until 4am.", JSON.stringify(edited[1]));
+await page.goto(APP + `/s/${id}`);
+await page.getByText("Trompo tacos until 4am.").waitFor({ timeout: 10000 }).catch(() => {});
+const after8 = await metaOf();
+const secs8 = sql(`select round(extract(epoch from updated_at - published_at)) from public.stacks where id = '${id}'`);
+check(
+  "8b. A fresh publish says Published; an edit saved right after (under a minute) says Updated",
+  before8.endsWith(`Published ${TODAY}`) && after8.endsWith(`Updated ${TODAY}`) && Number(secs8) < 60,
+  `${before8} → ${after8} (${secs8}s after publishing)`,
+);
 
 // 9. The item limit: at 15 picks, Add item says why and adds nothing.
 const full = await seed(page, uid, { title: "Fifteen", sections: [{ label: "", lines: Array.from({ length: 15 }, (_, i) => pick(i + 1)) }] });
