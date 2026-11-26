@@ -7,7 +7,7 @@ This covers migration `20261129000000_pick_model` and the new pick editor. The e
 - **Picks, not lines.** Each pick is numbered or bulleted and has:
   - a heading (up to 80 characters, required);
   - an optional subheading (up to 100);
-  - an optional link (it shows the link's domain, or the name you type);
+  - up to 2 links, each shown as its own button with the link's domain or the name you type (Agreed Nov 26; the spec is updated);
   - up to 3 tags.
 - **No paragraphs or bold lines.** The toolbar is Section, Numbered, Bulleted, Link, Tags. The heading shows in bold.
 - **Tags tray.**
@@ -45,8 +45,8 @@ This covers migration `20261129000000_pick_model` and the new pick editor. The e
   - paragraphs and bold lines become bulleted picks;
   - ** marks and line breaks go;
   - an older line's separate detail becomes its subheading;
-  - if it had no link, the first web address typed into its text becomes the link (with its name);
-  - any other web addresses stay in the heading, and the box lists them until the owner moves or removes them;
+  - web addresses typed into its text become its links, up to 2 with its own link, keeping their names;
+  - any more stay in the heading, and the box lists them until the owner moves or removes them;
   - anything over the new limits is listed, not cut.
 
   Published Stacks keep showing as they are until they're edited. Live has none (Nov 26).
@@ -84,6 +84,7 @@ The new editor saves picks that the new database rules accept, so step 1 comes f
   - a full pick keeps its id, heading, subheading, link, link name, format and tags, and line breaks become spaces;
   - a good id is kept; a missing, malformed or repeated one is replaced;
   - each pick limit: heading 80, subheading 100, 3 tags of up to 20 characters, one price;
+  - up to 2 links, each an http(s) address with an optional name up to 40; a repeated one is dropped, a third is refused, and an older line's single link becomes its one link;
   - blank and repeated tags are dropped;
   - an empty pick is dropped; one with anything in it needs a heading; paragraphs and bold lines are refused;
   - 15 picks and 5 titled sections are allowed, 16 and 6 aren't; section titles up to 40;
@@ -93,7 +94,7 @@ The new editor saves picks that the new database rules accept, so step 1 comes f
 
   The same tests fail on the previous rules.
 - **Rollback:** on the test copy, the rollback put back the previous rules (a paragraph was accepted again) and the 2a draft tests passed. Re-applying the migration passed the new tests again.
-- **Browser** (`web/e2e/picks.e2e.mjs`, 25/25):
+- **Browser** (`web/e2e/picks.e2e.mjs`, 28/28):
   1. the Title page shows "Saved just now";
   2. a pick saves its heading and subheading, line breaks become spaces, and it gets a stable id;
   3. **tags tray:**
@@ -102,15 +103,15 @@ The new editor saves picks that the new database rules accept, so step 1 comes f
      - at 3 tags the others dim and a 4th can't be added;
      - tapping a chosen tag removes it;
   4. a 92-character heading isn't cut: the counter says "12 over" and the box lists it. Once fixed, the box goes and the id stays;
-  5. Enter adds the next pick in the same format; Add link adds https:// and shows the domain;
+  5. Enter adds the next pick in the same format; Add link adds https:// and shows the domain. A second link takes its name; a third says why and opens nothing; removing one from its button leaves the other;
   6. Delete shows "Item deleted" with Undo; Undo brings the pick back with its id and tags; reorder keeps the id; the message goes after 5 seconds;
-  7. publishing keeps each pick's id, subheading and tags, and the Stack page shows them;
+  7. publishing keeps each pick's id, subheading and tags, and the Stack page shows them with both links in order;
   8. publishing an edit to that Stack keeps the pick's id;
   9. at 15 items, Add item reads "15 of 15 items" and adds nothing;
   10. with 5 sections, Section says "A Stack can have up to 5 sections." and adds none;
   11. older content (a paragraph with ** marks, a bold line, a numbered line with a detail, a 120-character line) opens as picks with the detail as a subheading, lists the long one, and saves as picks with ids, nothing cut;
-  12. new headings naming a website ("Ramen at fuunji.jp", and one with its own link) keep their heading and link through save, refresh and another save, with nothing listed;
-  13. an older line with two web addresses: the first becomes the named link, the second stays in the heading and is listed after save and refresh, until the owner removes it;
+  12. new headings naming a website ("Ramen at fuunji.jp", and one with its own link) keep their heading and link through save, refresh, another save and publishing, with nothing listed;
+  13. older lines: two typed web addresses both become links (the first keeps its name). With three, the third stays in the heading and is listed after save and refresh, until the owner removes it;
   14. Delete a pick, edit another, then Undo: only the deleted pick comes back, in its place, and the edit stays. The same for a removed section title.
 
   Checks 12, 13 and 14 fail on this PR's first version, which had those bugs.

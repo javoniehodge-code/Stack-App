@@ -214,16 +214,16 @@ function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode })
                       <span className={s.feedLineText}>
                         {l.head && (
                           <span className={l.format === "text" ? s.feedPara : l.format === "bold" ? s.feedBoldLine : s.feedHead}>
-                            <RichText text={l.head} />
+                            {l.plain ? l.head : <RichText text={l.head} />}
                           </span>
                         )}
                         {l.note && <span className={s.feedNote}>{l.note}</span>}
                         {(l.link || l.links.length > 0) && (
                           <span className={s.feedPills}>
+                            {l.link && <LinkPill href={l.link} label={l.linkLabel} className={s.feedLink} size={10} />}
                             {l.links.map((u) => (
                               <LinkPill key={u.href} href={u.href} label={u.label} className={s.feedLink} size={10} />
                             ))}
-                            {l.link && <LinkPill href={l.link} label={l.linkLabel} className={s.feedLink} size={10} />}
                           </span>
                         )}
                       </span>

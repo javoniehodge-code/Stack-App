@@ -42,6 +42,8 @@ export type FlatLine = {
   format: LineFormat;
   /** The pick's tags. */
   tags: string[];
+  /** A pick's heading is plain text, shown as typed (older lines can have ** bold marks). */
+  plain?: boolean;
 };
 
 /** Text without its ** bold marks. */
@@ -99,7 +101,10 @@ export function firstTextLink(text: string): { href: string; rest: string } | nu
     const trail = m[0].match(/[.,;:!?)\]]+$/)?.[0] ?? "";
     const u = m[0].slice(0, m[0].length - trail.length);
     if (!u) continue;
-    const rest = (text.slice(0, m.index) + text.slice(m.index + u.length)).replace(/[ \t]{2,}/g, " ").trim();
+    const rest = (text.slice(0, m.index) + text.slice(m.index + u.length))
+      .replace(/[ \t]{2,}/g, " ")
+      .replace(/\s+([,;.!?])/g, "$1")
+      .trim();
     return { href: /^https?:/i.test(u) ? u : `https://${u}`, rest };
   }
   return null;
@@ -149,6 +154,25 @@ export function flatten(stack: Pick<Stack, "sections" | "style">): FlatLine[] {
     sec.lines.forEach((ln, i) => {
       const format = lineFormat(ln, stack.style);
       const list = isListFormat(format);
+      // A pick (it has an id) shows as saved: its heading as typed, its subheading, and its links in order.
+      if (typeof ln.id === "string") {
+        const links = (Array.isArray(ln.links) ? ln.links : ln.link ? [{ url: ln.link, name: ln.linkName ?? "" }] : []).filter((x) => typeof x?.url === "string" && x.url);
+        out.push({
+          num: format === "num" ? String(n++).padStart(2, "0") : "•",
+          label: i === 0 ? sec.label : null,
+          section: sec.label,
+          text: ln.text,
+          link: links[0]?.url ?? null,
+          linkLabel: links[0] ? links[0].name?.trim() || linkDomain(links[0].url) : "",
+          head: ln.text,
+          note: ln.note?.trim() ?? "",
+          links: links.slice(1).map((x) => ({ href: x.url, label: x.name?.trim() || linkDomain(x.url) })),
+          plain: true,
+          format,
+          tags: Array.isArray(ln.tags) ? ln.tags.filter((t): t is string => typeof t === "string" && !!t.trim()) : [],
+        });
+        return;
+      }
       out.push({
         num: format === "num" ? String(n++).padStart(2, "0") : format === "bullet" ? "•" : "",
         label: i === 0 ? sec.label : null,
@@ -197,6 +221,7 @@ export const MAX_SUBHEADING = 100; // a pick's subheading
 export const MAX_TAGS = 3; // tags per pick
 export const MAX_TAG = 20; // a tag's text
 export const MAX_LINK_NAME = 40; // a link's name, shown on its pill
+export const MAX_LINKS = 2; // links per pick
 
 /** The suggested pick tags, in their 5 groups. A pick can have one price. Typed tags have no group. */
 export const TAG_GROUPS: { key: string; name: string; tags: [string, string][] }[] = [

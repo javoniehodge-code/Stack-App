@@ -181,6 +181,30 @@ await page.getByLabel("Link", { exact: true }).fill("elhuequito.com.mx/menu");
 await page.getByRole("button", { name: "Add", exact: true }).click();
 await until(page, id, (ls) => ls.length === 2 && ls[1].link === "https://elhuequito.com.mx/menu");
 check("5. Enter adds a numbered pick; Add link stores https:// and the pill shows the domain", lines(id)[1]?.format === "num" && (await page.getByText("elhuequito.com.mx").first().isVisible()));
+
+// 5b. A second link, with a name; a third is refused with the reason; a link can be removed from its pill.
+await page.getByRole("button", { name: "Link", exact: true }).click();
+await page.getByLabel("Link", { exact: true }).fill("https://maps.example.com/huequito");
+await page.getByLabel("Name (optional)").fill("Map");
+await page.getByRole("button", { name: "Add", exact: true }).click();
+await until(page, id, (ls) => (ls[1]?.links ?? []).length === 2);
+const two = lines(id)[1];
+await page.getByRole("button", { name: "Link", exact: true }).click();
+const fullMsg = await page.getByText("A pick can have up to 2 links. Remove one to add another.").isVisible();
+check(
+  "5b. A pick takes a second link with its name; a third says why and opens nothing",
+  JSON.stringify(two.links) === '[{"url":"https://elhuequito.com.mx/menu"},{"url":"https://maps.example.com/huequito","name":"Map"}]' && two.link === "https://elhuequito.com.mx/menu" && fullMsg && !(await page.getByRole("dialog").isVisible()),
+  JSON.stringify(two.links),
+);
+await page.getByRole("button", { name: "Edit link Map" }).click();
+await page.getByRole("button", { name: "Remove link" }).click();
+await until(page, id, (ls) => (ls[1]?.links ?? []).length === 1);
+await page.getByRole("button", { name: "Link", exact: true }).click();
+await page.getByLabel("Link", { exact: true }).fill("https://maps.example.com/huequito");
+await page.getByLabel("Name (optional)").fill("Map");
+await page.getByRole("button", { name: "Add", exact: true }).click();
+await until(page, id, (ls) => (ls[1]?.links ?? []).length === 2);
+check("5c. Removing a link from its pill leaves the other; it can be added back", (lines(id)[1]?.links ?? []).map((k) => k.name ?? k.url).join() === "https://elhuequito.com.mx/menu,Map");
 await page.getByRole("button", { name: "Done", exact: true }).first().click();
 await shot(page, "build");
 
@@ -217,7 +241,13 @@ check(
 await page.goto(APP + `/s/${id}`);
 await page.getByText("Trompo tacos until 3am.").waitFor({ timeout: 10000 }).catch(() => {});
 await shot(page, "stack-page");
-check("7b. The stack page shows the subheading and the tag chips", (await page.getByText("Trompo tacos until 3am.").isVisible()) && (await page.getByText("Outdoor seating").isVisible()) && (await page.getByText("Late night").isVisible()));
+check(
+  "7b. The stack page shows the subheading, the tag chips and both links in order",
+  (await page.getByText("Trompo tacos until 3am.").isVisible()) &&
+    (await page.getByText("Outdoor seating").isVisible()) &&
+    (await page.getByText("Late night").isVisible()) &&
+    (await page.locator("a[href^='https://']").evaluateAll((as) => as.map((a) => a.getAttribute("href")))).join() === "https://elhuequito.com.mx/menu,https://maps.example.com/huequito",
+);
 
 // 8. Editing the published stack keeps pick ids too.
 await page.goto(APP + `/create?edit=${id}`);
@@ -301,21 +331,36 @@ const shown = (await page.getByText("Ramen at fuunji.jp").isVisible()) && (await
 await page.getByLabel("Title").fill(`Ramen ${RUN}!`);
 await page.getByLabel("Title").blur();
 await until(page, ramen, () => sql(`select content->>'title' from public.drafts where id = '${ramen}'`) === `Ramen ${RUN}!`);
+const draft12 = asTyped(lines(ramen)) && !(await page.getByRole("alert").filter({ hasText: "Fix these before publishing" }).isVisible());
+await page.getByRole("button", { name: "Finalize" }).click();
+await page.getByRole("button", { name: "Publish", exact: true }).click();
+await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
+await page.goto(APP + `/s/${ramen}`);
+await page.getByText("Ramen at fuunji.jp").waitFor({ timeout: 10000 }).catch(() => {});
 check(
-  "12. New headings with a domain keep their heading and link through save, refresh and another save, with nothing to fix",
-  shown && asTyped(lines(ramen)) && !(await page.getByRole("alert").filter({ hasText: "Fix these before publishing" }).isVisible()),
+  "12. New headings with a domain keep their heading and link through save, refresh, another save and publishing, with nothing to fix",
+  shown && draft12 && (await page.getByText("Ramen at fuunji.jp", { exact: true }).isVisible()) && (await page.getByText("Tsuta, see tsuta.jp", { exact: true }).isVisible()) && !(await page.getByRole("link", { name: "fuunji.jp" }).isVisible()),
   JSON.stringify(lines(ramen).map((l) => [l.text, l.link])),
 );
 
-// 13. An older line with two web addresses: the first (with its name) becomes the link, the second stays in the
-//     heading and is listed for the owner, through save and refresh, until they remove it.
-const twoUrls = await seed(page, uid, {
-  title: "Older links",
+// 13. Older lines with web addresses in their text: the first two (with their names) become the links; a third
+//     stays in the heading and is listed for the owner, through save and refresh, until they remove it.
+await seed(page, uid, {
+  title: "Two older links",
   sections: [{ label: "", lines: [{ text: "Menus: fuunji.jp and tsuta.jp/menu", link: null, format: "num", linkNames: { "https://fuunji.jp": "Fuunji menu" } }] }],
 });
-const leftover = "Item 1 heading still has a web address from an older version (tsuta.jp). Make it the link or remove it.";
+await page.getByText("Fuunji menu").waitFor({ timeout: 10000 }).catch(() => {});
+check(
+  "13. A legacy line with two addresses opens with both as links (the first keeps its name) and nothing to fix",
+  (await page.getByText("Fuunji menu").isVisible()) && (await page.getByText("tsuta.jp", { exact: true }).isVisible()) && (await page.getByText("Menus: and", { exact: true }).isVisible()) && !(await page.getByRole("alert").filter({ hasText: "Fix these before publishing" }).isVisible()),
+);
+const twoUrls = await seed(page, uid, {
+  title: "Older links",
+  sections: [{ label: "", lines: [{ text: "Menus: fuunji.jp, ichiran.com and tsuta.jp/menu", link: null, format: "num", linkNames: { "https://fuunji.jp": "Fuunji menu" } }] }],
+});
+const leftover = "Item 1 heading still has a web address from an older version (tsuta.jp). Make it a link or remove it (up to 2 links per item).";
 await page.getByText(leftover).waitFor({ timeout: 10000 }).catch(() => {});
-const before13 = (await page.getByText("Fuunji menu").isVisible()) && (await page.getByText("Menus: and tsuta.jp/menu").isVisible()) && (await page.getByText(leftover).isVisible());
+const before13 = (await page.getByText("Fuunji menu").isVisible()) && (await page.getByText("ichiran.com", { exact: true }).isVisible()) && (await page.getByText("Menus:, and tsuta.jp/menu").isVisible()) && (await page.getByText(leftover).isVisible());
 await page.getByLabel("Title").fill("Older links!");
 await page.getByLabel("Title").blur();
 await until(page, twoUrls, (ls) => ls[0]?.link === "https://fuunji.jp");
@@ -323,11 +368,15 @@ const saved13 = lines(twoUrls)[0];
 await page.reload();
 await page.getByText(leftover).waitFor({ timeout: 10000 }).catch(() => {});
 check(
-  "13a. A legacy line with two addresses: the first becomes the named link, the second stays in the heading and is listed, after save and refresh",
-  before13 && saved13?.linkName === "Fuunji menu" && saved13?.text === "Menus: and tsuta.jp/menu" && (saved13?.legacyUrls ?? []).join() === "https://tsuta.jp/menu" && (await page.getByText(leftover).isVisible()),
+  "13a. A legacy line with three addresses: the first two become links (the first keeps its name), the third stays in the heading and is listed, after save and refresh",
+  before13 &&
+    JSON.stringify(saved13?.links) === '[{"url":"https://fuunji.jp","name":"Fuunji menu"},{"url":"https://ichiran.com"}]' &&
+    saved13?.text === "Menus:, and tsuta.jp/menu" &&
+    (saved13?.legacyUrls ?? []).join() === "https://tsuta.jp/menu" &&
+    (await page.getByText(leftover).isVisible()),
   JSON.stringify(saved13),
 );
-await page.getByText("Menus: and tsuta.jp/menu").click();
+await page.getByText("Menus:, and tsuta.jp/menu").click();
 await page.getByRole("textbox", { name: "Item heading" }).fill("Menus");
 await until(page, twoUrls, (ls) => ls[0]?.text === "Menus");
 check("13b. Once the owner removes it, it's no longer listed", !(await page.getByText(leftover).isVisible()) && !lines(twoUrls)[0]?.legacyUrls);

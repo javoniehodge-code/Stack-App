@@ -1,8 +1,9 @@
 -- The new pick model and content limits (Task 2b; spec, Content rules).
 --
 -- * A pick (a line of a stack) is numbered or bulleted, with a heading (`text`, up to 80 characters, required), an
---   optional subheading (`note`, up to 100), an optional link (`link`, `linkName` up to 40) and up to 3 tags
---   (`tags`, up to 20 characters each; one price at most). Every pick has a stable `id`: the one the editor gave it,
+--   optional subheading (`note`, up to 100), up to 2 links (`links`: each a `url` and an optional `name` up to 40)
+--   and up to 3 tags (`tags`, up to 20 characters each; one price at most). The first link is also kept in `link`
+--   and `linkName`, where older readers look for it. A line with only `link`/`linkName` counts as one link. Every pick has a stable `id`: the one the editor gave it,
 --   or a new one when it's missing, malformed or used twice in the same stack.
 -- * No paragraphs or bold lines, and no line breaks: typed breaks become spaces.
 -- * Up to 5 sections (titles up to 40 characters) and 15 picks per stack; descriptions up to 160 characters. The
@@ -34,6 +35,9 @@ declare
   lnk    text;
   fmt    text;
   nm     text;
+  lks    jsonb;
+  lx     jsonb;
+  lu     text;
   pid    text;
   tg     text;
   tags   jsonb;
@@ -64,7 +68,25 @@ begin
       end if;
       txt := public.one_line(ln ->> 'text');
       nte := nullif(public.one_line(ln ->> 'note'), '');
-      lnk := nullif(btrim(coalesce(ln ->> 'link', '')), '');
+      -- Links: from `links`, or from an older line's single `link`. Blank and repeated ones are dropped.
+      lks := '[]'::jsonb;
+      for lx in select * from jsonb_array_elements(
+        case when jsonb_typeof(ln -> 'links') = 'array' then ln -> 'links'
+             when nullif(btrim(coalesce(ln ->> 'link', '')), '') is not null
+               then jsonb_build_array(jsonb_build_object('url', ln ->> 'link', 'name', ln ->> 'linkName'))
+             else '[]'::jsonb end) loop
+        lu := nullif(btrim(coalesce(case when jsonb_typeof(lx) = 'object' then lx ->> 'url' end, '')), '');
+        continue when lu is null or exists (select 1 from jsonb_array_elements(lks) y where y ->> 'url' = lu);
+        if lu !~* '^https?://[^\s]+$' or char_length(lu) > 2048 then
+          raise exception 'links must be http(s) URLs' using errcode = '22023';
+        end if;
+        nm := nullif(public.one_line(lx ->> 'name'), '');
+        if char_length(nm) > 40 then
+          raise exception 'link names are limited to 40 characters' using errcode = '22023';
+        end if;
+        lks := lks || jsonb_build_array(jsonb_build_object('url', lu) || case when nm is null then '{}'::jsonb else jsonb_build_object('name', nm) end);
+      end loop;
+      lnk := lks -> 0 ->> 'url';
       tags := '[]'::jsonb;
       prices := 0;
       if jsonb_typeof(ln -> 'tags') = 'array' then
@@ -96,13 +118,10 @@ begin
       if prices > 1 then
         raise exception 'an item can have one price tag' using errcode = '22023';
       end if;
-      if lnk is not null and (lnk !~* '^https?://[^\s]+$' or char_length(lnk) > 2048) then
-        raise exception 'links must be http(s) URLs' using errcode = '22023';
+      if jsonb_array_length(lks) > 2 then
+        raise exception 'an item can have at most 2 links' using errcode = '22023';
       end if;
-      nm := case when lnk is null then null else nullif(public.one_line(ln ->> 'linkName'), '') end;
-      if char_length(nm) > 40 then
-        raise exception 'link names are limited to 40 characters' using errcode = '22023';
-      end if;
+      nm := lks -> 0 ->> 'name';
       pid := lower(ln ->> 'id');
       if pid is null or pid !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' or pid = any (seen) then
         pid := gen_random_uuid()::text;
@@ -112,6 +131,7 @@ begin
       if nte is not null then obj := obj || jsonb_build_object('note', nte); end if;
       if fmt is not null then obj := obj || jsonb_build_object('format', fmt); end if;
       if nm is not null then obj := obj || jsonb_build_object('linkName', nm); end if;
+      if jsonb_array_length(lks) > 0 then obj := obj || jsonb_build_object('links', lks); end if;
       if jsonb_array_length(tags) > 0 then obj := obj || jsonb_build_object('tags', tags); end if;
       lines := lines || jsonb_build_array(obj);
       line_count := line_count + 1;

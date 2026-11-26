@@ -18,10 +18,16 @@ export type Line = {
   bold?: boolean;
   linkName?: string | null;
   linkNames?: Record<string, string> | null;
-  /** A pick's stable id and its tags (both missing on lines saved before the pick_model migration). */
+  /**
+   * A pick's stable id, its tags and its links (up to 2; the first is also in `link` and `linkName`). All missing
+   * on lines saved before the pick_model migration.
+   */
   id?: string;
   tags?: string[];
+  links?: PickLink[];
 };
+/** One of a pick's links: its web address and the optional name its button shows. */
+export type PickLink = { url: string; name?: string };
 export type Section = { label: string | null; lines: Line[] };
 
 export type Author = { id: string; handle: string; name: string };
@@ -107,6 +113,7 @@ export type DraftLine = {
   linkName?: string;
   linkNames?: Record<string, string>;
   tags?: string[];
+  links?: PickLink[];
   legacyUrls?: string[];
 };
 /** `headed` is whether the section shows a heading (the first section can go without one). */

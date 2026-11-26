@@ -64,6 +64,9 @@ export function toDraftSections(sections: unknown, style: Draft["style"]): Draft
       linkNames: l?.linkNames && typeof l.linkNames === "object" ? l.linkNames : {},
       ...(typeof l?.id === "string" ? { id: l.id } : {}),
       tags: asArray<unknown>(l?.tags).filter((t): t is string => typeof t === "string"),
+      ...(Array.isArray(l?.links)
+        ? { links: asArray<{ url?: unknown; name?: unknown }>(l.links).filter((x) => typeof x?.url === "string").map((x) => ({ url: x.url as string, name: asString(x.name) })) }
+        : {}),
       ...(() => {
         const urls = asArray<unknown>((l as { legacyUrls?: unknown })?.legacyUrls).filter((u): u is string => typeof u === "string");
         return urls.length ? { legacyUrls: urls } : {};

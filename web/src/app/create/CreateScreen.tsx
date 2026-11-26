@@ -20,6 +20,7 @@ import {
   MAX_ITEMS,
   MAX_LABEL,
   MAX_LINK_NAME,
+  MAX_LINKS,
   MAX_SECTIONS,
   MAX_SUBHEADING,
   MAX_TAG,
@@ -33,7 +34,7 @@ import { createClient } from "@/lib/supabase/client";
 import { fetchStack } from "@/lib/queries";
 import { useVisibility } from "@/lib/store";
 import { useVisibilityEditor } from "@/components/Visibility";
-import type { Draft, DraftLine, EditTarget, Stack, Visibility } from "@/lib/types";
+import type { Draft, DraftLine, EditTarget, PickLink, Stack, Visibility } from "@/lib/types";
 import p from "../profile/Profile.module.css";
 import s from "./Create.module.css";
 
@@ -41,18 +42,19 @@ type Step = "title" | "description" | "build" | "review";
 /** A pick is numbered or bulleted; there are no paragraphs or bold lines (spec, Content rules). */
 type ListFormat = "num" | "bullet";
 /**
- * A pick being edited: its stable id, heading (`text`), optional subheading (`sub`), optional link (with a name for
- * its pill) and up to 3 tags.
+ * A pick being edited: its stable id, heading (`text`), optional subheading (`sub`), up to 2 links (each with an
+ * optional name for its button) and up to 3 tags.
  */
-type Line = { id: string; text: string; sub: string; link: string; format: ListFormat; linkName: string; tags: string[]; legacyUrls?: string[] };
+type EditLink = { url: string; name: string };
+type Line = { id: string; text: string; sub: string; links: EditLink[]; format: ListFormat; tags: string[]; legacyUrls?: string[] };
 type Sec = { id: string; headed: boolean; label: string; lines: Line[] };
 // `tags` here are the stack's own (older) tags, which aren't edited here; a pick's tags are on the pick.
 type Work = { title: string; description: string; tags: string[]; visibility: Visibility; location: string; sections: Sec[] };
 type Sel = { kind: "line" | "sec"; id: string } | null;
 type Pick = ListFormat | "section";
 type SaveState = "idle" | "saving" | "saved" | "error" | "over";
-/** The Add link / Edit link sheet for a pick. */
-type LinkSheet = { lineId: string; mode: "add" | "edit"; url: string; name: string; reselect: boolean };
+/** The Add link / Edit link sheet for a pick: `index` is the link being edited, or null to add one. */
+type LinkSheet = { lineId: string; index: number | null; url: string; name: string; reselect: boolean };
 
 const STEPS: Record<Step, [number, string]> = { title: [1, "Title"], description: [2, "Description"], build: [3, "Build"], review: [4, "Finalize"] };
 const PRIVACY: [Visibility, string, string][] = [
@@ -96,12 +98,19 @@ const FORMATS: [Pick, string, React.ReactNode][] = [
 const UNTITLED = "Untitled draft";
 const FULL_ITEMS = `${MAX_ITEMS} of ${MAX_ITEMS} items · remove one to add another`;
 const FULL_SECTIONS = `A Stack can have up to ${MAX_SECTIONS} sections.`;
+const FULL_LINKS = `A pick can have up to ${MAX_LINKS} links. Remove one to add another.`;
 
 let nextId = 1;
 const uid = () => `k${nextId++}`;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const newLine = (format: ListFormat = "num"): Line => ({ id: crypto.randomUUID(), text: "", sub: "", link: "", format, linkName: "", tags: [] });
-const isEmpty = (l: Line) => !l.text.trim() && !l.sub.trim() && !l.link && !l.tags.length;
+const newLine = (format: ListFormat = "num"): Line => ({ id: crypto.randomUUID(), text: "", sub: "", links: [], format, tags: [] });
+const isEmpty = (l: Line) => !l.text.trim() && !l.sub.trim() && !l.links.length && !l.tags.length;
+const linkLabel = (k: EditLink) => k.name.trim() || linkDomain(k.url);
+/** A saved line's links: its `links`, or an older line's single `link`. */
+const savedLinks = (l: DraftLine): EditLink[] =>
+  (Array.isArray(l.links) ? l.links : l.link ? [{ url: l.link, name: l.linkName ?? "" }] : [])
+    .filter((k: PickLink) => typeof k?.url === "string" && k.url)
+    .map((k: PickLink) => ({ url: k.url, name: k.name ?? "" }));
 const linkIcon = (size: number) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2" />
@@ -119,9 +128,10 @@ const trashIcon = (stroke: string) => (
  * as it was: a heading that names a website ("Ramen at fuunji.jp") stays as typed.
  *
  * Only lines from before picks (spec, Existing content) are converted: paragraphs and bold lines become bulleted
- * picks, ** marks and line breaks go, and an older line's separate detail becomes its subheading. If the line had
- * no link, the first web address typed into its text becomes the link. Any other addresses stay in the heading, and
- * are listed for the owner to resolve (`legacyUrls`). Nothing is cut: anything over a limit is listed too.
+ * picks, ** marks and line breaks go, and an older line's separate detail becomes its subheading. Web addresses
+ * typed into its text become its links, up to 2 with the line's own link (and keep their names). Any more stay in
+ * the heading, and are listed for the owner to resolve (`legacyUrls`). Nothing is cut: anything over a limit is
+ * listed too.
  */
 function toPick(l: DraftLine): Line {
   const tags = (l.tags ?? []).filter((t) => t.trim());
@@ -130,32 +140,27 @@ function toPick(l: DraftLine): Line {
       id: l.id,
       text: l.text ?? "",
       sub: l.note ?? "",
-      link: l.link ?? "",
+      links: savedLinks(l),
       format: l.format,
-      linkName: l.linkName ?? "",
       tags,
       ...(l.legacyUrls?.length ? { legacyUrls: l.legacyUrls } : {}),
     };
   }
   let text = oneLine(plainText(l.text ?? "")).trim();
-  let link = l.link ?? "";
-  let linkName = l.linkName ?? "";
-  if (!link) {
-    const first = firstTextLink(text);
-    if (first) {
-      link = first.href;
-      linkName = l.linkNames?.[first.href] ?? "";
-      text = first.rest;
-    }
+  const links = savedLinks(l);
+  while (links.length < MAX_LINKS) {
+    const next = firstTextLink(text);
+    if (!next) break;
+    text = next.rest;
+    if (!links.some((k) => k.url === next.href)) links.push({ url: next.href, name: l.linkNames?.[next.href] ?? "" });
   }
   const legacyUrls = textLinks(text).links;
   return {
     id: crypto.randomUUID(),
     text,
     sub: oneLine(l.note ?? "").trim(),
-    link,
+    links,
     format: l.format === "num" ? "num" : "bullet",
-    linkName,
     tags,
     ...(legacyUrls.length ? { legacyUrls } : {}),
   };
@@ -220,7 +225,7 @@ function fromDraft(d: Draft): Work {
 const counts = (w: Work) => {
   let n = 0;
   let k = 0;
-  w.sections.forEach((sec) => sec.lines.forEach((l) => (!isEmpty(l) && n++, l.link && k++)));
+  w.sections.forEach((sec) => sec.lines.forEach((l) => (!isEmpty(l) && n++, (k += l.links.length))));
   return { n, k };
 };
 const headedCount = (w: Work) => w.sections.filter((sec) => sec.headed).length;
@@ -271,7 +276,7 @@ function limitProblems(w: Work): string[] {
     const left = leftoverUrls(l);
     if (left.length)
       out.push(
-        `Item ${n} heading still has ${left.length === 1 ? "a web address" : `${left.length} web addresses`} from an older version (${left.map(linkDomain).join(", ")}). Make ${left.length === 1 ? "it the link or remove it" : "one the link and remove the rest"}.`,
+        `Item ${n} heading still has ${left.length === 1 ? "a web address" : `${left.length} web addresses`} from an older version (${left.map(linkDomain).join(", ")}). Make ${left.length === 1 ? "it a link or remove it" : "them links or remove them"} (up to ${MAX_LINKS} links per item).`,
       );
   });
   return out;
@@ -285,9 +290,11 @@ const sectionsArg = (w: Work) =>
       id: l.id,
       text: l.text,
       ...(l.sub.trim() ? { note: l.sub } : {}),
-      link: l.link || null,
+      // The first link is also kept as `link` and `linkName`, where older readers look for it.
+      link: l.links[0]?.url ?? null,
       format: l.format,
-      ...(l.link && l.linkName.trim() ? { linkName: l.linkName.trim() } : {}),
+      ...(l.links[0]?.name.trim() ? { linkName: l.links[0].name.trim() } : {}),
+      ...(l.links.length ? { links: l.links.map((k) => ({ url: k.url, ...(k.name.trim() ? { name: k.name.trim() } : {}) })) } : {}),
       ...(l.tags.length ? { tags: l.tags } : {}),
       // Kept on the draft until resolved; publishing drops it.
       ...(leftoverUrls(l).length ? { legacyUrls: leftoverUrls(l) } : {}),
@@ -307,7 +314,7 @@ const contentKey = (w: Work) =>
         (sec) =>
           [
             sec.headed ? sec.label.trim() : "",
-            sec.lines.filter((l) => !isEmpty(l)).map((l) => [l.text.trim(), l.sub.trim(), l.link, l.format, l.link ? l.linkName.trim() : "", l.tags]),
+            sec.lines.filter((l) => !isEmpty(l)).map((l) => [l.text.trim(), l.sub.trim(), l.links.map((k) => [k.url, k.name.trim()]), l.format, l.tags]),
           ] as const,
       )
       .filter(([, lines]) => lines.length),
@@ -808,13 +815,15 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     toast("Section header removed", { label: "Undo", run: () => edit((w) => restoreHeading(w, head, lineIds, si)) });
   }
 
-  /** Opens the link sheet for a pick's link. */
-  function openLinkSheet(lineId: string) {
+  /** Opens the link sheet to edit one of a pick's links (`index`), or to add one (up to 2). */
+  function openLinkSheet(lineId: string, index: number | null = null) {
     const l = work.sections.flatMap((sec) => sec.lines).find((x) => x.id === lineId);
     if (!l) return;
+    if (index === null && l.links.length >= MAX_LINKS) return toast(FULL_LINKS);
     const reselect = sel?.kind === "line" && sel.id === lineId;
-    focusId.current = l.link ? "ls-name" : "ls-url";
-    setLinkSheet({ lineId, mode: l.link ? "edit" : "add", url: l.link, name: l.linkName, reselect });
+    const k = index === null ? null : l.links[index];
+    focusId.current = k ? "ls-name" : "ls-url";
+    setLinkSheet({ lineId, index: k ? index : null, url: k?.url ?? "", name: k?.name ?? "", reselect });
   }
 
   function closeLinkSheet() {
@@ -827,17 +836,23 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     if (!ls) return;
     const name = oneLine(ls.name).trim().slice(0, MAX_LINK_NAME);
     const v = ls.url.trim();
-    if (!v) return ls.mode === "edit" ? removeLink() : closeLinkSheet();
+    if (!v) return ls.index !== null ? removeLink() : closeLinkSheet();
     const url = /^https?:\/\//i.test(v) ? v : `https://${v}`;
     // Something that isn't a link stays in the field, so it can be fixed.
     if (!/^https?:\/\/[^\s.]+\.\S+$/i.test(url) || url.length > 2048) return toast("That doesn't look like a link.");
-    mapLine(ls.lineId, (l) => ({ ...l, link: url, linkName: name }));
+    const l = work.sections.flatMap((sec) => sec.lines).find((x) => x.id === ls.lineId);
+    if (l?.links.some((k, i) => k.url === url && i !== ls.index)) return toast("This item already has that link.");
+    mapLine(ls.lineId, (x) => ({
+      ...x,
+      links: ls.index === null ? [...x.links, { url, name }].slice(0, MAX_LINKS) : x.links.map((k, i) => (i === ls.index ? { url, name } : k)),
+    }));
     closeLinkSheet();
   }
 
   function removeLink() {
     if (!linkSheet) return;
-    mapLine(linkSheet.lineId, (l) => ({ ...l, link: "", linkName: "" }));
+    const i = linkSheet.index;
+    mapLine(linkSheet.lineId, (l) => ({ ...l, links: l.links.filter((_, k) => k !== i) }));
     closeLinkSheet();
   }
 
@@ -1443,7 +1458,6 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                         const n2 = String(num).padStart(2, "0");
                         const isSel = !arranging && sel?.kind === "line" && sel.id === l.id;
                         const lastInSec = l.id === sec.lines[sec.lines.length - 1].id;
-                        const linkLabel = l.link ? l.linkName.trim() || linkDomain(l.link) : "";
                         if (!isSel) {
                           return (
                             <div
@@ -1462,20 +1476,23 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                                 </div>
                                 {l.sub.trim() && <div className={s.subView}>{l.sub}</div>}
                                 <TagChips tags={l.tags} className={s.tagRow} chipClass={s.tagChip} />
-                                {!!l.link && (
+                                {l.links.length > 0 && (
                                   <div className={s.pills}>
-                                    <span
-                                      className={s.visit}
-                                      role={arranging ? undefined : "button"}
-                                      onClick={(e) => {
-                                        if (arranging) return;
-                                        e.stopPropagation();
-                                        openLinkSheet(l.id);
-                                      }}
-                                    >
-                                      {linkIcon(11)}
-                                      {linkLabel}
-                                    </span>
+                                    {l.links.map((k, i) => (
+                                      <span
+                                        key={k.url}
+                                        className={s.visit}
+                                        role={arranging ? undefined : "button"}
+                                        onClick={(e) => {
+                                          if (arranging) return;
+                                          e.stopPropagation();
+                                          openLinkSheet(l.id, i);
+                                        }}
+                                      >
+                                        {linkIcon(11)}
+                                        {linkLabel(k)}
+                                      </span>
+                                    ))}
                                   </div>
                                 )}
                               </div>
@@ -1544,11 +1561,15 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                               </div>
                             </div>
                             <div className={s.lineTools} data-list>
-                              {l.link && (
-                                <button className={s.visit} onMouseDown={keep} onClick={() => openLinkSheet(l.id)} aria-label={`Edit link ${linkLabel}`}>
-                                  {linkIcon(11)}
-                                  {linkLabel}
-                                </button>
+                              {l.links.length > 0 && (
+                                <div className={s.pills}>
+                                  {l.links.map((k, i) => (
+                                    <button key={k.url} className={s.visit} onMouseDown={keep} onClick={() => openLinkSheet(l.id, i)} aria-label={`Edit link ${linkLabel(k)}`}>
+                                      {linkIcon(11)}
+                                      {linkLabel(k)}
+                                    </button>
+                                  ))}
+                                </div>
                               )}
                               <div className={s.toolRow}>
                                 {toolsHidden && (
@@ -1738,8 +1759,10 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                     label: i === 0 && sec.headed && sec.label.trim() ? sec.label : null,
                     head: l.text.trim(),
                     note: l.sub.trim(),
-                    link: l.link || null,
-                    linkLabel: l.link ? l.linkName.trim() || linkDomain(l.link) : "",
+                    link: l.links[0]?.url ?? null,
+                    linkLabel: l.links[0] ? linkLabel(l.links[0]) : "",
+                    links: l.links.slice(1).map((k) => ({ href: k.url, label: linkLabel(k) })),
+                    plain: true,
                     format: l.format,
                     tags: l.tags,
                   })),
@@ -1793,9 +1816,9 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
             <div className={s.grabber} />
             <div className={s.lsHead}>
               <span id="link-title" className={s.sheetTitle}>
-                {linkSheet.mode === "add" ? "Add link" : "Edit link"}
+                {linkSheet.index === null ? "Add link" : "Edit link"}
               </span>
-              {linkSheet.mode === "edit" && (
+              {linkSheet.index !== null && (
                 <button className={s.lsRemove} onClick={removeLink}>
                   Remove link
                 </button>
@@ -1865,8 +1888,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               <button className={s.lsCancel} onClick={closeLinkSheet}>
                 Cancel
               </button>
-              <button className={s.lsSubmit} aria-disabled={!(linkSheet.url.trim() || linkSheet.mode !== "add") || undefined} onClick={submitLinkSheet}>
-                {linkSheet.mode === "add" ? "Add" : "Save"}
+              <button className={s.lsSubmit} aria-disabled={!(linkSheet.url.trim() || linkSheet.index !== null) || undefined} onClick={submitLinkSheet}>
+                {linkSheet.index === null ? "Add" : "Save"}
               </button>
             </div>
           </div>

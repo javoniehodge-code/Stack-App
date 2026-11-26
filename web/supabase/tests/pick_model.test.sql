@@ -27,7 +27,7 @@ begin
   got := pg_temp.norm(pg_temp.one(jsonb_build_array(jsonb_build_object(
     'id', 'AAAAAAAA-0000-4000-8000-000000000001', 'text', E'Café\nRegina', 'note', E'Iced coffee\r\nand a patio.',
     'link', 'https://example.com/regina', 'linkName', 'Menu', 'format', 'bullet', 'tags', jsonb_build_array('Coffee', E'Outdoor\nseating', '$')))));
-  if got -> 0 -> 'lines' -> 0 <> '{"id":"aaaaaaaa-0000-4000-8000-000000000001","text":"Café Regina","note":"Iced coffee and a patio.","link":"https://example.com/regina","linkName":"Menu","format":"bullet","tags":["Coffee","Outdoor seating","$"]}'::jsonb then
+  if got -> 0 -> 'lines' -> 0 <> '{"id":"aaaaaaaa-0000-4000-8000-000000000001","text":"Café Regina","note":"Iced coffee and a patio.","link":"https://example.com/regina","linkName":"Menu","links":[{"url":"https://example.com/regina","name":"Menu"}],"format":"bullet","tags":["Coffee","Outdoor seating","$"]}'::jsonb then
     raise exception 'FAIL 1: a full pick came back as %', got -> 0 -> 'lines' -> 0;
   end if;
 end $$;
@@ -75,6 +75,28 @@ do $$ begin
      or not pg_temp.refused(pg_temp.one(jsonb_build_array(jsonb_build_object('text', 'A paragraph', 'format', 'text'))), 'paragraphs and bold lines')
      or not pg_temp.refused(pg_temp.one(jsonb_build_array(jsonb_build_object('text', 'Bold', 'format', 'bold'))), 'paragraphs and bold lines') then
     raise exception 'FAIL 4: empty, heading-less or paragraph picks were not handled';
+  end if;
+end $$;
+
+-- 4b. Up to 2 links per pick, each with an optional name; the first is also kept as `link` and `linkName`.
+do $$
+declare got jsonb;
+begin
+  got := pg_temp.norm(pg_temp.one(jsonb_build_array(jsonb_build_object('text', 'Two links', 'links', jsonb_build_array(
+    jsonb_build_object('url', 'https://fuunji.jp', 'name', 'Menu'), jsonb_build_object('url', 'https://tsuta.jp'), jsonb_build_object('url', 'https://fuunji.jp')))))) -> 0 -> 'lines' -> 0;
+  if got -> 'links' <> '[{"url":"https://fuunji.jp","name":"Menu"},{"url":"https://tsuta.jp"}]'::jsonb or got ->> 'link' <> 'https://fuunji.jp' or got ->> 'linkName' <> 'Menu' then
+    raise exception 'FAIL 4b: two links (one repeated) came back as %', got;
+  end if;
+  if not pg_temp.refused(pg_temp.one(jsonb_build_array(jsonb_build_object('text', 'x', 'links', jsonb_build_array(
+       jsonb_build_object('url', 'https://a.com'), jsonb_build_object('url', 'https://b.com'), jsonb_build_object('url', 'https://c.com'))))), 'at most 2 links')
+     or not pg_temp.refused(pg_temp.one(jsonb_build_array(jsonb_build_object('text', 'x', 'links', jsonb_build_array(jsonb_build_object('url', 'javascript:alert(1)'))))), 'http(s) URLs')
+     or not pg_temp.refused(pg_temp.one(jsonb_build_array(jsonb_build_object('text', 'x', 'links', jsonb_build_array(jsonb_build_object('url', 'https://a.com', 'name', repeat('n', 41)))))), 'link names are limited to 40')
+     or not pg_temp.refused(pg_temp.one(jsonb_build_array(jsonb_build_object('text', '', 'links', jsonb_build_array(jsonb_build_object('url', 'https://a.com'))))), 'needs a heading') then
+    raise exception 'FAIL 4b: a link rule was not applied';
+  end if;
+  -- An older line's single link becomes its one link.
+  if pg_temp.norm(pg_temp.one('[{"text":"Old","link":"https://old.com","linkName":"Old site"}]'::jsonb)) -> 0 -> 'lines' -> 0 -> 'links' <> '[{"url":"https://old.com","name":"Old site"}]'::jsonb then
+    raise exception 'FAIL 4b: an older single link was not kept';
   end if;
 end $$;
 

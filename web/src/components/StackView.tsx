@@ -11,11 +11,13 @@ export type ViewLine = {
   link: string | null;
   /** What the link's pill says (its name, or the domain when left out). */
   linkLabel?: string;
-  /** Web addresses typed into the text, shown as pills before the line's own link. */
+  /** More links, shown as pills after the line's own link: a pick's second link, or an older line's typed addresses. */
   links?: { href: string; label: string }[];
   format: LineFormat;
   /** The pick's tags, shown as chips under it. */
   tags?: string[];
+  /** A pick's heading is plain text (no ** bold marks), shown as typed. */
+  plain?: boolean;
 };
 
 /** A pick's tags as chips: suggested ones with their emoji and group colour, typed ones plain. */
@@ -121,15 +123,15 @@ export function StackPaper({
                 <div className={v.lineBody}>
                   {ln.head && (
                     <div className={ln.format === "text" ? v.para : ln.format === "bold" ? v.boldLine : v.head}>
-                      <RichText text={ln.head} />
+                      {ln.plain ? ln.head : <RichText text={ln.head} />}
                     </div>
                   )}
                   {ln.note && <div className={v.note}>{ln.note}</div>}
                   <TagChips tags={ln.tags ?? []} className={v.tags} chipClass={v.tag} />
                   {(ln.link || !!ln.links?.length) && (
                     <div className={v.pills}>
-                      {ln.links?.map((u) => <LinkPill key={u.href} href={u.href} label={u.label} className={v.visit} />)}
                       {ln.link && <LinkPill href={ln.link} label={ln.linkLabel} className={v.visit} />}
+                      {ln.links?.map((u) => <LinkPill key={u.href} href={u.href} label={u.label} className={v.visit} />)}
                     </div>
                   )}
                 </div>
