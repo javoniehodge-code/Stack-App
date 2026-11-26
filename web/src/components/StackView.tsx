@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { linkDomain, richParts } from "@/lib/format";
+import { linkDomain, richParts, tagInfo } from "@/lib/format";
 import type { LineFormat } from "@/lib/types";
 import v from "./StackView.module.css";
 
@@ -14,7 +14,27 @@ export type ViewLine = {
   /** Web addresses typed into the text, shown as pills before the line's own link. */
   links?: { href: string; label: string }[];
   format: LineFormat;
+  /** The pick's tags, shown as chips under it. */
+  tags?: string[];
 };
+
+/** A pick's tags as chips: suggested ones with their emoji and group colour, typed ones plain. */
+export function TagChips({ tags, className, chipClass }: { tags: string[]; className: string; chipClass: string }) {
+  if (!tags.length) return null;
+  return (
+    <div className={className}>
+      {tags.map((t) => {
+        const info = tagInfo(t);
+        return (
+          <span key={t} className={chipClass} data-group={info.group || "own"}>
+            {info.emoji && <span aria-hidden>{info.emoji} </span>}
+            {info.name}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
 
 /** Text with its ** marked words in bold. */
 export function RichText({ text }: { text: string }) {
@@ -105,6 +125,7 @@ export function StackPaper({
                     </div>
                   )}
                   {ln.note && <div className={v.note}>{ln.note}</div>}
+                  <TagChips tags={ln.tags ?? []} className={v.tags} chipClass={v.tag} />
                   {(ln.link || !!ln.links?.length) && (
                     <div className={v.pills}>
                       {ln.links?.map((u) => <LinkPill key={u.href} href={u.href} label={u.label} className={v.visit} />)}

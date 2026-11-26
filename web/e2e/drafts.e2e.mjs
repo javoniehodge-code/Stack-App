@@ -85,7 +85,7 @@ const saved = (page) => page.getByText("Saved just now").waitFor({ timeout: 1000
 /** Types at the end of the editor's first item (the Build step); `existing` is text already in it, if any. */
 async function typeItem(page, text, existing) {
   if (existing) await page.getByText(existing).first().click();
-  else await page.getByRole("textbox", { name: /^(Item|Paragraph)$/ }).first().click();
+  else await page.getByRole("textbox", { name: "Item heading" }).first().click();
   await page.keyboard.press("End");
   await page.keyboard.type(text);
 }
@@ -172,16 +172,15 @@ let uid, draftId;
   await page.waitForTimeout(800);
   check("2c. Deleting it from Profile › Drafts removes it", draftsOf(uid2) === "0");
 
-  // 2d. A draft that's over a limit (here 18 items of 353 characters, over the 6,000-character total) still
-  //     autosaves; limits wait for publishing. Today's editor stops typing at the total, so the draft is seeded
-  //     directly (it's this run's own account), then opened and edited in the browser.
+  // 2d. A draft that's over a limit (here 18 items, over 15, with 353-character headings, over 80) still
+  //     autosaves; limits wait for publishing. The draft is seeded directly (it's this run's own account), then
+  //     opened and edited in the browser.
   const overId = sql("select gen_random_uuid()");
   const longSections = JSON.stringify([{ label: "", lines: Array.from({ length: 18 }, (_, i) => ({ text: `${i} ` + "x".repeat(350), link: null, format: "num" })) }]);
   psql(`insert into public.drafts (id, owner_id, content, step) values ('${overId}', '${uid2}', '${JSON.stringify({ v: 1, title: "Too long", sections: JSON.parse(longSections) }).replace(/'/g, "''")}', 'build')`, false);
   await page.goto(APP + `/drafts/${overId}`);
-  const banner = page.getByRole("alert").filter({ hasText: "over a size limit" });
+  const banner = page.getByRole("alert").filter({ hasText: "Fix these before publishing" });
   await banner.waitFor({ timeout: 10000 }).catch(() => {});
-  // (Today's editor refuses additions while over the total, so the edit shortens the title.)
   await page.getByLabel("Title").fill("Long");
   await page.getByLabel("Title").blur();
   const rowOf = () => sql(`select (content->>'title') || '|' || jsonb_array_length(content->'sections'->0->'lines') from public.drafts where id = '${overId}'`);

@@ -18,6 +18,9 @@ export type Line = {
   bold?: boolean;
   linkName?: string | null;
   linkNames?: Record<string, string> | null;
+  /** A pick's stable id and its tags (both missing on lines saved before the pick_model migration). */
+  id?: string;
+  tags?: string[];
 };
 export type Section = { label: string | null; lines: Line[] };
 
@@ -94,7 +97,7 @@ export type Profile = {
 };
 
 /** A draft being edited in the create screen. */
-export type DraftLine = { text: string; link: string; note?: string; format: LineFormat; linkName?: string; linkNames?: Record<string, string> };
+export type DraftLine = { id?: string; text: string; link: string; note?: string; format: LineFormat; linkName?: string; linkNames?: Record<string, string>; tags?: string[] };
 /** `headed` is whether the section shows a heading (the first section can go without one). */
 export type DraftSection = { label: string; headed?: boolean; lines: DraftLine[] };
 export type Draft = {

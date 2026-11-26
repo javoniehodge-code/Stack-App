@@ -62,6 +62,8 @@ export function toDraftSections(sections: unknown, style: Draft["style"]): Draft
       format: lineFormat({ format: l?.format }, style),
       linkName: asString(l?.linkName),
       linkNames: l?.linkNames && typeof l.linkNames === "object" ? l.linkNames : {},
+      ...(typeof l?.id === "string" ? { id: l.id } : {}),
+      tags: asArray<unknown>(l?.tags).filter((t): t is string => typeof t === "string"),
     })),
   }));
 }
@@ -106,7 +108,7 @@ export function recordToDraft(r: DraftRecord): Draft {
 /** Lines with text or a link, as the Drafts lists count them. */
 function lineCount(c: DraftContent) {
   return asArray<Section>(c.sections).reduce(
-    (n, sec) => n + asArray<Section["lines"][number]>(sec?.lines).filter((l) => asString(l?.text).trim() || asString(l?.link)).length,
+    (n, sec) => n + asArray<Section["lines"][number]>(sec?.lines).filter((l) => asString(l?.text).trim() || asString(l?.note).trim() || asString(l?.link) || asArray(l?.tags).length).length,
     0,
   );
 }
