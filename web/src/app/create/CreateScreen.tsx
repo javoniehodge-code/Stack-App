@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth, useBack, useToast } from "@/components/AppProviders";
 import shell from "@/components/AppShell.module.css";
 import { ShareSheet, systemShare } from "@/components/Share";
-import { StackPaper, TagChips } from "@/components/StackView";
+import { TagChips } from "@/components/StackView";
 import {
   firstTextLink,
   initials,
@@ -15,6 +15,14 @@ import {
   plainText,
   tagInfo,
   textLinks,
+  suggestColor,
+  suggestEmoji,
+  CATEGORIES,
+  MAX_CATEGORIES,
+  MAX_CITY,
+  PLACE_EMOJIS,
+  THEME_COLORS,
+  THEME_EMOJIS,
   MAX_DESCRIPTION,
   MAX_HEADING,
   MAX_ITEMS,
@@ -49,7 +57,20 @@ type EditLink = { url: string; name: string };
 type Line = { id: string; text: string; sub: string; links: EditLink[]; format: ListFormat; tags: string[]; legacyUrls?: string[] };
 type Sec = { id: string; headed: boolean; label: string; lines: Line[] };
 // `tags` here are the stack's own (older) tags, which aren't edited here; a pick's tags are on the pick.
-type Work = { title: string; description: string; tags: string[]; visibility: Visibility; location: string; sections: Sec[] };
+type Work = {
+  title: string;
+  description: string;
+  tags: string[];
+  visibility: Visibility;
+  location: string;
+  sections: Sec[];
+  /** Finalize: the theme the author picked (null: suggested from the title). */
+  theme: { emoji: string; color: string } | null;
+  /** Finalize: whether it's about a place (null: not answered yet, guessed from the theme and city). */
+  isPlace: boolean | null;
+  /** Finalize: up to 2 of the 12 categories. */
+  categories: string[];
+};
 type Sel = { kind: "line" | "sec"; id: string } | null;
 type Pick = ListFormat | "section";
 type SaveState = "idle" | "saving" | "saved" | "error" | "over";
@@ -57,11 +78,6 @@ type SaveState = "idle" | "saving" | "saved" | "error" | "over";
 type LinkSheet = { lineId: string; index: number | null; url: string; name: string; reselect: boolean };
 
 const STEPS: Record<Step, [number, string]> = { title: [1, "Title"], description: [2, "Description"], build: [3, "Build"], review: [4, "Finalize"] };
-const PRIVACY: [Visibility, string, string][] = [
-  ["public", "Public", "Anyone can find it on your profile and in search"],
-  ["unlisted", "Invite Only", "Only people with the link"],
-  ["private", "Private", "Only you"],
-];
 /** The formats in the toolbar, then Section. */
 const FORMATS: [Pick, string, React.ReactNode][] = [
   [
@@ -96,6 +112,12 @@ const FORMATS: [Pick, string, React.ReactNode][] = [
   ],
 ];
 const UNTITLED = "Untitled draft";
+/** Finalize › Privacy, worded as in the design. */
+const FINAL_PRIVACY: [Visibility, string, string][] = [
+  ["public", "Public", "Anyone can find it on your profile and in search"],
+  ["unlisted", "Unlisted", "Hidden from your profile and discovery. Anyone with the link can view."],
+  ["private", "Private", "Only you can view it"],
+];
 const FULL_ITEMS = `${MAX_ITEMS} of ${MAX_ITEMS} items · remove one to add another`;
 const FULL_SECTIONS = `A Stack can have up to ${MAX_SECTIONS} sections.`;
 const FULL_LINKS = `A pick can have up to ${MAX_LINKS} links. Remove one to add another.`;
@@ -276,7 +298,28 @@ function restoreHeading(w: Work, head: { id: string; label: string }, lineIds: s
 function fromDraft(d: Draft): Work {
   const sections: Sec[] = d.sections.map((sec, i) => ({ id: uid(), headed: i > 0 || !!sec.label.trim(), label: oneLine(sec.label), lines: sec.lines.map(toPick) }));
   if (!sections.length) sections.push({ id: uid(), headed: false, label: "", lines: [] });
-  return { title: d.title === UNTITLED ? "" : oneLine(d.title), description: oneLine(d.description), tags: d.tags, visibility: d.visibility, location: d.location, sections };
+  return {
+    title: d.title === UNTITLED ? "" : oneLine(d.title),
+    description: oneLine(d.description),
+    tags: d.tags,
+    visibility: d.visibility,
+    location: d.location,
+    sections,
+    theme: d.theme && THEME_EMOJIS.includes(d.theme.emoji) && THEME_COLORS.includes(d.theme.color) ? d.theme : null,
+    isPlace: typeof d.isPlace === "boolean" ? d.isPlace : null,
+    categories: (d.categories ?? []).filter((c) => CATEGORIES.some((x) => x.name === c)).slice(0, MAX_CATEGORIES),
+  };
+}
+
+/**
+ * The Finalize choices as they'll be published: the picked theme or the one the title suggests, whether it's about
+ * a place (unanswered: yes when there's a city or the theme's emoji suggests a place), and the city if it is.
+ */
+function finalChoices(w: Work) {
+  const emoji = w.theme?.emoji ?? suggestEmoji(w.title);
+  const color = w.theme?.color ?? suggestColor(w.title);
+  const isPlace = w.isPlace ?? (!!w.location.trim() || PLACE_EMOJIS.includes(emoji));
+  return { emoji, color, isPlace, city: isPlace ? oneLine(w.location).trim() : "" };
 }
 
 const counts = (w: Work) => {
@@ -475,7 +518,19 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
       // Drafts keep everything as typed, even over a limit; limits are checked when it's published.
       const row = (w: Work) => ({
         id: idRef.current,
-        content: { v: 1, title: w.title, description: w.description, sections: sectionsArg(w), tags: w.tags, style: initial.style, visibility: w.visibility, location: w.location },
+        content: {
+          v: 1,
+          title: w.title,
+          description: w.description,
+          sections: sectionsArg(w),
+          tags: w.tags,
+          style: initial.style,
+          visibility: w.visibility,
+          location: w.location,
+          theme: w.theme,
+          isPlace: w.isPlace,
+          categories: w.categories,
+        },
         step: stepRef.current,
         edit_of: target?.stackId ?? null,
         base_version: target?.baseVersion ?? null,
@@ -511,7 +566,11 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
           p_style: initial.style,
           p_description: w.description.trim(),
           p_visibility: w.visibility,
-          p_location: w.location.trim(),
+          p_location: finalChoices(w).city,
+          p_theme_emoji: finalChoices(w).emoji,
+          p_theme_color: finalChoices(w).color,
+          p_is_place: finalChoices(w).isPlace,
+          p_categories: w.categories,
         });
         return pub ? pub.message || "Couldn't publish" : null;
       };
@@ -880,6 +939,21 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     });
   }
 
+  /**
+   * Finalize › Order: moves a whole section, its title and its picks, past the next section up or down. Picks
+   * outside any section stay at the top, so a section doesn't move above them.
+   */
+  function moveSection(id: string, dir: -1 | 1) {
+    edit((w) => {
+      const i = w.sections.findIndex((x) => x.id === id);
+      const j = i + dir;
+      if (i < 0 || !w.sections[i].headed || j < 0 || j >= w.sections.length || !w.sections[j].headed) return w;
+      const secs = [...w.sections];
+      [secs[i], secs[j]] = [secs[j], secs[i]];
+      return { ...w, sections: secs };
+    });
+  }
+
   /** Removes a section's heading (its lines join the section above), with Undo. */
   function removeSection(id: string) {
     const si = work.sections.findIndex((x) => x.id === id);
@@ -1181,7 +1255,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     </svg>
   );
 
-  const header = !preview && (
+  const header = !(step === "review" && preview) && (
     <header className={s.header}>
       <div className={s.headerRow}>
         <div>
@@ -1251,6 +1325,18 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const titleCount = counter("", work.title.trim().length, MAX_TITLE);
   const descCount = counter("", work.description.trim().length, MAX_DESCRIPTION);
   const tagLine = tagFor ? (work.sections.flatMap((sec) => sec.lines).find((l) => l.id === tagFor) ?? null) : null;
+  const fin = finalChoices(work);
+  const cityCount = counter("", work.location.trim().length, MAX_CITY);
+  const pickTheme = (emoji: string, color: string) => edit((w) => ({ ...w, theme: { emoji, color } }));
+  function toggleCategory(name: string) {
+    edit((w) =>
+      w.categories.includes(name)
+        ? { ...w, categories: w.categories.filter((c) => c !== name) }
+        : w.categories.length >= MAX_CATEGORIES
+          ? w
+          : { ...w, categories: [...w.categories, name] },
+    );
+  }
 
   const toolbar = toolsHidden ? null : (
     <div className={s.toolbar} data-list={!!selLine || undefined} onMouseDown={keep}>
@@ -1302,7 +1388,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     );
 
   return (
-    <main className={`${shell.screen} ${step === "review" && preview ? s.previewMain : ""}`}>
+    <main className={shell.screen}>
       {header}
 
       {step !== "review" && (
@@ -1758,57 +1844,217 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               </svg>
             </button>
 
-            <div className={s.card} style={{ paddingBottom: 8 }}>
-              <div className={s.cardLabel}>Privacy</div>
-              {PRIVACY.map(([key, label, desc]) => {
-                const on = work.visibility === key;
-                return (
-                  <button key={key} className={s.privacyRow} onClick={() => edit((w) => ({ ...w, visibility: key }))} aria-pressed={on}>
-                    <span className={s.radio} data-on={on || undefined}>
-                      <span />
+            {(
+              <>
+                {/* As in the design (Create Flow, Finalize): the theme card, Privacy, then the place question. */}
+                <section className={s.fzTheme} aria-label="Theme">
+                  <div className={s.fzThemeHead} style={{ background: fin.color }}>
+                    <span key={fin.emoji} className={s.fzPop} aria-hidden>
+                      {fin.emoji}
                     </span>
-                    <span className={s.privacyText}>
-                      <span className={s.privacyLabel} style={{ fontWeight: on ? 700 : 600 }}>
-                        {label}
-                      </span>
-                      <span className={s.privacyDesc}>{desc}</span>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div className={s.fzThemeTitle}>{shownTitle}</div>
+                      <div className={s.fzThemeSub}>This is how your card looks in feeds</div>
+                    </div>
+                  </div>
+                  <div className={s.fzThemeBody}>
+                    <div className={s.fzLabel}>Theme · emoji</div>
+                    <div className={s.emojiGrid}>
+                      {THEME_EMOJIS.map((e) => (
+                        <button
+                          key={e}
+                          className={s.emojiBtn}
+                          style={e === fin.emoji ? { background: fin.color } : undefined}
+                          aria-pressed={e === fin.emoji}
+                          aria-label={`Theme emoji ${e}`}
+                          onClick={() => pickTheme(e, fin.color)}
+                        >
+                          {e}
+                        </button>
+                      ))}
+                    </div>
+                    <div className={s.fzLabel} style={{ margin: "12px 0 8px" }}>
+                      Theme · color
+                    </div>
+                    <div className={s.colorRow}>
+                      {THEME_COLORS.map((c, i) => (
+                        <button key={c} className={s.colorBtn} style={{ background: c }} aria-pressed={c === fin.color} aria-label={`Theme colour ${i + 1}`} onClick={() => pickTheme(fin.emoji, c)} />
+                      ))}
+                    </div>
+                    <div className={s.fzHint}>{work.theme ? "You picked this theme." : "Suggested from your title. Tap to change."}</div>
+                  </div>
+                </section>
 
-            <div className={s.card} style={{ marginTop: 14 }}>
-              <div className={s.placeTitle}>Is this Stack about a place?</div>
-              <div className={s.placeHelp}>Add a city or area so people can find it locally.</div>
-              <label className={s.placeField}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" />
-                  <circle cx="12" cy="10" r="2.4" />
-                </svg>
-                <input
-                  className={s.placeInput}
-                  value={work.location}
-                  maxLength={80}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    edit((w) => ({ ...w, location: v }));
-                  }}
-                  placeholder="e.g. Mexico City, or Brooklyn, NY"
-                  aria-label="Location"
-                />
-              </label>
-            </div>
-            {!n && <div className={s.cantPublish}>Add an item to publish.</div>}
+                <section className={s.fzCard} style={{ paddingBottom: 8 }} aria-labelledby="privacy-title">
+                  <div id="privacy-title" className={s.fzLabel} style={{ marginBottom: 6 }}>
+                    Privacy
+                  </div>
+                  {FINAL_PRIVACY.map(([key, label, desc], i) => {
+                    const on = work.visibility === key;
+                    return (
+                      <button key={key} className={s.fzVis} data-divided={i > 0 || undefined} onClick={() => edit((w) => ({ ...w, visibility: key }))} aria-pressed={on}>
+                        <span className={s.fzRadio} data-on={on || undefined}>
+                          <span />
+                        </span>
+                        <span className={s.fzVisText}>
+                          <span className={s.fzVisLabel} style={{ fontWeight: on ? 700 : 600 }}>
+                            {label}
+                          </span>
+                          <span className={s.fzVisDesc}>{desc}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </section>
+
+                <section className={s.fzCard} style={{ marginTop: 14 }}>
+                  <div className={s.fzPlaceRow}>
+                    <div id="place-title" className={s.fzPlaceTitle}>
+                      Is this Stack about a place?
+                    </div>
+                    <div className={s.fzSwitch} role="radiogroup" aria-labelledby="place-title">
+                      {([true, false] as const).map((v) => (
+                        <button key={String(v)} role="radio" aria-checked={fin.isPlace === v} className={s.fzSwitchBtn} data-on={fin.isPlace === v || undefined} onClick={() => edit((w) => ({ ...w, isPlace: v }))}>
+                          {v ? "Yes" : "No"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className={s.fzPlaceHint}>
+                    {fin.isPlace ? (work.isPlace === null ? "Looks like a place stack. A city is required for place stacks." : "A city is required for place stacks.") : "Not about a place. No city needed."}
+                  </div>
+                  {fin.isPlace && (
+                    <>
+                      <div style={{ height: 12 }} />
+                      <label className={s.fzCity}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(55% 0.22 350)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }} aria-hidden>
+                          <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" />
+                          <circle cx="12" cy="10" r="2.4" />
+                        </svg>
+                        <input
+                          className={s.fzCityInput}
+                          value={work.location}
+                          onChange={(e) => {
+                            const v = oneLine(e.target.value);
+                            edit((w) => ({ ...w, location: v }));
+                          }}
+                          placeholder="City (required), e.g. Mexico City"
+                          aria-label="City"
+                          aria-required="true"
+                        />
+                      </label>
+                      {!work.location.trim() && <div className={s.fzMissing}>Add a city to publish.</div>}
+                      {cityCount.text && (
+                        <div className={s.fieldCount} data-full={cityCount.full || undefined}>
+                          {cityCount.text}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </section>
+
+                <section className={s.fzCard} style={{ marginTop: 14 }} aria-labelledby="cats-title">
+                  <div id="cats-title" className={s.fzLabel}>
+                    Categories
+                  </div>
+                  <div className={s.placeHelp}>
+                    {work.categories.length >= MAX_CATEGORIES ? "You picked 2. Tap one to remove it, then pick another." : "Pick 1 or 2. They help people find your Stack in Explore and search."}
+                  </div>
+                  <div className={s.catGrid}>
+                    {CATEGORIES.map((c) => {
+                      const on = work.categories.includes(c.name);
+                      const off = !on && work.categories.length >= MAX_CATEGORIES;
+                      return (
+                        <button
+                          key={c.name}
+                          className={s.catChip}
+                          data-on={on || undefined}
+                          style={on ? { background: c.color } : undefined}
+                          aria-pressed={on}
+                          aria-disabled={off || undefined}
+                          onClick={() => !off && toggleCategory(c.name)}
+                        >
+                          {c.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+
+                <section className={s.fzCard} style={{ marginTop: 14 }} aria-labelledby="order-title">
+                  <div id="order-title" className={s.fzLabel}>
+                    Order
+                  </div>
+                  <div className={s.placeHelp}>Move sections (with their picks) and picks up or down.</div>
+                  {(() => {
+                    let k = 0;
+                    const ids = work.sections.flatMap((sec) => sec.lines.filter((l) => !isEmpty(l)).map((l) => l.id));
+                    return work.sections.map((sec, si) => (
+                      <div key={sec.id}>
+                        {sec.headed && (
+                          <div className={s.orderRow} data-section>
+                            <span className={s.orderText}>{sec.label.trim() || "Untitled section"}</span>
+                            <span className={s.moveBtns}>
+                              <button
+                                className={s.moveBtn}
+                                onClick={() => moveSection(sec.id, -1)}
+                                disabled={!work.sections[si - 1]?.headed}
+                                aria-label={`Move section ${sec.label.trim() || si + 1} up`}
+                              >
+                                {arrow("up")}
+                              </button>
+                              <button
+                                className={s.moveBtn}
+                                onClick={() => moveSection(sec.id, 1)}
+                                disabled={!work.sections[si + 1]?.headed}
+                                aria-label={`Move section ${sec.label.trim() || si + 1} down`}
+                              >
+                                {arrow("down")}
+                              </button>
+                            </span>
+                          </div>
+                        )}
+                        {sec.lines
+                          .filter((l) => !isEmpty(l))
+                          .map((l) => {
+                            const label = l.format === "num" ? String(++k).padStart(2, "0") : "•";
+                            return (
+                              <div key={l.id} className={s.orderRow}>
+                                <span className={s.orderNum}>{label}</span>
+                                <span className={s.orderText}>{l.text.trim() || "Untitled item"}</span>
+                                <span className={s.moveBtns}>
+                                  <button className={s.moveBtn} onClick={() => moveLine(l.id, -1)} disabled={l.id === ids[0] && !sec.headed} aria-label={`Move ${l.text.trim() || "item"} up`}>
+                                    {arrow("up")}
+                                  </button>
+                                  <button className={s.moveBtn} onClick={() => moveLine(l.id, 1)} disabled={l.id === ids[ids.length - 1]} aria-label={`Move ${l.text.trim() || "item"} down`}>
+                                    {arrow("down")}
+                                  </button>
+                                </span>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    ));
+                  })()}
+                </section>
+                {!n && <div className={s.cantPublish}>Add an item to publish.</div>}
+              </>
+            )}
           </div>
-          <footer className={s.footer}>
-            <button className={s.back} onClick={() => setStep("build")}>
+          <footer className={`${s.footer} ${s.fzFooter}`}>
+            <button
+              className={`${s.back} ${s.fzBack}`}
+              onClick={() => {
+                setPreview(false);
+                setStep("build");
+              }}
+            >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d="M14.5 5.5L8 12l6.5 6.5" />
               </svg>
               Back
             </button>
-            <button className={s.primary} style={{ flex: 1 }} aria-disabled={!n} disabled={busy} onClick={publish}>
+            <button className={s.fzPublish} aria-disabled={!n} disabled={busy} onClick={publish}>
               {busy ? "Publishing…" : "Publish"}
             </button>
           </footer>
@@ -1817,49 +2063,111 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
 
       {step === "review" && preview && (
         <>
-          <header className={s.previewHeader}>
-            <span className={s.previewLabel}>Preview · {PRIVACY.find(([key]) => key === work.visibility)?.[1]}</span>
-          </header>
-          <div className={s.previewPage}>
-            <StackPaper
-              updated={`Updated ${new Date().toLocaleString("en-US", { month: "short", year: "numeric" })}${n ? ` · ${n} ${n === 1 ? "item" : "items"}` : ""}`}
-              author={
-                <div className={s.pvAuthor}>
-                  <span className={s.pvAvatar}>{initials(viewer.name)}</span>
-                  <span className={s.pvName}>{viewer.name}</span>
-                  <span className={s.pvHandle}>@{viewer.handle}</span>
+          {/* Preview, as in the design: the Stack's page in its theme, with Edit to go back. */}
+          <div className={s.pmScreen} style={{ background: fin.color }}>
+            <div className={s.pmWallLong} aria-hidden>
+              {Array(240).fill(fin.emoji).join("")}
+            </div>
+            <div className={s.pmTop}>
+              <button className={s.pmEdit} onClick={() => setPreview(false)}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
+                  <path d="M14.5 5.5L8 12l6.5 6.5" />
+                </svg>
+                Edit
+              </button>
+              <span className={s.pmBadge}>👀 Preview · {{ public: "Public", unlisted: "Unlisted", private: "Private" }[work.visibility]}</span>
+            </div>
+            <div className={s.pmCardWrap}>
+              <article className={s.pmCard}>
+                <div className={s.pmBand} style={{ background: fin.color }}>
+                  <span className={s.pmWallShort} aria-hidden>
+                    {Array(24).fill(fin.emoji).join("")}
+                  </span>
+                  <span className={s.pmPicks}>
+                    <span aria-hidden>{fin.emoji}</span>
+                    {n} {n === 1 ? "pick" : "picks"}
+                  </span>
+                  <span className={s.pmWhen}>just now</span>
                 </div>
-              }
-              title={shownTitle}
-              description={work.description.trim()}
-              lines={work.sections.flatMap((sec) =>
-                sec.lines
-                  .filter((l) => !isEmpty(l))
-                  .map((l, i) => ({
-                    num: l.format === "num" ? String(++pn).padStart(2, "0") : "•",
-                    label: i === 0 && sec.headed && sec.label.trim() ? sec.label : null,
-                    head: l.text.trim(),
-                    note: l.sub.trim(),
-                    link: l.links[0]?.url ?? null,
-                    linkLabel: l.links[0] ? linkLabel(l.links[0]) : "",
-                    links: l.links.slice(1).map((k) => ({ href: k.url, label: linkLabel(k) })),
-                    plain: true,
-                    format: l.format,
-                    tags: l.tags,
-                  })),
-              )}
-              footer={
-                <>
-                  <span className={s.pvIcon} style={{ fontSize: 18 }}>
+                <div className={s.pmBody}>
+                  <div className={s.pmAuthor}>
+                    <span className={s.pmAvatar}>{initials(viewer.name)}</span>
+                    <span className={s.pmName}>{viewer.name}</span>
+                    <span className={s.pmHandle}>@{viewer.handle}</span>
+                    <span style={{ flex: 1 }} />
+                    <span className={s.pmFollow} aria-hidden>
+                      Follow
+                    </span>
+                  </div>
+                  <h2 className={s.pmTitle}>{shownTitle}</h2>
+                  {work.description.trim() && <p className={s.pmDesc}>{work.description.trim()}</p>}
+                  <div style={{ height: 22 }} />
+                  {work.sections.map((sec, si) => {
+                    const lines = sec.lines.filter((l) => !isEmpty(l));
+                    if (!lines.length && !sec.headed) return null;
+                    return (
+                      <div key={sec.id}>
+                        {sec.headed && (
+                          <div className={s.pmSecHead} data-first={si === 0 || undefined}>
+                            <span className={s.pmSecBar} />
+                            <span className={s.pmSecLabel}>{sec.label.trim() || "Untitled section"}</span>
+                          </div>
+                        )}
+                        {lines.map((l, li) => (
+                          <div key={l.id} className={s.pmLine} data-last={li === lines.length - 1 || undefined}>
+                            {l.format === "num" ? (
+                              <span className={s.pmNum}>{String(++pn).padStart(2, "0")}</span>
+                            ) : (
+                              <span className={s.pmBullet}>
+                                <span />
+                              </span>
+                            )}
+                            <div className={s.pmLineBody}>
+                              <div className={s.pmHead}>{l.text.trim()}</div>
+                              {l.sub.trim() && <div className={s.pmSub}>{l.sub.trim()}</div>}
+                              {l.links.length > 0 && (
+                                <div className={s.pmLinks}>
+                                  {l.links.map((k) => (
+                                    <a key={k.url} className={s.pmLink} href={k.url} target="_blank" rel="noopener noreferrer nofollow ugc">
+                                      {linkIcon(11)}
+                                      {linkLabel(k)}
+                                    </a>
+                                  ))}
+                                </div>
+                              )}
+                              {l.tags.length > 0 && (
+                                <div className={s.pmTags}>
+                                  <span className={s.pmYouSay}>You say</span>
+                                  {l.tags.map((t) => (
+                                    <span key={t} className={s.pmTag} data-group={tagInfo(t).group || "own"}>
+                                      {tagInfo(t).emoji && `${tagInfo(t).emoji} `}
+                                      {tagInfo(t).name}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                              <div className={s.pmActions} aria-hidden>
+                                <span>📌 Pin</span>
+                                <span>📨 Send</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className={s.pmBar} aria-hidden>
+                  <span className={s.pmBarIcon} style={{ fontSize: 18 }}>
                     ♡
                   </span>
-                  <span className={s.pvIcon}>
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--muted-66)" strokeWidth="2" strokeLinejoin="round" aria-hidden>
+                  <span className={s.pmBarIcon}>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
                       <path d="M6.5 3.5h11v17l-5.5-4-5.5 4z" />
                     </svg>
                   </span>
-                  <span className={s.pvIcon}>
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--muted-66)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <span className={s.pmBarIcon}>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M17 2l4 4-4 4" />
                       <path d="M3 11V9a3 3 0 0 1 3-3h15" />
                       <path d="M7 22l-4-4 4-4" />
@@ -1867,25 +2175,25 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                     </svg>
                   </span>
                   <span style={{ flex: 1 }} />
-                  <span className={s.pvShare}>
+                  <span className={s.pmShare}>
                     Share
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--muted-66)" stroke="var(--muted-66)" strokeWidth="1" strokeLinejoin="round" aria-hidden>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinejoin="round">
                       <path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z" />
                     </svg>
                   </span>
-                </>
-              }
-            />
+                </div>
+              </article>
+            </div>
           </div>
-          <footer className={s.footer}>
-            <button className={s.back} onClick={() => setPreview(false)}>
+          <footer className={`${s.footer} ${s.fzFooter}`}>
+            <button className={`${s.back} ${s.fzBack}`} onClick={() => setPreview(false)}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d="M14.5 5.5L8 12l6.5 6.5" />
               </svg>
               Back
             </button>
-            <button className={s.primary} style={{ flex: 1 }} aria-disabled={!n} disabled={busy} onClick={publish}>
-              Publish
+            <button className={s.fzPublish} aria-disabled={!n} disabled={busy} onClick={publish}>
+              {busy ? "Publishing…" : "Publish"}
             </button>
           </footer>
         </>
