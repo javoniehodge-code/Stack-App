@@ -1424,7 +1424,10 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
         className={s.tagsPanel}
         role="menu"
         aria-label="Tags"
-        onMouseDown={keep}
+        // Taps on the panel's background keep the pick's field focused; "Your own" and its field take focus.
+        onMouseDown={(e) => {
+          if (!(e.target as HTMLElement).closest("input, label")) e.preventDefault();
+        }}
         onKeyDown={(e) => {
           if (e.key === "Escape") setTagFor(null);
         }}
@@ -1476,11 +1479,12 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
           </div>
         ))}
         <div className={s.tagGroup} style={{ marginTop: 12 }}>
-          <div className={s.tagGroupName}>
+          <label className={s.tagGroupName} htmlFor="own-tag">
             Your own <span className={s.tagGroupHint}>· up to {MAX_TAG} characters</span>
-          </div>
+          </label>
           <div className={s.ownTagRow}>
             <input
+              id="own-tag"
               className={s.ownTagInput}
               data-over={ownOver > 0 || undefined}
               value={ownTag}

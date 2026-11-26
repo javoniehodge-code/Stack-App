@@ -583,6 +583,45 @@ const text18 = await page.locator("main").innerText().catch(() => "");
 const [at18, before18] = [text18.indexOf(`Details ${RUN}`), text18.indexOf(`Stays ${RUN}`)];
 check("18e. Done goes to Profile › Stacks, with the new Stack before the earlier ones", new URL(page.url()).pathname === "/profile" && at18 >= 0 && before18 > at18, `${page.url()} · ${at18} ${before18}`);
 
+// 19. "Your own" takes focus when tapped: the field itself, or its "Your own" label. A tag typed with the keyboard
+//     is saved, and the pick's heading is unchanged.
+await page.goto(APP + "/new");
+await page.getByLabel("Title").fill(`Own tag ${RUN}`);
+await page.getByRole("button", { name: "Next" }).click();
+await page.getByRole("button", { name: "Skip" }).click();
+await page.getByRole("textbox", { name: "Item heading" }).fill("Heading stays");
+const own19 = await page.waitForURL(/\/drafts\//).then(() => draftIdOf(page));
+await until(page, own19, (ls) => ls[0]?.text === "Heading stays");
+await page.getByRole("button", { name: "Tags", exact: true }).click();
+const tray19 = page.getByRole("menu", { name: "Tags" });
+const focused = () => page.evaluate(() => document.activeElement?.id || document.activeElement?.getAttribute("aria-label") || "");
+await tray19.getByRole("textbox", { name: "Your own" }).tap();
+const afterFieldTap = await focused();
+await page.keyboard.type("Rooftop");
+await page.keyboard.press("Enter");
+await until(page, own19, (ls) => (ls[0]?.tags ?? []).join() === "Rooftop");
+const saved19 = lines(own19)[0];
+check(
+  "19a. Tapping the Your own field focuses it, and a tag typed with the keyboard saves without changing the heading",
+  afterFieldTap === "own-tag" && (saved19?.tags ?? []).join() === "Rooftop" && saved19?.text === "Heading stays" && (await page.getByRole("textbox", { name: "Item heading" }).inputValue()) === "Heading stays",
+  `${afterFieldTap} · ${JSON.stringify(saved19)}`,
+);
+await page.getByRole("textbox", { name: "Item heading" }).focus();
+await tray19.locator("label[for='own-tag']").tap();
+const afterLabelTap = await focused();
+await page.keyboard.type("Late");
+await page.keyboard.press("Enter");
+await until(page, own19, (ls) => (ls[0]?.tags ?? []).length === 2);
+const saved19b = lines(own19)[0];
+check(
+  "19b. Tapping the Your own label focuses the field too; the next typed tag saves and the heading is unchanged",
+  afterLabelTap === "own-tag" && (saved19b?.tags ?? []).join() === "Rooftop,Late" && saved19b?.text === "Heading stays",
+  `${afterLabelTap} · ${JSON.stringify(saved19b)}`,
+);
+await page.getByRole("textbox", { name: "Item heading" }).focus();
+await tray19.getByRole("menuitemcheckbox", { name: "Brunch", exact: true }).click();
+check("19c. A suggested tag still keeps the heading focused", (await focused()) === "Item heading");
+
 await browser.close();
 cleanup();
 const failed = results.filter((r) => !r).length;

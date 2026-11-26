@@ -26,16 +26,20 @@ Every detail of creating and publishing a Stack, and where it's built. Tick item
   - the full-screen Preview;
   - the dark Publish.
 
-## 2d: the phone create flow matches the design, plus missing details
+## 2d: the phone create flow matches the design, plus missing details (PR #44)
 
-- [ ] Title, Description and Build match the design: top bar, status pill, progress bar, fields, pick rows, toolbar, tags tray, link sheet, bottom bar.
-- [ ] Save failure reads **"Not saved · Retry"**, with Retry (Flow 1, What is saved and when).
-- [ ] The Build header shows the item count ("5 items · 2 links") (Flow 1, step 3).
-- [ ] The **"+" format menu** by the current pick: Section, Numbered, Bulleted (Flow 1, step 3).
-- [ ] **Shift+Enter does nothing** in pick fields, so no line breaks (Responsive behavior, Build: format toolbar).
-- [ ] Publish is black with a pink offset shadow (Responsive behavior, Publish).
-- [ ] "Your Stack is live" offers **Share your Stack, Start another stack, Done**. Done goes to Profile › Stacks, with the new Stack at the top (Flow 1, Published screen).
-- [ ] The save status and messages are announced politely to screen readers (Global rules, accessibility).
+- [x] Title, Description and Build match the design: top bar, status pill, progress bar, fields, pick rows, toolbar, tags tray, link sheet, bottom bar. Pink accent, ink text and the design's fonts.
+- [x] The tags tray opens as a panel under the toolbar, with group hints ("Price · pick one") and a "2/3" count. Tapping "Your own" or its field puts the cursor there.
+- [x] No warning box above the picks: each pick says what to fix under it ("Needs a heading.", "heading 92/80 · 12 over", an older web address). A section with picks and no title says "Needs a title."
+- [x] Placeholders as in the design: "Item name (required)", "Add a short reason or useful context (optional)".
+- [x] Save failure reads **"Not saved · Retry"**, with Retry (Flow 1, What is saved and when).
+- [x] The Build header shows the item count ("5 items · 2 links") (Flow 1, step 3).
+- [x] **Shift+Enter does nothing** in pick fields, so no line breaks (Responsive behavior, Build: format toolbar).
+- [x] Publish is black with a pink offset shadow (Responsive behavior, Publish).
+- [x] "Your Stack is live" offers **Share your Stack, Start another stack, Done**. Done goes to Profile › Stacks, with the new Stack at the top (Flow 1, Published screen).
+- [x] The save status and messages are announced politely to screen readers (Global rules, accessibility).
+- [x] Editing a published Stack: the buttons read **Save** and **Save and share update**.
+- **Deferred:** the **"+" format menu** by the current pick: Section, Numbered, Bulleted (Flow 1, step 3). The design doesn't have it, and the toolbar already offers the same three. Listed under Later tasks.
 
 ## After 2d: the theme on the Stack page (agreed Nov 26)
 
@@ -54,6 +58,7 @@ Every detail of creating and publishing a Stack, and where it's built. Tick item
 
 ## Later tasks
 
+- **The "+" format menu** by the current pick (Section, Numbered, Bulleted), deferred from 2d: the spec has it, the design doesn't.
 - **Tablet:**
   - a centered column, max 680 px;
   - the link sheet and tags tray as centered dialogs, max 480 px.
@@ -68,7 +73,6 @@ Every detail of creating and publishing a Stack, and where it's built. Tick item
 - **Preview of the feed card** ("This is how your card looks in feeds", as a full feed card).
 - **Showing the Finalize choices in feeds**, and categories in Explore and search. (The Stack page comes right after 2d, above.)
 - **Editing a published Stack:**
-  - Save and Save and share update;
   - the theme, place and categories;
   - "This stack changed on another device".
 - **Remix:** a freshly suggested theme, and remixedFrom.
