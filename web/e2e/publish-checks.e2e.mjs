@@ -131,7 +131,9 @@ await page.getByRole("button", { name: "Next" }).click();
 await page.getByRole("textbox", { name: "Item heading" }).fill("Orinoco");
 await page.getByRole("button", { name: "Section", exact: true }).click();
 await page.getByRole("textbox", { name: "Section title" }).fill("Roma Norte");
-await page.getByRole("button", { name: "Done", exact: true }).first().click();
+await page.getByRole("textbox", { name: "Section title" }).press("Enter");
+// Return on the section's new, empty pick leaves it, so the section stays without items.
+await page.getByRole("textbox", { name: "Item heading" }).last().press("Enter");
 const id = await page.waitForURL(/\/drafts\//).then(() => draftIdOf(page));
 await untilDraft(id, (c) => (c.sections ?? []).some((s) => s.label === "Roma Norte"));
 await page.getByRole("button", { name: "Finalize" }).click();
@@ -153,7 +155,7 @@ check(
     (await publishBtn().getAttribute("aria-describedby")) === "publish-why",
   await why(),
 );
-await publishBtn().click();
+await publishBtn().click({ force: true });
 await page.waitForTimeout(400);
 const t3 = await toastText();
 check("3. Tapping it anyway publishes nothing and says the first problem (+3 more)", t3.includes("Description is 12 over 160 characters. (+3 more)") && stackCount() === 0, t3);
@@ -166,7 +168,7 @@ const box4a = await boxText();
 await page.getByRole("button", { name: "Back", exact: true }).click();
 await page.getByRole("textbox", { name: "Section title" }).click();
 await page.getByRole("button", { name: "Remove heading" }).click();
-await page.getByRole("button", { name: "Done", exact: true }).first().click().catch(() => {});
+await page.getByRole("button", { name: "Done", exact: true }).last().click().catch(() => {});
 await untilDraft(id, (c) => !(c.sections ?? []).some((s) => s.label === "Roma Norte"));
 await page.getByRole("button", { name: "Back", exact: true }).click();
 await page.getByLabel("Description").fill("x".repeat(150));
@@ -175,10 +177,10 @@ await page.getByRole("button", { name: "Finalize" }).click();
 await page.locator("[class*=fixBox]").waitFor({ timeout: 10000 }).catch(() => {});
 const box4b = await boxText();
 const why4 = await why();
-await publishBtn().click();
+await publishBtn().click({ force: true });
 await page.waitForTimeout(400);
 const t4 = await toastText();
-const city = page.locator("[class*=fzCity]");
+const city = page.locator("label[class*=fzCity]");
 const flagged = (await city.getAttribute("data-flag")) !== null;
 const focused = await page.getByLabel("City").evaluate((el) => el === document.activeElement);
 await shot(page, "checks-city");
@@ -198,7 +200,7 @@ check(
 
 // 6. Publishing fails (the connection drops): the sheet, nothing published, the draft kept. Keep editing closes it.
 await page.route("**/rest/v1/rpc/publish_draft*", (r) => r.abort("internetdisconnected"));
-await publishBtn().click();
+await publishBtn().click({ force: true });
 const sheet = page.getByRole("alertdialog");
 await sheet.waitFor({ timeout: 10000 }).catch(() => {});
 await shot(page, "checks-failed");
@@ -211,7 +213,7 @@ check(
 );
 await page.getByRole("button", { name: "Keep editing" }).click();
 const closed = !(await sheet.count()) && (await page.getByLabel("City").inputValue()) === "Mexico City";
-await publishBtn().click();
+await publishBtn().click({ force: true });
 await sheet.waitFor({ timeout: 10000 }).catch(() => {});
 await page.unroute("**/rest/v1/rpc/publish_draft*");
 await page.getByRole("button", { name: "Try again" }).click();

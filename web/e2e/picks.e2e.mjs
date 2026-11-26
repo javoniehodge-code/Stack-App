@@ -45,6 +45,16 @@ process.on("uncaughtException", (e) => {
   }
 });
 
+/** Task 3: publishing needs a category, and a city for a place Stack. Picks Food & Drink when none is picked, and answers
+ *  No to the place question when the city is empty, so the checks below publish as before. */
+async function readyToPublish(page) {
+  const cat = page.getByRole("button", { name: "Food & Drink" });
+  await cat.waitFor({ timeout: 5000 }).catch(() => {});
+  if ((await cat.count()) && !(await page.locator("button[class*=catChip][aria-pressed=true]").count())) await cat.click();
+  const city = page.getByLabel("City");
+  if ((await city.isVisible().catch(() => false)) && !(await city.inputValue())) await page.getByRole("radio", { name: "No" }).click();
+}
+
 const results = [];
 const check = (name, ok, detail = "") => {
   results.push(!!ok);
@@ -233,6 +243,7 @@ check("6d. The Undo message is gone after 5 seconds", !(await page.getByText("It
 
 // 7. Publishing: the stack keeps each pick's id, subheading and tags, and its page shows them.
 await page.getByRole("button", { name: "Finalize" }).click();
+await readyToPublish(page);
 await page.getByRole("button", { name: "Publish", exact: true }).click();
 await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
 const pub = JSON.parse(sql(`select sections from public.stacks where id = '${id}'`) || "[]").flatMap((s) => s.lines);
@@ -432,6 +443,7 @@ await page.getByLabel("Title").blur();
 await until(page, ramen, () => sql(`select content->>'title' from public.drafts where id = '${ramen}'`) === `Ramen ${RUN}!`);
 const draft12 = asTyped(lines(ramen)) && (await noNotes());
 await page.getByRole("button", { name: "Finalize" }).click();
+await readyToPublish(page);
 await page.getByRole("button", { name: "Publish", exact: true }).click();
 await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
 await page.goto(APP + `/s/${ramen}`);
@@ -579,6 +591,7 @@ await page.getByLabel("Title").blur();
 await until(page, books, () => sql(`select content->>'title' from public.drafts where id = '${books}'`) === `Books ${RUN}!`);
 const refreshed16 = lines(books)[0];
 await page.getByRole("button", { name: "Finalize" }).click();
+await readyToPublish(page);
 await page.getByRole("button", { name: "Publish", exact: true }).click();
 await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
 const pub16 = JSON.parse(sql(`select sections from public.stacks where id = '${books}'`) || "[]").flatMap((x) => x.lines)[0];
@@ -625,6 +638,7 @@ await until(page, stays, (ls) => ls[0]?.text === "Stays up");
 await page.reload();
 await page.getByText("Stays up").waitFor({ timeout: 10000 });
 await page.getByRole("button", { name: "Finalize" }).click();
+await readyToPublish(page);
 await page.getByRole("button", { name: "Publish", exact: true }).click();
 await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
 await page.waitForTimeout(4000);
@@ -667,6 +681,7 @@ await page.getByRole("textbox", { name: "Item heading" }).fill("Second pick");
 await page.getByRole("button", { name: "Done", exact: true }).first().click();
 check("18c. Once it has a heading, the note goes", !(await page.getByText("Needs a heading.").isVisible()) && (await page.getByText("3/4 · Build · 2 items").isVisible()));
 await page.getByRole("button", { name: "Finalize" }).click();
+await readyToPublish(page);
 await page.getByRole("button", { name: "Publish", exact: true }).click();
 await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
 await shot(page, "published");

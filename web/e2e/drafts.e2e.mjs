@@ -43,6 +43,16 @@ process.on("uncaughtException", (e) => {
   }
 });
 
+/** Task 3: publishing needs a category, and a city for a place Stack. Picks Food & Drink when none is picked, and answers
+ *  No to the place question when the city is empty, so the checks below publish as before. */
+async function readyToPublish(page) {
+  const cat = page.getByRole("button", { name: "Food & Drink" });
+  await cat.waitFor({ timeout: 5000 }).catch(() => {});
+  if ((await cat.count()) && !(await page.locator("button[class*=catChip][aria-pressed=true]").count())) await cat.click();
+  const city = page.getByLabel("City");
+  if ((await city.isVisible().catch(() => false)) && !(await city.inputValue())) await page.getByRole("radio", { name: "No" }).click();
+}
+
 const results = [];
 const check = (name, ok, detail = "") => {
   results.push({ name, ok: !!ok });
@@ -315,13 +325,16 @@ let uid, draftId;
   await page.getByText("Taquería Orinoco").waitFor();
   await page.getByRole("button", { name: "Finalize" }).click();
   await loseNextReply(page, "**/rest/v1/rpc/publish_draft*");
+  await readyToPublish(page);
   await page.getByRole("button", { name: "Publish", exact: true }).click();
   await page.waitForTimeout(1500);
   const afterLost = stacksOf(uid);
-  check("3a. The first publish reached the server (its reply was lost)", afterLost === "1", `stacks ${afterLost}`);
-  await page.getByRole("button", { name: "Publish", exact: true }).click();
+  // Task 3: a publish whose reply never came opens the "Couldn't publish" sheet; Try again publishes again.
+  const failSheet = await page.getByRole("alertdialog", { name: "Couldn't publish" }).isVisible();
+  check("3a. The first publish reached the server (its reply was lost), and the Couldn't publish sheet opens", afterLost === "1" && failSheet, `stacks ${afterLost}, sheet ${failSheet}`);
+  await page.getByRole("button", { name: "Try again" }).click();
   await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
-  check("3b. Publishing again shows the published screen", await page.getByText("Your Stack is live").isVisible());
+  check("3b. Try again shows the published screen", await page.getByText("Your Stack is live").isVisible());
   check(
     "3c. Exactly one stack, with the draft's id; the draft is gone",
     stacksOf(uid) === "1" && sql(`select count(*) from public.stacks where id = '${draftId}' and status = 'published'`) === "1" && draftsOf(uid) === "0",

@@ -55,16 +55,18 @@ Every detail of creating and publishing a Stack, and where it's built. Tick item
 
 ## Task 3: publish checks
 
-- [ ] The red "Fix N things before publishing" box on Finalize, listing each problem.
-- [ ] Publish looks off, with the reason under it, while a check fails.
-- [ ] A place Stack with no city: highlight the city, and the toast "Add a city to publish this place stack."
-- [ ] At least 1 category.
-- [ ] A section with no items: "“Roma Norte” has no items. Add one or remove the section."
-- [ ] On failure: "Couldn't publish. Check your connection and try again.", keeping everything.
-- [ ] The slug at first publish.
+- [x] The red "Fix N things before publishing" box on Finalize, listing each problem ("Fix this before publishing:" for one).
+- [x] Publish looks off, with the reason under it, while a check fails ("Fix 3 things on this page to publish.", or "Add a city to publish."). Tapping it anyway publishes nothing and shows the first problem in a toast.
+- [x] A place Stack with no city: the city field is highlighted, with the toast "Add a city to publish this place stack."
+- [x] At least 1 category.
+- [x] A section with no items: "“Roma Norte” has no items. Add one or remove the section."
+- [x] On failure (agreed Nov 26): a sheet, "Couldn't publish. Your stack is safe as a draft. Check your connection and try again.", with **Try again** and **Keep editing**. Everything is kept.
+- [x] The slug at first publish (agreed Nov 26): saved from the title and never changed; Stacks published earlier got theirs too. Links still use the Stack's id for now (see "Readable links" below).
+- The server refuses the same things: no category, a place Stack with no city, no items, a titled section with no items.
 
 ## Later tasks
 
+- **Readable links** (agreed Nov 26 to come later): `/{handle}/{slug}` for every Stack, with the old `/s/…` links still working, and old usernames redirecting (D-1).
 - **The "+" format menu** by the current pick (Section, Numbered, Bulleted), deferred from 2d: the spec has it, the design doesn't.
 - **Tablet:**
   - a centered column, max 680 px;
