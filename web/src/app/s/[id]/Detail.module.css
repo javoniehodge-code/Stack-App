@@ -1,36 +1,25 @@
-/* The stack page: a paper card on a light gray page, comments below it. */
+/* The stack page, as in the design: the Stack in its theme (ThemedStack), with the comments in a sheet.
+   Pink accent and ink text, as in the create flow. */
 .page {
-  background: oklch(96.5% 0.004 80);
-  padding: calc(var(--safe-top) + 6px) 12px calc(26px + var(--safe-bottom));
+  --accent: oklch(55% 0.22 350);
+  --on-accent: oklch(99% 0 0);
+  --text: oklch(19.4% 0.035 300);
+  position: relative;
 }
 
-.topRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 8px;
-  min-height: 36px;
-  flex-shrink: 0;
+/* Your own Stack's Edit, as a white pill like Back on the theme colour. */
+.page .editPill {
+  height: 40px;
+  padding: 0 14px;
+  background: oklch(99.5% 0.01 95);
+  border: 2px solid oklch(22% 0.04 300);
+  box-shadow: 3px 3px 0 oklch(22% 0.04 300);
+  font-weight: 800;
+  color: oklch(22% 0.04 300);
 }
 
-.back {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 36px;
-  padding: 0 6px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--muted-72);
-}
 
-.authorRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-}
+
 
 .authorLink {
   flex: 1;
@@ -40,19 +29,6 @@
   gap: 10px;
 }
 
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--on-accent);
-  font-weight: 700;
-  font-size: 11px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
 
 .authorName {
   font-weight: 600;

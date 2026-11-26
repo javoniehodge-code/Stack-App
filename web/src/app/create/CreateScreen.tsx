@@ -6,7 +6,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth, useBack, useToast } from "@/components/AppProviders";
 import shell from "@/components/AppShell.module.css";
 import { ShareSheet, systemShare } from "@/components/Share";
-import { TagChips } from "@/components/StackView";
+import { dateLabel, metaLabel, TagChips, type ViewLine } from "@/components/StackView";
+import { themed as t, ThemedStack, type ThemedSection } from "@/components/ThemedStack";
 import {
   firstTextLink,
   initials,
@@ -350,6 +351,29 @@ const counts = (w: Work) => {
   w.sections.forEach((sec) => sec.lines.forEach((l) => (!isEmpty(l) && n++, (k += l.links.length))));
   return { n, k };
 };
+/** The draft's picks as the Stack page shows them (numbers run across sections; empty picks are left out). */
+function previewSections(w: Work): ThemedSection[] {
+  let num = 0;
+  return w.sections
+    .map((sec) => {
+      const lines: ViewLine[] = sec.lines
+        .filter((l) => !isEmpty(l))
+        .map((l) => ({
+          num: l.format === "num" ? String(++num).padStart(2, "0") : "•",
+          label: null,
+          head: l.text.trim(),
+          note: l.sub.trim(),
+          link: l.links[0]?.url ?? null,
+          linkLabel: l.links[0] ? linkLabel(l.links[0]) : "",
+          links: l.links.slice(1).map((k) => ({ href: k.url, label: linkLabel(k) })),
+          format: l.format === "num" ? "num" : "bullet",
+          tags: l.tags,
+          plain: true,
+        }));
+      return { key: sec.id, label: sec.headed ? sec.label.trim() || "Untitled section" : null, lines };
+    })
+    .filter((sec) => sec.lines.length || sec.label);
+}
 const headedCount = (w: Work) => w.sections.filter((sec) => sec.headed).length;
 const over = (len: number, max: number) => len - max;
 
@@ -1338,7 +1362,6 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   );
 
   let num = 0;
-  let pn = 0;
   // The toolbar marks the format in use: the selected pick's, or Section for a section title.
   const curFormat: Pick | null = selLine ? selLine.format : sel?.kind === "sec" ? "section" : null;
   // Keeps focus in the text while tapping the toolbar and line tools.
@@ -2212,127 +2235,70 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
       {step === "review" && preview && (
         <>
           {/* Preview, as in the design: the Stack's page in its theme, with Edit to go back. */}
-          <div className={s.pmScreen} style={{ background: fin.color }}>
-            <div className={s.pmWallLong} aria-hidden>
-              {Array(240).fill(fin.emoji).join("")}
-            </div>
-            <div className={s.pmTop}>
-              <button className={s.pmEdit} onClick={() => setPreview(false)}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
-                  <path d="M14.5 5.5L8 12l6.5 6.5" />
-                </svg>
-                Edit
-              </button>
-              <span className={s.pmBadge}>👀 Preview · {{ public: "Public", unlisted: "Unlisted", private: "Private" }[work.visibility]}</span>
-            </div>
-            <div className={s.pmCardWrap}>
-              <article className={s.pmCard}>
-                <div className={s.pmBand} style={{ background: fin.color }}>
-                  <span className={s.pmWallShort} aria-hidden>
-                    {Array(24).fill(fin.emoji).join("")}
-                  </span>
-                  <span className={s.pmPicks}>
-                    <span aria-hidden>{fin.emoji}</span>
-                    {n} {n === 1 ? "pick" : "picks"}
-                  </span>
-                  <span className={s.pmWhen}>just now</span>
-                </div>
-                <div className={s.pmBody}>
-                  <div className={s.pmAuthor}>
-                    <span className={s.pmAvatar}>{initials(viewer.name)}</span>
-                    <span className={s.pmName}>{viewer.name}</span>
-                    <span className={s.pmHandle}>@{viewer.handle}</span>
-                    <span style={{ flex: 1 }} />
-                    <span className={s.pmFollow} aria-hidden>
-                      Follow
-                    </span>
-                  </div>
-                  <h2 className={s.pmTitle}>{shownTitle}</h2>
-                  {work.description.trim() && <p className={s.pmDesc}>{work.description.trim()}</p>}
-                  <div style={{ height: 22 }} />
-                  {work.sections.map((sec, si) => {
-                    const lines = sec.lines.filter((l) => !isEmpty(l));
-                    if (!lines.length && !sec.headed) return null;
-                    return (
-                      <div key={sec.id}>
-                        {sec.headed && (
-                          <div className={s.pmSecHead} data-first={si === 0 || undefined}>
-                            <span className={s.pmSecBar} />
-                            <span className={s.pmSecLabel}>{sec.label.trim() || "Untitled section"}</span>
-                          </div>
-                        )}
-                        {lines.map((l, li) => (
-                          <div key={l.id} className={s.pmLine} data-last={li === lines.length - 1 || undefined}>
-                            {l.format === "num" ? (
-                              <span className={s.pmNum}>{String(++pn).padStart(2, "0")}</span>
-                            ) : (
-                              <span className={s.pmBullet}>
-                                <span />
-                              </span>
-                            )}
-                            <div className={s.pmLineBody}>
-                              <div className={s.pmHead}>{l.text.trim()}</div>
-                              {l.sub.trim() && <div className={s.pmSub}>{l.sub.trim()}</div>}
-                              {l.links.length > 0 && (
-                                <div className={s.pmLinks}>
-                                  {l.links.map((k) => (
-                                    <a key={k.url} className={s.pmLink} href={k.url} target="_blank" rel="noopener noreferrer nofollow ugc">
-                                      {linkIcon(11)}
-                                      {linkLabel(k)}
-                                    </a>
-                                  ))}
-                                </div>
-                              )}
-                              {l.tags.length > 0 && (
-                                <div className={s.pmTags}>
-                                  <span className={s.pmYouSay}>You say</span>
-                                  {l.tags.map((t) => (
-                                    <span key={t} className={s.pmTag} data-group={tagInfo(t).group || "own"}>
-                                      {tagInfo(t).emoji && `${tagInfo(t).emoji} `}
-                                      {tagInfo(t).name}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                              <div className={s.pmActions} aria-hidden>
-                                <span>📌 Pin</span>
-                                <span>📨 Send</span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className={s.pmBar} aria-hidden>
-                  <span className={s.pmBarIcon} style={{ fontSize: 18 }}>
-                    ♡
-                  </span>
-                  <span className={s.pmBarIcon}>
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
-                      <path d="M6.5 3.5h11v17l-5.5-4-5.5 4z" />
-                    </svg>
-                  </span>
-                  <span className={s.pmBarIcon}>
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M17 2l4 4-4 4" />
-                      <path d="M3 11V9a3 3 0 0 1 3-3h15" />
-                      <path d="M7 22l-4-4 4-4" />
-                      <path d="M21 13v2a3 3 0 0 1-3 3H3" />
-                    </svg>
-                  </span>
-                  <span style={{ flex: 1 }} />
-                  <span className={s.pmShare}>
-                    Share
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinejoin="round">
-                      <path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z" />
-                    </svg>
-                  </span>
-                </div>
-              </article>
-            </div>
-          </div>
+          <ThemedStack
+            emoji={fin.emoji}
+            color={fin.color}
+            top={
+              <>
+                <button className={t.pmEdit} onClick={() => setPreview(false)}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
+                    <path d="M14.5 5.5L8 12l6.5 6.5" />
+                  </svg>
+                  Edit
+                </button>
+                <span className={t.pmBadge}>👀 Preview · {{ public: "Public", unlisted: "Unlisted", private: "Private" }[work.visibility]}</span>
+              </>
+            }
+            author={
+              <div className={t.pmAuthor}>
+                <span className={t.pmAvatar}>{initials(viewer.name)}</span>
+                <span className={t.pmName}>{viewer.name}</span>
+                <span className={t.pmHandle}>@{viewer.handle}</span>
+                <span style={{ flex: 1 }} />
+                <span className={t.pmFollow} aria-hidden>
+                  Follow
+                </span>
+              </div>
+            }
+            title={shownTitle}
+            description={work.description.trim()}
+            sections={previewSections(work)}
+            sayLabel="You say"
+            meta={metaLabel(fin.city, dateLabel(new Date().toISOString()))}
+            actions={
+              <div className={t.pmActions} aria-hidden>
+                <span>📌 Pin</span>
+                <span>📨 Send</span>
+              </div>
+            }
+            footer={
+              <span style={{ display: "contents" }} aria-hidden>
+                <span className={t.pmBarIcon} style={{ fontSize: 18 }}>
+                  ♡
+                </span>
+                <span className={t.pmBarIcon}>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+                    <path d="M6.5 3.5h11v17l-5.5-4-5.5 4z" />
+                  </svg>
+                </span>
+                <span className={t.pmBarIcon}>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 2l4 4-4 4" />
+                    <path d="M3 11V9a3 3 0 0 1 3-3h15" />
+                    <path d="M7 22l-4-4 4-4" />
+                    <path d="M21 13v2a3 3 0 0 1-3 3H3" />
+                  </svg>
+                </span>
+                <span style={{ flex: 1 }} />
+                <span className={t.pmShare}>
+                  Share
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinejoin="round">
+                    <path d="M13.5 4.5v4.2C7 9.3 3.6 13.4 3 19.5c2.4-3.4 5.6-4.9 10.5-5v4.3L21 11.6z" />
+                  </svg>
+                </span>
+              </span>
+            }
+          />
           <footer className={`${s.footer} ${s.fzFooter}`}>
             <button className={`${s.back} ${s.fzBack}`} onClick={() => setPreview(false)}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

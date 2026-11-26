@@ -64,11 +64,11 @@ export function VisibilityPill({ value, onClick }: { value: Visibility; onClick:
 }
 
 /** Manage stacks' "✎ Edit ▾" button, which opens the visibility sheet with Edit stack at the top. */
-export function EditPill({ onClick }: { onClick: () => void }) {
+export function EditPill({ onClick, className = "" }: { onClick: () => void; className?: string }) {
   return (
     <button
       type="button"
-      className={`${v.pill} ${v.editPill}`}
+      className={`${v.pill} ${v.editPill} ${className}`}
       onClick={(e) => {
         e.stopPropagation();
         onClick();

@@ -44,8 +44,11 @@ Every detail of creating and publishing a Stack, and where it's built. Tick item
 
 ## After 2d: the theme on the Stack page (agreed Nov 26)
 
-- [ ] The Stack page shows its theme as in the design: the theme band with the emoji wallpaper, the "🌮 N picks" pill and the date pill.
-- [ ] The city shows on the Stack page.
+- [x] The Stack page shows its theme as in the design: the theme colour with the emoji wallpaper behind the page, Back (or Edit for your own Stack) as white pills, and the card's band with the emoji wallpaper and the "🌮 N picks" pill.
+- [x] Changed from the design (agreed Nov 26): the band holds only "🌮 N picks", on the right. The city and date sit in a small row after the last pick: "📍 Mexico City · Published Nov 24" ("Updated Nov 26" once edited; just the date when the Stack isn't about a place). They stay stored for search and sorting.
+- [x] Finalize › Preview shows the same layout, so it matches the published page.
+- Stacks published before the theme existed show the theme suggested from their title.
+- Feed cards keep their current band for now (see "Showing the Finalize choices in feeds" below).
 
 ## Task 3: publish checks
 

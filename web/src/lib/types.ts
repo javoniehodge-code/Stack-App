@@ -64,6 +64,12 @@ export type StackRow = {
   visibility?: Visibility;
   /** City or area; missing until the line_notes_location migration has run. */
   location?: string;
+  /** The theme from Finalize (2c); null for a Stack published before it (it then shows the suggested theme). */
+  theme_emoji?: string | null;
+  theme_color?: string | null;
+  /** Whether the Stack is about a place; its city is `location`. */
+  is_place?: boolean;
+  categories?: string[];
   updated_at?: string;
   /** Edit mode columns; missing until the edit_published_stacks migration has run. */
   edit_of?: string | null;

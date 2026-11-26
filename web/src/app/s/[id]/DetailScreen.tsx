@@ -8,13 +8,14 @@ import CommentBody from "@/components/CommentBody";
 import { BackIcon, BookmarkIcon } from "@/components/icons";
 import { RepostButton } from "@/components/Repost";
 import { ShareButton } from "@/components/Share";
-import { publishedLabel, StackPaper } from "@/components/StackView";
+import { dateLabel, metaLabel, type ViewLine } from "@/components/StackView";
+import { themed as t, ThemedStack, type ThemedSection } from "@/components/ThemedStack";
 import { EditPill, useVisibilityEditor } from "@/components/Visibility";
 import { MentionList, useMentions } from "@/components/Mentions";
 import { FollowButton, UpdateBanner } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
 import { postComment, thread, threadRoot } from "@/lib/comments";
-import { flatten, initials } from "@/lib/format";
+import { flatten, initials, suggestColor, suggestEmoji } from "@/lib/format";
 import { useEngagement, useIsFollowing } from "@/lib/store";
 import { createClient } from "@/lib/supabase/client";
 import type { Comment, Stack } from "@/lib/types";
@@ -125,11 +126,11 @@ export default function DetailScreen({
   }
 
   const author = (
-    <div className={s.authorRow}>
+    <div className={t.pmAuthor}>
       <Link href={a.authorHref(stack.author)} className={s.authorLink}>
-        <span className={s.avatar}>{initials(stack.author.name)}</span>
-        <span className={s.authorName}>{stack.author.name}</span>
-        <span className={s.authorHandle}>@{stack.author.handle}</span>
+        <span className={t.pmAvatar}>{initials(stack.author.name)}</span>
+        <span className={`${t.pmName} ${s.authorName}`}>{stack.author.name}</span>
+        <span className={`${t.pmHandle} ${s.authorHandle}`}>@{stack.author.handle}</span>
       </Link>
       {!mine && <FollowButton className={s.follow} following={isFollowing} onClick={() => a.toggleFollow(stack.author, isFollowing)} />}
     </div>
@@ -169,32 +170,37 @@ export default function DetailScreen({
 
   return (
     <main className={`${shell.screen} ${s.page}`}>
-      <div className={s.topRow}>
-        {fromCreate ? (
-          <button onClick={() => router.replace("/profile")} className={s.back}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-              <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />
-            </svg>
-            Exit
-          </button>
-        ) : (
-          <button onClick={back} className={s.back}>
-            <BackIcon />
-            Back
-          </button>
-        )}
-        {/* Your own stack: Edit opens Edit stack, who can see it, and Delete (as in Manage stacks). */}
-        {mine && <EditPill onClick={() => vis.openWithEdit(stack)} />}
-      </div>
-
-      <StackPaper
-        updated={publishedLabel(stack.published_at, stack.updated_at)}
+      <ThemedStack
+        emoji={stack.theme_emoji ?? suggestEmoji(stack.title)}
+        color={stack.theme_color ?? suggestColor(stack.title)}
+        top={
+          <>
+            {fromCreate ? (
+              <button onClick={() => router.replace("/profile")} className={t.pmEdit}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
+                  <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />
+                </svg>
+                Exit
+              </button>
+            ) : (
+              <button onClick={back} className={t.pmEdit}>
+                <BackIcon />
+                Back
+              </button>
+            )}
+            {/* Your own stack: Edit opens Edit stack, who can see it, and Delete (as in Manage stacks). */}
+            {mine && <EditPill className={s.editPill} onClick={() => vis.openWithEdit(stack)} />}
+          </>
+        }
         author={author}
         banner={<UpdateBanner stack={stack} />}
         title={stack.title}
         description={stack.description}
-        lines={lines}
+        sections={sectionsOf(lines)}
+        sayLabel={mine ? "You say" : `${stack.author.name.trim().split(/\s+/)[0] || "They"} says`}
+        meta={metaLabel(stack.is_place ? (stack.location ?? "").trim() : "", dateLabel(stack.published_at, stack.updated_at))}
         footer={footer}
+        atBottom
       />
 
       {sheetOpen && (
@@ -273,4 +279,14 @@ export default function DetailScreen({
       {vis.sheet}
     </main>
   );
+}
+
+/** The flat lines back into their sections: a new one starts at each section's first line. */
+function sectionsOf(lines: ViewLine[]): ThemedSection[] {
+  const out: ThemedSection[] = [];
+  lines.forEach((ln) => {
+    if (ln.label !== null || !out.length) out.push({ key: String(out.length), label: ln.label, lines: [] });
+    out[out.length - 1].lines.push(ln);
+  });
+  return out;
 }
