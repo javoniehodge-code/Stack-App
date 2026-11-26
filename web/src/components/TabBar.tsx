@@ -37,10 +37,10 @@ export default function TabBar() {
   const router = useRouter();
   const { viewer, requireAuth } = useAuth();
   // Back from a Google sign-in started by Create: go on to Create.
-  useResume("create", () => router.push("/create"));
+  useResume("create", () => router.push("/new"));
   const unread = useUnreadCount(path);
   // The create flow and stack pages are full screen.
-  if (path.startsWith("/create") || path.startsWith("/s/")) return null;
+  if (path.startsWith("/create") || path === "/new" || path.startsWith("/drafts/") || path.startsWith("/s/")) return null;
   const c = (active: boolean) => (active ? ON : OFF);
   return (
     <nav className={styles.tabBar} aria-label="Main">
@@ -53,14 +53,14 @@ export default function TabBar() {
         Explore
       </Link>
       <Link
-        href="/create"
+        href="/new"
         className={styles.tab}
         style={{ color: OFF }}
         onClick={(e) => {
           // Signed out: sign in first, then go to Create.
           if (viewer) return;
           e.preventDefault();
-          requireAuth(() => router.push("/create"), "Sign in or create an account to start a stack.", "create");
+          requireAuth(() => router.push("/new"), "Sign in or create an account to start a stack.", "create");
         }}
       >
         <span className={styles.createPill}>

@@ -124,7 +124,7 @@ export default function FeedScreen({ initial }: { initial: Stack[] }) {
           <div className={s.emptyText}>
             {tab === "following" ? "Follow people whose taste you trust and their stacks land here." : "No stacks have been published yet. Be the first."}
           </div>
-          <Link href={tab === "following" ? "/explore" : "/create"} className={s.emptyCta}>
+          <Link href={tab === "following" ? "/explore" : "/new"} className={s.emptyCta}>
             {tab === "following" ? "Find people" : "Create a stack"}
           </Link>
         </div>

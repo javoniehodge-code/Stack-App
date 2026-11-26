@@ -113,4 +113,11 @@ export type Draft = {
  * The published stack being edited in the create screen: whether it can share an update, and its live
  * content (sharing an update needs a change from it).
  */
-export type EditTarget = { stackId: string; visibility: Visibility; sharedAt: string | null; live: Pick<Draft, "title" | "description" | "sections"> };
+export type EditTarget = {
+  stackId: string;
+  visibility: Visibility;
+  sharedAt: string | null;
+  /** When the stack last changed as the edit began (kept on its edits draft). */
+  baseVersion: string | null;
+  live: Pick<Draft, "title" | "description" | "sections">;
+};

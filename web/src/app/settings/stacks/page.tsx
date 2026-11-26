@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { fetchAuthorStacks, fetchDrafts } from "@/lib/queries";
+import { fetchDrafts } from "@/lib/drafts";
+import { fetchAuthorStacks } from "@/lib/queries";
 import { createClient, getViewerId } from "@/lib/supabase/server";
 import ManageScreen, { type Filter } from "./ManageScreen";
 

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { fetchAuthorStacks, fetchDrafts, fetchFollowCounts, fetchMyReposts, fetchSaved } from "@/lib/queries";
+import { fetchDrafts } from "@/lib/drafts";
+import { fetchAuthorStacks, fetchFollowCounts, fetchMyReposts, fetchSaved } from "@/lib/queries";
 import { createClient, getViewerId } from "@/lib/supabase/server";
 import ProfileScreen, { type ProfileTab } from "./ProfileScreen";
 

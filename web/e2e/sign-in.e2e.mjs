@@ -308,7 +308,7 @@ const providersOf = (email) =>
     (await page.getByRole("dialog").count()) === 1 && (await progress.isVisible()) && (await progress.isDisabled()),
   );
   check("0b-2. Nothing is signed in yet", (await authCookies(ctx)).length === 0);
-  await page.waitForURL(/\/create/, { timeout: 10000 });
+  await page.waitForURL(/\/new$/, { timeout: 10000 });
   check("0b-3. When the answer arrives the sheet closes and the pending Create runs", (await page.getByRole("dialog").count()) === 0, page.url());
   check("0b-4. Saved: exactly one profile, with the chosen name and username", sql(`select count(*) || '|' || max(handle) || '|' || max(name) from public.profiles where id = '${uid}'`) === `1|${handle}|Slow Tester`);
   check("0b-5. The browser is signed in as that account", (await authCookies(ctx)).length > 0 && sessionsFor(uid) === "1");
@@ -440,8 +440,8 @@ const providersOf = (email) =>
   await page.getByText("✓ Available").waitFor();
   check("3e. A free username shows ✓ Available", true);
   await page.getByRole("button", { name: "Create account", exact: true }).click();
-  await page.waitForURL(/\/create/);
-  check("3f. The pending Create ran: the editor opened", page.url().includes("/create"), page.url());
+  await page.waitForURL(/\/new$/);
+  check("3f. The pending Create ran: the editor opened", new URL(page.url()).pathname === "/new", page.url());
   const prof = sql(`select handle || '|' || name from public.profiles where id = '${uid}'`);
   check("3g. Profile created with the chosen name and username", prof === `${newHandle}|New Tester`, prof);
   check("3h. One account for the email", sql(`select count(*) from auth.users where email = '${email}'`) === "1");
@@ -633,8 +633,8 @@ const providersOf = (email) =>
     await page.getByRole("dialog").waitFor();
     await playGoogle(page, s3Email);
     await page.getByRole("button", { name: "Continue with Google" }).click();
-    await page.waitForURL(/\/create/, { timeout: 15000 }).catch(() => {});
-    check("8b-3. Create, via Google: the editor opens after sign-in", new URL(page.url()).pathname === "/create", page.url());
+    await page.waitForURL(/\/new$/, { timeout: 15000 }).catch(() => {});
+    check("8b-3. Create, via Google: the editor opens after sign-in", new URL(page.url()).pathname === "/new", page.url());
     await ctx.close();
   }
 

@@ -216,16 +216,6 @@ export async function fetchSaved(sb: SupabaseClient, viewerId: string) {
   return withViewerState(sb, viewerId, rows);
 }
 
-export async function fetchDrafts(sb: SupabaseClient, viewerId: string) {
-  const { data } = await sb
-    .from("stacks")
-    .select(STACK_SELECT)
-    .eq("author_id", viewerId)
-    .eq("status", "draft")
-    .order("updated_at", { ascending: false });
-  return (data ?? []) as unknown as StackRow[];
-}
-
 export async function searchStacks(sb: SupabaseClient, viewerId: string | null, q: string) {
   const { data, error } = await sb.rpc("search_stacks", { q }).select(STACK_SELECT);
   if (error) throw error;

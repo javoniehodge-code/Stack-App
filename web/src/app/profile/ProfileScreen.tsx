@@ -11,7 +11,8 @@ import cards from "@/components/Cards.module.css";
 import { plural } from "@/lib/format";
 import { useEngagement } from "@/lib/store";
 import { createClient } from "@/lib/supabase/client";
-import type { MyRepost, Stack, StackRow } from "@/lib/types";
+import { deleteDraft, type DraftSummary } from "@/lib/drafts";
+import type { MyRepost, Stack } from "@/lib/types";
 import { useStackActions } from "@/lib/useStackActions";
 import EditProfileSheet from "./EditProfileSheet";
 import MyStacks from "./MyStacks";
@@ -19,7 +20,7 @@ import { ConnectMenu, ProfileBar, ProfileFooter, ProfileHero } from "./ProfileHe
 import p from "./Profile.module.css";
 
 export type ProfileTab = "mine" | "saved" | "reposts" | "drafts";
-type Data = { mine: Stack[]; saved: Stack[]; reposts: MyRepost[]; drafts: StackRow[]; counts: { followers: number; following: number } };
+type Data = { mine: Stack[]; saved: Stack[]; reposts: MyRepost[]; drafts: DraftSummary[]; counts: { followers: number; following: number } };
 
 export default function ProfileScreen({ data, initialTab }: { data: Data | null; initialTab: ProfileTab }) {
   const { viewer, requireAuth } = useAuth();
@@ -91,7 +92,7 @@ export default function ProfileScreen({ data, initialTab }: { data: Data | null;
   );
 }
 
-function Drafts({ drafts }: { drafts: StackRow[] }) {
+function Drafts({ drafts }: { drafts: DraftSummary[] }) {
   const router = useRouter();
   const toast = useToast();
   const [rows, setRows] = useState(drafts);
@@ -104,7 +105,7 @@ function Drafts({ drafts }: { drafts: StackRow[] }) {
   async function remove(id: string) {
     const prev = rows;
     setRows((r) => r.filter((d) => d.id !== id));
-    const { error } = await createClient().from("stacks").delete().eq("id", id);
+    const { error } = await deleteDraft(createClient(), id);
     if (error) {
       setRows(prev);
       toast("Couldn't delete the draft.");
@@ -113,10 +114,10 @@ function Drafts({ drafts }: { drafts: StackRow[] }) {
 
   if (rows.length === 0) return <div className={cards.empty}>No drafts yet.</div>;
   return rows.map((d) => (
-    <div key={d.id} className={p.draftRow} role="link" tabIndex={0} onClick={() => router.push(`/create?draft=${d.id}`)} onKeyDown={(e) => e.key === "Enter" && router.push(`/create?draft=${d.id}`)}>
+    <div key={d.id} className={p.draftRow} role="link" tabIndex={0} onClick={() => router.push(`/drafts/${d.id}`)} onKeyDown={(e) => e.key === "Enter" && router.push(`/drafts/${d.id}`)}>
       <div style={{ minWidth: 0 }}>
         <div className={p.draftTitle}>{d.title || "Untitled draft"}</div>
-        <div className={p.draftMeta}>{d.edit_of ? "Unsaved edits to a published stack" : `Draft · ${d.line_count} lines`}</div>
+        <div className={p.draftMeta}>{d.editOf ? "Unsaved edits to a published stack" : `Draft · ${d.lineCount} lines`}</div>
       </div>
       <button
         className={p.draftDelete}
