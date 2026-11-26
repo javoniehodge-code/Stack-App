@@ -257,7 +257,7 @@ check(
 //     each pick has round Pin and Send buttons (coming soon); your own Stack has ⋯ (no Edit pill) and no Remix.
 const chip7 = page.getByRole("button", { name: "Filter by 🌙 Late night" }).last();
 const chipStyle = await chip7.evaluate((el) => { const c = getComputedStyle(el); return [c.borderTopStyle, c.borderRadius, c.backgroundColor].join("|"); }).catch(() => "");
-const order7 = await page.locator("[class*=pmLine]").nth(1).locator("[class*=pmTags] button").allInnerTexts();
+const order7 = await page.locator("[class*=pmTags]").first().locator("button").allInnerTexts();
 const say7 = await page.locator("[class*=pmYouSay]").first().innerText().catch(() => "");
 const note7 = await page.locator("[class*=pmFilterNote]").innerText().catch(() => "");
 await chip7.click();
@@ -284,12 +284,17 @@ const guest = await browser.newContext({ viewport: { width: 390, height: 844 }, 
 const gp = await guest.newPage();
 await gp.goto(APP + `/s/${id}`);
 await gp.getByText("Trompo tacos until 3am.").waitFor({ timeout: 10000 }).catch(() => {});
-const followBg = await gp.getByRole("button", { name: "Follow", exact: true }).evaluate((el) => getComputedStyle(el).backgroundColor).catch(() => "");
+// Solid, not faded: full opacity, filled with the page's pink accent (the build may write the colour as lab()).
+const followBg = await gp.getByRole("button", { name: "Follow", exact: true }).evaluate((el) => {
+  const c = getComputedStyle(el);
+  const accent = c.getPropertyValue("--accent").trim().replace(/%/, "");
+  return c.opacity === "1" && c.backgroundColor.replace(/%/, "") === accent && /^lab\(44\.8|^oklch\(0\.55 0\.22 350/.test(c.backgroundColor) ? "pink" : `${c.opacity} ${c.backgroundColor} ${accent}`;
+}).catch(() => "");
 await gp.getByRole("button", { name: "More options" }).click().catch(() => {});
 check(
   "7d. A visitor sees Remix, a solid pink Follow, Filter by tag, and ⋯ says Report and Block are coming soon",
   (await gp.getByRole("button", { name: /^Remix/ }).isVisible()) &&
-    followBg === "oklch(0.55 0.22 350)" &&
+    followBg === "pink" &&
     (await gp.getByText("Filter by tag, or tap any tag on a pick").isVisible()) &&
     (await gp.getByText("Reporting and blocking are coming soon.").isVisible()),
   followBg,
