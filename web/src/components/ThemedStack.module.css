@@ -119,11 +119,19 @@
   font-weight: 800;
   color: oklch(22% 0.04 300);
 }
+/* The card's scrolling area. No top padding: Safari and Chrome measure a sticky element's offset from different
+   edges when the scroller has top padding, so the 18px above the author is a spacer instead, and the tag filter
+   pins at top: 0 in both. */
 .pmBody {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 18px 18px 22px;
+  padding: 0 18px 22px;
+}
+.pmBody::before {
+  content: "";
+  display: block;
+  height: 18px;
 }
 .pmAuthor {
   display: flex;
@@ -322,7 +330,7 @@
 /* The tag filter: sticks under the card's band while the picks scroll. */
 .pmFilter {
   position: sticky;
-  /* Pinned to the top of the card's scrolling area, so every chip stays fully visible and tappable. */
+  /* Pinned to the top edge of the card's scrolling area, so every chip stays fully visible and tappable. */
   top: 0;
   z-index: 2;
   margin: 0 -18px 4px;

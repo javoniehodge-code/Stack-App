@@ -306,8 +306,13 @@ await gp.locator("[class*=pmBody]").evaluate((el) => el.scrollTo(0, el.scrollHei
 await gp.waitForTimeout(300);
 const stuck = await gp.locator("[class*=pmBody]").evaluate((body) => {
   const box = body.getBoundingClientRect();
+  const filter = body.querySelector("[class*=pmFilter]");
+  const fs = getComputedStyle(filter);
   const chips = [...body.querySelectorAll("[class*=pmFilterRow] button")];
   return {
+    // Pinned flush to the top edge, with nothing above it that browsers place differently (Safari and Chrome
+    // disagree on a sticky offset when the scroller has top padding; only Chrome runs here).
+    flush: Math.abs(filter.getBoundingClientRect().top - box.top) < 1 && fs.top === "0px" && getComputedStyle(body).paddingTop === "0px",
     scrolled: body.scrollTop > 0,
     chips: chips.length,
     ok: chips.filter((c) => {
@@ -320,8 +325,8 @@ const stuck = await gp.locator("[class*=pmBody]").evaluate((body) => {
 await gp.getByRole("button", { name: "Filter by 🌙 Late night" }).first().tap();
 const note7e = await gp.locator("[class*=pmFilterNote]").innerText().catch(() => "");
 check(
-  "7e. After scrolling on a short screen, the sticky tag filter's chips are fully visible and tappable",
-  stuck.scrolled && stuck.chips >= 3 && stuck.ok === stuck.chips && note7e === "Showing 1 of 2 · 🌙 Late night",
+  "7e. After scrolling on a short screen, the sticky tag filter sits flush at the top (the same in Safari and Chrome) and its chips are fully visible and tappable",
+  stuck.flush && stuck.scrolled && stuck.chips >= 3 && stuck.ok === stuck.chips && note7e === "Showing 1 of 2 · 🌙 Late night",
   `${JSON.stringify(stuck)} · ${note7e}`,
 );
 await guest.close();
