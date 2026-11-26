@@ -166,6 +166,42 @@ function toPick(l: DraftLine): Line {
   };
 }
 
+// A full web address written into a pick's text: one starting with https://, http:// or www. A plain name like
+// "fuunji.jp" isn't one, so a heading such as "Ramen at fuunji.jp" stays as typed.
+const FULL_URL = /(?:https?:\/\/|www\.)[^\s]+/gi;
+
+/**
+ * Turns full web addresses written into a pick's heading or subheading into its links (up to 2). An address is
+ * taken once it's finished: something follows it (a space), or `done` (pasted, Enter, Done, or leaving the field).
+ * One the pick already has just leaves the text; one past 2 links stays in the text (`refused`). Spacing is tidied.
+ */
+function takeLinks(text: string, links: EditLink[], done: boolean): { text: string; links: EditLink[]; refused: string[] } {
+  const out = [...links];
+  const refused: string[] = [];
+  let changed = false;
+  const next = text.replace(FULL_URL, (m, offset: number) => {
+    const trail = m.match(/[.,;:!?)\]]+$/)?.[0] ?? "";
+    const raw = m.slice(0, m.length - trail.length);
+    if (!done && offset + m.length >= text.length) return m;
+    const url = /^https?:/i.test(raw) ? raw : `https://${raw}`;
+    if (!/^https?:\/\/[^\s.]+\.\S+$/i.test(url) || url.length > 2048) return m;
+    if (out.some((k) => k.url === url)) {
+      changed = true;
+      return trail;
+    }
+    if (out.length >= MAX_LINKS) {
+      refused.push(url);
+      return m;
+    }
+    out.push({ url, name: "" });
+    changed = true;
+    return trail;
+  });
+  if (!changed) return { text, links, refused };
+  const tidy = next.replace(/ {2,}/g, " ").replace(/ +([,;.!?])/g, "$1");
+  return { text: done ? tidy.trim() : tidy.replace(/^ +/, ""), links: out, refused };
+}
+
 /** Web addresses from an older line that are still in a pick's heading. */
 const leftoverUrls = (l: Line) => (l.legacyUrls?.length ? textLinks(l.text).links.filter((u) => l.legacyUrls!.includes(u)) : []);
 
@@ -664,17 +700,44 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
 
   /** Done on a pick: leaves it (an empty pick goes away). */
   function doneLine(l: Line) {
+    finishLinks(l.id);
     select(null);
     if (isEmpty(l)) setWork((w) => prune(w, null));
   }
 
   /** Return on a pick: the next pick starts, in the same format. On an empty pick it leaves it instead. */
   function enterLine(secId: string, l: Line) {
+    finishLinks(l.id);
     if (isEmpty(l)) {
       (document.activeElement as HTMLElement | null)?.blur?.();
       return select(null);
     }
     addLine(secId, l.id, l.format);
+  }
+
+  /**
+   * A pick's heading or subheading changed (`field`): full web addresses written into it become its links. `done`
+   * takes one at the very end too (pasted, or the field is being left). Past 2 links, it says why.
+   */
+  function writeText(id: string, field: "text" | "sub", value: string, done: boolean) {
+    const v = oneLine(value);
+    const l = work.sections.flatMap((sec) => sec.lines).find((x) => x.id === id);
+    if (!l) return;
+    const r = takeLinks(v, l.links, done);
+    // Say so once per address: when it's first refused, not on every keystroke after it.
+    const before = takeLinks(l[field], l.links, false).refused;
+    if (r.refused.some((u) => !before.includes(u))) toast(FULL_LINKS);
+    mapLine(id, (x) => ({ ...x, [field]: r.text, links: r.links }));
+  }
+
+  /** Leaving a pick's text: any full web address still at the end of it becomes a link. */
+  function finishLinks(id: string) {
+    const l = work.sections.flatMap((sec) => sec.lines).find((x) => x.id === id);
+    if (!l) return;
+    const a = takeLinks(l.text, l.links, true);
+    const b = takeLinks(l.sub, a.links, true);
+    if (a.text === l.text && b.text === l.sub) return;
+    mapLine(id, (x) => ({ ...x, text: a.text, sub: b.text, links: b.links }));
   }
 
   /** Add item: a new pick at the end, in the format of the one above it. */
@@ -1536,10 +1599,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                                   className={s.lineInput}
                                   rows={1}
                                   value={l.text}
-                                  onChange={(e) => {
-                                    const v = oneLine(e.target.value);
-                                    mapLine(l.id, (x) => ({ ...x, text: v }));
-                                  }}
+                                  onChange={(e) => writeText(l.id, "text", e.target.value, (e.nativeEvent as InputEvent).inputType === "insertFromPaste")}
+                                  onBlur={() => finishLinks(l.id)}
                                   onKeyDown={enter}
                                   placeholder="Item heading"
                                   aria-label="Item heading"
@@ -1549,10 +1610,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                                   className={s.subInput}
                                   rows={1}
                                   value={l.sub}
-                                  onChange={(e) => {
-                                    const v = oneLine(e.target.value);
-                                    mapLine(l.id, (x) => ({ ...x, sub: v }));
-                                  }}
+                                  onChange={(e) => writeText(l.id, "sub", e.target.value, (e.nativeEvent as InputEvent).inputType === "insertFromPaste")}
+                                  onBlur={() => finishLinks(l.id)}
                                   onKeyDown={enter}
                                   placeholder="Subheading (optional): a short reason or detail"
                                   aria-label="Item subheading"

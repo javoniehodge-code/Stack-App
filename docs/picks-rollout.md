@@ -7,7 +7,7 @@ This covers migration `20261129000000_pick_model` and the new pick editor. The e
 - **Picks, not lines.** Each pick is numbered or bulleted and has:
   - a heading (up to 80 characters, required);
   - an optional subheading (up to 100);
-  - up to 2 links, each shown as its own button with the link's domain or the name you type (Agreed Nov 26; the spec is updated);
+  - up to 2 links, each shown as its own button with the link's domain or the name you type (Agreed Nov 26; the spec is updated). Add them with Link, or write or paste a full web address (starting with https://, http:// or www.) into the heading or subheading: once it's finished (a space after it, Enter, Done, or leaving the field) it becomes a link button. A plain name like "fuunji.jp" stays text. Past 2 links, the address stays in the text and the editor says why;
   - up to 3 tags.
 - **No paragraphs or bold lines.** The toolbar is Section, Numbered, Bulleted, Link, Tags. The heading shows in bold.
 - **Tags tray.**
@@ -94,7 +94,7 @@ The new editor saves picks that the new database rules accept, so step 1 comes f
 
   The same tests fail on the previous rules.
 - **Rollback:** on the test copy, the rollback put back the previous rules (a paragraph was accepted again) and the 2a draft tests passed. Re-applying the migration passed the new tests again.
-- **Browser** (`web/e2e/picks.e2e.mjs`, 28/28):
+- **Browser** (`web/e2e/picks.e2e.mjs`, 30/30):
   1. the Title page shows "Saved just now";
   2. a pick saves its heading and subheading, line breaks become spaces, and it gets a stable id;
   3. **tags tray:**
@@ -113,6 +113,8 @@ The new editor saves picks that the new database rules accept, so step 1 comes f
   12. new headings naming a website ("Ramen at fuunji.jp", and one with its own link) keep their heading and link through save, refresh, another save and publishing, with nothing listed;
   13. older lines: two typed web addresses both become links (the first keeps its name). With three, the third stays in the heading and is listed after save and refresh, until the owner removes it;
   14. Delete a pick, edit another, then Undo: only the deleted pick comes back, in its place, and the edit stays. The same for a removed section title.
+
+  15. writing "https://…" followed by more text, and "www.…" at the end of the subheading, turns both into links and keeps the rest of the text; after a refresh they're still links; a third written address stays in the text and the 2-link message shows.
 
   Checks 12, 13 and 14 fail on this PR's first version, which had those bugs.
 - **The window between the steps:** the current live app (built from `main`) passed its own drafts browser test (26/26) against the migrated test copy.

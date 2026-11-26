@@ -423,6 +423,39 @@ const secsOf = () => JSON.parse(sql(`select content->'sections' from public.draf
 for (let i = 0; i < 60 && secsOf() !== ":First edited | Area 2:Second"; i++) await page.waitForTimeout(250);
 check("14b. Remove a section title → edit a pick → Undo: the title is back over its pick, and the edit is kept", secsOf() === ":First edited | Area 2:Second", secsOf());
 
+// 15. A full web address written into a pick's text becomes one of its links: once something follows it, or when
+//     leaving the text. A plain name like "fuunji.jp" stays text (check 12). Past 2 links it stays in the text and
+//     the editor says why.
+const typed = await seed(page, uid, { title: "Typed links", sections: [{ label: "", lines: [{ id: sql("select gen_random_uuid()"), text: "Noodles", link: null, format: "num" }] }] });
+await page.getByText("Noodles", { exact: true }).click();
+const h15 = page.getByRole("textbox", { name: "Item heading" });
+await h15.press("End");
+await page.keyboard.type(" menu https://fuunji.jp/menu and more");
+const midway = (await h15.inputValue()) === "Noodles menu and more" && (await page.getByRole("button", { name: "Edit link fuunji.jp" }).isVisible());
+await page.getByRole("textbox", { name: "Item subheading" }).click();
+await page.keyboard.type("Map www.example.com/map");
+await page.getByRole("button", { name: "Done", exact: true }).first().click();
+await until(page, typed, (ls) => (ls[0]?.links ?? []).length === 2 && ls[0].note === "Map");
+const t15 = lines(typed)[0];
+check(
+  "15a. Writing https://… then more text, and www.… at the end of the subheading, turns both into links and leaves the rest of the text",
+  midway && t15.text === "Noodles menu and more" && t15.note === "Map" && (t15.links ?? []).map((k) => k.url).join() === "https://fuunji.jp/menu,https://www.example.com/map",
+  JSON.stringify(t15),
+);
+await page.reload();
+await page.getByText("Noodles menu and more").click();
+await page.getByRole("textbox", { name: "Item heading" }).press("End");
+await page.keyboard.type(" https://third.example.com ");
+const told = await page.getByText("A pick can have up to 2 links. Remove one to add another.").isVisible();
+await page.getByRole("button", { name: "Done", exact: true }).first().click();
+await until(page, typed, (ls) => ls[0]?.text.includes("third"));
+const t15b = lines(typed)[0];
+check(
+  "15b. After a refresh the links are still there; a third written address stays in the text and the editor says why",
+  told && t15b.text.trim() === "Noodles menu and more https://third.example.com" && (t15b.links ?? []).length === 2,
+  JSON.stringify(t15b),
+);
+
 await browser.close();
 cleanup();
 const failed = results.filter((r) => !r).length;
