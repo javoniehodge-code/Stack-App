@@ -39,6 +39,7 @@ Every detail of creating and publishing a Stack, and where it's built. Tick item
 - [x] "Your Stack is live" offers **Share your Stack, Start another stack, Done**. Done goes to Profile › Stacks, with the new Stack at the top (Flow 1, Published screen).
 - [x] The save status and messages are announced politely to screen readers (Global rules, accessibility).
 - [x] Editing a published Stack: the buttons read **Save** and **Save and share update**.
+- **Checked on production (Nov 26, phone):** in a draft, Tags › Your own put the cursor in its field; the typed tag "Rooftop" saved, and after a refresh the pick still had the tag and its heading ("bar tag 1") was unchanged. Passed.
 - **Deferred:** the **"+" format menu** by the current pick: Section, Numbered, Bulleted (Flow 1, step 3). The design doesn't have it, and the toolbar already offers the same three. Listed under Later tasks.
 
 ## After 2d: the theme on the Stack page (agreed Nov 26)
