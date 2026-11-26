@@ -57,6 +57,7 @@ node web/e2e/target-guard.test.mjs   # invalid targets are refused before any wr
 node web/e2e/sign-in.e2e.mjs         # the browser checks
 node web/e2e/callback-redirect.test.mjs   # /auth/callback only returns to the app's own origin
 node web/e2e/drafts.e2e.mjs          # drafts: autosave, own address, retries, leaving, publish once, edits
+node web/e2e/legacy-draft.e2e.mjs old|new   # a draft from the previous app build is recovered by this one (run old, then new)
 ```
 
 The app was built and started with `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321` and the local anon key. It was started with `SIGN_IN_RESOLVER_TOKEN` set to a random test token, whose SHA-256 hash is stored in the test database's `private.server_tokens` (see `docs/gmail-aliases-rollout.md`, setup step 4).

@@ -20,11 +20,17 @@ This covers migration `20261128000000_drafts` and the editor's switch to it (Tas
   - A refresh reopens the draft at the step it reached.
   - After publishing, the address becomes the Stack's, `/s/<id>`.
   - Older `/create` and `/create?draft=<id>` links forward to the new addresses. Editing a published Stack stays at `/create?edit=<id>`.
+- **"Saved" means saved.**
+  - Every change (typing, or moving between steps) is tracked until a save of it is confirmed by the server.
+  - Until then, the status says "Saving…" or "Couldn't save", and the browser asks before you leave the page.
+  - The over-limit banner says the same: "Saving your draft…", "your latest changes aren't saved", or "Your draft is saved".
+- **Opening a draft writes nothing.** A copy left open in another tab or device can't overwrite newer content unless it's edited.
 - **Leaving the editor:**
   - **Empty:** no draft is kept (one saved earlier is removed).
   - **With content:** the draft is kept, and Profile › Drafts opens.
   - **A change not yet saved:** the browser asks before you leave the page.
 - **Unsaved edits to a published Stack** are a draft too, one per Stack, and Publish removes them.
+- **Drafts the old app saves after the migration aren't lost.** Until the new app is deployed, the old app keeps saving drafts the old way, in `stacks`. The new app moves any it finds there into `drafts`, with the same id and contents, whenever it lists or opens your drafts. Repeating the move is harmless.
 - **Existing drafts move over**, with their ids and contents. Live had none on Nov 26.
 
 ## Limits: still the old ones (on purpose)
@@ -59,7 +65,9 @@ Task 3 (publish) then adds the full publish checks: the "Fix N things before pub
    - refresh: it comes back at the same step;
    - Exit: it's in Profile › Drafts.
 
-The app and the database must change together: the new app saves to `drafts`, which exists only after step 1. So step 1 comes right before the merge.
+The new app needs `drafts`, which exists only after step 1, so step 1 comes first. Between the two steps, the old app still works: it saves drafts in `stacks`, and the new app picks them up after the merge.
+
+**Live status (Nov 26):** step 1 is done. The migration is applied and recorded (23 rows); there were no drafts to move. Live is now in the window between the two steps.
 
 ## Rollback
 
@@ -105,6 +113,13 @@ The app and the database must change together: the new app saves to `drafts`, wh
   4. **Editing the published Stack:**
      - unsaved edits were kept in one draft for it, listed in Manage stacks as unsaved edits, and came back on reopening;
      - Publish updated the Stack and removed that draft.
+- **Saving, in the browser** (`drafts.e2e.mjs`, now 23/23):
+  - **slow save:** while in flight, "Saving…", the banner said saving, and leaving the page asked first; once it landed, "Saved", the banner said saved, and leaving didn't ask;
+  - **failed save:** "Couldn't save", the banner said the latest changes weren't saved, leaving asked, and the draft was unchanged. The next working save cleared both;
+  - **stale copy:** opening a draft sent no write. Content saved elsewhere after it opened wasn't overwritten, and leaving didn't ask.
+- **Rollout window** (`web/e2e/legacy-draft.e2e.mjs`, 7/7). The test copy had this migration applied:
+  - the **current live app**, built from `main`, saved a draft the old way, in `stacks`;
+  - **this branch's app** then listed it in Profile › Drafts, moved it to `drafts` with the same id and contents, opened it at `/drafts/<id>`, saved an edit to it, and published it as one Stack with the same id.
 - **Earlier suites still pass:**
   - the sign-in browser test, 79/79 (Create now opens `/new`);
   - the guard test, 11/11;

@@ -110,7 +110,40 @@ function lineCount(c: DraftContent) {
   );
 }
 
+/**
+ * Moves your drafts that an older app version saved in the stacks table (status 'draft') into the drafts table,
+ * with the same id and contents, then removes them from stacks. Between the drafts migration and the new app's
+ * deployment, the old app still saves drafts there; this makes them show up and open in the new app. Safe to
+ * repeat: the move is an upsert on the same id, and a draft is removed from stacks only once it's in drafts.
+ */
+export async function adoptLegacyDrafts(sb: SupabaseClient, viewerId: string) {
+  const { data: rows } = await sb
+    .from("stacks")
+    .select("id, title, description, sections, style, visibility, location, edit_of, forked_from_id, created_at")
+    .eq("author_id", viewerId)
+    .eq("status", "draft");
+  for (const r of rows ?? []) {
+    const { data: tags } = await sb.from("stack_tags").select("tag").eq("stack_id", r.id);
+    const content: DraftContent = {
+      v: 1,
+      title: r.title ?? "",
+      description: r.description ?? "",
+      sections: r.sections ?? [],
+      style: r.style === "bulleted" ? "bulleted" : "numbered",
+      visibility: asVisibility(r.visibility),
+      location: r.location ?? "",
+      tags: (tags ?? []).map((t) => t.tag as string),
+    };
+    const { error } = await sb
+      .from("drafts")
+      .upsert({ id: r.id, content, step: "build", edit_of: r.edit_of, remixed_from: r.forked_from_id, created_at: r.created_at }, { onConflict: "id" });
+    // Kept where it is if it can't move (say, the stack it edits already has newer edits in drafts).
+    if (!error) await sb.from("stacks").delete().eq("id", r.id).eq("author_id", viewerId).eq("status", "draft");
+  }
+}
+
 export async function fetchDrafts(sb: SupabaseClient, viewerId: string): Promise<DraftSummary[]> {
+  await adoptLegacyDrafts(sb, viewerId);
   const { data } = await sb
     .from("drafts")
     .select("id, content, edit_of, updated_at")
@@ -124,6 +157,7 @@ export async function fetchDrafts(sb: SupabaseClient, viewerId: string): Promise
 
 export async function fetchDraft(sb: SupabaseClient, viewerId: string, id: string): Promise<DraftRecord | null> {
   if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
+  await adoptLegacyDrafts(sb, viewerId);
   const { data } = await sb
     .from("drafts")
     .select("id, content, step, edit_of, base_version, remixed_from, updated_at")
@@ -135,6 +169,7 @@ export async function fetchDraft(sb: SupabaseClient, viewerId: string, id: strin
 
 /** Your unsaved edits to published stack `stackId`, if any. */
 export async function fetchEditDraft(sb: SupabaseClient, viewerId: string, stackId: string): Promise<DraftRecord | null> {
+  await adoptLegacyDrafts(sb, viewerId);
   const { data } = await sb
     .from("drafts")
     .select("id, content, step, edit_of, base_version, remixed_from, updated_at")

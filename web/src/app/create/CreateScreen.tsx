@@ -442,6 +442,13 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     workRef.current = work;
     stepRef.current = step;
   }, [work, step]);
+  // Every change (to the content or the step) bumps `version`; a save that lands records, in `confirmed`, the
+  // version it carried. Until `confirmed` catches up, the latest work isn't safely saved: leaving the page asks
+  // first, and the status doesn't say Saved.
+  const version = useRef(0);
+  const confirmed = useRef(0);
+  const unsaved = () => confirmed.current < version.current && (saved.current || hasContent(workRef.current));
+  const settle = (err: string | null) => setSave(err ? "error" : confirmed.current >= version.current ? "saved" : "saving");
 
   const persist = useCallback(
     (status: "draft" | "published", title?: string) => {
@@ -456,6 +463,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
       });
       const run = async (): Promise<string | null> => {
         const w = workRef.current;
+        const v = version.current;
         const sb = createClient();
         let { error } = await sb.from("drafts").upsert(row(w), { onConflict: "id" });
         // Edits to a published stack: another tab may have started its edits draft first. Carry on in that one.
@@ -466,7 +474,9 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
             ({ error } = await sb.from("drafts").upsert(row(w), { onConflict: "id" }));
           }
         }
-        if (error) return error.message;
+        // Any error counts, even one without a message.
+        if (error) return error.message || "Couldn't save";
+        confirmed.current = Math.max(confirmed.current, v);
         if (!saved.current) {
           saved.current = true;
           // A new stack's address becomes its draft's, so a refresh reopens it where it was.
@@ -483,7 +493,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
           p_visibility: w.visibility,
           p_location: w.location.trim(),
         });
-        return pub ? pub.message : null;
+        return pub ? pub.message || "Couldn't publish" : null;
       };
       const next = queue.current.then(run, run);
       queue.current = next;
@@ -492,15 +502,20 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     [initial.forkedFromId, initial.style, target],
   );
 
-  // Moving between steps is saved too (once the draft exists), so it reopens at the same step.
+  // Moving to another step is saved too (once the draft exists), so it reopens at that step. Opening a draft
+  // isn't a change: nothing is written until something actually changes.
+  const lastStep = useRef(step);
   useEffect(() => {
-    if (saved.current && viewer && !published) persist("draft");
+    if (step === lastStep.current) return;
+    lastStep.current = step;
+    version.current++;
+    if (saved.current && viewer && !published) persist("draft").then(settle);
   }, [step, viewer, published, persist]);
 
-  // While a change hasn't been saved yet, leaving the page asks first (a refresh would lose it).
+  // Until the latest change is confirmed saved, leaving the page asks first (a refresh would lose it).
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => {
-      if (dirty.current) e.preventDefault();
+      if (unsaved()) e.preventDefault();
     };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
@@ -508,6 +523,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
 
   const edit = (fn: (w: Work) => Work) => {
     setWork(fn);
+    version.current++;
     dirty.current = true;
     if (target) setEdited(true);
     if (viewer) setSave("saving");
@@ -525,8 +541,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
         return setSave("idle");
       }
       dirty.current = false;
-      const err = await persist("draft");
-      setSave(err ? "error" : "saved");
+      settle(await persist("draft"));
     }, 1200);
     return () => clearTimeout(t);
   }, [work, viewer, persist, published]);
@@ -949,7 +964,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     dirty.current = false;
     setSave("saving");
     const err = await persist("draft");
-    setSave(err ? "error" : "saved");
+    settle(err);
     return err;
   };
 
@@ -1037,6 +1052,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     setSheet(false);
     setWork((w) => ({ ...w, title }));
     const id = idRef.current;
+    // Published: nothing is left unsaved.
+    confirmed.current = version.current;
     setPublished(id);
     // The draft is gone now; the address becomes the stack's, so a refresh opens it.
     window.history.replaceState(window.history.state, "", `/s/${id}`);
@@ -1346,7 +1363,15 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               <div className={s.buildBody}>
                 {problems.length > 0 && (
                   <div className={s.limitBanner} role="alert">
-                    <strong>This stack is over a size limit. Your draft is saved; fix this before publishing.</strong>
+                    <strong>
+                      {save === "error"
+                        ? "This stack is over a size limit, and your latest changes aren’t saved: check your connection. Fix the limit before publishing."
+                        : save === "saving"
+                          ? "This stack is over a size limit. Saving your draft… Fix the limit before publishing."
+                          : save === "saved"
+                            ? "This stack is over a size limit. Your draft is saved; fix this before publishing."
+                            : "This stack is over a size limit. Fix this before publishing."}
+                    </strong>
                     <ul>
                       {problems.map((m) => (
                         <li key={m}>{m}</li>

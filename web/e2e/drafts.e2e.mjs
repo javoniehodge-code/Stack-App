@@ -101,6 +101,14 @@ async function loseNextReply(page, pattern) {
   );
 }
 
+/** Whether leaving the page now would ask first (the editor's beforeunload handler cancels the event). */
+const warns = (page) => page.evaluate(() => {
+  const e = new Event("beforeunload", { cancelable: true });
+  window.dispatchEvent(e);
+  return e.defaultPrevented;
+});
+const titleOf = (id) => sql(`select content->>'title' from public.drafts where id = '${id}'`);
+
 const { chromium } = createRequire(import.meta.url)("playwright");
 const browser = await chromium.launch();
 const phone = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true };
@@ -183,6 +191,68 @@ let uid, draftId;
     "2d. An over-limit draft shows the limit, says it's saved, and its edits save with every item kept",
     (await banner.isVisible()) && (await banner.innerText()).includes("Your draft is saved") && row === "Long|18",
     row,
+  );
+
+  // 5. A slow save: while it's on its way, the status and the banner say it's saving and leaving asks first;
+  //    once it lands, both say saved and leaving doesn't ask.
+  const banner5 = () => banner.innerText();
+  await page.route(
+    "**/rest/v1/drafts*",
+    async (route) => {
+      if (route.request().method() !== "POST") return route.continue();
+      const res = await route.fetch();
+      await new Promise((r) => setTimeout(r, 4000));
+      await route.fulfill({ response: res });
+    },
+    { times: 1 },
+  );
+  await page.getByLabel("Title").fill("Lon");
+  await page.getByLabel("Title").blur();
+  await page.waitForTimeout(2200);
+  check(
+    "5a. Slow save in flight: status Saving…, banner says saving, and leaving asks first",
+    (await page.getByText("Saving…").isVisible()) && (await banner5()).includes("Saving your draft") && (await warns(page)),
+    await banner5(),
+  );
+  await saved(page);
+  check(
+    "5b. Once it lands: status Saved, banner says saved, leaving doesn't ask, and the draft has the change",
+    (await banner5()).includes("Your draft is saved") && !(await warns(page)) && titleOf(overId) === "Lon",
+    titleOf(overId),
+  );
+
+  // 6. A failed save: status Couldn't save, the banner says the changes aren't saved, and leaving still asks.
+  //    The next save that works clears both.
+  await page.route("**/rest/v1/drafts*", (route) => (route.request().method() === "POST" ? route.fulfill({ status: 500, body: "{}" }) : route.continue()), { times: 1 });
+  await page.getByLabel("Title").fill("Lo");
+  await page.getByLabel("Title").blur();
+  await page.getByText("Couldn't save").waitFor({ timeout: 10000 }).catch(() => {});
+  check(
+    "6a. Failed save: Couldn't save, the banner says the latest changes aren't saved, leaving asks, and the draft is unchanged",
+    (await page.getByText("Couldn't save").isVisible()) && (await banner5()).includes("aren’t saved") && (await warns(page)) && titleOf(overId) === "Lon",
+    await banner5(),
+  );
+  await page.getByLabel("Title").fill("L");
+  await page.getByLabel("Title").blur();
+  for (let i = 0; i < 40 && titleOf(overId) !== "L"; i++) await page.waitForTimeout(250);
+  await saved(page);
+  check("6b. The next save works: saved, and leaving doesn't ask", titleOf(overId) === "L" && !(await warns(page)) && (await banner5()).includes("Your draft is saved"));
+
+  // 7. Opening a draft writes nothing. A stale copy left open (another device saved newer content after it was
+  //    opened) doesn't overwrite the newer content, and leaving doesn't ask.
+  const staleId = sql("select gen_random_uuid()");
+  psql(`insert into public.drafts (id, owner_id, content, step) values ('${staleId}', '${uid2}', '{"v":1,"title":"Snapshot","sections":[{"label":"","lines":[{"text":"First","link":null,"format":"num"}]}]}', 'build')`, false);
+  const writes = [];
+  page.on("request", (r) => r.url().includes("/rest/v1/drafts") && r.method() !== "GET" && writes.push(r.method()));
+  await page.goto(APP + `/drafts/${staleId}`);
+  await page.getByText("First").waitFor();
+  psql(`update public.drafts set content = jsonb_set(content, '{title}', '"Newer elsewhere"') where id = '${staleId}'`, false);
+  const stamp = sql(`select updated_at from public.drafts where id = '${staleId}'`);
+  await page.waitForTimeout(3000);
+  check(
+    "7. Opening a draft sends no write; a stale copy left open doesn't overwrite newer content, and leaving doesn't ask",
+    writes.length === 0 && titleOf(staleId) === "Newer elsewhere" && sql(`select updated_at from public.drafts where id = '${staleId}'`) === stamp && !(await warns(page)),
+    `writes: ${writes.length}, title: ${titleOf(staleId)}`,
   );
   await ctx.close();
 }
