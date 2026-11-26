@@ -128,6 +128,11 @@ export type Draft = {
   forkedFromId: string | null;
   visibility: Visibility;
   location: string;
+  /** The Finalize choices: a theme the author picked (null: suggested from the title), whether it's about a place
+   *  (null: guessed from the theme and city), and up to 2 categories. */
+  theme?: { emoji: string; color: string } | null;
+  isPlace?: boolean | null;
+  categories?: string[];
 };
 
 /**

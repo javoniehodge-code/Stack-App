@@ -20,6 +20,9 @@ export type DraftContent = {
   style?: Draft["style"];
   visibility?: Visibility;
   location?: string;
+  theme?: { emoji?: unknown; color?: unknown } | null;
+  isPlace?: boolean | null;
+  categories?: string[];
 };
 
 export type DraftRecord = {
@@ -109,6 +112,9 @@ export function recordToDraft(r: DraftRecord): Draft {
     forkedFromId: r.remixed_from,
     visibility: asVisibility(c.visibility),
     location: asString(c.location),
+    theme: typeof c.theme?.emoji === "string" && typeof c.theme?.color === "string" ? { emoji: c.theme.emoji, color: c.theme.color } : null,
+    isPlace: typeof c.isPlace === "boolean" ? c.isPlace : null,
+    categories: asArray<unknown>(c.categories).filter((t): t is string => typeof t === "string"),
   };
 }
 

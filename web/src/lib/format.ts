@@ -236,6 +236,57 @@ export const TAG_GROUPS: { key: string; name: string; tags: [string, string][] }
   { key: "when", name: "When", tags: [["Brunch", "☀️"], ["Late night", "🌙"], ["Sunset", "🌅"]] },
 ];
 export const PRICE_TAGS = ["Free", "$", "$$", "$$$"];
+
+// The Finalize step (spec, Flow 1 step 4). The database checks the same lists (migration 20261130000000_finalize).
+/** The 12 theme emoji. */
+export const THEME_EMOJIS = ["🍸", "🍜", "☕", "📖", "✈️", "🛍️", "🖥️", "🎧", "🌮", "🌴", "🎨", "✨"];
+/** The 6 theme colours. */
+export const THEME_COLORS = ["oklch(86% 0.13 85)", "oklch(84% 0.12 40)", "oklch(84% 0.09 260)", "oklch(85% 0.1 160)", "oklch(85% 0.1 340)", "oklch(88% 0.12 110)"];
+/** Theme emoji that suggest a place: "Is this about a place?" starts at Yes with one of these. */
+export const PLACE_EMOJIS = ["🍸", "🍜", "☕", "✈️", "🌮", "🌴"];
+/** The 12 platform categories, with their colours. A Stack has up to 2. */
+export const CATEGORIES: { name: string; color: string }[] = [
+  { name: "Art & Design", color: "oklch(85% 0.1 340)" },
+  { name: "Technology", color: "oklch(88% 0.12 110)" },
+  { name: "Business & Money", color: "oklch(87% 0.06 230)" },
+  { name: "Learning", color: "oklch(84% 0.09 260)" },
+  { name: "Health & Wellness", color: "oklch(88% 0.09 150)" },
+  { name: "Food & Drink", color: "oklch(84% 0.12 40)" },
+  { name: "Travel & Places", color: "oklch(85% 0.1 160)" },
+  { name: "Style & Shopping", color: "oklch(87% 0.08 20)" },
+  { name: "Home & Living", color: "oklch(86% 0.13 85)" },
+  { name: "Entertainment & Culture", color: "oklch(85% 0.1 300)" },
+  { name: "Sports & Outdoors", color: "oklch(86% 0.1 130)" },
+  { name: "Games & Hobbies", color: "oklch(88% 0.1 60)" },
+];
+export const MAX_CATEGORIES = 2;
+export const MAX_CITY = 80;
+
+/** The theme emoji a title suggests (✨ when nothing matches). */
+export function suggestEmoji(title: string) {
+  const t = title.toLowerCase();
+  const rules: [RegExp, string][] = [
+    [/bar|drink|cocktail|wine|mezcal/, "🍸"],
+    [/ramen|noodle|food|eat|restaurant|brunch/, "🍜"],
+    [/taco/, "🌮"],
+    [/coffee|caf[eé]/, "☕"],
+    [/book|read/, "📖"],
+    [/beach|island|tropical/, "🌴"],
+    [/travel|trip|city|spots|guide/, "✈️"],
+    [/etsy|shop|gift|finds/, "🛍️"],
+    [/desk|tech|setup/, "🖥️"],
+    [/podcast|music|playlist/, "🎧"],
+    [/art|design|gallery/, "🎨"],
+  ];
+  return rules.find(([re]) => re.test(t))?.[1] ?? "✨";
+}
+
+/** The theme colour a title suggests: always the same one for the same title. */
+export function suggestColor(title: string) {
+  let h = 0;
+  for (const c of title.trim()) h = (h * 31 + c.codePointAt(0)!) >>> 0;
+  return THEME_COLORS[h % THEME_COLORS.length];
+}
 const TAG_INFO = new Map(TAG_GROUPS.flatMap((g) => g.tags.map(([t, e]) => [t.toLowerCase(), { group: g.key, emoji: e, name: t }] as const)));
 /** A tag's group ("" for a typed one), emoji and name as shown (a suggested tag keeps its own spelling). */
 export const tagInfo = (t: string) => TAG_INFO.get(t.trim().toLowerCase()) ?? { group: "", emoji: "", name: t.trim() };
