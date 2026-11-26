@@ -939,6 +939,21 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     });
   }
 
+  /**
+   * Finalize › Order: moves a whole section, its title and its picks, past the next section up or down. Picks
+   * outside any section stay at the top, so a section doesn't move above them.
+   */
+  function moveSection(id: string, dir: -1 | 1) {
+    edit((w) => {
+      const i = w.sections.findIndex((x) => x.id === id);
+      const j = i + dir;
+      if (i < 0 || !w.sections[i].headed || j < 0 || j >= w.sections.length || !w.sections[j].headed) return w;
+      const secs = [...w.sections];
+      [secs[i], secs[j]] = [secs[j], secs[i]];
+      return { ...w, sections: secs };
+    });
+  }
+
   /** Removes a section's heading (its lines join the section above), with Undo. */
   function removeSection(id: string) {
     const si = work.sections.findIndex((x) => x.id === id);
@@ -1970,7 +1985,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                   <div id="order-title" className={s.fzLabel}>
                     Order
                   </div>
-                  <div className={s.placeHelp}>Move sections and picks up or down.</div>
+                  <div className={s.placeHelp}>Move sections (with their picks) and picks up or down.</div>
                   {(() => {
                     let k = 0;
                     const ids = work.sections.flatMap((sec) => sec.lines.filter((l) => !isEmpty(l)).map((l) => l.id));
@@ -1980,13 +1995,18 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                           <div className={s.orderRow} data-section>
                             <span className={s.orderText}>{sec.label.trim() || "Untitled section"}</span>
                             <span className={s.moveBtns}>
-                              <button className={s.moveBtn} onClick={() => moveHeading(sec.id, -1)} disabled={si === 0} aria-label={`Move section ${sec.label.trim() || si + 1} up`}>
+                              <button
+                                className={s.moveBtn}
+                                onClick={() => moveSection(sec.id, -1)}
+                                disabled={!work.sections[si - 1]?.headed}
+                                aria-label={`Move section ${sec.label.trim() || si + 1} up`}
+                              >
                                 {arrow("up")}
                               </button>
                               <button
                                 className={s.moveBtn}
-                                onClick={() => moveHeading(sec.id, 1)}
-                                disabled={!sec.lines.length && si === work.sections.length - 1}
+                                onClick={() => moveSection(sec.id, 1)}
+                                disabled={!work.sections[si + 1]?.headed}
                                 aria-label={`Move section ${sec.label.trim() || si + 1} down`}
                               >
                                 {arrow("down")}

@@ -4,8 +4,9 @@
 --   Stacks published before this).
 -- * stacks.is_place: whether the Stack is about a place. Its city stays in stacks.location (up to 80 characters).
 -- * stacks.categories: up to 2 of the 12 platform categories.
--- * publish_draft() takes the four choices (all optional, so older app versions still work). A Stack that isn't
---   about a place keeps no city.
+-- * publish_draft() takes the four choices (all optional, so older app versions still work). A Stack answered "not
+--   about a place" keeps no city; when the answer is left out (an older app version), a city means it is one, and the
+--   city is kept.
 -- * Requiring a city for a place Stack and at least one category comes with the publish checks (Task 3).
 -- * apply_stack_edit() is unchanged: editing a published Stack keeps its choices.
 
@@ -66,7 +67,9 @@ declare
   forked uuid;
   t      text;
   cats   text[] := coalesce(p_categories, '{}');
-  place  boolean := coalesce(p_is_place, false);
+  -- Left out (an older app version, which has no place question): a Stack with a city is about a place, so its
+  -- city is kept. An explicit No from the new app clears the city below.
+  place  boolean := coalesce(p_is_place, btrim(coalesce(p_location, '')) <> '');
 begin
   if uid is null then
     raise exception 'sign in required' using errcode = '42501';

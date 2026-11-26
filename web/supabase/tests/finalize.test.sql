@@ -59,6 +59,15 @@ do $$ begin
   end if;
 end $$;
 
+-- 4b. An older app version's call with a real city: the city is kept, and the Stack counts as about a place.
+do $$ begin
+  perform public.publish_draft(p_id => pg_temp.draft(9), p_title => 'Old app with a city', p_sections => pg_temp.picks(), p_tags => null,
+    p_style => 'numbered', p_description => '', p_visibility => 'public', p_location => '  Mexico City ');
+  if (select location || '|' || is_place from public.stacks where id = 'f3f3f3f3-0000-4000-8000-000000000009') <> 'Mexico City|true' then
+    raise exception 'FAIL 4b: an older app''s publish lost its city: %', (select location || '|' || is_place from public.stacks where id = 'f3f3f3f3-0000-4000-8000-000000000009');
+  end if;
+end $$;
+
 -- 4. An older app version's call, without the choices, still publishes (no theme, not a place, no categories).
 do $$ begin
   perform public.publish_draft(p_id => pg_temp.draft(8), p_title => 'Old app', p_sections => pg_temp.picks(), p_tags => null,

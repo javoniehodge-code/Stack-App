@@ -18,7 +18,7 @@ The screen follows the design (Create Flow prototype, Finalize). The spec's cate
   - No says "Not about a place. No city needed." A city typed earlier isn't published.
 - **Privacy:** Public, Unlisted or Private, worded as in the design.
 - **Categories:** pick 1 or 2 of the spec's 12. At 2, the rest are off and the card says "You picked 2. Tap one to remove it, then pick another."
-- **Order:** move sections and picks up or down, the same as Reorder in Build.
+- **Order:** move picks up or down, and move a whole section, with its title and its picks, past the next section. Picks outside any section stay at the top.
 - **Preview** (from "Preview your Stack"), as in the design:
   - a full screen in the theme colour with the emoji wallpaper, an "‹ Edit" pill and "👀 Preview · Public";
   - the Stack card, with a slim band ("🌮 3 picks", "just now"), author, title, description, sections and picks (subheadings, links, "You say" tags, Pin and Send);
@@ -50,7 +50,7 @@ The screen follows the design (Create Flow prototype, Finalize). The spec's cate
 
 The new app sends the choices with Publish, which works only after step 1, so step 1 comes first.
 
-**Between the two steps,** the current live app keeps working. Its Publish leaves the new choices out: no theme, not a place, no categories.
+**Between the two steps,** the current live app keeps working. Its Publish leaves the new choices out: no theme and no categories. A city it publishes is kept, and the Stack counts as about a place. Only an explicit No from the new app clears a city.
 
 ## Rollback
 
@@ -66,11 +66,12 @@ The new app sends the choices with Publish, which works only after step 1, so st
   - a Stack that isn't about a place keeps no city;
   - an unlisted emoji, colour or category, 3 categories, or a repeated one are refused, and a refused publish keeps the draft;
   - an older app's call without the choices still publishes;
+  - an older app's call with a real city keeps the city, and marks the Stack as about a place (an explicit No still clears it);
   - the table itself refuses unlisted values.
 
   The same tests fail on the previous rules.
 - **Rollback:** on the test copy, the rollback put back the previous `publish_draft` and the 2a draft tests passed. Re-applying passed the new tests again.
-- **Browser** (`web/e2e/finalize.e2e.mjs`, 10/10):
+- **Browser** (`web/e2e/finalize.e2e.mjs`, 12/12):
   1. "Late-night tacos in CDMX" suggests 🌮, and the place question starts at Yes with the city field;
   2. a picked emoji and colour say "You picked this theme.", save, and come back after a refresh at Finalize;
   3. No hides the city; Yes brings it back, and the city saves;
@@ -79,7 +80,10 @@ The new app sends the choices with Publish, which works only after step 1, so st
   6. Privacy saves the choice;
   7. Preview matches the design: theme background, Edit and "Preview · Unlisted", a 52 px band with "📖 3 picks" and "just now", and the picks in their new order;
   8. publishing keeps the theme, place and city, categories, visibility and order on the Stack;
-  9. "Books I loved" starts at No, its suggested theme (📖) is published, and a city typed before answering No isn't kept.
+  9. "Books I loved" starts at No, its suggested theme (📖) is published, and a city typed before answering No isn't kept;
+  10. with two populated sections (Roma Norte with 2 picks, Condesa with 1), Condesa's up arrow moves the whole section with its pick above Roma Norte. The order survives a refresh and publishing, each section with its picks.
+
+  Check 10 and the older-app city test fail on the previous version of this PR.
 - **The window between the steps:** the current live app (built from `main`) passed its own pick-editor (34/34) and drafts (26/26) browser tests against the migrated test copy.
 - **Earlier suites still pass:**
   - pick editor 34/34, drafts 26/26, sign-in 79/79;

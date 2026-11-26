@@ -165,7 +165,7 @@ check("4b. Tapping a picked category removes it, and it can be picked again", co
 // 5. Order: move a pick up from Finalize.
 await page.getByRole("button", { name: "Move Los Cocuyos up" }).click();
 await untilDraft(id, (c) => c.sections?.[0]?.lines?.[1]?.text === "Los Cocuyos");
-await page.getByText("Move sections and picks up or down.").scrollIntoViewIfNeeded();
+await page.getByText("Move sections (with their picks) and picks up or down.").scrollIntoViewIfNeeded();
 await page.mouse.wheel(0, -260);
 await page.waitForTimeout(300);
 await shot(page, "finalize-cats-order");
@@ -230,6 +230,46 @@ check(
   noAtFirst && r9?.theme_emoji === "📖" && ["oklch(86% 0.13 85)", "oklch(84% 0.12 40)", "oklch(84% 0.09 260)", "oklch(85% 0.1 160)", "oklch(85% 0.1 340)", "oklch(88% 0.12 110)"].includes(r9.theme_color) && r9.is_place === false && r9.location === "" && r9.categories.length === 0,
   JSON.stringify({ ...r9, sections: undefined }),
 );
+
+// 10. Order with two populated sections: a section's arrow moves the whole section, its title and its picks. The new
+//     order survives a refresh and publishing.
+await page.goto(APP + "/new");
+await page.getByLabel("Title").fill("Two areas");
+await page.getByRole("button", { name: "Next" }).click();
+await page.getByRole("button", { name: "Skip" }).click();
+await page.getByRole("button", { name: "Section", exact: true }).click();
+await page.getByRole("textbox", { name: "Section title" }).fill("Roma Norte");
+await page.getByRole("textbox", { name: "Section title" }).press("Enter");
+await page.getByRole("textbox", { name: "Item heading" }).fill("Licorería Limantour");
+await page.getByRole("textbox", { name: "Item heading" }).press("Enter");
+await page.getByRole("textbox", { name: "Item heading" }).fill("Baltra");
+await page.getByRole("button", { name: "Section", exact: true }).click();
+await page.getByRole("textbox", { name: "Section title" }).last().fill("Condesa");
+await page.getByRole("textbox", { name: "Section title" }).last().press("Enter");
+await page.getByRole("textbox", { name: "Item heading" }).fill("Departamento");
+await page.getByRole("button", { name: "Done", exact: true }).first().click();
+const id10 = await page.waitForURL(/\/drafts\//).then(() => draftIdOf(page));
+const shape = (secs) => (secs ?? []).filter((x) => x.label || x.lines?.length).map((x) => `${x.label}:${x.lines.map((l) => l.text).join("+")}`).join(" | ");
+await untilDraft(id10, (c) => shape(c.sections) === "Roma Norte:Licorería Limantour+Baltra | Condesa:Departamento");
+const before10 = shape(content(id10).sections);
+await page.getByRole("button", { name: "Finalize" }).click();
+await page.getByRole("button", { name: "Move section Condesa up" }).click();
+await untilDraft(id10, (c) => shape(c.sections) === "Condesa:Departamento | Roma Norte:Licorería Limantour+Baltra");
+const moved = shape(content(id10).sections);
+await page.reload();
+await page.getByRole("button", { name: "Move section Condesa up" }).waitFor({ timeout: 10000 }).catch(() => {});
+const rows = (await page.locator("[class*=orderText]").allInnerTexts()).join(",");
+check(
+  "10a. With two populated sections, Condesa's up arrow moves the section with its pick above Roma Norte and its two picks; a refresh keeps the order",
+  before10 === "Roma Norte:Licorería Limantour+Baltra | Condesa:Departamento" && moved === "Condesa:Departamento | Roma Norte:Licorería Limantour+Baltra" && rows === "Condesa,Departamento,Roma Norte,Licorería Limantour,Baltra" &&
+    (await page.getByRole("button", { name: "Move section Condesa up" }).isDisabled()),
+  `${moved} · rows: ${rows}`,
+);
+await page.getByRole("radio", { name: "No" }).click();
+await page.getByRole("button", { name: "Publish", exact: true }).click();
+await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
+const pub10 = shape(stackRow(id10)?.sections);
+check("10b. Publishing keeps the new section order, each with its picks", pub10 === "Condesa:Departamento | Roma Norte:Licorería Limantour+Baltra", pub10);
 
 await browser.close();
 cleanup();
