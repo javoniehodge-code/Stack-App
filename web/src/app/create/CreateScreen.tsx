@@ -543,8 +543,9 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const [linkSheet, setLinkSheet] = useState<LinkSheet | null>(null);
   const [sheet, setSheet] = useState(false);
   // A publish that failed, while its sheet is open: its title, and whether the draft couldn't be saved ("save", so
-  // nothing was published) or the publish wasn't confirmed ("publish": it may have gone through).
-  const [publishFailed, setPublishFailed] = useState<{ title: string; kind: "save" | "publish" } | null>(null);
+  // nothing was published) or the publish's outcome is unknown ("unknown": no answer, and the check failed too;
+  // `again` once Check again has failed as well).
+  const [publishFailed, setPublishFailed] = useState<{ title: string; kind: "save" | "unknown"; again?: boolean } | null>(null);
   // Bumped when Publish is tapped with only the city missing, to highlight the city field again.
   const [cityFlag, setCityFlag] = useState(0);
   const [titleDraft, setTitleDraft] = useState("");
@@ -1235,27 +1236,55 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     if (title !== work.title) edit((w) => ({ ...w, title }));
     setBusy(true);
     dirty.current = false;
-    let err = await persist("published", title);
-    // The publish was sent but no answer came back (say the connection dropped): it may have gone through. Look.
-    if (err && failStage.current === "publish" && failCode.current !== "22023" && !err.includes("sign in")) {
-      const { data } = await createClient().from("stacks").select("id").eq("id", idRef.current).eq("status", "published").maybeSingle();
-      if (data) err = null;
-    }
-    setBusy(false);
+    const err = await persist("published", title);
     if (err) {
-      if (err.includes("sign in")) return toast("Sign in to continue.");
+      if (err.includes("sign in")) return (setBusy(false), toast("Sign in to continue."));
       // A rule refused it (the checks above should have caught it first): say which.
-      if (failCode.current === "22023") return toast(`Couldn't publish: ${err.charAt(0).toUpperCase()}${err.slice(1)}.`);
-      // Otherwise it's most likely the connection: everything stays, and the sheet offers to try again.
-      const kind = failStage.current === "save" ? "save" : "publish";
-      // The save status says what's true: "Not saved · Retry" when the draft didn't save, otherwise saved.
-      if (kind === "save") setSave("error");
-      else settle(null);
+      if (failCode.current === "22023") return (setBusy(false), toast(`Couldn't publish: ${err.charAt(0).toUpperCase()}${err.slice(1)}.`));
       setSheet(false);
-      focusId.current = "retry";
-      setPublishFailed({ title, kind });
+      // The draft didn't save, so nothing was sent to publish: the sheet offers to try again, and the save status says
+      // "Not saved · Retry".
+      if (failStage.current === "save") {
+        setBusy(false);
+        setSave("error");
+        focusId.current = "retry";
+        setPublishFailed({ title, kind: "save" });
+        return;
+      }
+      // The publish was sent but no answer came back (say the connection dropped): it may have gone through. Look.
+      return settlePublish(title);
+    }
+    finishPublish(title);
+  }
+
+  /** Whether this Stack is live, still a draft, or (when the check itself fails) unknown. */
+  async function publishStatus(): Promise<"live" | "draft" | "unknown"> {
+    const { data, error } = await createClient().from("stacks").select("id").eq("id", idRef.current).eq("status", "published").maybeSingle();
+    if (error) return "unknown";
+    return data ? "live" : "draft";
+  }
+
+  /**
+   * After a publish with no answer: live opens the published Stack; still a draft goes back to editing; unknown (the
+   * check failed too) keeps editing closed, with Check again, until it's one or the other.
+   */
+  async function settlePublish(title: string) {
+    setBusy(true);
+    const status = await publishStatus();
+    setBusy(false);
+    if (status === "live") return finishPublish(title);
+    if (status === "draft") {
+      setPublishFailed(null);
+      settle(null);
+      toast("Couldn't publish. Your stack is still a draft. Check your connection and try again.");
       return;
     }
+    focusId.current = "retry";
+    setPublishFailed((f) => ({ title, kind: "unknown", again: f?.kind === "unknown" }));
+  }
+
+  function finishPublish(title: string) {
+    setBusy(false);
     setPublishFailed(null);
     setSheet(false);
     setWork((w) => ({ ...w, title }));
@@ -1267,7 +1296,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     // it would reset the address to the editor's old one, /new or the deleted draft's, and a reload of that, say
     // when coming back to the app, would show "Nothing here".)
     window.history.replaceState(window.history.state, "", `/s/${id}`);
-    if (id) setPublishedStack(await fetchStack(createClient(), viewer?.id ?? null, id));
+    if (id) fetchStack(createClient(), viewer?.id ?? null, id).then(setPublishedStack);
   }
 
   function publish() {
@@ -2567,7 +2596,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
         </div>
       )}
 
-      {publishFailed !== null && (
+      {publishFailed?.kind === "save" && (
         <div className={s.scrim} onClick={() => setPublishFailed(null)}>
           <div className={s.sheet} onClick={(e) => e.stopPropagation()} role="alertdialog" aria-modal="true" aria-labelledby="fail-title" aria-describedby="fail-text">
             <div className={s.grabber} />
@@ -2575,15 +2604,36 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               {"Couldn't publish"}
             </div>
             <div id="fail-text" className={s.sheetText}>
-              {publishFailed.kind === "save"
-                ? "Your latest changes couldn't be saved, so nothing was published. They're still here. Check your connection and try again."
-                : "Your stack is safe as a draft. Check your connection and try again. If it went through, trying again won't publish it twice."}
+              {"Your latest changes couldn't be saved, so nothing was published. They're still here. Check your connection and try again."}
             </div>
             <button data-fid="retry" className={s.primary} style={{ marginTop: 14, width: "100%" }} disabled={busy} onClick={() => requireAuth(() => doPublish(publishFailed.title), "Sign in to publish this stack and share it with others.")}>
               {busy ? "Publishing…" : "Try again"}
             </button>
             <button className={s.quiet} style={{ width: "100%", marginTop: 4 }} onClick={() => setPublishFailed(null)}>
               Keep editing
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* The publish's outcome is unknown: editing stays closed until a check says it's live or still a draft. */}
+      {publishFailed?.kind === "unknown" && (
+        <div className={s.scrim}>
+          <div className={s.sheet} role="alertdialog" aria-modal="true" aria-labelledby="fail-title" aria-describedby="fail-text">
+            <div className={s.grabber} />
+            <div id="fail-title" className={s.sheetTitle}>
+              Publish status unknown
+            </div>
+            <div id="fail-text" className={s.sheetText}>
+              {"Your connection dropped before we heard back, so we can't tell yet whether your stack was published. It won't be published twice. Check your connection, then check again."}
+            </div>
+            {publishFailed.again && (
+              <div className={s.fzWhy} role="status" style={{ marginTop: 10 }}>
+                {"Still couldn't check. Try again in a moment."}
+              </div>
+            )}
+            <button data-fid="retry" className={s.primary} style={{ marginTop: 14, width: "100%" }} disabled={busy} onClick={() => settlePublish(publishFailed.title)}>
+              {busy ? "Checking…" : "Check again"}
             </button>
           </div>
         </div>

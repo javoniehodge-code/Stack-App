@@ -235,31 +235,78 @@ check(
 );
 await page.getByRole("button", { name: "Keep editing" }).click();
 
-// 6. The publish itself fails (the connection drops before it arrives): the sheet, nothing published, the draft
-//    kept. Keep editing closes it.
+// 6. The publish doesn't arrive (the connection drops on the way), and the status check says it's still a draft:
+//    no sheet, a toast, and editing goes on with everything kept.
+const STACK_CHECK = /\/rest\/v1\/stacks\?/;
 await page.route("**/rest/v1/rpc/publish_draft*", (r) => r.abort("internetdisconnected"));
 await publishBtn().click({ force: true });
-await sheet.waitFor({ timeout: 10000 }).catch(() => {});
-await shot(page, "checks-failed");
-const sheetText = await sheetNow();
+await page.getByText("Your stack is still a draft").waitFor({ timeout: 10000 }).catch(() => {});
+const t6 = await toastText();
 check(
-  "6. An unconfirmed publish opens Couldn't publish. Your stack is safe as a draft. … won't publish it twice. with Try again and Keep editing, and keeps the draft",
-  sheetText === "Couldn't publish Your stack is safe as a draft. Check your connection and try again. If it went through, trying again won't publish it twice. Try again Keep editing" && stackCount() === 0 &&
-    sql(`select count(*) from public.drafts where id = '${id}'`) === "1",
-  sheetText,
+  "6. Not published and confirmed a draft: no sheet, the toast Couldn't publish. Your stack is still a draft. Check your connection and try again., the draft kept and editable",
+  !(await sheet.count()) && t6.includes("Couldn't publish. Your stack is still a draft. Check your connection and try again.") && stackCount() === 0 &&
+    sql(`select count(*) from public.drafts where id = '${id}'`) === "1" && (await page.getByLabel("City").isEditable()),
+  t6,
 );
-await page.getByRole("button", { name: "Keep editing" }).click();
-const closed = !(await sheet.count()) && (await page.getByLabel("City").inputValue()) === "Mexico City";
+
+// 6b. Not published, and the status check fails too: Publish status unknown, with only Check again (editing stays
+//     closed). A failed Check again says so; one that gets through and finds a draft goes back to editing.
+// (The app's database client retries a failed read a few times, so the check stays blocked until it's lifted.)
+await page.route(STACK_CHECK, (r) => r.abort("internetdisconnected"));
 await publishBtn().click({ force: true });
-await sheet.waitFor({ timeout: 10000 }).catch(() => {});
+await sheet.waitFor({ timeout: 30000 }).catch(() => {});
+await shot(page, "checks-unknown");
+const unknown6 = await sheetNow();
+const onlyCheck = (await sheet.getByRole("button").allInnerTexts()).join() === "Check again";
+await page.mouse.click(195, 120);
+const stays = (await sheet.count()) === 1;
+await page.getByRole("button", { name: "Check again" }).click();
+await page.getByText("Still couldn't check. Try again in a moment.").waitFor({ timeout: 30000 }).catch(() => {});
+const again6 = await page.getByText("Still couldn't check. Try again in a moment.").isVisible();
+await page.unroute(STACK_CHECK);
+await page.getByRole("button", { name: "Check again" }).click();
+await sheet.waitFor({ state: "detached", timeout: 10000 }).catch(() => {});
+const resumed = !(await sheet.count()) && (await page.getByLabel("City").isEditable()) && stackCount() === 0;
+check(
+  "6b. Unknown: Publish status unknown … check again., only Check again, tapping outside doesn't close it; a failed check says Still couldn't check.; a check finding a draft goes back to editing",
+  unknown6 === "Publish status unknown Your connection dropped before we heard back, so we can't tell yet whether your stack was published. It won't be published twice. Check your connection, then check again. Check again" &&
+    onlyCheck && stays && again6 && resumed,
+  `${unknown6} / only ${onlyCheck} / stays ${stays} / again ${again6} / resumed ${resumed}`,
+);
+
+// 7. Back online: Publish works, with the slug.
 await page.unroute("**/rest/v1/rpc/publish_draft*");
-await page.getByRole("button", { name: "Try again" }).click();
+await publishBtn().click({ force: true });
 await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
 const slug1 = sql(`select slug from public.stacks where id = '${id}'`);
+check("7. Publishing again works, with the slug late-night-tacos-in-cdmx", (await page.getByText("Your Stack is live").isVisible()) && slug1 === "late-night-tacos-in-cdmx", slug1);
+
+// 7b. The server commits the publish, but its reply and the status check right after are both lost: Publish status
+//     unknown, with the Stack already live. Check again finds it live and opens the published Stack; one Stack only.
+await page.goto(APP + "/new");
+await page.getByLabel("Title").fill("Rooftop bars");
+await page.getByRole("button", { name: "Next" }).click();
+await page.getByRole("button", { name: "Skip" }).click();
+await page.getByRole("textbox", { name: "Item heading" }).fill("Terraza Cha Cha Chá");
+await page.getByRole("button", { name: "Done", exact: true }).last().click();
+const id7 = await page.waitForURL(/\/drafts\//).then(() => draftIdOf(page));
+await page.getByRole("button", { name: "Finalize" }).click();
+await readyToPublish(page);
+await page.route("**/rest/v1/rpc/publish_draft*", async (r) => (await r.fetch(), r.abort("connectionreset")), { times: 1 });
+await page.route(STACK_CHECK, (r) => r.abort("internetdisconnected"));
+await publishBtn().click({ force: true });
+await sheet.waitFor({ timeout: 30000 }).catch(() => {});
+const unknown7 = (await sheetNow()).startsWith("Publish status unknown");
+const committed = sql(`select count(*) from public.stacks where id = '${id7}' and status = 'published'`);
+await page.unroute(STACK_CHECK);
+await page.getByRole("button", { name: "Check again" }).click();
+await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
+const live7 = (await page.getByText("Your Stack is live").isVisible()) && new URL(page.url()).pathname === `/s/${id7}`;
 check(
-  "7. Keep editing closes it with everything kept; Try again publishes, with the slug late-night-tacos-in-cdmx",
-  closed && (await page.getByText("Your Stack is live").isVisible()) && slug1 === "late-night-tacos-in-cdmx",
-  slug1,
+  "7b. Committed, with the reply and the first check lost: Publish status unknown; Check again opens the published Stack (Your Stack is live, its address); exactly one Stack, the draft gone",
+  unknown7 && committed === "1" && live7 && sql(`select count(*) from public.stacks where author_id = '${uid}' and title = 'Rooftop bars'`) === "1" &&
+    sql(`select count(*) from public.drafts where id = '${id7}'`) === "0",
+  `unknown ${unknown7} / committed ${committed} / live ${live7} / ${page.url()}`,
 );
 
 // 8. The database refuses what the app blocks, and gives each Stack its own slug (as this account, then rolled back).
@@ -320,8 +367,8 @@ await page.route("**/rest/v1/rpc/publish_draft*", (r) => r.abort("internetdiscon
 await publishBtn().click({ force: true });
 await page.getByLabel("Title").fill("Quiet cafés");
 await page.getByRole("dialog").getByRole("button", { name: "Publish", exact: true }).click();
-await sheet.waitFor({ timeout: 10000 }).catch(() => {});
-const failed10 = (await sheetNow()).startsWith("Couldn't publish Your stack is safe as a draft.");
+await page.getByText("Your stack is still a draft").waitFor({ timeout: 10000 }).catch(() => {});
+const failed10 = (await toastText()).includes("Your stack is still a draft");
 const saved10 = await untilDraft(id10, (c) => c.title === "Quiet cafés");
 await page.unroute("**/rest/v1/rpc/publish_draft*");
 await page.reload();
