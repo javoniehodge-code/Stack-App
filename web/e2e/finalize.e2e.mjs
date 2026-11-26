@@ -99,6 +99,19 @@ async function untilDraft(id, ok) {
 const stackRow = (id) =>
   JSON.parse(sql(`select row_to_json(x) from (select theme_emoji, theme_color, is_place, location, categories, visibility, sections from public.stacks where id = '${id}') x`) || "null");
 const C3 = "oklch(84% 0.09 260)";
+const TODAY = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+/** The band holds only the picks pill, against its right edge. */
+const bandRight = (page) =>
+  page.locator("[class*=pmBand]").evaluate((band) => {
+    const pill = band.querySelector("[class*=pmPicks]");
+    const b = band.getBoundingClientRect(), p = pill.getBoundingClientRect();
+    return b.right - p.right < 24 && p.left - b.left > b.width / 2 && band.innerText.replace(/\s+/g, " ").trim().endsWith("picks");
+  }).catch(() => false);
+/** The small row after the last pick. */
+const metaText = async (page) => {
+  await page.locator("[class*=pmMeta]").scrollIntoViewIfNeeded().catch(() => {});
+  return (await page.locator("[class*=pmMeta]").innerText().catch(() => "")).trim();
+};
 
 // A draft with three picks, taken to Finalize.
 await page.goto(APP + "/new");
@@ -177,20 +190,22 @@ await untilDraft(id, (c) => c.visibility === "unlisted");
 check("6. Privacy saves the choice", content(id).visibility === "unlisted");
 
 // 7. Preview, as in the design: full screen in the theme colour with Edit and "Preview · Unlisted", then the card
-//    with the slim band ("📖 3 picks", "just now"), the title and the picks in their new order.
+//    with the slim band (only "📖 3 picks", on the right), the title, the picks in their new order, and at the very
+//    bottom the city and date (agreed Nov 26).
 await page.getByRole("button", { name: /Preview your Stack/ }).click();
 await page.getByText("3 picks").waitFor({ timeout: 5000 }).catch(() => {});
 await shot(page, "finalize-preview");
 const screenBg = await page.locator("[class*=pmScreen]").evaluate((el) => getComputedStyle(el).backgroundColor).catch(() => "");
 const bandH = await page.locator("[class*=pmBand]").evaluate((el) => el.getBoundingClientRect().height).catch(() => 0);
 check(
-  "7. Preview matches the design: theme background, Edit and Preview · Unlisted, a 52px band with 📖 3 picks and just now, and the picks in order",
+  "7. Preview: theme background, Edit and Preview · Unlisted, a 52px band with only 📖 3 picks on the right, the picks in order, and 📍 Mexico City · Published today at the bottom",
   !!screenBg && screenBg !== "rgba(0, 0, 0, 0)" &&
     (await page.getByRole("button", { name: "Edit", exact: true }).isVisible()) &&
     (await page.getByText("👀 Preview · Unlisted").isVisible()) &&
     Math.round(bandH) === 52 &&
     (await page.locator("[class*=pmPicks]").innerText()).replace(/\s+/g, " ").trim() === "📖 3 picks" &&
-    (await page.getByText("just now").isVisible()) &&
+    (await bandRight(page)) &&
+    (await metaText(page)) === `📍 Mexico City · Published ${TODAY}` &&
     (await page.locator("[class*=pmHead]").allInnerTexts()).join() === "Orinoco,Los Cocuyos,El Huequito" &&
     !(await page.getByText("Saved just now").isVisible()),
   `${screenBg} · band ${bandH}px`,
@@ -206,6 +221,20 @@ check(
   r8?.theme_emoji === "📖" && r8.theme_color === C3 && r8.is_place === true && r8.location === "Mexico City" && r8.categories.join() === "Food & Drink,Travel & Places" && r8.visibility === "unlisted" &&
     r8.sections[0].lines.map((l) => l.text).join() === "Orinoco,Los Cocuyos,El Huequito",
   JSON.stringify({ ...r8, sections: undefined }),
+);
+await page.goto(APP + `/s/${id}`);
+await page.getByText("3 picks").waitFor({ timeout: 10000 }).catch(() => {});
+await shot(page, "stack-page-top");
+const pageBg = await page.locator("[class*=pmScreen]").evaluate((el) => getComputedStyle(el).backgroundColor).catch(() => "");
+const wall = await page.locator("[class*=pmWallLong]").evaluate((el) => [el.textContent.slice(0, 4), el.getAttribute("aria-hidden")].join("|")).catch(() => "");
+const pill8 = (await page.locator("[class*=pmPicks]").innerText().catch(() => "")).replace(/\s+/g, " ").trim();
+const right8 = await bandRight(page);
+const meta8 = await metaText(page);
+await shot(page, "stack-page-bottom");
+check(
+  "8b. The Stack page is in its theme: the colour with the 📖 wallpaper (hidden from screen readers), only 📖 3 picks in the band on the right, and 📍 Mexico City · Published today after the last pick",
+  !!pageBg && pageBg !== "rgba(0, 0, 0, 0)" && wall === "📖📖|true" && pill8 === "📖 3 picks" && right8 && meta8 === `📍 Mexico City · Published ${TODAY}` && !(await page.getByText("stack.", { exact: true }).isVisible()),
+  `${pageBg} · ${wall} · ${pill8} · ${right8} · ${meta8}`,
 );
 
 // 9. Untouched choices: the suggested theme is what's published; a Stack that isn't about a place keeps no city.
@@ -230,6 +259,10 @@ check(
   noAtFirst && r9?.theme_emoji === "📖" && ["oklch(86% 0.13 85)", "oklch(84% 0.12 40)", "oklch(84% 0.09 260)", "oklch(85% 0.1 160)", "oklch(85% 0.1 340)", "oklch(88% 0.12 110)"].includes(r9.theme_color) && r9.is_place === false && r9.location === "" && r9.categories.length === 0,
   JSON.stringify({ ...r9, sections: undefined }),
 );
+await page.goto(APP + `/s/${id9}`);
+await page.locator("[class*=pmPicks]").waitFor({ timeout: 10000 }).catch(() => {});
+const meta9 = await metaText(page);
+check("9b. A Stack that isn't about a place shows only the date at the bottom", meta9 === `Published ${TODAY}`, meta9);
 
 // 10. Order with two populated sections: a section's arrow moves the whole section, its title and its picks. The new
 //     order survives a refresh and publishing.

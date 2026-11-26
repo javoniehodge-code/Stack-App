@@ -247,12 +247,99 @@ await shot(page, "stack-page");
 check(
   "7b. The stack page shows the subheading, the tag chips and both links in order",
   (await page.getByText("Trompo tacos until 3am.").isVisible()) &&
-    (await page.getByText("Outdoor seating").isVisible()) &&
-    (await page.getByText("Late night").isVisible()) &&
+    (await page.getByText("Outdoor seating").first().isVisible()) &&
+    (await page.getByText("Late night").first().isVisible()) &&
     (await page.locator("a[href^='https://']").evaluateAll((as) => as.map((a) => a.getAttribute("href")))).join() === "https://elhuequito.com.mx/menu,https://maps.example.com/huequito",
 );
 
-// 8. Editing the published stack keeps pick ids too.
+// 7c. As in the design: the pick's tags are flat labels in their group's colours, in the tray's order (Price before
+//     When, typed ones last), with "You say" on your own Stack; the filter lists every tag and tapping one filters;
+//     each pick has round Pin and Send buttons (coming soon); your own Stack has ⋯ (no Edit pill) and no Remix.
+const chip7 = page.getByRole("button", { name: "Filter by 🌙 Late night" }).last();
+const chipStyle = await chip7.evaluate((el) => { const c = getComputedStyle(el); return [c.borderTopStyle, c.borderRadius, c.backgroundColor].join("|"); }).catch(() => "");
+const order7 = await page.locator("[class*=pmTags]").first().locator("button").allInnerTexts();
+const say7 = await page.locator("[class*=pmYouSay]").first().innerText().catch(() => "");
+const note7 = await page.locator("[class*=pmFilterNote]").innerText().catch(() => "");
+await chip7.click();
+const filtered7 = (await page.locator("[class*=pmFilterNote]").innerText().catch(() => "")) + " | " + (await page.locator("[class*=pmHead]").allInnerTexts()).join();
+await page.getByRole("button", { name: /^All 2$/ }).click();
+await page.getByRole("button", { name: "Add to your bucket list" }).first().click();
+const pinToast = await page.getByText("Pinning picks to your bucket list is coming soon.").isVisible();
+check(
+  "7c. Design details: flat tag labels in group colours and order, You say, the tag filter, Pin and Send per pick (coming soon), ⋯ for your own Stack, no Remix",
+  chipStyle.startsWith("none|7px|") && !chipStyle.endsWith("rgba(0, 0, 0, 0)") &&
+    order7.join() === "$,🌙 Late night,Outdoor seating" &&
+    /^you say$/i.test(say7.trim()) &&
+    note7 === "Your tags. Viewers can filter by them." &&
+    filtered7 === "Showing 1 of 2 · 🌙 Late night | Taquería Orinoco" &&
+    (await page.getByRole("button", { name: "Add to your bucket list" }).count()) === 2 &&
+    (await page.getByRole("button", { name: "Send this pick" }).count()) === 2 &&
+    pinToast &&
+    (await page.getByRole("button", { name: "Edit, visibility and delete" }).isVisible()) &&
+    !(await page.getByRole("button", { name: /^Remix/ }).isVisible()),
+  `${chipStyle} · ${order7.join()} · ${say7} · ${note7} · ${filtered7}`,
+);
+// A visitor (signed out) sees Remix with its count, a pink Follow, and ⋯ (Report and Block, coming soon).
+const guest = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+const gp = await guest.newPage();
+await gp.goto(APP + `/s/${id}`);
+await gp.getByText("Trompo tacos until 3am.").waitFor({ timeout: 10000 }).catch(() => {});
+// Solid, not faded: full opacity, filled with the page's pink accent (the build may write the colour as lab()).
+const followBg = await gp.getByRole("button", { name: "Follow", exact: true }).evaluate((el) => {
+  const c = getComputedStyle(el);
+  const accent = c.getPropertyValue("--accent").trim().replace(/%/, "");
+  return c.opacity === "1" && c.backgroundColor.replace(/%/, "") === accent && /^lab\(44\.8|^oklch\(0\.55 0\.22 350/.test(c.backgroundColor) ? "pink" : `${c.opacity} ${c.backgroundColor} ${accent}`;
+}).catch(() => "");
+await gp.getByRole("button", { name: "More options" }).click().catch(() => {});
+check(
+  "7d. A visitor sees Remix, a solid pink Follow, Filter by tag, and ⋯ says Report and Block are coming soon",
+  (await gp.getByRole("button", { name: /^Remix/ }).isVisible()) &&
+    followBg === "pink" &&
+    (await gp.getByText("Filter by tag, or tap any tag on a pick").isVisible()) &&
+    (await gp.getByText("Reporting and blocking are coming soon.").isVisible()),
+  followBg,
+);
+// 7e. On a short phone screen, once the picks scroll under it, the sticky tag filter stays fully visible and every
+//     chip can still be tapped (nothing covers it).
+await gp.setViewportSize({ width: 390, height: 560 });
+await gp.locator("[class*=pmBody]").evaluate((el) => el.scrollTo(0, el.scrollHeight));
+await gp.waitForTimeout(300);
+const stuck = await gp.locator("[class*=pmBody]").evaluate((body) => {
+  const box = body.getBoundingClientRect();
+  const filter = body.querySelector("[class*=pmFilter]");
+  const fs = getComputedStyle(filter);
+  const chips = [...body.querySelectorAll("[class*=pmFilterRow] button")];
+  return {
+    // Pinned flush to the top edge, with nothing above it that browsers place differently (Safari and Chrome
+    // disagree on a sticky offset when the scroller has top padding; only Chrome runs here).
+    flush: Math.abs(filter.getBoundingClientRect().top - box.top) < 1 && fs.top === "0px" && getComputedStyle(body).paddingTop === "0px",
+    scrolled: body.scrollTop > 0,
+    chips: chips.length,
+    ok: chips.filter((c) => {
+      const r = c.getBoundingClientRect();
+      const x = Math.min(r.left + r.width / 2, box.right - 4), y = r.top + r.height / 2;
+      return r.top >= box.top && r.bottom <= box.bottom && (r.left >= box.right || c.contains(document.elementFromPoint(x, y)));
+    }).length,
+  };
+});
+await gp.getByRole("button", { name: "Filter by 🌙 Late night" }).first().tap();
+const note7e = await gp.locator("[class*=pmFilterNote]").innerText().catch(() => "");
+check(
+  "7e. After scrolling on a short screen, the sticky tag filter sits flush at the top (the same in Safari and Chrome) and its chips are fully visible and tappable",
+  stuck.flush && stuck.scrolled && stuck.chips >= 3 && stuck.ok === stuck.chips && note7e === "Showing 1 of 2 · 🌙 Late night",
+  `${JSON.stringify(stuck)} · ${note7e}`,
+);
+await guest.close();
+
+// 8. Editing the published stack keeps pick ids too. Before it, the Stack page says Published; right after the edit
+//    is saved (seconds after publishing), it says Updated.
+const TODAY = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+const metaOf = async () => {
+  await page.locator("[class*=pmMeta]").waitFor({ timeout: 10000 }).catch(() => {});
+  return (await page.locator("[class*=pmMeta]").innerText().catch(() => "")).trim();
+};
+await page.goto(APP + `/s/${id}`);
+const before8 = await metaOf();
 await page.goto(APP + `/create?edit=${id}`);
 await page.getByText("Trompo tacos until 3am.").click();
 await page.getByRole("textbox", { name: "Item subheading" }).fill("Trompo tacos until 4am.");
@@ -261,6 +348,15 @@ await page.getByRole("button", { name: "Save", exact: true }).click();
 await page.waitForURL(new RegExp(`/s/${id}`), { timeout: 15000 }).catch(() => {});
 const edited = JSON.parse(sql(`select sections from public.stacks where id = '${id}'`) || "[]").flatMap((s) => s.lines);
 check("8. Publishing an edit updates the pick and keeps its id", edited[1]?.id === pickId && edited[1]?.note === "Trompo tacos until 4am.", JSON.stringify(edited[1]));
+await page.goto(APP + `/s/${id}`);
+await page.getByText("Trompo tacos until 4am.").waitFor({ timeout: 10000 }).catch(() => {});
+const after8 = await metaOf();
+const secs8 = sql(`select round(extract(epoch from updated_at - published_at)) from public.stacks where id = '${id}'`);
+check(
+  "8b. A fresh publish says Published; an edit saved right after (under a minute) says Updated",
+  before8.endsWith(`Published ${TODAY}`) && after8.endsWith(`Updated ${TODAY}`) && Number(secs8) < 60,
+  `${before8} → ${after8} (${secs8}s after publishing)`,
+);
 
 // 9. The item limit: at 15 picks, Add item says why and adds nothing.
 const full = await seed(page, uid, { title: "Fifteen", sections: [{ label: "", lines: Array.from({ length: 15 }, (_, i) => pick(i + 1)) }] });

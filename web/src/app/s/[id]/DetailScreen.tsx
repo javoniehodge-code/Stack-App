@@ -5,16 +5,17 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuth, useBack, useResume, useToast } from "@/components/AppProviders";
 import CommentBody from "@/components/CommentBody";
-import { BackIcon, BookmarkIcon } from "@/components/icons";
+import { BookmarkIcon } from "@/components/icons";
 import { RepostButton } from "@/components/Repost";
 import { ShareButton } from "@/components/Share";
-import { publishedLabel, StackPaper } from "@/components/StackView";
-import { EditPill, useVisibilityEditor } from "@/components/Visibility";
+import { dateLabel, metaLabel, type ViewLine } from "@/components/StackView";
+import { themed as t, ThemedStack, type ThemedSection } from "@/components/ThemedStack";
+import { useVisibilityEditor } from "@/components/Visibility";
 import { MentionList, useMentions } from "@/components/Mentions";
 import { FollowButton, UpdateBanner } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
 import { postComment, thread, threadRoot } from "@/lib/comments";
-import { flatten, initials } from "@/lib/format";
+import { flatten, initials, suggestColor, suggestEmoji } from "@/lib/format";
 import { useEngagement, useIsFollowing } from "@/lib/store";
 import { createClient } from "@/lib/supabase/client";
 import type { Comment, Stack } from "@/lib/types";
@@ -81,8 +82,11 @@ export default function DetailScreen({
     return () => clearTimeout(t);
   }, [sheetOpen, toast]);
 
-  const likeColor = e.liked ? "var(--accent)" : "var(--muted-66)";
-  const saveColor = e.saved ? "var(--accent)" : "var(--muted-66)";
+  // The design's bar colours: grey ink, pink when on.
+  const OFF = "oklch(41.5% 0.035 300)";
+  const PINK = "oklch(55% 0.22 350)";
+  const likeColor = e.liked ? PINK : OFF;
+  const saveColor = e.saved ? PINK : OFF;
 
   // Replies attach to the top-level comment and start with the person's @handle, so they're notified.
   const beginReply = (c: Comment) => {
@@ -125,11 +129,11 @@ export default function DetailScreen({
   }
 
   const author = (
-    <div className={s.authorRow}>
+    <div className={t.pmAuthor}>
       <Link href={a.authorHref(stack.author)} className={s.authorLink}>
-        <span className={s.avatar}>{initials(stack.author.name)}</span>
-        <span className={s.authorName}>{stack.author.name}</span>
-        <span className={s.authorHandle}>@{stack.author.handle}</span>
+        <span className={t.pmAvatar}>{initials(stack.author.name)}</span>
+        <span className={`${t.pmName} ${s.authorName}`}>{stack.author.name}</span>
+        <span className={`${t.pmHandle} ${s.authorHandle}`}>@{stack.author.handle}</span>
       </Link>
       {!mine && <FollowButton className={s.follow} following={isFollowing} onClick={() => a.toggleFollow(stack.author, isFollowing)} />}
     </div>
@@ -146,7 +150,7 @@ export default function DetailScreen({
       <RepostButton stack={stack} className={s.barButton} size={17} count={noCount} />
       <button
         className={s.commentsButton}
-        style={{ color: sheetOpen ? "var(--accent)" : "var(--muted-66)" }}
+        style={{ color: sheetOpen ? PINK : OFF }}
         onClick={() => setSheetOpen((o) => !o)}
         aria-expanded={sheetOpen}
         aria-label={comments.length ? `Comments, ${comments.length}` : "Comments"}
@@ -156,6 +160,19 @@ export default function DetailScreen({
         </svg>
         {comments.length > 0 && comments.length}
       </button>
+      {!mine && (
+        <button className={s.remix} onClick={() => toast("Remixing is coming soon.")} aria-label={`Remix, ${stack.forks_count}`}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M4 7h4l8 10h4" />
+            <path d="M17 14l3 3-3 3" />
+            <path d="M4 17h4l2-2.5" />
+            <path d="M14 9.5L16 7h4" />
+            <path d="M17 4l3 3-3 3" />
+          </svg>
+          Remix
+          {stack.forks_count > 0 && <span className={s.remixCount}>{stack.forks_count}</span>}
+        </button>
+      )}
       <span style={{ flex: 1 }} />
       <ShareButton
         stack={stack}
@@ -169,32 +186,54 @@ export default function DetailScreen({
 
   return (
     <main className={`${shell.screen} ${s.page}`}>
-      <div className={s.topRow}>
-        {fromCreate ? (
-          <button onClick={() => router.replace("/profile")} className={s.back}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-              <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />
-            </svg>
-            Exit
-          </button>
-        ) : (
-          <button onClick={back} className={s.back}>
-            <BackIcon />
-            Back
-          </button>
-        )}
-        {/* Your own stack: Edit opens Edit stack, who can see it, and Delete (as in Manage stacks). */}
-        {mine && <EditPill onClick={() => vis.openWithEdit(stack)} />}
-      </div>
-
-      <StackPaper
-        updated={publishedLabel(stack.published_at, stack.updated_at)}
+      <ThemedStack
+        emoji={stack.theme_emoji ?? suggestEmoji(stack.title)}
+        color={stack.theme_color ?? suggestColor(stack.title)}
+        top={
+          <>
+            {fromCreate ? (
+              <button onClick={() => router.replace("/profile")} className={t.pmEdit}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
+                  <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />
+                </svg>
+                Exit
+              </button>
+            ) : (
+              <button onClick={back} className={t.pmEdit}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M14.5 5.5L8 12l6.5 6.5" />
+                </svg>
+                Back
+              </button>
+            )}
+            {/* ⋯: on your own Stack, Edit stack, who can see it, and Delete (as in Manage stacks); on anyone else's,
+                Report and Block (coming soon). */}
+            <button
+              type="button"
+              className={s.more}
+              aria-label={mine ? "Edit, visibility and delete" : "More options"}
+              onClick={() => (mine ? vis.openWithEdit(stack) : toast("Reporting and blocking are coming soon."))}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                <circle cx="5" cy="12" r="2" />
+                <circle cx="12" cy="12" r="2" />
+                <circle cx="19" cy="12" r="2" />
+              </svg>
+            </button>
+          </>
+        }
         author={author}
-        banner={<UpdateBanner stack={stack} />}
+        banner={<UpdateBanner stack={stack} className={s.update} />}
         title={stack.title}
         description={stack.description}
-        lines={lines}
+        sections={sectionsOf(lines)}
+        ownerFirst={mine ? "You" : stack.author.name.trim().split(/\s+/)[0] || stack.author.handle}
+        mine={mine}
+        onPin={() => toast("Pinning picks to your bucket list is coming soon.")}
+        onSend={() => toast("Sending picks is coming soon.")}
+        meta={metaLabel(stack.is_place ? (stack.location ?? "").trim() : "", dateLabel(stack.published_at, stack.updated_at))}
         footer={footer}
+        atBottom
       />
 
       {sheetOpen && (
@@ -273,4 +312,14 @@ export default function DetailScreen({
       {vis.sheet}
     </main>
   );
+}
+
+/** The flat lines back into their sections: a new one starts at each section's first line. */
+function sectionsOf(lines: ViewLine[]): ThemedSection[] {
+  const out: ThemedSection[] = [];
+  lines.forEach((ln) => {
+    if (ln.label !== null || !out.length) out.push({ key: String(out.length), label: ln.label, lines: [] });
+    out[out.length - 1].lines.push(ln);
+  });
+  return out;
 }
