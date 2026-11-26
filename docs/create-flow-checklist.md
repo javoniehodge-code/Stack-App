@@ -31,7 +31,7 @@ Every detail of creating and publishing a Stack, and where it's built. Tick item
 - [x] Title, Description and Build match the design: top bar, status pill, progress bar, fields, pick rows, toolbar, tags tray, link sheet, bottom bar. Pink accent, ink text and the design's fonts.
 - [x] The tags tray opens as a panel under the toolbar, with group hints ("Price · pick one") and a "2/3" count. Tapping "Your own" or its field puts the cursor there.
 - [x] No warning box above the picks: each pick says what to fix under it ("Needs a heading.", "heading 92/80 · 12 over", an older web address). A section with picks and no title says "Needs a title."
-- [x] Placeholders as in the design: "Item name (required)", "Add a short reason or useful context (optional)".
+- [x] Placeholders as in the design: "Item (required)" (the design says "Item name", but the word "name" makes iPhones offer contacts; agreed Nov 26), "Add a short reason or useful context (optional)". Autofill is off in every create-flow field.
 - [x] Save failure reads **"Not saved · Retry"**, with Retry (Flow 1, What is saved and when).
 - [x] The Build header shows the item count ("5 items · 2 links") (Flow 1, step 3).
 - [x] **Shift+Enter does nothing** in pick fields, so no line breaks (Responsive behavior, Build: format toolbar).
