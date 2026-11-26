@@ -549,6 +549,8 @@ await page.getByRole("button", { name: "Next" }).click();
 await page.getByRole("button", { name: "Skip" }).click();
 const h18 = page.getByRole("textbox", { name: "Item heading" });
 const placeholder18 = await h18.getAttribute("placeholder");
+// No contact autofill: every field on the page says autocomplete="off".
+const autofill18 = await page.locator("main input:not([type=checkbox]):not([type=radio]), main textarea").evaluateAll((els) => els.filter((e) => e.getAttribute("autocomplete") !== "off").map((e) => e.getAttribute("aria-label") || e.id));
 const empty18 = !(await page.getByText(/3\/4 · Build · /).isVisible());
 await h18.fill("First pick");
 await h18.press("Shift+Enter");
@@ -556,9 +558,9 @@ await page.waitForTimeout(300);
 const one18 = (await page.getByRole("textbox", { name: "Item heading" }).count()) === 1 && (await h18.inputValue()) === "First pick";
 await page.getByRole("button", { name: "Done", exact: true }).first().click();
 check(
-  "18a. The step shows the item count once there's an item, the heading says it's required, and Shift+Enter adds nothing",
-  empty18 && placeholder18 === "Item name (required)" && one18 && (await page.getByText("3/4 · Build · 1 item").isVisible()),
-  `${placeholder18} · ${one18}`,
+  "18a. The step shows the item count once there's an item, the heading says it's required (without the word \"name\", which makes iPhones offer contacts), autofill is off, and Shift+Enter adds nothing",
+  empty18 && placeholder18 === "Item (required)" && autofill18.length === 0 && one18 && (await page.getByText("3/4 · Build · 1 item").isVisible()),
+  `${placeholder18} · autofill on: ${autofill18.join()} · ${one18}`,
 );
 await page.getByRole("button", { name: "Add item" }).click();
 await page.getByRole("textbox", { name: "Item subheading" }).fill("Only a reason");

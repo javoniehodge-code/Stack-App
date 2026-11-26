@@ -1484,6 +1484,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
           </label>
           <div className={s.ownTagRow}>
             <input
+              autoComplete="off"
               id="own-tag"
               className={s.ownTagInput}
               data-over={ownOver > 0 || undefined}
@@ -1542,6 +1543,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
             <div className={s.composeSpacer} style={{ height: step === "title" ? 150 : step === "description" ? 72 : 6 }} />
             {step === "title" && <div className={s.ask}>What would you like to call this Stack?</div>}
             <textarea
+              autoComplete="off"
               data-fid="title"
               className={s.titleInput}
               data-active={step === "title" || undefined}
@@ -1591,6 +1593,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                   </div>
                 )}
                 <textarea
+                  autoComplete="off"
                   data-fid="desc"
                   className={s.descInput}
                   data-active={step === "description" || undefined}
@@ -1681,6 +1684,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                             <div className={s.sectionRule}>
                               <span className={s.sectionBar} />
                               <textarea
+                                autoComplete="off"
                                 data-fid={sec.id}
                                 className={s.sectionInput}
                                 rows={1}
@@ -1838,6 +1842,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                               {marker(l, n2)}
                               <div className={s.lineInputs}>
                                 <textarea
+                                  autoComplete="off"
                                   data-fid={l.id}
                                   className={s.lineInput}
                                   rows={1}
@@ -1845,10 +1850,11 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                                   onChange={(e) => writeText(l.id, "text", e.target.value, (e.nativeEvent as InputEvent).inputType === "insertFromPaste")}
                                   onBlur={() => finishLinks(l.id)}
                                   onKeyDown={enter}
-                                  placeholder="Item name (required)"
+                                  placeholder="Item (required)"
                                   aria-label="Item heading"
                                 />
                                 <textarea
+                                  autoComplete="off"
                                   data-fid={`${l.id}-sub`}
                                   className={s.subInput}
                                   rows={1}
@@ -2073,6 +2079,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                           <circle cx="12" cy="10" r="2.4" />
                         </svg>
                         <input
+                          autoComplete="off"
                           className={s.fzCityInput}
                           value={work.location}
                           onChange={(e) => {
@@ -2358,6 +2365,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               Link
             </label>
             <input
+              autoComplete="off"
               id="ls-url"
               data-fid="ls-url"
               className={s.lsInput}
@@ -2383,6 +2391,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               Name <span className={s.lsOptional}>(optional)</span>
             </label>
             <input
+              autoComplete="off"
               id="ls-name"
               data-fid="ls-name"
               className={s.lsInput}
@@ -2443,6 +2452,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               </span>
             </div>
             <input
+              autoComplete="off"
               id="update-note"
               data-fid="note"
               className={`${s.sheetInput} ${s.noteInput}`}
@@ -2471,6 +2481,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
             </div>
             <div className={s.sheetText}>Everything else stays as it is.</div>
             <input
+              autoComplete="off"
               data-fid={"sheet"}
               className={s.sheetInput}
               value={titleDraft}
