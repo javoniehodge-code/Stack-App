@@ -46,6 +46,9 @@ Every detail of creating and publishing a Stack, and where it's built. Tick item
 
 - [x] The Stack page shows its theme as in the design: the theme colour with the emoji wallpaper behind the page, Back (or Edit for your own Stack) as white pills, and the card's band with the emoji wallpaper and the "🌮 N picks" pill.
 - [x] Changed from the design (agreed Nov 26): the band holds only "🌮 N picks", on the right. The city and date sit in a small row after the last pick: "📍 Mexico City · Published Nov 24" ("Updated Nov 26" once edited; just the date when the Stack isn't about a place). They stay stored for search and sorting.
+- [x] The rest of the Stack page matches the design: the tag filter ("All N" and each tag; "Showing N of M · tag"), flat tag labels in their group's colours ("Renata says"), round Pin and Send buttons on each pick, the bottom bar's colours and yellow **Remix** with its count, a solid pink Follow, the green "Updated" box and the comments panel.
+- [x] ⋯ replaces Edit (agreed Nov 26): on your own Stack it opens Edit stack, who can see it, and Delete.
+- Pin, Send, Remix, and Report / Block (⋯ on someone else's Stack) show "coming soon" until those features are built (agreed Nov 26).
 - [x] Finalize › Preview shows the same layout, so it matches the published page.
 - Stacks published before the theme existed show the theme suggested from their title.
 - Feed cards keep their current band for now (see "Showing the Finalize choices in feeds" below).

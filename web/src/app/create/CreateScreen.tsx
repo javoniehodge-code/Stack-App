@@ -2263,14 +2263,10 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
             title={shownTitle}
             description={work.description.trim()}
             sections={previewSections(work)}
-            sayLabel="You say"
+            ownerFirst="You"
+            mine
+            preview
             meta={metaLabel(fin.city, dateLabel(new Date().toISOString()))}
-            actions={
-              <div className={t.pmActions} aria-hidden>
-                <span>📌 Pin</span>
-                <span>📨 Send</span>
-              </div>
-            }
             footer={
               <span style={{ display: "contents" }} aria-hidden>
                 <span className={t.pmBarIcon} style={{ fontSize: 18 }}>

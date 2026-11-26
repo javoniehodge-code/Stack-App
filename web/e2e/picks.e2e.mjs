@@ -247,10 +247,54 @@ await shot(page, "stack-page");
 check(
   "7b. The stack page shows the subheading, the tag chips and both links in order",
   (await page.getByText("Trompo tacos until 3am.").isVisible()) &&
-    (await page.getByText("Outdoor seating").isVisible()) &&
-    (await page.getByText("Late night").isVisible()) &&
+    (await page.getByText("Outdoor seating").first().isVisible()) &&
+    (await page.getByText("Late night").first().isVisible()) &&
     (await page.locator("a[href^='https://']").evaluateAll((as) => as.map((a) => a.getAttribute("href")))).join() === "https://elhuequito.com.mx/menu,https://maps.example.com/huequito",
 );
+
+// 7c. As in the design: the pick's tags are flat labels in their group's colours, in the tray's order (Price before
+//     When, typed ones last), with "You say" on your own Stack; the filter lists every tag and tapping one filters;
+//     each pick has round Pin and Send buttons (coming soon); your own Stack has ⋯ (no Edit pill) and no Remix.
+const chip7 = page.getByRole("button", { name: "Filter by 🌙 Late night" }).last();
+const chipStyle = await chip7.evaluate((el) => { const c = getComputedStyle(el); return [c.borderTopStyle, c.borderRadius, c.backgroundColor].join("|"); }).catch(() => "");
+const order7 = await page.locator("[class*=pmLine]").nth(1).locator("[class*=pmTags] button").allInnerTexts();
+const say7 = await page.locator("[class*=pmYouSay]").first().innerText().catch(() => "");
+const note7 = await page.locator("[class*=pmFilterNote]").innerText().catch(() => "");
+await chip7.click();
+const filtered7 = (await page.locator("[class*=pmFilterNote]").innerText().catch(() => "")) + " | " + (await page.locator("[class*=pmHead]").allInnerTexts()).join();
+await page.getByRole("button", { name: /^All 2$/ }).click();
+await page.getByRole("button", { name: "Add to your bucket list" }).first().click();
+const pinToast = await page.getByText("Pinning picks to your bucket list is coming soon.").isVisible();
+check(
+  "7c. Design details: flat tag labels in group colours and order, You say, the tag filter, Pin and Send per pick (coming soon), ⋯ for your own Stack, no Remix",
+  chipStyle.startsWith("none|7px|") && !chipStyle.endsWith("rgba(0, 0, 0, 0)") &&
+    order7.join() === "$,🌙 Late night,Outdoor seating" &&
+    /^you say$/i.test(say7.trim()) &&
+    note7 === "Your tags. Viewers can filter by them." &&
+    filtered7 === "Showing 1 of 2 · 🌙 Late night | Taquería Orinoco" &&
+    (await page.getByRole("button", { name: "Add to your bucket list" }).count()) === 2 &&
+    (await page.getByRole("button", { name: "Send this pick" }).count()) === 2 &&
+    pinToast &&
+    (await page.getByRole("button", { name: "Edit, visibility and delete" }).isVisible()) &&
+    !(await page.getByRole("button", { name: /^Remix/ }).isVisible()),
+  `${chipStyle} · ${order7.join()} · ${say7} · ${note7} · ${filtered7}`,
+);
+// A visitor (signed out) sees Remix with its count, a pink Follow, and ⋯ (Report and Block, coming soon).
+const guest = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+const gp = await guest.newPage();
+await gp.goto(APP + `/s/${id}`);
+await gp.getByText("Trompo tacos until 3am.").waitFor({ timeout: 10000 }).catch(() => {});
+const followBg = await gp.getByRole("button", { name: "Follow", exact: true }).evaluate((el) => getComputedStyle(el).backgroundColor).catch(() => "");
+await gp.getByRole("button", { name: "More options" }).click().catch(() => {});
+check(
+  "7d. A visitor sees Remix, a solid pink Follow, Filter by tag, and ⋯ says Report and Block are coming soon",
+  (await gp.getByRole("button", { name: /^Remix/ }).isVisible()) &&
+    followBg === "oklch(0.55 0.22 350)" &&
+    (await gp.getByText("Filter by tag, or tap any tag on a pick").isVisible()) &&
+    (await gp.getByText("Reporting and blocking are coming soon.").isVisible()),
+  followBg,
+);
+await guest.close();
 
 // 8. Editing the published stack keeps pick ids too.
 await page.goto(APP + `/create?edit=${id}`);
