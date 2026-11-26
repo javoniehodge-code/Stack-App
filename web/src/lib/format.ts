@@ -90,6 +90,21 @@ export function textLinks(text: string): { text: string; links: string[] } {
   };
 }
 
+/**
+ * The first web address typed into some text, and the text without just that one (any others stay in place).
+ * Null when there's none.
+ */
+export function firstTextLink(text: string): { href: string; rest: string } | null {
+  for (const m of text.matchAll(URL_RE)) {
+    const trail = m[0].match(/[.,;:!?)\]]+$/)?.[0] ?? "";
+    const u = m[0].slice(0, m[0].length - trail.length);
+    if (!u) continue;
+    const rest = (text.slice(0, m.index) + text.slice(m.index + u.length)).replace(/[ \t]{2,}/g, " ").trim();
+    return { href: /^https?:/i.test(u) ? u : `https://${u}`, rest };
+  }
+  return null;
+}
+
 const linkKey = (url: string) => url.replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, "").toLowerCase();
 
 /**

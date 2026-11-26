@@ -36,15 +36,17 @@ This covers migration `20261129000000_pick_model` and the new pick editor. The e
   - At 15 picks, Add item reads "15 of 15 items · remove one to add another" and adds nothing.
   - At 5 sections, Section says "A Stack can have up to 5 sections."
 - **Line breaks become spaces** in every field, typed or pasted.
-- **Delete has a 5-second Undo**, and reorder works as before.
+- **Delete has a 5-second Undo.** Undo puts back only the deleted pick, or the removed section title, and keeps anything changed since. Reorder works as before.
 - **Every pick has a stable id.** It survives saves, reorders, Undo, publishing and later edits, so pins and sends can point at it later.
 - **The save status shows on every page**, from the Title page on.
 - **The published Stack page** shows each pick's subheading and tag chips.
-- **Older content converts when it's opened in the editor:**
+- **Picks come back exactly as saved.** A heading that names a website ("Ramen at fuunji.jp") stays as typed, through save and refresh.
+- **Older content converts when it's opened in the editor.** This applies only to lines saved before picks:
   - paragraphs and bold lines become bulleted picks;
   - ** marks and line breaks go;
   - an older line's separate detail becomes its subheading;
-  - a web address typed into the text becomes the pick's link, if it had none;
+  - if it had no link, the first web address typed into its text becomes the link (with its name);
+  - any other web addresses stay in the heading, and the box lists them until the owner moves or removes them;
   - anything over the new limits is listed, not cut.
 
   Published Stacks keep showing as they are until they're edited. Live has none (Nov 26).
@@ -91,7 +93,7 @@ The new editor saves picks that the new database rules accept, so step 1 comes f
 
   The same tests fail on the previous rules.
 - **Rollback:** on the test copy, the rollback put back the previous rules (a paragraph was accepted again) and the 2a draft tests passed. Re-applying the migration passed the new tests again.
-- **Browser** (`web/e2e/picks.e2e.mjs`, 20/20):
+- **Browser** (`web/e2e/picks.e2e.mjs`, 25/25):
   1. the Title page shows "Saved just now";
   2. a pick saves its heading and subheading, line breaks become spaces, and it gets a stable id;
   3. **tags tray:**
@@ -106,7 +108,12 @@ The new editor saves picks that the new database rules accept, so step 1 comes f
   8. publishing an edit to that Stack keeps the pick's id;
   9. at 15 items, Add item reads "15 of 15 items" and adds nothing;
   10. with 5 sections, Section says "A Stack can have up to 5 sections." and adds none;
-  11. older content (a paragraph with ** marks, a bold line, a numbered line with a detail, a 120-character line) opens as picks with the detail as a subheading, lists the long one, and saves as picks with ids, nothing cut.
+  11. older content (a paragraph with ** marks, a bold line, a numbered line with a detail, a 120-character line) opens as picks with the detail as a subheading, lists the long one, and saves as picks with ids, nothing cut;
+  12. new headings naming a website ("Ramen at fuunji.jp", and one with its own link) keep their heading and link through save, refresh and another save, with nothing listed;
+  13. an older line with two web addresses: the first becomes the named link, the second stays in the heading and is listed after save and refresh, until the owner removes it;
+  14. Delete a pick, edit another, then Undo: only the deleted pick comes back, in its place, and the edit stays. The same for a removed section title.
+
+  Checks 12, 13 and 14 fail on this PR's first version, which had those bugs.
 - **The window between the steps:** the current live app (built from `main`) passed its own drafts browser test (26/26) against the migrated test copy.
 - **Earlier suites still pass:**
   - drafts browser test, 26/26;

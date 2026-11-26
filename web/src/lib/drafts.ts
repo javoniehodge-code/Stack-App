@@ -64,6 +64,10 @@ export function toDraftSections(sections: unknown, style: Draft["style"]): Draft
       linkNames: l?.linkNames && typeof l.linkNames === "object" ? l.linkNames : {},
       ...(typeof l?.id === "string" ? { id: l.id } : {}),
       tags: asArray<unknown>(l?.tags).filter((t): t is string => typeof t === "string"),
+      ...(() => {
+        const urls = asArray<unknown>((l as { legacyUrls?: unknown })?.legacyUrls).filter((u): u is string => typeof u === "string");
+        return urls.length ? { legacyUrls: urls } : {};
+      })(),
     })),
   }));
 }

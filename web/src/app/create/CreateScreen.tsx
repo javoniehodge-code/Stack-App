@@ -8,6 +8,7 @@ import shell from "@/components/AppShell.module.css";
 import { ShareSheet, systemShare } from "@/components/Share";
 import { StackPaper, TagChips } from "@/components/StackView";
 import {
+  firstTextLink,
   initials,
   linkDomain,
   oneLine,
@@ -43,7 +44,7 @@ type ListFormat = "num" | "bullet";
  * A pick being edited: its stable id, heading (`text`), optional subheading (`sub`), optional link (with a name for
  * its pill) and up to 3 tags.
  */
-type Line = { id: string; text: string; sub: string; link: string; format: ListFormat; linkName: string; tags: string[] };
+type Line = { id: string; text: string; sub: string; link: string; format: ListFormat; linkName: string; tags: string[]; legacyUrls?: string[] };
 type Sec = { id: string; headed: boolean; label: string; lines: Line[] };
 // `tags` here are the stack's own (older) tags, which aren't edited here; a pick's tags are on the pick.
 type Work = { title: string; description: string; tags: string[]; visibility: Visibility; location: string; sections: Sec[] };
@@ -114,32 +115,100 @@ const trashIcon = (stroke: string) => (
 );
 
 /**
- * A saved line → a pick. Lines from before picks (spec, Existing content) convert: paragraphs and bold lines become
- * bulleted picks, ** marks and line breaks go, an older line's separate detail becomes its subheading, and a web
- * address typed into the text becomes the pick's link when it has none. Nothing is cut: anything over a limit
- * shows in the editor until it's fixed.
+ * A saved line → a pick. A pick saved by this editor (it has an id and is numbered or bulleted) comes back exactly
+ * as it was: a heading that names a website ("Ramen at fuunji.jp") stays as typed.
+ *
+ * Only lines from before picks (spec, Existing content) are converted: paragraphs and bold lines become bulleted
+ * picks, ** marks and line breaks go, and an older line's separate detail becomes its subheading. If the line had
+ * no link, the first web address typed into its text becomes the link. Any other addresses stay in the heading, and
+ * are listed for the owner to resolve (`legacyUrls`). Nothing is cut: anything over a limit is listed too.
  */
 function toPick(l: DraftLine): Line {
+  const tags = (l.tags ?? []).filter((t) => t.trim());
+  if (l.id && UUID.test(l.id) && (l.format === "num" || l.format === "bullet")) {
+    return {
+      id: l.id,
+      text: l.text ?? "",
+      sub: l.note ?? "",
+      link: l.link ?? "",
+      format: l.format,
+      linkName: l.linkName ?? "",
+      tags,
+      ...(l.legacyUrls?.length ? { legacyUrls: l.legacyUrls } : {}),
+    };
+  }
   let text = oneLine(plainText(l.text ?? "")).trim();
   let link = l.link ?? "";
   let linkName = l.linkName ?? "";
   if (!link) {
-    const typed = textLinks(text);
-    if (typed.links.length) {
-      link = typed.links[0];
-      linkName = l.linkNames?.[link] ?? "";
-      text = typed.text;
+    const first = firstTextLink(text);
+    if (first) {
+      link = first.href;
+      linkName = l.linkNames?.[first.href] ?? "";
+      text = first.rest;
     }
   }
+  const legacyUrls = textLinks(text).links;
   return {
-    id: l.id && UUID.test(l.id) ? l.id : crypto.randomUUID(),
+    id: crypto.randomUUID(),
     text,
     sub: oneLine(l.note ?? "").trim(),
     link,
     format: l.format === "num" ? "num" : "bullet",
     linkName,
-    tags: (l.tags ?? []).filter((t) => t.trim()),
+    tags,
+    ...(legacyUrls.length ? { legacyUrls } : {}),
   };
+}
+
+/** Web addresses from an older line that are still in a pick's heading. */
+const leftoverUrls = (l: Line) => (l.legacyUrls?.length ? textLinks(l.text).links.filter((u) => l.legacyUrls!.includes(u)) : []);
+
+/**
+ * Undo for a deleted pick: puts back just that pick, after the pick that was above it (or before the one that was
+ * below it, or in its section), into the stack as it is now, so edits made since are kept.
+ */
+function restoreLine(w: Work, line: Line, at: { secId: string; si: number; prevId: string | null; nextId: string | null }): Work {
+  if (w.sections.some((sec) => sec.lines.some((l) => l.id === line.id))) return w;
+  const secs = w.sections.map((x) => ({ ...x, lines: [...x.lines] }));
+  const find = (id: string | null) => {
+    if (!id) return null;
+    for (const sec of secs) {
+      const k = sec.lines.findIndex((l) => l.id === id);
+      if (k >= 0) return { sec, k };
+    }
+    return null;
+  };
+  const prev = find(at.prevId);
+  const next = prev ? null : find(at.nextId);
+  if (prev) prev.sec.lines.splice(prev.k + 1, 0, line);
+  else if (next) next.sec.lines.splice(next.k, 0, line);
+  else {
+    const sec = secs.find((x) => x.id === at.secId) ?? secs[Math.min(at.si, secs.length - 1)];
+    if (at.prevId) sec.lines.push(line);
+    else sec.lines.unshift(line);
+  }
+  return { ...w, sections: secs };
+}
+
+/**
+ * Undo for a removed section title: puts back just the title. The picks that joined the section above get it
+ * back, from the first of them still there to the end of that section (picks added among them since go with them);
+ * other edits are kept.
+ */
+function restoreHeading(w: Work, head: { id: string; label: string }, lineIds: string[], si: number): Work {
+  const own = w.sections.findIndex((x) => x.id === head.id);
+  if (own >= 0) return w.sections[own].headed ? w : { ...w, sections: w.sections.map((x, k) => (k === own ? { ...x, headed: true, label: head.label } : x)) };
+  const secs = w.sections.map((x) => ({ ...x, lines: [...x.lines] }));
+  for (let k = 0; k < secs.length; k++) {
+    const at = secs[k].lines.findIndex((l) => lineIds.includes(l.id));
+    if (at >= 0) {
+      secs.splice(k + 1, 0, { id: head.id, headed: true, label: head.label, lines: secs[k].lines.splice(at) });
+      return { ...w, sections: secs };
+    }
+  }
+  secs.splice(Math.min(si, secs.length), 0, { id: head.id, headed: true, label: head.label, lines: [] });
+  return { ...w, sections: secs };
 }
 
 function fromDraft(d: Draft): Work {
@@ -199,6 +268,11 @@ function limitProblems(w: Work): string[] {
     if (l.tags.length > MAX_TAGS) out.push(`Item ${n} has ${l.tags.length} tags. Remove ${l.tags.length - MAX_TAGS} to keep ${MAX_TAGS}.`);
     l.tags.filter((x) => x.trim().length > MAX_TAG).forEach((x) => out.push(`Item ${n} tag “${x.trim().slice(0, 12)}…” is ${over(x.trim().length, MAX_TAG)} over ${MAX_TAG} characters.`));
     if (l.tags.filter((x) => PRICE_TAGS.includes(x)).length > 1) out.push(`Item ${n} has more than one price. Keep one.`);
+    const left = leftoverUrls(l);
+    if (left.length)
+      out.push(
+        `Item ${n} heading still has ${left.length === 1 ? "a web address" : `${left.length} web addresses`} from an older version (${left.map(linkDomain).join(", ")}). Make ${left.length === 1 ? "it the link or remove it" : "one the link and remove the rest"}.`,
+      );
   });
   return out;
 }
@@ -215,6 +289,8 @@ const sectionsArg = (w: Work) =>
       format: l.format,
       ...(l.link && l.linkName.trim() ? { linkName: l.linkName.trim() } : {}),
       ...(l.tags.length ? { tags: l.tags } : {}),
+      // Kept on the draft until resolved; publishing drops it.
+      ...(leftoverUrls(l).length ? { legacyUrls: leftoverUrls(l) } : {}),
     })),
   }));
 
@@ -665,10 +741,15 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
 
   /** Deletes a line, with Undo. */
   function deleteLine(id: string) {
-    const before = work;
-    edit((w) => ({ ...w, sections: w.sections.map((sec) => ({ ...sec, lines: sec.lines.filter((l) => l.id !== id) })) }));
+    const si = work.sections.findIndex((sec) => sec.lines.some((l) => l.id === id));
+    if (si < 0) return;
+    const sec = work.sections[si];
+    const i = sec.lines.findIndex((l) => l.id === id);
+    const line = sec.lines[i];
+    const at = { secId: sec.id, si, prevId: sec.lines[i - 1]?.id ?? null, nextId: sec.lines[i + 1]?.id ?? null };
+    edit((w) => ({ ...w, sections: w.sections.map((x) => ({ ...x, lines: x.lines.filter((l) => l.id !== id) })) }));
     setSel(null);
-    toast("Item deleted", { label: "Undo", run: () => edit(() => before) });
+    toast("Item deleted", { label: "Undo", run: () => edit((w) => restoreLine(w, line, at)) });
     if (tagFor === id) setTagFor(null);
   }
 
@@ -710,7 +791,10 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
 
   /** Removes a section's heading (its lines join the section above), with Undo. */
   function removeSection(id: string) {
-    const before = work;
+    const si = work.sections.findIndex((x) => x.id === id);
+    if (si < 0) return;
+    const head = { id, label: work.sections[si].label };
+    const lineIds = work.sections[si].lines.map((l) => l.id);
     edit((w) => {
       const i = w.sections.findIndex((x) => x.id === id);
       if (i < 0) return w;
@@ -721,7 +805,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
       return { ...w, sections: secs };
     });
     setSel(null);
-    toast("Section header removed", { label: "Undo", run: () => edit(() => before) });
+    toast("Section header removed", { label: "Undo", run: () => edit((w) => restoreHeading(w, head, lineIds, si)) });
   }
 
   /** Opens the link sheet for a pick's link. */

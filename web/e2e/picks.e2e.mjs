@@ -281,6 +281,99 @@ check(
   JSON.stringify(conv.map((l) => [l.format, l.text.slice(0, 20)])),
 );
 
+// 12. A new pick whose heading names a website keeps its heading and link through save, refresh and another save.
+await page.goto(APP + "/new");
+await page.getByLabel("Title").fill(`Ramen ${RUN}`);
+await page.getByRole("button", { name: "Next" }).click();
+await page.getByRole("button", { name: "Skip" }).click();
+await page.getByRole("textbox", { name: "Item heading" }).fill("Ramen at fuunji.jp");
+await page.getByRole("textbox", { name: "Item heading" }).press("Enter");
+await page.getByRole("textbox", { name: "Item heading" }).fill("Tsuta, see tsuta.jp");
+await page.getByRole("button", { name: "Link", exact: true }).click();
+await page.getByLabel("Link", { exact: true }).fill("https://example.com/tsuta-menu");
+await page.getByRole("button", { name: "Add", exact: true }).click();
+const ramen = await page.waitForURL(/\/drafts\//).then(() => draftIdOf(page));
+const asTyped = (ls) => ls.length === 2 && ls[0].text === "Ramen at fuunji.jp" && !ls[0].link && ls[1].text === "Tsuta, see tsuta.jp" && ls[1].link === "https://example.com/tsuta-menu";
+await until(page, ramen, asTyped);
+await page.reload();
+await page.getByText("Ramen at fuunji.jp").waitFor({ timeout: 10000 }).catch(() => {});
+const shown = (await page.getByText("Ramen at fuunji.jp").isVisible()) && (await page.getByText("Tsuta, see tsuta.jp").isVisible()) && (await page.getByText("example.com").isVisible());
+await page.getByLabel("Title").fill(`Ramen ${RUN}!`);
+await page.getByLabel("Title").blur();
+await until(page, ramen, () => sql(`select content->>'title' from public.drafts where id = '${ramen}'`) === `Ramen ${RUN}!`);
+check(
+  "12. New headings with a domain keep their heading and link through save, refresh and another save, with nothing to fix",
+  shown && asTyped(lines(ramen)) && !(await page.getByRole("alert").filter({ hasText: "Fix these before publishing" }).isVisible()),
+  JSON.stringify(lines(ramen).map((l) => [l.text, l.link])),
+);
+
+// 13. An older line with two web addresses: the first (with its name) becomes the link, the second stays in the
+//     heading and is listed for the owner, through save and refresh, until they remove it.
+const twoUrls = await seed(page, uid, {
+  title: "Older links",
+  sections: [{ label: "", lines: [{ text: "Menus: fuunji.jp and tsuta.jp/menu", link: null, format: "num", linkNames: { "https://fuunji.jp": "Fuunji menu" } }] }],
+});
+const leftover = "Item 1 heading still has a web address from an older version (tsuta.jp). Make it the link or remove it.";
+await page.getByText(leftover).waitFor({ timeout: 10000 }).catch(() => {});
+const before13 = (await page.getByText("Fuunji menu").isVisible()) && (await page.getByText("Menus: and tsuta.jp/menu").isVisible()) && (await page.getByText(leftover).isVisible());
+await page.getByLabel("Title").fill("Older links!");
+await page.getByLabel("Title").blur();
+await until(page, twoUrls, (ls) => ls[0]?.link === "https://fuunji.jp");
+const saved13 = lines(twoUrls)[0];
+await page.reload();
+await page.getByText(leftover).waitFor({ timeout: 10000 }).catch(() => {});
+check(
+  "13a. A legacy line with two addresses: the first becomes the named link, the second stays in the heading and is listed, after save and refresh",
+  before13 && saved13?.linkName === "Fuunji menu" && saved13?.text === "Menus: and tsuta.jp/menu" && (saved13?.legacyUrls ?? []).join() === "https://tsuta.jp/menu" && (await page.getByText(leftover).isVisible()),
+  JSON.stringify(saved13),
+);
+await page.getByText("Menus: and tsuta.jp/menu").click();
+await page.getByRole("textbox", { name: "Item heading" }).fill("Menus");
+await until(page, twoUrls, (ls) => ls[0]?.text === "Menus");
+check("13b. Once the owner removes it, it's no longer listed", !(await page.getByText(leftover).isVisible()) && !lines(twoUrls)[0]?.legacyUrls);
+
+// 14. Delete a pick, edit another, then Undo: only the deleted pick comes back, in its place, and the edit stays.
+const three = await seed(page, uid, {
+  title: "Undo",
+  sections: [{ label: "", lines: ["A", "B", "C"].map((t) => ({ id: sql("select gen_random_uuid()"), text: t, link: null, format: "num" })) }],
+});
+const ids14 = lines(three).map((l) => l.id);
+await page.getByText("C", { exact: true }).waitFor({ timeout: 10000 });
+await page.getByRole("button", { name: "Edit", exact: true }).click();
+await page.getByRole("menuitem", { name: "Delete" }).click();
+await page.getByRole("button", { name: "Delete item" }).nth(1).click();
+await page.getByRole("button", { name: "Done", exact: true }).click();
+await page.getByText("C", { exact: true }).click();
+await page.getByRole("textbox", { name: "Item heading" }).fill("C edited");
+await page.getByRole("button", { name: "Undo" }).click();
+await until(page, three, (ls) => ls.length === 3 && ls[2].text === "C edited");
+const after14 = lines(three);
+check(
+  "14a. Delete → edit another pick → Undo: the deleted pick is back in its place with its id, and the edit is kept",
+  after14.map((l) => l.text).join() === "A,B,C edited" && after14.map((l) => l.id).join() === ids14.join(),
+  after14.map((l) => l.text).join(),
+);
+
+// 14b. The same for a removed section title.
+const headed = await seed(page, uid, {
+  title: "Undo title",
+  sections: [
+    { label: "", lines: [{ id: sql("select gen_random_uuid()"), text: "First", link: null, format: "num" }] },
+    { label: "Area 2", lines: [{ id: sql("select gen_random_uuid()"), text: "Second", link: null, format: "num" }] },
+  ],
+});
+await page.getByText("Second", { exact: true }).waitFor({ timeout: 10000 });
+await page.getByRole("button", { name: "Edit", exact: true }).click();
+await page.getByRole("menuitem", { name: "Delete" }).click();
+await page.getByRole("button", { name: "Remove heading" }).click();
+await page.getByRole("button", { name: "Done", exact: true }).click();
+await page.getByText("First", { exact: true }).click();
+await page.getByRole("textbox", { name: "Item heading" }).fill("First edited");
+await page.getByRole("button", { name: "Undo" }).click();
+const secsOf = () => JSON.parse(sql(`select content->'sections' from public.drafts where id = '${headed}'`) || "[]").map((x) => `${x.label}:${x.lines.map((l) => l.text).join("+")}`).join(" | ");
+for (let i = 0; i < 60 && secsOf() !== ":First edited | Area 2:Second"; i++) await page.waitForTimeout(250);
+check("14b. Remove a section title → edit a pick → Undo: the title is back over its pick, and the edit is kept", secsOf() === ":First edited | Area 2:Second", secsOf());
+
 await browser.close();
 cleanup();
 const failed = results.filter((r) => !r).length;

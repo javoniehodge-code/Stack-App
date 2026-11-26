@@ -97,7 +97,18 @@ export type Profile = {
 };
 
 /** A draft being edited in the create screen. */
-export type DraftLine = { id?: string; text: string; link: string; note?: string; format: LineFormat; linkName?: string; linkNames?: Record<string, string>; tags?: string[] };
+/** `legacyUrls`: web addresses left in an older line's text when it became a pick, for its owner to resolve. */
+export type DraftLine = {
+  id?: string;
+  text: string;
+  link: string;
+  note?: string;
+  format: LineFormat;
+  linkName?: string;
+  linkNames?: Record<string, string>;
+  tags?: string[];
+  legacyUrls?: string[];
+};
 /** `headed` is whether the section shows a heading (the first section can go without one). */
 export type DraftSection = { label: string; headed?: boolean; lines: DraftLine[] };
 export type Draft = {
