@@ -153,3 +153,73 @@
 .unblock:disabled {
   opacity: 0.5;
 }
+
+/* Account and sign-in */
+.verified {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: oklch(40% 0.12 150);
+}
+
+.methodIcon {
+  width: 22px;
+  display: flex;
+  justify-content: center;
+  font-size: 17px;
+}
+
+.method {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 0;
+}
+
+.methodName {
+  font-size: 14.5px;
+  color: oklch(17.5% 0.006 80);
+}
+
+.methodSub {
+  font-size: 12px;
+  color: oklch(43.4% 0.006 80);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.connected {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: oklch(40% 0.12 150);
+}
+
+.connect {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--pm-ink);
+  color: var(--pm-cream);
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.connect:disabled {
+  opacity: 0.6;
+}
+
+.alert {
+  margin: 12px 4px 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--pm-danger-text);
+}
+
+.note {
+  margin: 12px 4px 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted-60);
+}

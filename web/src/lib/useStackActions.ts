@@ -1,6 +1,7 @@
 "use client";
 
-import { useAuth, useToast } from "@/components/AppProviders";
+import { useRouter } from "next/navigation";
+import { useAuth, useResume, useToast } from "@/components/AppProviders";
 import { createClient } from "./supabase/client";
 import { setEngagement, setFollowing, type Engagement } from "./store";
 import type { Author } from "./types";
@@ -8,7 +9,31 @@ import type { Author } from "./types";
 export function useStackActions() {
   const { viewer, requireAuth } = useAuth();
   const toast = useToast();
+  const router = useRouter();
   const sb = createClient();
+
+  // A Like, Save or Follow that asked for a Google sign-in is finished on return (the page reloads in between,
+  // so only its name survives). Turning one on twice is harmless, so the database write is simply repeated,
+  // and the page then shows the server's state.
+  const turnOn = (kind: "likes" | "saves") => (id: string) => {
+    if (!id) return;
+    sb.from(kind)
+      .upsert({ stack_id: id }, { onConflict: "user_id,stack_id", ignoreDuplicates: true })
+      .then(({ error }) => (error ? toast("Something went wrong. Try again.") : router.refresh()));
+  };
+  useResume("like", turnOn("likes"));
+  useResume("save", turnOn("saves"));
+  useResume("follow", (id) => {
+    if (!id) return;
+    setFollowing(id, true);
+    sb.from("follows")
+      .upsert({ followee_id: id }, { onConflict: "follower_id,followee_id", ignoreDuplicates: true })
+      .then(({ error }) => {
+        if (!error) return router.refresh();
+        setFollowing(id, false);
+        toast("Something went wrong. Try again.");
+      });
+  });
 
   // A viewer who is signed out has nothing liked yet, so the gated action
   // always turns the like/save on once they sign in.
@@ -54,9 +79,9 @@ export function useStackActions() {
     repost: (id: string, e: Engagement, note: string) => setRepost(id, e, true, note.trim()),
     undoRepost: (id: string, e: Engagement) => setRepost(id, e, false),
     toggleLike: (id: string, e: Engagement) =>
-      requireAuth(() => toggle("likes", id, e), "Sign in to like stacks and keep track of what you love."),
+      requireAuth(() => toggle("likes", id, e), "Sign in to like stacks and keep track of what you love.", `like:${id}`),
     toggleSave: (id: string, e: Engagement) =>
-      requireAuth(() => toggle("saves", id, e), "Sign in to save stacks to your profile."),
+      requireAuth(() => toggle("saves", id, e), "Sign in to save stacks to your profile.", `save:${id}`),
     toggleFollow: (author: Author, following: boolean) =>
       requireAuth(() => {
         setFollowing(author.id, !following);
@@ -69,7 +94,7 @@ export function useStackActions() {
             toast("Something went wrong. Try again.");
           }
         });
-      }, "Sign in to follow people and build your own feed."),
+      }, "Sign in to follow people and build your own feed.", `follow:${author.id}`),
     authorHref: (a: Author) => (viewer && a.id === viewer.id ? "/profile" : `/u/${a.handle}`),
   };
 }

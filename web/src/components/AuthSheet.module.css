@@ -128,6 +128,35 @@
   cursor: pointer;
 }
 
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.google {
+  height: 52px;
+  width: 100%;
+  border-radius: 999px;
+  background: var(--pm-paper);
+  color: var(--pm-ink);
+  border: 2px solid var(--pm-ink);
+  box-shadow: 3px 3px 0 var(--pm-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.google:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--pm-ink);
+}
+
 .primary:active {
   transform: translate(1px, 1px);
   box-shadow: 2px 2px 0 var(--pm-pink);

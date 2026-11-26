@@ -5,7 +5,7 @@ import { MAX_REPOST_NOTE } from "@/lib/format";
 import { useEngagement, type Engagement } from "@/lib/store";
 import type { Stack } from "@/lib/types";
 import { useStackActions } from "@/lib/useStackActions";
-import { useAuth, useToast } from "./AppProviders";
+import { useAuth, useResume, useToast } from "./AppProviders";
 import sheet from "./Sheet.module.css";
 import r from "./Repost.module.css";
 
@@ -27,6 +27,10 @@ export function RepostButton({ stack, className, size = 16, count }: { stack: St
   const toast = useToast();
   const [open, setOpen] = useState(false);
   const color = e.reposted ? "var(--accent)" : "var(--muted-66)";
+  // Back from a Google sign-in started here: the repost sheet opens (never for your own stack).
+  useResume(`repost:${stack.id}`, () => {
+    if (viewer?.id !== stack.author.id) setOpen(true);
+  });
   return (
     <>
       <button
@@ -36,7 +40,7 @@ export function RepostButton({ stack, className, size = 16, count }: { stack: St
         aria-label={e.reposted ? "Reposted" : "Repost"}
         onClick={() => {
           if (viewer?.id === stack.author.id) return toast("You can't repost your own stack.");
-          requireAuth(() => setOpen(true), "Sign in to repost stacks to your profile.");
+          requireAuth(() => setOpen(true), "Sign in to repost stacks to your profile.", `repost:${stack.id}`);
         }}
       >
         <RepostGlyph size={size} color={color} />

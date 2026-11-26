@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { fetchUnreadCount, onNotificationsChanged } from "@/lib/notifications";
 import { createClient } from "@/lib/supabase/client";
-import { useAuth } from "./AppProviders";
+import { useAuth, useResume } from "./AppProviders";
 import { BellIcon, FeedTabIcon, PlusIcon, ProfileTabIcon, SearchIcon } from "./icons";
 import styles from "./AppShell.module.css";
 
@@ -36,6 +36,8 @@ export default function TabBar() {
   const path = usePathname();
   const router = useRouter();
   const { viewer, requireAuth } = useAuth();
+  // Back from a Google sign-in started by Create: go on to Create.
+  useResume("create", () => router.push("/create"));
   const unread = useUnreadCount(path);
   // The create flow and stack pages are full screen.
   if (path.startsWith("/create") || path.startsWith("/s/")) return null;
@@ -58,7 +60,7 @@ export default function TabBar() {
           // Signed out: sign in first, then go to Create.
           if (viewer) return;
           e.preventDefault();
-          requireAuth(() => router.push("/create"), "Sign in or create an account to start a stack.");
+          requireAuth(() => router.push("/create"), "Sign in or create an account to start a stack.", "create");
         }}
       >
         <span className={styles.createPill}>

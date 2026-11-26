@@ -51,6 +51,10 @@ export default function SettingsScreen() {
             <span className={s.rowLabel}>Edit profile</span>
             <Chevron />
           </button>
+          <Link href="/settings/account" className={s.row}>
+            <span className={s.rowLabel}>Account and sign-in</span>
+            <Chevron />
+          </Link>
         </div>
         <div className={s.section}>Privacy</div>
         <div className={s.group}>
