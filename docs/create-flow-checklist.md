@@ -77,6 +77,7 @@ Agreed Nov 27: to publish, a Stack needs only a title, at least 1 pick, and noth
 - [x] The row after the last pick shows the categories too: "📍 Mexico City · Published Nov 24 · Food & Drink" ("Food & Drink, Travel & Places" with two; nothing added with none).
 - [x] Editing a published Stack follows the same steps as creating: the picks, then **Finalize** (theme, "Is this about a place?" and the city, categories, Order, Preview), with Back, **Save** and **Save and share update**. It starts from the Stack's choices. Who can see it stays in the ⋯ menu.
 - [x] Changing only the theme, place, city or categories doesn't mark the Stack "Updated", and can't be shared as an update; that stays for the title, description and picks.
+- [x] Unsaved edits kept from before this (Nov 26) reopen with their pick edits and the published Stack's theme, place answer, city and categories. Edits saved since keep the person's own Finalize choices, including clearing the categories.
 
 ## Later tasks
 

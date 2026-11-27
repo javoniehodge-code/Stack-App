@@ -379,6 +379,71 @@ check(
   meta11c,
 );
 
+// 12. An edits draft saved before editing had Finalize (Nov 26: content v 1, with placeholder choices: no theme, no
+//     place answer, no categories). Reopened, it keeps its pick edits and takes the published Stack's theme, place
+//     answer, city and categories; saving it keeps them.
+const editDraft = () => JSON.parse(sql(`select coalesce(json_agg(json_build_object('v', content->'v', 'categories', content->'categories')), '[]') from public.drafts where edit_of = '${id}'`))[0] ?? null;
+psql(
+  `insert into public.drafts (id, owner_id, content, step, edit_of, base_version)
+   select gen_random_uuid(), s.author_id,
+          jsonb_build_object('v', 1, 'title', s.title, 'description', s.description,
+                             'sections', jsonb_set(s.sections, '{0,lines,0,text}', '"Orinoco (old draft)"'),
+                             'tags', '[]'::jsonb, 'style', s.style, 'visibility', s.visibility, 'location', s.location,
+                             'theme', null, 'isPlace', null, 'categories', '[]'::jsonb),
+          'build', s.id, s.updated_at
+     from public.stacks s where s.id = '${id}'`,
+  false,
+);
+await page.goto(APP + `/create?edit=${id}`);
+await page.getByText("Orinoco (old draft)").waitFor({ timeout: 10000 }).catch(() => {});
+const keptPick = await page.getByText("Orinoco (old draft)").isVisible();
+await page.getByRole("button", { name: "Finalize" }).click();
+await page.getByRole("button", { name: "Theme emoji 🌮" }).waitFor({ timeout: 10000 }).catch(() => {});
+const inherited =
+  (await page.getByRole("button", { name: "Theme emoji 🌮" }).getAttribute("aria-pressed")) === "true" &&
+  (await page.getByRole("button", { name: "Theme colour 3" }).getAttribute("aria-pressed")) === "true" &&
+  (await page.getByText("You picked this theme.").isVisible()) &&
+  (await page.getByRole("radio", { name: "Yes" }).getAttribute("aria-checked")) === "true" &&
+  (await page.getByLabel("City").inputValue()) === "Oaxaca" &&
+  (await page.getByRole("button", { name: "Food & Drink" }).getAttribute("aria-pressed")) === "true";
+await page.getByRole("button", { name: "Save", exact: true }).click();
+await page.waitForURL(new RegExp(`/s/${id}$`), { timeout: 15000 }).catch(() => {});
+const r12 = stackRow(id);
+check(
+  "12a. An old edits draft (v 1, no theme or categories) reopens with its pick edit and the Stack's 🌮 theme, place answer, city Oaxaca and Food & Drink; saving keeps them",
+  keptPick && inherited && r12?.sections[0].lines[0].text === "Orinoco (old draft)" && r12.theme_emoji === "🌮" && r12.theme_color === C3 && r12.is_place === true &&
+    r12.location === "Oaxaca" && r12.categories.join() === "Food & Drink" && editDraft() === null,
+  `kept ${keptPick} / inherited ${inherited} / ${JSON.stringify({ ...r12, sections: undefined })}`,
+);
+
+// 12b. In the new editor, clearing the categories on purpose is kept: the edits draft saves it (v 2), a refresh
+//      still shows none, and saving publishes none.
+await page.goto(APP + `/create?edit=${id}`);
+await page.getByRole("button", { name: "Finalize" }).click();
+await page.getByRole("button", { name: "Food & Drink" }).click();
+let saved12 = false;
+for (let i = 0; i < 60 && !saved12; i++, await page.waitForTimeout(250)) {
+  const d = editDraft();
+  saved12 = !!d && d.v === 2 && Array.isArray(d.categories) && d.categories.length === 0;
+}
+await page.reload();
+await page.getByRole("button", { name: "Finalize" }).waitFor({ timeout: 10000 }).catch(() => {});
+await page.getByRole("button", { name: "Finalize" }).click();
+await page.getByRole("button", { name: "Food & Drink" }).waitFor({ timeout: 10000 }).catch(() => {});
+const noneAfterRefresh =
+  (await page.getByRole("button", { name: "Food & Drink" }).getAttribute("aria-pressed")) === "false" &&
+  !(await page.locator("button[class*=catChip][aria-pressed=true]").count()) &&
+  (await page.getByRole("button", { name: "Theme emoji 🌮" }).getAttribute("aria-pressed")) === "true";
+await page.getByRole("button", { name: "Save", exact: true }).click();
+await page.waitForURL(new RegExp(`/s/${id}$`), { timeout: 15000 }).catch(() => {});
+await page.locator("[class*=pmPicks]").waitFor({ timeout: 10000 }).catch(() => {});
+const meta12 = await metaText(page);
+check(
+  "12b. Clearing the categories in the new editor is saved to the edits draft (v 2), survives a refresh, and is published: no categories, and the row shows none",
+  saved12 && noneAfterRefresh && stackRow(id)?.categories.length === 0 && stackRow(id)?.theme_emoji === "🌮" && !meta12.includes("Food") && meta12.startsWith("📍 Oaxaca · "),
+  `saved ${saved12} / after refresh ${noneAfterRefresh} / ${meta12}`,
+);
+
 await browser.close();
 cleanup();
 const failed = results.filter((r) => !r).length;

@@ -10,7 +10,11 @@ import type { Draft, EditTarget, Section, Visibility } from "./types";
 export type DraftStep = "title" | "description" | "build" | "review";
 export const DRAFT_STEPS: DraftStep[] = ["title", "description", "build", "review"];
 
-/** What a drafts row's `content` holds. Every field may be missing in an older or partial draft. */
+/**
+ * What a drafts row's `content` holds. Every field may be missing in an older or partial draft.
+ * `v`: 2 from Nov 27 on, when editing a published Stack got Finalize. An edit draft saved before (v 1 or none) holds
+ * placeholder Finalize choices (no theme, no categories), not the person's: see editDraftToDraft.
+ */
 export type DraftContent = {
   v?: number;
   title?: string;
@@ -111,6 +115,20 @@ export function stackToDraft(
     isPlace: typeof d.is_place === "boolean" ? d.is_place : null,
     categories: d.categories ?? [],
   };
+}
+
+/** The content version that carries the editor's own Finalize choices (see DraftContent). */
+export const DRAFT_VERSION = 2;
+
+/**
+ * An edits draft (unsaved edits to a published Stack) → the editor's starting point. Its title, description and picks
+ * are the person's edits. Its Finalize choices are too when it was saved by the Finalize editor (v 2); a draft saved
+ * before that has placeholders there, so it takes the published Stack's theme, place answer, city and categories.
+ */
+export function editDraftToDraft(r: DraftRecord, live: Draft): Draft {
+  const d = { ...recordToDraft(r), tags: live.tags };
+  if ((r.content?.v ?? 0) >= DRAFT_VERSION) return d;
+  return { ...d, theme: live.theme ?? null, isPlace: live.isPlace ?? null, location: live.location, categories: live.categories ?? [] };
 }
 
 /** A drafts row → the editor's starting point. */

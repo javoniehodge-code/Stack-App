@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth, useBack, useToast } from "@/components/AppProviders";
 import shell from "@/components/AppShell.module.css";
 import { ShareSheet, systemShare } from "@/components/Share";
+import { DRAFT_VERSION } from "@/lib/drafts";
 import { dateLabel, metaLabel, TagChips, type ViewLine } from "@/components/StackView";
 import { themed as t, ThemedStack, type ThemedSection } from "@/components/ThemedStack";
 import {
@@ -598,7 +599,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
       const row = (w: Work) => ({
         id: idRef.current,
         content: {
-          v: 1,
+          // 2: the Finalize choices below are the person's (lib/drafts.ts, DraftContent).
+          v: DRAFT_VERSION,
           title: w.title,
           description: w.description,
           sections: sectionsArg(w),
