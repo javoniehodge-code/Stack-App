@@ -18,13 +18,14 @@ import { ShareButton } from "./Share";
 import { LineMarker, LinkPill, RichText } from "./StackView";
 import { VIS, VisIcon } from "./Visibility";
 import s from "./Cards.module.css";
+import { stackPath } from "@/lib/links";
 
 const stop = (e: React.SyntheticEvent) => e.stopPropagation();
 
 /** Props for a clickable card that opens the stack. */
-function useOpen(id: string) {
+function useOpen(stack: Stack) {
   const router = useRouter();
-  const open = () => router.push(`/s/${id}`);
+  const open = () => router.push(stackPath(stack));
   return {
     role: "link",
     tabIndex: 0,
@@ -112,7 +113,7 @@ export function UpdateBanner({ stack, className }: { stack: Pick<Stack, "shared_
 
 /** A paper card: author and age on top, as many lines as fit (faded, with See all, when cut off), the action bar, then comments that open inline. */
 function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode }) {
-  const open = useOpen(stack.id);
+  const open = useOpen(stack);
   const { viewer, requireAuth } = useAuth();
   const toast = useToast();
   const { authorHref } = useStackActions();
@@ -303,7 +304,7 @@ function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode })
 
 /** Explore's horizontally scrolling cards: first 3 lines. */
 export function TrendingCard({ stack }: { stack: Stack }) {
-  const open = useOpen(stack.id);
+  const open = useOpen(stack);
   const lines = flatten(stack);
   return (
     <div className={`${s.card} ${s.trending}`} {...open}>
@@ -326,7 +327,7 @@ export function TrendingCard({ stack }: { stack: Stack }) {
 /** Creator profile card: first 4 lines, a comment count instead of comments. */
 /** Flat list card used for search results and your own stacks. */
 export function ListCard({ stack, following = false }: { stack: Stack; following?: boolean }) {
-  const open = useOpen(stack.id);
+  const open = useOpen(stack);
   const { viewer } = useAuth();
   const a = useStackActions();
   const e = useEngagement(stack);
@@ -383,7 +384,7 @@ export function ListCard({ stack, following = false }: { stack: Stack; following
  * and a pin on the pinned one; on someone else's it shows a save button, and reposts show the original author.
  */
 export function GridCard({ stack, pinned = false, visitor = false, repost = false }: { stack: Stack; pinned?: boolean; visitor?: boolean; repost?: boolean }) {
-  const open = useOpen(stack.id);
+  const open = useOpen(stack);
   const visibility = useVisibility(stack);
   const a = useStackActions();
   const e = useEngagement(stack);

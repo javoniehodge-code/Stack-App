@@ -6,6 +6,8 @@ export const RESERVED_HANDLES = [
   "explore", "me", "new", "drafts", "inbox", "settings", "help", "terms", "privacy", "buckets", "login",
   "signup", "api", "admin", "about", "support", "stack",
   "s", "u", "create", "profile", "notifications", "auth",
+  // the app's files at the top level (a username can contain a dot)
+  "favicon.ico", "robots.txt", "sitemap.xml", "manifest.json", "manifest.webmanifest", "icon.png", "apple-icon.png",
 ];
 
 export const HANDLE_MAX = 30;

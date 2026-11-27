@@ -8,8 +8,9 @@ import { ShareIcon } from "./icons";
 import { drawPage, layoutStory, PAGE_H, PAGE_W, pagePng, type Story } from "./StoryPages";
 import { VisIcon } from "./Visibility";
 import sh from "./Share.module.css";
+import { stackPath } from "@/lib/links";
 
-const stackUrl = (id: string) => `${window.location.origin}/s/${id}`;
+const stackUrl = (stack: Stack) => `${window.location.origin}${stackPath(stack)}`;
 
 /**
  * The share arrow in an action row; opens the share sheet. For your own private
@@ -35,7 +36,7 @@ export function ShareSheet({ stack, onClose }: { stack: Stack; onClose: () => vo
   const unlisted = useVisibility(stack) === "unlisted";
   const e = useEngagement(stack);
   const [story, setStory] = useState<Story | null>(null);
-  const url = stackUrl(stack.id);
+  const url = stackUrl(stack);
   const shortUrl = url.replace(/^https?:\/\//, "");
   const { likes, saves, reposts } = e;
 

@@ -55,6 +55,14 @@ async function readyToPublish(page) {
   if ((await city.isVisible().catch(() => false)) && !(await city.inputValue())) await page.getByRole("radio", { name: "No" }).click();
 }
 
+/** A published Stack's readable address, /{username}/{slug} (agreed Nov 27). */
+const readableOf = (sid) => sql(`select '/' || p.handle || '/' || s.slug from public.stacks s join public.profiles p on p.id = s.author_id where s.id = '${sid}'`);
+/** Waits for the address bar to show the Stack's address: its readable one (it starts as /s/{id} and moves). */
+const atStack = async (pg, sid) => {
+  await pg.waitForURL((u) => u.pathname === readableOf(sid), { timeout: 10000 }).catch(() => {});
+  return new URL(pg.url()).pathname === readableOf(sid);
+};
+
 const results = [];
 const check = (name, ok, detail = "") => {
   results.push(!!ok);
@@ -661,7 +669,7 @@ await readyToPublish(page);
 await page.getByRole("button", { name: "Publish", exact: true }).click();
 await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
 await page.waitForTimeout(4000);
-const live17 = (await page.getByText("Your Stack is live").isVisible()) && new URL(page.url()).pathname === `/s/${stays}`;
+const live17 = (await page.getByText("Your Stack is live").isVisible()) && (await atStack(page, stays));
 await page.reload();
 await page.getByText("Stays up").waitFor({ timeout: 10000 }).catch(() => {});
 check(

@@ -56,6 +56,14 @@ async function readyToPublish(page) {
   if ((await city.isVisible().catch(() => false)) && !(await city.inputValue())) await page.getByRole("radio", { name: "No" }).click();
 }
 
+/** A published Stack's readable address, /{username}/{slug} (agreed Nov 27). */
+const readableOf = (sid) => sql(`select '/' || p.handle || '/' || s.slug from public.stacks s join public.profiles p on p.id = s.author_id where s.id = '${sid}'`);
+/** Waits for the address bar to show the Stack's address: its readable one (it starts as /s/{id} and moves). */
+const atStack = async (pg, sid) => {
+  await pg.waitForURL((u) => u.pathname === readableOf(sid), { timeout: 10000 }).catch(() => {});
+  return new URL(pg.url()).pathname === readableOf(sid);
+};
+
 const results = [];
 const check = (name, ok, detail = "") => {
   results.push(!!ok);
@@ -267,7 +275,7 @@ const committed = sql(`select count(*) from public.stacks where id = '${id7}' an
 await page.unroute(STACK_CHECK);
 await page.getByRole("button", { name: "Check again" }).click();
 await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
-const live7 = (await page.getByText("Your Stack is live").isVisible()) && new URL(page.url()).pathname === `/s/${id7}`;
+const live7 = (await page.getByText("Your Stack is live").isVisible()) && (await atStack(page, id7));
 check(
   "7b. Committed, with the reply and the first check lost: Publish status unknown; Check again opens the published Stack (Your Stack is live, its address); exactly one Stack, the draft gone",
   unknown7 && committed === "1" && live7 && sql(`select count(*) from public.stacks where author_id = '${uid}' and title = 'Rooftop bars'`) === "1" &&
@@ -336,7 +344,7 @@ const notYet = sql(`select count(*) from public.stacks where id = '${id7c}'`) ==
 await lock.release();
 const slowReply = await slow;
 await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
-const live7c = (await page.getByText("Your Stack is live").isVisible()) && new URL(page.url()).pathname === `/s/${id7c}`;
+const live7c = (await page.getByText("Your Stack is live").isVisible()) && (await atStack(page, id7c));
 await page.waitForTimeout(2500);
 const noDraftAgain = sql(`select count(*) from public.drafts where id = '${id7c}'`) === "0";
 check(

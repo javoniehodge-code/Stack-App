@@ -215,6 +215,7 @@ export async function fetchEditTarget(sb: SupabaseClient, viewerId: string, id: 
       sharedAt: data.shared_at ?? null,
       baseVersion: data.updated_at ?? null,
       live: { title: live.title, description: live.description, sections: live.sections },
+      slug: data.slug ?? null,
     },
     live,
   };

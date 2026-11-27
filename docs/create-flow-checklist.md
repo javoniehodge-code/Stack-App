@@ -69,7 +69,7 @@ Agreed Nov 27: to publish, a Stack needs only a title, at least 1 pick, and noth
     - still a draft: editing goes on, with the toast "Couldn't publish. Your stack is still a draft. Check your connection and try again.";
     - the look fails too: "Publish status unknown", with only **Check again** (editing stays closed until it knows). A failed Check again says "Still couldn't check. Try again in a moment."
 - [x] A title typed in "Name your Stack to publish" is saved to the draft at once, so it's kept if the publish fails and after a refresh.
-- [x] The slug at first publish (agreed Nov 26): saved from the title and never changed; Stacks published earlier got theirs too. Links still use the Stack's id for now (see "Readable links" below).
+- [x] The slug at first publish (agreed Nov 26): saved from the title and never changed; Stacks published earlier got theirs too. Since Nov 27 it's in the Stack's address (see "Readable links" below).
 - The server refuses the same things: no title, a city over 80 characters, no items, a titled section with no items. The older save path (from app versions before drafts) still saves drafts, and publishing through it gets the same checks. Every published Stack gets a slug, whichever way it was published.
 
 ## After Task 3 (agreed Nov 27)
@@ -91,9 +91,20 @@ Agreed Nov 27: to publish, a Stack needs only a title, at least 1 pick, and noth
   - Two trips in a row, Profile › Stack › ⋯ › Edit stack › Finalize › Save & exit, both landed on Profile.
   - After those trips (Feed › Profile › Edit › Save & exit), Safari's Back went from Profile to the Feed, not back into the editor or the Stack.
 
+## Readable links (agreed Nov 27)
+
+- [x] A Stack's address is `/{username}/{slug}`, like `/stackapp/cities-to-travel-to`, and a profile's is `/{username}`, like `/stackapp`. Your own `/{username}` opens your Profile tab.
+- [x] The older `/s/{id}` and `/u/{username}` addresses forward to them (keeping `?comment=1`), so links already shared keep working.
+- [x] The links people tap or share use them: Stack cards, Share and Copy link, the address after publishing, profile links, @mentions, follow notifications.
+- [x] After a username change, links with the old username forward to the new one. The old username stays reserved to its owner (nobody else can take it), and switching back to it works (D-1).
+- [x] Usernames can't be the app's file names (`favicon.ico` and the like).
+- [x] A Stack's page fills the screen at its readable address too (no tab bar), however it's opened.
+- [x] Safe when two requests overlap: while someone is giving up a username, nobody else can take it (the second request waits, then is refused).
+- Followers and Following lists stay at `/u/{username}/followers` and `/u/{username}/following`.
+
 ## Later tasks
 
-- **Readable links** (agreed Nov 26 to come later): `/{handle}/{slug}` for every Stack, with the old `/s/…` links still working, and old usernames redirecting (D-1).
+- **Editing at its own address** (spec: `/{handle}/{slug}/edit`): editing still opens at `/create?edit=…`.
 - **The "+" format menu** by the current pick (Section, Numbered, Bulleted), deferred from 2d: the spec has it, the design doesn't.
 - **Tablet:**
   - a centered column, max 680 px;

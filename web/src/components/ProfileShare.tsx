@@ -10,6 +10,7 @@ import { ShareIcon } from "./icons";
 import { ellipsize, roundRect, saveImageFile, systemShare, wrap } from "./Share";
 import ps from "./ProfileShare.module.css";
 import sh from "./Share.module.css";
+import { profilePath } from "@/lib/links";
 
 /** The share arrow in a profile's top bar. Opens the profile share sheet. */
 export function ProfileShareButton(props: { profile: Profile; stackCount: number; own: boolean; onBlock?: () => void }) {
@@ -39,7 +40,7 @@ function ProfileShareSheet({
 }) {
   const router = useRouter();
   const toast = useToast();
-  const url = `${window.location.origin}/u/${profile.handle}`;
+  const url = `${window.location.origin}${profilePath(profile.handle)}`;
   const shortUrl = url.replace(/^https?:\/\//, "");
   const stacksLabel = plural(stackCount, "stack");
 

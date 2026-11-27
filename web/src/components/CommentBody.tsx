@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MENTION_RE } from "@/lib/comments";
+import { profilePath } from "@/lib/links";
 
 /** Comment text with @handles linked to the person's profile. */
 export default function CommentBody({ text, linkClass }: { text: string; linkClass?: string }) {
@@ -10,7 +11,7 @@ export default function CommentBody({ text, linkClass }: { text: string; linkCla
     const start = m.index + m[1].length;
     out.push(text.slice(last, start));
     out.push(
-      <Link key={start} href={`/u/${handle.toLowerCase()}`} className={linkClass} onClick={(e) => e.stopPropagation()}>
+      <Link key={start} href={profilePath(handle)} className={linkClass} onClick={(e) => e.stopPropagation()}>
         @{handle}
       </Link>,
     );

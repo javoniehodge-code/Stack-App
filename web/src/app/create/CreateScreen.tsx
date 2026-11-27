@@ -47,6 +47,7 @@ import { useVisibilityEditor } from "@/components/Visibility";
 import type { Draft, DraftLine, EditTarget, PickLink, Stack, Visibility } from "@/lib/types";
 import p from "../profile/Profile.module.css";
 import s from "./Create.module.css";
+import { stackPath } from "@/lib/links";
 
 type Step = "title" | "description" | "build" | "review";
 /** A pick is numbered or bulleted; there are no paragraphs or bold lines (spec, Content rules). */
@@ -1230,7 +1231,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     toast(share ? "Update shared to the feed" : "Changes published");
     // Save & exit (agreed Nov 27): back to where the editor was opened from, past the Stack's own page if that's
     // where Edit was tapped; with nowhere to go back to, the profile.
-    leave(`/s/${target.stackId}`, "/profile");
+    leave([`/s/${target.stackId}`, ...(target.slug && viewer ? [stackPath({ id: target.stackId, slug: target.slug, author: viewer })] : [])], "/profile");
   }
 
   function openShare() {
@@ -1313,7 +1314,12 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     // it would reset the address to the editor's old one, /new or the deleted draft's, and a reload of that, say
     // when coming back to the app, would show "Nothing here".)
     window.history.replaceState(window.history.state, "", `/s/${id}`);
-    if (id) fetchStack(createClient(), viewer?.id ?? null, id).then(setPublishedStack);
+    // Then its readable address, /{username}/{slug}, once the published Stack (with its slug) is loaded.
+    if (id)
+      fetchStack(createClient(), viewer?.id ?? null, id).then((st) => {
+        setPublishedStack(st);
+        if (st && window.location.pathname === `/s/${id}`) window.history.replaceState(window.history.state, "", stackPath(st));
+      });
   }
 
   function publish() {
@@ -1335,7 +1341,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   }
 
   async function share(id: string) {
-    const url = `${window.location.origin}/s/${id}`;
+    // The readable address once the published Stack is loaded (/s/{id} forwards to it anyway).
+    const url = `${window.location.origin}${publishedStack?.id === id ? stackPath(publishedStack) : `/s/${id}`}`;
     const r = await systemShare({ title: work.title, url });
     if (r !== "unsupported") return;
     try {

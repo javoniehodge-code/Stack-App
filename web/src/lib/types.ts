@@ -70,6 +70,8 @@ export type StackRow = {
   /** Whether the Stack is about a place; its city is `location`. */
   is_place?: boolean;
   categories?: string[];
+  /** The readable name in its address, /{username}/{slug}: set at first publish, never changed (D-1). */
+  slug?: string | null;
   updated_at?: string;
   /** Edit mode columns; missing until the edit_published_stacks migration has run. */
   edit_of?: string | null;
@@ -152,4 +154,6 @@ export type EditTarget = {
   /** When the stack last changed as the edit began (kept on its edits draft). */
   baseVersion: string | null;
   live: Pick<Draft, "title" | "description" | "sections">;
+  /** Its readable name, for its address /{username}/{slug}. */
+  slug?: string | null;
 };

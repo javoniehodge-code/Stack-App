@@ -18,6 +18,7 @@ import EditProfileSheet from "./EditProfileSheet";
 import MyStacks from "./MyStacks";
 import { ConnectMenu, ProfileBar, ProfileFooter, ProfileHero } from "./ProfileHead";
 import p from "./Profile.module.css";
+import { stackPath } from "@/lib/links";
 
 export type ProfileTab = "mine" | "saved" | "reposts" | "drafts";
 type Data = { mine: Stack[]; saved: Stack[]; reposts: MyRepost[]; drafts: DraftSummary[]; counts: { followers: number; following: number } };
@@ -149,7 +150,7 @@ function RepostRow({ repost: { stack, note } }: { repost: MyRepost }) {
   const a = useStackActions();
   // Undone from the stack page in this session.
   if (!e.reposted) return null;
-  const open = () => router.push(`/s/${stack.id}`);
+  const open = () => router.push(stackPath(stack));
   return (
     <div className={p.repostRow} role="link" tabIndex={0} onClick={open} onKeyDown={(ev) => ev.target === ev.currentTarget && ev.key === "Enter" && open()}>
       {note && <div className={p.repostNote}>{note}</div>}
@@ -191,7 +192,7 @@ function SavedRow({ stack }: { stack: Stack }) {
   const router = useRouter();
   const e = useEngagement(stack);
   const a = useStackActions();
-  const open = () => router.push(`/s/${stack.id}`);
+  const open = () => router.push(stackPath(stack));
   return (
     <div className={p.savedRow} role="link" tabIndex={0} onClick={open} onKeyDown={(ev) => ev.key === "Enter" && open()} style={{ opacity: e.saved ? 1 : 0.5 }}>
       <div className={p.savedMain}>
