@@ -81,6 +81,12 @@ Agreed Nov 27: to publish, a Stack needs only a title, at least 1 pick, and noth
 - [x] Editing's buttons are **Save & exit** and **Save & share** (agreed Nov 27). After saving you go back to where you opened the editor from, past the Stack's own page if that's where you tapped Edit (so Profile › Stack › Edit › Save & exit lands on the profile); with nowhere to go back to, the profile. Back and Save & exit go by the browser's own history list, so repeated edit trips, browser Back and Forward, and an editor opened directly all land in the right place.
 - [x] On a narrow iPhone the Stack page and Finalize › Preview fit at default zoom: a long name or handle shortens with "…" so Follow stays in the card.
 - [x] No tap-to-zoom on iPhone and iPad (agreed Nov 27, instead of 16px text boxes): Safari zoomed in when a text box under 16px was tapped (the editor's are 13–15px) and kept the zoom on every later screen, so the Stack page ran off the screen. On iPhone and iPad the page now tells Safari not to auto-zoom (maximum-scale=1); pinch-to-zoom still works there. Android is unchanged, since it would block pinch-zoom.
+- **Checked on production (Nov 27, iPhone 15 Pro, Safari), after PR #50:** all passed.
+  - Tapping into a pick's name in the editor didn't zoom the page.
+  - Save & exit went back to Profile when the edit started from Profile, and to the Feed when it started from the Feed.
+  - The Stack page fit without pinching: both edges, ⋯ and the bottom bar showed.
+  - Pinch-to-zoom still worked.
+  - Two trips in a row, Profile › Stack › ⋯ › Edit stack › Finalize › Save & exit, both landed on Profile.
 
 ## Later tasks
 
