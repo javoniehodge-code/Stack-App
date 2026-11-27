@@ -69,7 +69,7 @@ Agreed Nov 27: to publish, a Stack needs only a title, at least 1 pick, and noth
     - still a draft: editing goes on, with the toast "Couldn't publish. Your stack is still a draft. Check your connection and try again.";
     - the look fails too: "Publish status unknown", with only **Check again** (editing stays closed until it knows). A failed Check again says "Still couldn't check. Try again in a moment."
 - [x] A title typed in "Name your Stack to publish" is saved to the draft at once, so it's kept if the publish fails and after a refresh.
-- [x] The slug at first publish (agreed Nov 26): saved from the title and never changed; Stacks published earlier got theirs too. Links still use the Stack's id for now (see "Readable links" below).
+- [x] The slug at first publish (agreed Nov 26): saved from the title and never changed; Stacks published earlier got theirs too. Since Nov 27 it's in the Stack's address (see "Readable links" below).
 - The server refuses the same things: no title, a city over 80 characters, no items, a titled section with no items. The older save path (from app versions before drafts) still saves drafts, and publishing through it gets the same checks. Every published Stack gets a slug, whichever way it was published.
 
 ## After Task 3 (agreed Nov 27)
