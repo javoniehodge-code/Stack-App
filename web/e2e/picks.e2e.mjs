@@ -351,6 +351,15 @@ const metaOf = async () => {
 };
 await page.goto(APP + `/s/${id}`);
 const before8 = await metaOf();
+// Manage stacks' row for this Stack: "N lines · Public", then " · Updated …" once edited.
+const title8 = sql(`select title from public.stacks where id = '${id}'`);
+const manageOf = async () => {
+  await page.goto(APP + "/settings/stacks");
+  const meta = page.locator("[class*=row]", { hasText: title8 }).first().locator("[class*=meta]");
+  await meta.waitFor({ timeout: 10000 }).catch(() => {});
+  return (await meta.innerText().catch(() => "")).trim();
+};
+const manageBefore8 = await manageOf();
 await page.goto(APP + `/create?edit=${id}`);
 await page.getByText("Trompo tacos until 3am.").click();
 await page.getByRole("textbox", { name: "Item subheading" }).fill("Trompo tacos until 4am.");
@@ -371,6 +380,12 @@ check(
   "8b. A fresh publish says Published; an edit saved right after (under a minute) says Updated",
   before8.includes(`Published ${TODAY}`) && after8.includes(`Updated ${TODAY}`) && Number(secs8) < 60,
   `${before8} → ${after8} (${secs8}s after publishing)`,
+);
+const manageAfter8 = await manageOf();
+check(
+  "8c. Manage stacks matches the Stack page: no Updated right after publishing, and Updated today after an edit saved seconds later",
+  !!manageBefore8 && !manageBefore8.includes("Updated") && manageAfter8.endsWith(`· Updated ${TODAY}`),
+  `${manageBefore8} → ${manageAfter8}`,
 );
 
 // 9. The item limit: at 15 picks, Add item says why and adds nothing.

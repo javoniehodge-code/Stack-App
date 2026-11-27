@@ -78,8 +78,9 @@ const day = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: 
 
 /** The day a published stack was last edited ("Sep 20"), or null if it hasn't been since publishing. */
 export function editedDay(publishedAt: string | null, updatedAt?: string | null) {
-  // Publishing also stamps updated_at, so only a later change counts as an edit.
-  if (!publishedAt || !updatedAt || Date.parse(updatedAt) - Date.parse(publishedAt) <= 60_000) return null;
+  // Publishing stamps both dates with the same time, and only edits to the title, description or picks move
+  // updated_at, so any later updated_at is an edit, even one saved seconds after publishing (as on the Stack page).
+  if (!publishedAt || !updatedAt || Date.parse(updatedAt) <= Date.parse(publishedAt)) return null;
   return day(updatedAt);
 }
 
@@ -93,7 +94,6 @@ export function dateLabel(publishedAt: string | null, updatedAt?: string | null)
   return updatedAt && Date.parse(updatedAt) > Date.parse(publishedAt) ? `Updated ${day(updatedAt)}` : `Published ${day(publishedAt)}`;
 }
 
-/** "📍 Mexico City · Published Nov 24": a place Stack's city, then the date. */
 /** "📍 Mexico City · Published Nov 24 · Food & Drink, Travel & Places": the city and categories only when set. */
 export const metaLabel = (city: string, date: string, categories: string[] = []) =>
   [city && `📍 ${city}`, date, categories.join(", ")].filter(Boolean).join(" · ");
