@@ -231,7 +231,7 @@ export default function DetailScreen({
         mine={mine}
         onPin={() => toast("Pinning picks to your bucket list is coming soon.")}
         onSend={() => toast("Sending picks is coming soon.")}
-        meta={metaLabel(stack.is_place ? (stack.location ?? "").trim() : "", dateLabel(stack.published_at, stack.updated_at))}
+        meta={metaLabel(stack.is_place ? (stack.location ?? "").trim() : "", dateLabel(stack.published_at, stack.updated_at), stack.categories ?? [])}
         footer={footer}
         atBottom
       />

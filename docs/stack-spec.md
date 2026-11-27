@@ -28,7 +28,7 @@ Every object below needs a server-side record. The mockup keeps everything in br
 | Object | Key fields | Rules |
 | --- | --- | --- |
 | User | id, verified email, sign-in methods (Google, email code), name, handle (unique, past handles reserved), bio, photo (400×400 crop), socials (X, Instagram, TikTok, Facebook, email), contact button (type + URL), up to 2 featured websites, show follower counts (bool), featured stack id + caption | Handle is the public URL segment. Past handles are kept, redirect, and can't be taken by anyone else (Agreed, D-1). Proposed default: 3–30 characters, letters, numbers, dot and underscore, case-insensitive unique. |
-| Stack | id, owner, title (≤60), description (≤160), theme (emoji + color), is place stack (yes/no), city (≤80, required when place = yes), categories (1–2 from the 12 below), visibility, sections, publishedAt, updatedAt, sharedAt + update note, remixedFrom | Permanent id is its identity; slug is fixed at first publish (Agreed, D-1). No total-character limit; see Content rules. |
+| Stack | id, owner, title (≤60), description (≤160), theme (emoji + color), is place stack (yes/no), city (optional, ≤80), categories (0–2 from the 12 below; optional), visibility, sections, publishedAt, updatedAt, sharedAt + update note, remixedFrom | Permanent id is its identity; slug is fixed at first publish (Agreed, D-1). No total-character limit; see Content rules. |
 | Section | id, title (≤40, required when the section exists), ordered items (≥1 to publish); no description | Up to 5 per Stack. Items may also sit outside any section. |
 | Pick (line) | **stable id**, format (numbered or bulleted), heading (≤80, required, plain text), subheading (≤100, optional), up to 2 links stored separately (each a URL ≤2,048 + optional display name ≤40; not counted toward limits; Agreed Nov 26), tags (≤3) | Pins, check-offs, sends and messages point at the pick's permanent id, never at its position (Agreed, C-1). Pins also keep a copy of the pick's text, so they survive deletion. |
 | Micro-tag | fixed set in 5 groups: Highlight (Must-do, Hidden gem, New), Price (Free, `$`, `$$`, `$$$`; pick one), Good for (Kid-friendly, Date night, Solo-friendly, Groups, Veg options), Know before (Cash only, Book ahead, Go early, Walk-in, Expect a line, Quick read, Dense, Great on audio), When (Brunch, Late night, Sunset) | Written from the creator's point of view, not as reactions (Agreed). Creators can also type their own tag (≤20 characters), e.g. "Outdoor seating"; a typed tag has a neutral color. |
@@ -40,7 +40,7 @@ Every object below needs a server-side record. The mockup keeps everything in br
 | Message | thread, sender, either text or a pick card | Inbox › Messages. |
 | Activity | recipient, actor, type (like, comment, remix, save, repost, pin, ask, follow), stack, pick (for pins), read | Inbox › Activity. A follow has no stack; one per follower per person (Agreed). |
 
-**Categories (Agreed).** Every Stack has 1 or 2 of these 12 categories (Proposed default for the count). They power Explore tiles, topic chips and search; creators can't type their own.
+**Categories (Agreed).** A Stack can have up to 2 of these 12 categories; they are optional (Agreed Nov 27). They power Explore tiles, topic chips and search; creators can't type their own.
 
 | Category | What fits |
 | --- | --- |
@@ -249,21 +249,20 @@ A signed-in user turns an idea into a published Stack in four steps: Title, Desc
 **Step 4: Finalize.** One screen with an **Arrange** and a **Preview** toggle.
 
 - **Theme card (Agreed):** an emoji and colour suggested from the title ("Suggested from your title. Tap to change."). Twelve emoji and six colours to choose from; once changed it says "You picked this theme."
-- **Is this about a place? (Agreed):** Yes/No. It defaults to Yes when the title or emoji suggests a place. Yes requires a city (≤80 characters), shown on the Stack and used in search. The hint reads "A city is required for place stacks." (D-6).
+- **Is this about a place? (Agreed):** Yes/No. It defaults to Yes when the title or emoji suggests a place. Yes shows an optional city field, "City (optional), e.g. Mexico City" (≤80 characters); the city is shown on the Stack and used in search. The hint reads "Looks like a place stack. Adding the city helps people find it." when Yes was suggested, "Adding the city helps people find it." once answered, and "Not about a place. No city needed." for No (Agreed Nov 27: the city is optional).
 - **Who can see this stack:** Public (default), Unlisted, Private, each with its one-line description.
-- **Category tags:** pick 1 or 2 of the 12 platform categories (Agreed list; the mockup's free-typed tags are replaced). Publish requires at least one (Proposed default). These feed Explore and search.
+- **Category tags:** optionally pick up to 2 of the 12 platform categories (Agreed list; the mockup's free-typed tags are replaced). The card reads "Optional. Pick up to 2 to help people find your Stack in Explore and search." Publishing doesn't need one (Agreed Nov 27). These feed Explore and search, and show after the date in the row after the last pick ("📍 Mexico City · Published Nov 24 · Food & Drink").
 - **Arrange:** move subsections and picks up and down.
 - **Preview (Agreed):** shows the Stack exactly as visitors will see it, with theme, emoji wallpaper, tag chips and pick numbers.
 - **Back to Build** returns to step 3 with everything kept.
 
-**Publish.** In order, the checks are:
+**Publish.** To publish, a Stack needs only a title, at least one pick, and nothing over a content-rule limit (Agreed Nov 27). The theme always has one selected; the city and the categories are optional. In order, the checks are:
 
-1. Any content-rule problem: go to Finalize and show a red box "Fix N things before publishing:" listing each one (e.g. "Title is 8 over 60 characters.", "“Roma Norte” has no items. Add one or remove the section.", "Item 3 heading is 4 over 80 characters."). Publish stays disabled until the list is empty.
-2. Place stack with no city: stay on Arrange, highlight the city field, toast "Add a city to publish this place stack."
-3. No title: a sheet asks for one; Publish in the sheet is disabled until it has text.
-4. Send to server. On success go to the Published screen; on failure stay on Finalize with "Couldn't publish. Check your connection and try again." (Proposed default) and keep everything.
+1. Any content-rule problem: go to Finalize and show a red box "Fix N things before publishing:" listing each one (e.g. "Title is 8 over 60 characters.", "“Roma Norte” has no items. Add one or remove the section.", "Item 3 heading is 4 over 80 characters.", "City is 5 over 80 characters."). Publish stays disabled until the list is empty.
+2. No title: a sheet asks for one; Publish in the sheet is disabled until it has text.
+3. Send to server. On success go to the Published screen; on failure stay on Finalize with "Couldn't publish. Check your connection and try again." (Proposed default) and keep everything.
 
-The Publish button looks disabled while check 1 or 2 fails and shows the reason under it.
+The Publish button looks disabled while check 1 fails and shows the reason under it.
 
 **Published screen.** Confirms the Stack is live and offers **Share** (opens Flow 4), **Start another stack**, and **Done** (goes to Profile › Stacks with the new Stack at the top). Publishing a draft deletes that draft.
 
@@ -295,9 +294,9 @@ The owner can edit, re-share, change visibility or delete a Stack at any time. S
 
 ### Edit
 
-**Edit stack** opens the editor at Build with the published content, theme, place and city, visibility and category tags. All Flow 1 tools and limits apply. The header status reads "No changes yet" until something changes, then "Unsaved changes". Two buttons replace Publish:
+**Edit stack** opens the editor at Build with the published content. All Flow 1 tools and limits apply. The header status reads "No changes yet" until something changes, then "Unsaved changes". Editing follows the same steps as creating (Agreed Nov 27): Build's button is **Finalize**, which starts from the Stack's theme, place answer, city and category tags, with Order and Preview. Who can see it stays in the Stack settings sheet. Two buttons replace Publish on Finalize:
 
-- **Save changes.** Validates like Publish (at least one pick with text; city if a place stack; title required). On success the live Stack is replaced, updatedAt is set, the user returns to the Stack detail, toast "Changes saved". It does not move the Stack in any feed.
+- **Save changes.** Validates like Publish (a title, at least one pick, nothing over a limit; the city and categories are optional). Only a change to the title, description or picks marks the Stack "Updated"; changing only the theme, place, city or categories doesn't, and can't be shared as an update. On success the live Stack is replaced, updatedAt is set, the user returns to the Stack detail, toast "Changes saved". It does not move the Stack in any feed.
 - **Share update.** Only for Public Stacks, at most once every 7 days. Opens a sheet for an optional note (≤40 characters, e.g. "Added 3 new bars"). Confirming saves the changes, puts the Stack back at the top of followers' feeds with an "Updated: note" banner, moves it to the top of the owner's profile (below a featured Stack), and toasts "Update shared to the feed". When blocked, the button is greyed and explains why: "Only public stacks can share updates." or "Share again in N days. Updates can be shared once every 7 days."
 
 **Backing out.** Closing the editor with no changes returns to Manage stacks. Closing with changes keeps them as an edit draft ("Unsaved edits to a published stack") and toasts "Changes saved as a draft". The published Stack does not change until Save changes or Share update. Refreshing restores the edit draft (same autosave as Flow 1).
@@ -741,7 +740,7 @@ Breakpoints: **phone** under 768 px, **tablet** 768–1023 px, **desktop** 1024 
 | Link entry | Bottom sheet: **Link** ("Paste a link", up to 2,048), **Name** (optional, up to 40), a "Shows as" preview chip, then Remove link (when editing) and Save. A URL without a scheme gets `https://`. Enter in either field saves. | Same sheet as a centered dialog, max 480 px. | Popover anchored under the selected item, same fields and buttons, closes with Escape (Proposed). |
 | Tags | Tags tray slides up above the keyboard: 5 suggested groups, "Your own" field, max 3 per item, Price picks one. | Same as dialog. | Popover anchored to the item, same content (Proposed). |
 | Reordering | **Edit** (top right) › Reorder mode: up and down arrows on every item and section; Done exits. Finalize › Arrange has the same arrows. No drag on phones. | Same. | Drag handle on hover plus the same up and down arrow buttons; the focused item moves with Alt+↑ / Alt+↓. Arrows remain the accessible way (Proposed). |
-| Finalize | One scrolling screen: Arrange / Preview toggle, theme card (12 emoji, 6 colors), Is this about a place? + City, Who can see this stack?, Category tags (1–2), then the red "Fix N things before publishing" box when needed. | Same, centered. | Two columns: settings on the left (max 480 px), live preview on the right, so the Arrange / Preview toggle isn't needed (Proposed). |
+| Finalize | One scrolling screen: Arrange / Preview toggle, theme card (12 emoji, 6 colors), Is this about a place? + City, Who can see this stack?, Category tags (optional, up to 2), then the red "Fix N things before publishing" box when needed. | Same, centered. | Two columns: settings on the left (max 480 px), live preview on the right, so the Arrange / Preview toggle isn't needed (Proposed). |
 | Preview | Finalize › Preview shows the Stack exactly as visitors see it, plus the feed card ("This is how your card looks in feeds"). | Same. | Always visible in the right column at the same 680 px width visitors get; a Phone / Desktop switch shows both widths (Proposed). |
 | Publish | Bottom bar: Back + **Publish** (black, pink offset shadow). Disabled with the reason under it while content rules or the city check fail. | Same. | Publish button at the bottom of the settings column and in the top bar (Proposed). |
 | Published screen | "Your Stack is live" with Share your Stack, Start another stack, Done. | Same, centered. | Same, centered card max 480 px. |
@@ -827,7 +826,7 @@ The example data is made up for testing; use it as seed data and in end-to-end t
 
 **4. Finish on the laptop.** At home she opens `stack.app/drafts/d_8f2k` (or Profile › Drafts). The editor opens at Build on desktop, with the editor column on the left and the live preview on the right. She edits item 2's subheading to "Mechanic shop by day, al pastor stand by night. The line moves fast, don't leave" (88/100, counter visible from 80) and clicks Finalize.
 
-**5. Finalize and preview.** The theme is suggested from the title: 🌮 on `oklch(84% 0.12 40)` ("Suggested from your title"); she keeps it. Is this about a place? defaults to Yes because of 🌮. City is empty, so Publish is disabled with "Add a city to publish." under it. She types "Mexico City". Who can see this stack: Public (default). Category tags: Food & Drink, Travel & Places. The preview column shows the Stack at visitor width with the taco wallpaper, "🌮 3 picks", sections Roma & Condesa (01, 02) and Centro (03), and the feed card.
+**5. Finalize and preview.** The theme is suggested from the title: 🌮 on `oklch(84% 0.12 40)` ("Suggested from your title"); she keeps it. Is this about a place? defaults to Yes because of 🌮. The city is optional; she types "Mexico City" so people can find it. Who can see this stack: Public (default). Category tags: Food & Drink, Travel & Places. The preview column shows the Stack at visitor width with the taco wallpaper, "🌮 3 picks", sections Roma & Condesa (01, 02) and Centro (03), and the feed card.
 
 **6. A content-rule miss.** Before publishing she pastes a longer description (172 characters). The description counter reads "172/160 · 12 over" in red. Publish is disabled and the red box says "Fix 1 thing before publishing: Description is 12 over 160 characters." She trims it, and the box disappears.
 

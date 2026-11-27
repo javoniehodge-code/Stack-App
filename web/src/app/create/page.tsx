@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { fetchEditDraft, fetchEditTarget, recordToDraft } from "@/lib/drafts";
+import { editDraftToDraft, fetchEditDraft, fetchEditTarget } from "@/lib/drafts";
 import { createClient, getViewerId } from "@/lib/supabase/server";
 import CreateScreen from "./CreateScreen";
 
@@ -21,7 +21,7 @@ export default async function CreatePage({ searchParams }: PageProps<"/create">)
   if (!viewerId || !found) redirect("/new");
   // Pick up edits saved earlier, if any; otherwise start from the stack as it is.
   const pending = await fetchEditDraft(sb, viewerId, found.target.stackId);
-  const initial = pending ? { ...recordToDraft(pending), tags: found.live.tags } : found.live;
+  const initial = pending ? editDraftToDraft(pending, found.live) : found.live;
   const target = pending?.base_version ? { ...found.target, baseVersion: pending.base_version } : found.target;
   return <CreateScreen key={`edit-${target.stackId}`} initial={initial} start="build" edit={target} />;
 }

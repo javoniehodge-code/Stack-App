@@ -55,7 +55,7 @@ export function ThemedStack({
   ownerFirst: string;
   /** Your own Stack: the filter's note says the tags are yours. */
   mine: boolean;
-  /** The row after the last pick: "📍 Mexico City · Published Nov 24". */
+  /** The row after the last pick: "📍 Mexico City · Published Nov 24 · Food & Drink". */
   meta: string;
   /** The card's bottom bar. */
   footer?: React.ReactNode;

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth, useBack, useToast } from "@/components/AppProviders";
 import shell from "@/components/AppShell.module.css";
 import { ShareSheet, systemShare } from "@/components/Share";
+import { DRAFT_VERSION } from "@/lib/drafts";
 import { dateLabel, metaLabel, TagChips, type ViewLine } from "@/components/StackView";
 import { themed as t, ThemedStack, type ThemedSection } from "@/components/ThemedStack";
 import {
@@ -428,12 +429,11 @@ function limitProblems(w: Work): string[] {
   return out;
 }
 
-/** A place Stack with no city (it has its own message and highlight on Finalize). */
-const cityMissing = (w: Work) => finalChoices(w).isPlace && !w.location.trim();
-
 /**
  * Everything to fix before publishing, for Finalize's red box, in the design's order: the content rules, then the
- * category and the city. Mirrors publish_draft's checks (migration 20261201000000_publish_checks).
+ * city's limit. A title (asked for at Publish when missing) and one item are all a Stack needs; the categories and
+ * the city are optional (agreed Nov 27). Mirrors publish_draft's checks (check_publishable, migration
+ * 20261202000000_easier_publish_edit_finalize).
  */
 function publishProblems(w: Work): string[] {
   const out = limitProblems(w);
@@ -446,8 +446,6 @@ function publishProblems(w: Work): string[] {
     out.push(`${name ? `“${name.slice(0, 24)}${name.length > 24 ? "…" : ""}”` : `Section ${si}`} has no items. Add one or remove the section.`);
   }
   if (!w.sections.some((sec) => sec.lines.some((l) => !isEmpty(l)))) out.unshift("Add at least one item.");
-  if (!w.categories.length) out.push("Pick at least 1 category.");
-  if (cityMissing(w)) out.push("Add a city, or answer No to the place question.");
   const city = w.location.trim().length;
   if (finalChoices(w).isPlace && city > MAX_CITY) out.push(`City is ${over(city, MAX_CITY)} over ${MAX_CITY} characters.`);
   return out;
@@ -546,8 +544,6 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   // nothing was published) or the publish's outcome is unknown ("unknown": no answer, and the check failed too;
   // `again` once Check again has failed as well).
   const [publishFailed, setPublishFailed] = useState<{ title: string; kind: "save" | "unknown"; again?: boolean } | null>(null);
-  // Bumped when Publish is tapped with only the city missing, to highlight the city field again.
-  const [cityFlag, setCityFlag] = useState(0);
   const [titleDraft, setTitleDraft] = useState("");
   const [save, setSave] = useState<SaveState>(initial.id ? "saved" : "idle");
   const [published, setPublished] = useState<string | null>(null);
@@ -603,7 +599,8 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
       const row = (w: Work) => ({
         id: idRef.current,
         content: {
-          v: 1,
+          // 2: the Finalize choices below are the person's (lib/drafts.ts, DraftContent).
+          v: DRAFT_VERSION,
           title: w.title,
           description: w.description,
           sections: sectionsArg(w),
@@ -1201,10 +1198,14 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   async function applyEdit(share: boolean, note = "") {
     if (!target || busy) return;
     const w = workRef.current;
-    if (!counts(w).n) return toast("Add an item to publish.");
     if (!w.title.trim()) return toast("Add a title to publish.");
-    const over = limitProblems(w)[0];
-    if (over) return toast(over);
+    // The same checks as publishing; anything to fix shows on Finalize, with the first problem in a toast.
+    const problems = publishProblems(w);
+    if (problems.length) {
+      setPreview(false);
+      setStep("review");
+      return toast(problems[0] + (problems.length > 1 ? ` (+${problems.length - 1} more)` : ""));
+    }
     setBusy(true);
     // Let any autosave finish first, so it can't recreate the edits draft after this removes it.
     dirty.current = false;
@@ -1216,6 +1217,11 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
       p_sections: sectionsArg(w),
       p_share: share,
       p_note: note.trim(),
+      p_theme_emoji: finalChoices(w).emoji,
+      p_theme_color: finalChoices(w).color,
+      p_is_place: finalChoices(w).isPlace,
+      p_location: finalChoices(w).city,
+      p_categories: w.categories,
     });
     setBusy(false);
     if (error) return toast(error.code === "PGRST202" ? "Editing published stacks isn't available yet." : `Couldn't publish: ${error.message}`);
@@ -1310,17 +1316,11 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
 
   function publish() {
     // Spec, Flow 1 Publish: anything to fix shows on Finalize's settings (out of Preview), with the first problem in a
-    // toast. A missing city on its own gets its toast, and its field is highlighted.
+    // toast.
     const problems = publishProblems(work);
     if (problems.length) {
       setPreview(false);
       setStep("review");
-      if (problems.length === 1 && cityMissing(work)) {
-        toast("Add a city to publish this place stack.");
-        setCityFlag((k) => k + 1);
-        focusId.current = "city";
-        return;
-      }
       return toast(problems[0] + (problems.length > 1 ? ` (+${problems.length - 1} more)` : ""));
     }
     if (!work.title.trim()) {
@@ -1489,10 +1489,43 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
   const problems = publishProblems(work);
   const blockedWhy = !problems.length
     ? ""
-    : problems.length === 1 && cityMissing(work)
-      ? "Add a city to publish."
-      : `Fix ${problems.length === 1 ? "1 thing" : `${problems.length} things`} on this page to publish.`;
+    : `Fix ${problems.length === 1 ? "1 thing" : `${problems.length} things`} on this page to publish.`;
   const cityCount = counter("", work.location.trim().length, MAX_CITY);
+  // Finalize's main button: Publish, or Save when editing a published Stack (agreed Nov 27: editing goes through
+  // Finalize too), with the reason under it while something needs fixing.
+  const publishButton = (
+    <div className={s.fzPublishWrap}>
+      <button
+        className={s.fzPublish}
+        aria-disabled={problems.length > 0}
+        aria-describedby={blockedWhy ? "publish-why" : undefined}
+        disabled={busy}
+        onClick={target ? () => applyEdit(false) : publish}
+      >
+        {target ? (busy && !shareOpen ? "Saving…" : "Save") : busy ? "Publishing…" : "Publish"}
+      </button>
+      {blockedWhy && (
+        <div id="publish-why" className={s.fzWhy}>
+          {blockedWhy}
+        </div>
+      )}
+    </div>
+  );
+  // Editing: Save and share update, under Finalize's footer.
+  const shareRow = (
+    <div className={s.fzShareRow}>
+      <button className={s.shareUpdate} aria-disabled={!shareState?.can} onClick={openShare}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5" />
+          <path d="M20 4v4.5h-4.5" />
+          <path d="M20 12a8 8 0 0 1-13.7 5.7L4 15.5" />
+          <path d="M4 20v-4.5h4.5" />
+        </svg>
+        Save and share update
+      </button>
+      <div className={s.shareHint}>{shareState?.hint}</div>
+    </div>
+  );
   const pickTheme = (emoji: string, color: string) => edit((w) => ({ ...w, theme: { emoji, color } }));
   function toggleCategory(name: string) {
     edit((w) =>
@@ -2064,20 +2097,21 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
           {step === "build" &&
             !writing &&
             (target ? (
-              <footer className={`${s.footer} ${s.editFooter}`}>
-                <button className={s.primary} disabled={busy} onClick={() => applyEdit(false)}>
-                  {busy && !shareOpen ? "Saving…" : "Save"}
+              // Editing follows the same steps as creating (agreed Nov 27): the picks, then Finalize to save.
+              <footer className={s.footer}>
+                <button
+                  className={s.primary}
+                  style={{ flex: 1 }}
+                  aria-disabled={!n}
+                  onClick={() => {
+                    if (!n) return toast("Add an item first.");
+                    setArranging(false);
+                    setStep("review");
+                    clearSel();
+                  }}
+                >
+                  Finalize
                 </button>
-                <button className={s.shareUpdate} aria-disabled={!shareState?.can} onClick={openShare}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5" />
-                    <path d="M20 4v4.5h-4.5" />
-                    <path d="M20 12a8 8 0 0 1-13.7 5.7L4 15.5" />
-                    <path d="M4 20v-4.5h4.5" />
-                  </svg>
-                  Save and share update
-                </button>
-                <div className={s.shareHint}>{shareState?.hint}</div>
               </footer>
             ) : (
               <footer className={s.footer}>
@@ -2173,27 +2207,30 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                   </div>
                 </section>
 
-                <section className={s.fzCard} style={{ paddingBottom: 8 }} aria-labelledby="privacy-title">
-                  <div id="privacy-title" className={s.fzLabel} style={{ marginBottom: 6 }}>
-                    Privacy
-                  </div>
-                  {FINAL_PRIVACY.map(([key, label, desc], i) => {
-                    const on = work.visibility === key;
-                    return (
-                      <button key={key} className={s.fzVis} data-divided={i > 0 || undefined} onClick={() => edit((w) => ({ ...w, visibility: key }))} aria-pressed={on}>
-                        <span className={s.fzRadio} data-on={on || undefined}>
-                          <span />
-                        </span>
-                        <span className={s.fzVisText}>
-                          <span className={s.fzVisLabel} style={{ fontWeight: on ? 700 : 600 }}>
-                            {label}
+                {/* Editing: who can see it stays in the Stack's ⋯ menu (agreed Nov 27), so Privacy isn't here. */}
+                {!target && (
+                  <section className={s.fzCard} style={{ paddingBottom: 8 }} aria-labelledby="privacy-title">
+                    <div id="privacy-title" className={s.fzLabel} style={{ marginBottom: 6 }}>
+                      Privacy
+                    </div>
+                    {FINAL_PRIVACY.map(([key, label, desc], i) => {
+                      const on = work.visibility === key;
+                      return (
+                        <button key={key} className={s.fzVis} data-divided={i > 0 || undefined} onClick={() => edit((w) => ({ ...w, visibility: key }))} aria-pressed={on}>
+                          <span className={s.fzRadio} data-on={on || undefined}>
+                            <span />
                           </span>
-                          <span className={s.fzVisDesc}>{desc}</span>
-                        </span>
-                      </button>
-                    );
-                  })}
-                </section>
+                          <span className={s.fzVisText}>
+                            <span className={s.fzVisLabel} style={{ fontWeight: on ? 700 : 600 }}>
+                              {label}
+                            </span>
+                            <span className={s.fzVisDesc}>{desc}</span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </section>
+                )}
 
                 <section className={s.fzCard} style={{ marginTop: 14 }}>
                   <div className={s.fzPlaceRow}>
@@ -2209,12 +2246,12 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                     </div>
                   </div>
                   <div className={s.fzPlaceHint}>
-                    {fin.isPlace ? (work.isPlace === null ? "Looks like a place stack. A city is required for place stacks." : "A city is required for place stacks.") : "Not about a place. No city needed."}
+                    {fin.isPlace ? (work.isPlace === null ? "Looks like a place stack. Adding the city helps people find it." : "Adding the city helps people find it.") : "Not about a place. No city needed."}
                   </div>
                   {fin.isPlace && (
                     <>
                       <div style={{ height: 12 }} />
-                      <label className={s.fzCity} data-flag={cityFlag && !work.location.trim() ? cityFlag % 2 : undefined}>
+                      <label className={s.fzCity}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(55% 0.22 350)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }} aria-hidden>
                           <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" />
                           <circle cx="12" cy="10" r="2.4" />
@@ -2228,12 +2265,10 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                             const v = oneLine(e.target.value);
                             edit((w) => ({ ...w, location: v }));
                           }}
-                          placeholder="City (required), e.g. Mexico City"
+                          placeholder="City (optional), e.g. Mexico City"
                           aria-label="City"
-                          aria-required="true"
                         />
                       </label>
-                      {!work.location.trim() && <div className={s.fzMissing}>Add a city to publish.</div>}
                       {cityCount.text && (
                         <div className={s.fieldCount} data-full={cityCount.full || undefined}>
                           {cityCount.text}
@@ -2248,7 +2283,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
                     Categories
                   </div>
                   <div className={s.placeHelp}>
-                    {work.categories.length >= MAX_CATEGORIES ? "You picked 2. Tap one to remove it, then pick another." : "Pick 1 or 2. They help people find your Stack in Explore and search."}
+                    {work.categories.length >= MAX_CATEGORIES ? "You picked 2. Tap one to remove it, then pick another." : "Optional. Pick up to 2 to help people find your Stack in Explore and search."}
                   </div>
                   <div className={s.catGrid}>
                     {CATEGORIES.map((c) => {
@@ -2340,7 +2375,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               </>
             )}
           </div>
-          <footer className={`${s.footer} ${s.fzFooter}`}>
+          <footer className={`${s.footer} ${s.fzFooter}`} data-edit={target ? "" : undefined}>
             <button
               className={`${s.back} ${s.fzBack}`}
               onClick={() => {
@@ -2353,17 +2388,9 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               </svg>
               Back
             </button>
-            <div className={s.fzPublishWrap}>
-              <button className={s.fzPublish} aria-disabled={problems.length > 0} aria-describedby={blockedWhy ? "publish-why" : undefined} disabled={busy} onClick={publish}>
-                {busy ? "Publishing…" : "Publish"}
-              </button>
-              {blockedWhy && (
-                <div id="publish-why" className={s.fzWhy}>
-                  {blockedWhy}
-                </div>
-              )}
-            </div>
+            {publishButton}
           </footer>
+          {target && shareRow}
         </>
       )}
 
@@ -2401,7 +2428,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
             ownerFirst="You"
             mine
             preview
-            meta={metaLabel(fin.city, dateLabel(new Date().toISOString()))}
+            meta={metaLabel(fin.city, dateLabel(new Date().toISOString()), work.categories)}
             footer={
               <span style={{ display: "contents" }} aria-hidden>
                 <span className={t.pmBarIcon} style={{ fontSize: 18 }}>
@@ -2430,24 +2457,16 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
               </span>
             }
           />
-          <footer className={`${s.footer} ${s.fzFooter}`}>
+          <footer className={`${s.footer} ${s.fzFooter}`} data-edit={target ? "" : undefined}>
             <button className={`${s.back} ${s.fzBack}`} onClick={() => setPreview(false)}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d="M14.5 5.5L8 12l6.5 6.5" />
               </svg>
               Back
             </button>
-            <div className={s.fzPublishWrap}>
-              <button className={s.fzPublish} aria-disabled={problems.length > 0} aria-describedby={blockedWhy ? "publish-why" : undefined} disabled={busy} onClick={publish}>
-                {busy ? "Publishing…" : "Publish"}
-              </button>
-              {blockedWhy && (
-                <div id="publish-why" className={s.fzWhy}>
-                  {blockedWhy}
-                </div>
-              )}
-            </div>
+            {publishButton}
           </footer>
+          {target && shareRow}
         </>
       )}
 

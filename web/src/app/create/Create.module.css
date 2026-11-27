@@ -580,14 +580,7 @@
   background: var(--bg);
 }
 
-/* Edit mode: Save, Save and share update, and when sharing is possible */
-.editFooter {
-  padding-top: 12px;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-}
-
+/* Edit mode: Save and share update, and when sharing is possible (under Finalize) */
 .shareUpdate {
   height: 44px;
   border-radius: 999px;
@@ -1867,12 +1860,6 @@ button.tagChip {
   font-size: 14px;
   color: oklch(19.4% 0.035 300);
 }
-.fzMissing {
-  font-size: 12px;
-  font-weight: 600;
-  color: oklch(50% 0.18 30);
-  margin-top: 8px;
-}
 /* Design: emoji tiles ring in ink when picked, light otherwise. */
 .emojiBtn {
   height: 40px;
@@ -1919,6 +1906,17 @@ button.tagChip {
   opacity: 0.4;
 }
 /* Publish with the reason under it while it can't publish (spec, Flow 1 Publish). */
+/* Editing a published Stack: Save and share update under Finalize's footer. */
+.fzShareRow {
+  padding: 0 20px calc(16px + var(--safe-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: oklch(99.5% 0.01 95);
+}
+.fzFooter[data-edit] {
+  padding-bottom: 8px;
+}
 .fzPublishWrap {
   flex: 1;
   min-width: 0;
@@ -1968,30 +1966,6 @@ button.tagChip {
   content: "•" / "";
 }
 
-/* The city field, highlighted when Publish is tapped without it (two names so each tap replays it). */
-.fzCity[data-flag] {
-  border-color: oklch(50% 0.2 25);
-  box-shadow: 0 0 0 3px oklch(50% 0.2 25 / 0.2);
-}
-.fzCity[data-flag="0"] {
-  animation: cityNudgeA 420ms ease;
-}
-.fzCity[data-flag="1"] {
-  animation: cityNudgeB 420ms ease;
-}
-@keyframes cityNudgeA {
-  20%, 60% { transform: translateX(-4px); }
-  40%, 80% { transform: translateX(4px); }
-}
-@keyframes cityNudgeB {
-  20%, 60% { transform: translateX(-4px); }
-  40%, 80% { transform: translateX(4px); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .fzCity[data-flag] {
-    animation: none;
-  }
-}
 .fzPublish:disabled {
   opacity: 0.6;
 }

@@ -94,4 +94,6 @@ export function dateLabel(publishedAt: string | null, updatedAt?: string | null)
 }
 
 /** "📍 Mexico City · Published Nov 24": a place Stack's city, then the date. */
-export const metaLabel = (city: string, date: string) => [city && `📍 ${city}`, date].filter(Boolean).join(" · ");
+/** "📍 Mexico City · Published Nov 24 · Food & Drink, Travel & Places": the city and categories only when set. */
+export const metaLabel = (city: string, date: string, categories: string[] = []) =>
+  [city && `📍 ${city}`, date, categories.join(", ")].filter(Boolean).join(" · ");
