@@ -87,6 +87,7 @@ Agreed Nov 27: to publish, a Stack needs only a title, at least 1 pick, and noth
   - The Stack page fit without pinching: both edges, ⋯ and the bottom bar showed.
   - Pinch-to-zoom still worked.
   - Two trips in a row, Profile › Stack › ⋯ › Edit stack › Finalize › Save & exit, both landed on Profile.
+  - After those trips (Feed › Profile › Edit › Save & exit), Safari's Back went from Profile to the Feed, not back into the editor or the Stack.
 
 ## Later tasks
 
