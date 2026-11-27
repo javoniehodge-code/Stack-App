@@ -5,7 +5,7 @@
 // (links.<run>.*@stack.test) and removes it at the end, with its drafts and stacks.
 //
 //   APP_URL API_URL MAILPIT_URL ANON_KEY TEST_DB TEST_ENV_TOKEN [SHOTS=<dir>]  node web/e2e/links.e2e.mjs
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { verifyTestDatabase } from "./test-target.mjs";
 
@@ -213,6 +213,78 @@ const hidden = !(await guest.getByText("Cities to Travel To").first().isVisible(
 await page.goto(APP + readable);
 const ownerSees = await page.getByText("Cities to Travel To").first().isVisible().catch(() => false);
 check("7. A private Stack's readable address shows nothing to a visitor, and the Stack to its owner", hidden && ownerSees, `hidden ${hidden} · owner ${ownerSees}`);
+
+// 8. A Stack's page fills the screen at its readable address (no tab bar), opened directly, from a card, or through
+//    an old /s/{id} link; the tab bar still shows on other screens (home, Explore, a profile, a followers list).
+await page.goto(APP + "/profile");
+const tabBar = (pg) => pg.locator('nav[aria-label="Main"]').isVisible().catch(() => false);
+psql(`update public.stacks set visibility = 'public' where id = '${id}'`, false);
+const nav8 = {};
+await guest.goto(APP + readable);
+await guest.getByText("Cities to Travel To").first().waitFor({ timeout: 10000 }).catch(() => {});
+nav8.direct = await tabBar(guest);
+await guest.goto(APP + `/${handleA}`);
+await guest.getByText("Cities to Travel To").first().waitFor({ timeout: 10000 }).catch(() => {});
+nav8.profile = await tabBar(guest);
+await guest.getByText("Cities to Travel To").first().click();
+await guest.waitForURL((u) => u.pathname === readable, { timeout: 10000 }).catch(() => {});
+nav8.card = await tabBar(guest);
+await guest.goto(APP + `/s/${id}`);
+await guest.waitForURL((u) => u.pathname === readable, { timeout: 10000 }).catch(() => {});
+await guest.getByText("Cities to Travel To").first().waitFor({ timeout: 10000 }).catch(() => {});
+nav8.oldLink = await tabBar(guest);
+for (const path of ["/", "/explore", `/u/${handleA}/followers`]) {
+  await guest.goto(APP + path);
+  await guest.locator('nav[aria-label="Main"]').waitFor({ timeout: 10000 }).catch(() => {});
+  nav8[path] = await tabBar(guest);
+}
+check(
+  "8. No tab bar on a Stack at its readable address (opened directly, from a profile's card, or through /s/{id}); the tab bar shows on home, Explore, a profile and a followers list",
+  !nav8.direct && !nav8.card && !nav8.oldLink && nav8.profile && nav8["/"] && nav8["/explore"] && nav8[`/u/${handleA}/followers`],
+  JSON.stringify(nav8),
+);
+
+// 9. Two overlapping transactions: while A changes their username away from handleA (not yet committed), B tries to
+//    take handleA. B must wait for A and then be refused, and handleA stays A's; A can switch back to it after.
+const session = (sqlText) => {
+  const p = spawn("psql", ["-X", "-At", "-q", "-v", "ON_ERROR_STOP=1", DB], { stdio: ["pipe", "pipe", "pipe"] });
+  let out = "";
+  p.stdout.on("data", (b) => (out += b));
+  p.stderr.on("data", (b) => (out += b));
+  const done = new Promise((ok) => p.on("exit", (code) => ok({ code, out })));
+  p.stdin.write(sqlText);
+  return { p, done, out: () => out };
+};
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const handleC = `${handleA}y`.slice(0, 30);
+const a9 = session(`begin;\nupdate public.profiles set handle = '${handleC}' where id = '${uid}';\nselect 'held';\n`);
+for (let i = 0; i < 50 && !a9.out().includes("held"); i++) await sleep(100);
+const b9 = session(`update public.profiles set handle = '${handleA}' where id = '${uidB}';\n`);
+b9.p.stdin.end();
+let bWaited = false;
+for (let i = 0; i < 50 && !bWaited; i++) {
+  await sleep(100);
+  bWaited = sql(`select count(*) from pg_stat_activity where datname = current_database() and wait_event_type = 'Lock' and query like '%update public.profiles set handle%' and query not like '%pg_stat_activity%'`) !== "0";
+}
+a9.p.stdin.end("commit;\n");
+const [ra, rb] = await Promise.all([a9.done, b9.done]);
+const after9 = { a: sql(`select handle from public.profiles where id = '${uid}'`), b: sql(`select handle from public.profiles where id = '${uidB}'`), owner: sql(`select user_id from public.past_handles where handle = '${handleA}'`) };
+// A switches back to handleA.
+let back9 = "";
+try {
+  psql(`update public.profiles set handle = '${handleA}' where id = '${uid}'`, false);
+  back9 = sql(`select handle from public.profiles where id = '${uid}'`);
+} catch (e) {
+  back9 = String(e.stderr || e.message).slice(0, 120);
+}
+await guest.goto(APP + `/${handleC}/cities-to-travel-to`);
+await guest.waitForURL((u) => u.pathname === readable, { timeout: 10000 }).catch(() => {});
+check(
+  "9. Overlapping: while A retires a username, B trying to take it waits and is refused; it stays A's, and A can switch back to it (A's in-between username then forwards)",
+  ra.code === 0 && bWaited && rb.code !== 0 && rb.out.includes("that username isn't available") && after9.a === handleC && after9.b !== handleA && after9.owner === uid &&
+    back9 === handleA && pathOf(guest) === readable,
+  JSON.stringify({ aCode: ra.code, bWaited, bCode: rb.code, b: rb.out.trim().slice(0, 90), after9, back9, at: pathOf(guest) }),
+);
 
 await browser.close();
 cleanup();

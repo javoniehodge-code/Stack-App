@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useAuth, useResume } from "./AppProviders";
 import { BellIcon, FeedTabIcon, PlusIcon, ProfileTabIcon, SearchIcon } from "./icons";
 import styles from "./AppShell.module.css";
+import { isStackPath } from "@/lib/links";
 
 const ON = "var(--text)";
 const OFF = "var(--muted-56)";
@@ -40,7 +41,8 @@ export default function TabBar() {
   useResume("create", () => router.push("/new"));
   const unread = useUnreadCount(path);
   // The create flow and stack pages are full screen.
-  if (path.startsWith("/create") || path === "/new" || path.startsWith("/drafts/") || path.startsWith("/s/")) return null;
+  // The editor and a Stack's page fill the screen (a Stack is at /{username}/{slug}, or the older /s/{id}).
+  if (path.startsWith("/create") || path === "/new" || path.startsWith("/drafts/") || isStackPath(path)) return null;
   const c = (active: boolean) => (active ? ON : OFF);
   return (
     <nav className={styles.tabBar} aria-label="Main">

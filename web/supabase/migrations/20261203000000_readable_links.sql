@@ -4,7 +4,8 @@
 -- * past_handles: every username a person has given up, kept for them for good (D-1), so their old links keep
 --   working and nobody else can take it. Switching back to one of your own old usernames is allowed.
 --     - A trigger on profiles records the old username when it changes, and refuses a username someone else used
---       to have ("that username isn't available", the same error as a reserved one).
+--       to have ("that username isn't available", the same error as a reserved one). It locks the usernames it
+--       touches, so a username can't be taken by someone else while its owner is giving it up.
 --     - handle_available() (the live hint while typing) says no to those too.
 --     - current_handle() turns an old username into the current one, for the forwarding. Anyone can ask, since
 --       profiles are public.
@@ -45,7 +46,16 @@ language plpgsql
 security definer
 set search_path = ''
 as $$
+declare
+  h text;
 begin
+  -- One change per username at a time: lock each username this touches (the new one, and the old one being given
+  -- up), in a fixed order so two changes can't deadlock. A request for a username someone is giving up waits for that
+  -- change to finish, and the check below (a fresh look) then sees it recorded as theirs.
+  for h in select distinct x from unnest(array[new.handle, case when tg_op = 'UPDATE' then old.handle end]) x
+            where x is not null order by x loop
+    perform pg_advisory_xact_lock(hashtextextended('handle:' || h, 0));
+  end loop;
   if exists (select 1 from public.past_handles p where p.handle = new.handle and p.user_id <> new.id) then
     raise exception 'that username isn''t available' using errcode = '23514';
   end if;
