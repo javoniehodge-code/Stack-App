@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { CATEGORY_DOTS, DEFAULT_DOT, EXPLORE_CATS } from "@/lib/format";
+import { CATEGORY_DOTS, DEFAULT_DOT, EXPLORE_CATS, plural, stackTheme } from "@/lib/format";
+import { stackPath } from "@/lib/links";
 import { STACK_SELECT, fetchCategoriesFor, fetchFollowing, publicOnly, searchStacks, withViewerState } from "@/lib/queries";
 import { createClient, getViewerId } from "@/lib/supabase/server";
 import type { StackRow } from "@/lib/types";
@@ -31,7 +32,9 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
 
   const trending = await withViewerState(sb, viewerId, (trendingRes.data ?? []) as unknown as StackRow[]);
   const recent = (recentRes.data ?? []) as unknown as StackRow[];
-  const catOf = await fetchCategoriesFor(sb, recent.map((r) => r.id), [...EXPLORE_CATS, "Shopping"]);
+  // Each Trending Stack's category: the author's first choice, or else the one its picks suggest.
+  const guessed = await fetchCategoriesFor(sb, trending.filter((t) => !t.categories?.length).map((t) => t.id), [...EXPLORE_CATS, "Shopping"]);
+  const trendingCats = Object.fromEntries(trending.map((t) => [t.id, t.categories?.[0] ?? guessed[t.id] ?? ""]));
 
   const categories = ((catsRes.data ?? []) as { name: string; titles: string[] }[]).map((c) => ({
     name: c.name,
@@ -44,11 +47,13 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
       query={query}
       trending={trending}
       categories={categories}
+      trendingCats={trendingCats}
       recent={recent.map((r) => ({
         id: r.id,
+        href: stackPath(r),
         title: r.title,
-        meta: `@${r.author.handle} · ${r.line_count} lines`,
-        dot: CATEGORY_DOTS[catOf[r.id]] ?? DEFAULT_DOT,
+        meta: `${r.author.name} · ${plural(r.line_count, "pick")}`,
+        ...stackTheme(r),
         publishedAt: r.published_at,
       }))}
       results={results}

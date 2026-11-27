@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { postComment, thread, threadRoot } from "@/lib/comments";
-import { flatten, fmtCount, initials, plural, timeAgo } from "@/lib/format";
+import { flatten, fmtCount, initials, plural, stackTheme, tagInfo, timeAgo } from "@/lib/format";
 import { useEngagement, useIsFollowing, useVisibility } from "@/lib/store";
 import type { Comment, FeedItem, Stack } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
@@ -16,6 +16,7 @@ import { MentionList, useMentions } from "./Mentions";
 import { RepostButton, RepostGlyph } from "./Repost";
 import { ShareButton } from "./Share";
 import { LineMarker, LinkPill, RichText } from "./StackView";
+import { sortTags, ThemeBand, themed } from "./ThemedStack";
 import { VIS, VisIcon } from "./Visibility";
 import s from "./Cards.module.css";
 import { stackPath } from "@/lib/links";
@@ -36,19 +37,8 @@ function useOpen(stack: Stack) {
   } as const;
 }
 
-function AuthorRow({ stack }: { stack: Stack }) {
-  const { authorHref } = useStackActions();
-  return (
-    <Link href={authorHref(stack.author)} onClick={stop} className={s.author}>
-      <span className={s.avatar}>{initials(stack.author.name)}</span>
-      <span className={s.authorName}>{stack.author.name}</span>
-      <span className={s.authorHandle}>@{stack.author.handle}</span>
-    </Link>
-  );
-}
-
 /** Like · save · [extra] · share. The feed's bar (`feed`) is like · save · repost · Share. */
-export function ActionRow({ stack, extra, feed }: { stack: Stack; extra?: React.ReactNode; feed?: boolean }) {
+export function ActionRow({ stack, extra, feed, shareLabel }: { stack: Stack; extra?: React.ReactNode; feed?: boolean; shareLabel?: boolean }) {
   const e = useEngagement(stack);
   const a = useStackActions();
   const likeColor = e.liked ? "var(--accent)" : "var(--muted-66)";
@@ -65,16 +55,16 @@ export function ActionRow({ stack, extra, feed }: { stack: Stack; extra?: React.
       </button>
       {feed && <RepostButton stack={stack} className={s.action} size={16} count={fmtCount} />}
       {extra}
-      <ShareButton stack={stack} className={s.copy} size={16} label={feed ? "Share" : undefined} />
+      <ShareButton stack={stack} className={s.copy} size={16} label={feed || shareLabel ? "Share" : undefined} />
     </div>
   );
 }
 
 /** A feed card, with "X reposted" and their note when it's in the Following feed because of a repost. */
-export function FeedCard({ stack }: { stack: FeedItem }) {
+export function FeedCard({ stack, following = false }: { stack: FeedItem; following?: boolean }) {
   const { authorHref } = useStackActions();
   const rp = stack.repost;
-  if (!rp) return <FeedCardBody stack={stack} />;
+  if (!rp) return <FeedCardBody stack={stack} following={following} />;
   return (
     <div className={s.feedItem}>
       <Link href={authorHref(rp.by)} className={s.feedRepostLabel}>
@@ -83,6 +73,7 @@ export function FeedCard({ stack }: { stack: FeedItem }) {
       </Link>
       <FeedCardBody
         stack={stack}
+        following={following}
         note={
           rp.note && (
             <div className={s.repostNote}>
@@ -111,18 +102,29 @@ export function UpdateBanner({ stack, className }: { stack: Pick<Stack, "shared_
   );
 }
 
-/** A paper card: author and age on top, as many lines as fit (faded, with See all, when cut off), the action bar, then comments that open inline. */
-function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode }) {
+/** How many picks a feed card shows before "See all N lines" (agreed Nov 27, as in the design). */
+const FEED_MAX = 5;
+
+/**
+ * A feed card, as in the design (Party Mode): the theme band ("{emoji} N picks" and the time), the author with
+ * Follow, the title, the first picks in the Stack page's style (faded, with See all, when cut off), the action bar,
+ * then comments that open inline.
+ */
+function FeedCardBody({ stack, note, following = false }: { stack: Stack; note?: React.ReactNode; following?: boolean }) {
   const open = useOpen(stack);
   const { viewer, requireAuth } = useAuth();
   const toast = useToast();
-  const { authorHref } = useStackActions();
+  const a = useStackActions();
+  const { authorHref } = a;
+  const isFollowing = useIsFollowing(stack.author.id, following);
+  const mine = viewer?.id === stack.author.id;
+  const theme = stackTheme(stack);
   const lines = flatten(stack);
-  const shown = lines.slice(0, 14);
+  const shown = lines.slice(0, FEED_MAX);
   const extra = lines.length > shown.length;
   // The body has a fixed maximum height; the fade and See all show only when it cuts lines off.
   const clipRef = useRef<HTMLDivElement>(null);
-  const [more, setMore] = useState(lines.length > 4);
+  const [more, setMore] = useState(lines.length > FEED_MAX);
   useEffect(() => {
     const el = clipRef.current;
     if (!el) return;
@@ -185,61 +187,74 @@ function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode })
   );
 
   return (
-    <article className={s.feedCard}>
-      <div className={s.feedTop}>
-        <Link href={authorHref(stack.author)} className={s.author}>
-          <span className={s.avatar}>{initials(stack.author.name)}</span>
-          <span className={s.authorName}>{stack.author.name}</span>
-          <span className={s.authorHandle}>@{stack.author.handle}</span>
-        </Link>
-        <span className={s.feedMeta}>
-          {timeAgo(stack.published_at)} · {plural(lines.length, "line")}
-        </span>
+    <article className={s.pmFeedCard}>
+      <div {...open} className={s.pmFeedBand}>
+        <ThemeBand emoji={theme.emoji} color={theme.color} count={lines.length} end={timeAgo(stack.published_at)} />
       </div>
-      <div className={s.feedBody}>
+      <div className={s.pmFeedBody}>
+        <div className={s.pmAuthorRow}>
+          <Link href={authorHref(stack.author)} className={s.pmAuthorLink}>
+            <span className={s.pmAvatar}>{initials(stack.author.name)}</span>
+            <span className={s.pmName}>{stack.author.name}</span>
+            <span className={s.pmHandle}>@{stack.author.handle}</span>
+          </Link>
+          {!mine && <FollowButton className={s.pmFollow} following={isFollowing} onClick={() => a.toggleFollow(stack.author, isFollowing)} />}
+        </div>
         {note}
         <UpdateBanner stack={stack} />
         <div {...open} className={s.feedOpen}>
-          <div ref={clipRef} className={s.feedClip}>
-            <div className={s.title}>{stack.title}</div>
-            {stack.description && <div className={s.feedDescription}>{stack.description}</div>}
-            <div className={s.feedLines}>
-              {shown.map((l, i) => {
-                // A rule under each line, except before a new section and after the last line shown.
-                const divided = i < shown.length - 1 && !shown[i + 1].label;
-                return (
-                  <div key={i}>
-                    {l.label && <div className={`${s.feedLabel} ${i === 0 ? s.feedLabelFirst : ""}`}>{l.label}</div>}
-                    <div className={`${s.feedLine} ${divided ? s.feedLineDivided : ""}`}>
-                      <LineMarker ln={l} numClass={s.num} bulletClass={s.feedBullet} />
-                      <span className={s.feedLineText}>
-                        {l.head && (
-                          <span className={l.format === "text" ? s.feedPara : l.format === "bold" ? s.feedBoldLine : s.feedHead}>
-                            {l.plain ? l.head : <RichText text={l.head} />}
-                          </span>
-                        )}
-                        {l.note && <span className={s.feedNote}>{l.note}</span>}
-                        {(l.link || l.links.length > 0) && (
-                          <span className={s.feedPills}>
-                            {l.link && <LinkPill href={l.link} label={l.linkLabel} className={s.feedLink} size={10} />}
-                            {l.links.map((u) => (
-                              <LinkPill key={u.href} href={u.href} label={u.label} className={s.feedLink} size={10} />
-                            ))}
-                          </span>
-                        )}
-                      </span>
+          <div ref={clipRef} className={s.pmClip}>
+            <div className={s.pmTitle}>{stack.title}</div>
+            {stack.description && <div className={s.pmDesc}>{stack.description}</div>}
+            <div style={{ height: 16 }} />
+            {shown.map((l, i) => {
+              // A rule under each pick, except at the end of a section and after the last one shown.
+              const last = i === shown.length - 1 || !!shown[i + 1].label;
+              return (
+                <div key={i}>
+                  {l.label && (
+                    <div className={themed.pmSecHead} data-first={i === 0 || undefined}>
+                      <span className={themed.pmSecBar} />
+                      <div className={themed.pmSecLabel}>{l.label}</div>
+                    </div>
+                  )}
+                  <div className={themed.pmLine} data-last={last || undefined}>
+                    <LineMarker ln={l} numClass={themed.pmNum} bulletClass={themed.pmBullet} />
+                    <div className={themed.pmLineBody}>
+                      {l.head && <div className={l.format === "text" ? themed.pmPara : themed.pmHead}>{l.plain ? l.head : <RichText text={l.head} />}</div>}
+                      {l.note && <div className={themed.pmSub}>{l.note}</div>}
+                      {(l.link || l.links.length > 0) && (
+                        <div className={themed.pmLinks}>
+                          {l.link && <LinkPill href={l.link} label={l.linkLabel} className={themed.pmLink} />}
+                          {l.links.map((u) => (
+                            <LinkPill key={u.href} href={u.href} label={u.label} className={themed.pmLink} />
+                          ))}
+                        </div>
+                      )}
+                      {!!l.tags?.length && (
+                        <div className={themed.pmTags}>
+                          <span className={themed.pmYouSay}>{mine ? "You say" : `${stack.author.name.trim().split(/\s+/)[0] || stack.author.handle} says`}</span>
+                          {sortTags(l.tags).map((tag) => (
+                            <span key={tag} className={themed.pmTag} data-group={tagInfo(tag).group || "own"}>
+                              {tagInfo(tag).emoji ? `${tagInfo(tag).emoji} ` : ""}
+                              {tagInfo(tag).name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
-                );
-              })}
-            </div>
-            {more && <div className={s.feedFade} aria-hidden />}
+                </div>
+              );
+            })}
+            {more && <div className={s.pmFade} aria-hidden />}
           </div>
           {more && (
-            <div className={s.viewFull}>
+            <div className={s.pmSeeAll}>
               See all {lines.length} lines<span className={s.viewFullArrow}>→</span>
             </div>
           )}
+          <div style={{ height: 14 }} />
         </div>
       </div>
       <ActionRow stack={stack} feed />
@@ -302,85 +317,40 @@ function FeedCardBody({ stack, note }: { stack: Stack; note?: React.ReactNode })
   );
 }
 
-/** Explore's horizontally scrolling cards: first 3 lines. */
-export function TrendingCard({ stack }: { stack: Stack }) {
+/** Explore's Trending cards, as in the design: a small theme band with the picks and category, the author, the
+ *  title, the first 3 picks and "+ N more lines", then Like, Save and Share. */
+export function TrendingCard({ stack, category }: { stack: Stack; category?: string }) {
   const open = useOpen(stack);
+  const theme = stackTheme(stack);
   const lines = flatten(stack);
   return (
-    <div className={`${s.card} ${s.trending}`} {...open}>
-      <AuthorRow stack={stack} />
-      <div className={s.title}>{stack.title}</div>
-      <div className={s.lines}>
+    <div className={s.pmTrending}>
+      <div {...open} className={s.pmFeedBand}>
+        <ThemeBand emoji={theme.emoji} color={theme.color} count={lines.length} end={category ?? ""} small />
+      </div>
+      <div {...open} className={s.pmTrendBody}>
+        <div className={s.pmTrendAuthor}>
+          <span className={s.pmTrendAvatar}>{initials(stack.author.name)}</span>
+          <span className={s.pmTrendName}>{stack.author.name}</span>
+        </div>
+        <div className={s.pmTrendTitle}>{stack.title}</div>
         {lines.slice(0, 3).map((l, i) => (
-          <div key={i} className={s.lineClip}>
-            {l.num && <span className={s.num}>{l.num} </span>}
-            {l.text}
+          <div key={i} className={s.pmTrendLine}>
+            <span className={s.pmTrendNum}>{l.num}</span>
+            <span className={s.pmTrendText}>{l.text}</span>
           </div>
         ))}
+        {lines.length > 3 && <div className={s.pmTrendMore}>+ {lines.length - 3} more lines</div>}
       </div>
-      {lines.length > 3 && <div className={s.more}>+ {lines.length - 3} more lines</div>}
-      <ActionRow stack={stack} />
-    </div>
-  );
-}
-
-/** Creator profile card: first 4 lines, a comment count instead of comments. */
-/** Flat list card used for search results and your own stacks. */
-export function ListCard({ stack, following = false }: { stack: Stack; following?: boolean }) {
-  const open = useOpen(stack);
-  const { viewer } = useAuth();
-  const a = useStackActions();
-  const e = useEngagement(stack);
-  const isFollowing = useIsFollowing(stack.author.id, following);
-  const mine = viewer?.id === stack.author.id;
-  const lines = flatten(stack);
-  const likeColor = e.liked ? "var(--accent)" : "var(--muted-66)";
-  const saveColor = e.saved ? "var(--accent)" : "var(--muted-66)";
-  return (
-    <div className={s.listCard} {...open}>
-      <div className={s.lcAuthor}>
-        <Link href={a.authorHref(stack.author)} onClick={stop} className={s.lcAuthorLink}>
-          <span className={s.lcAvatar}>{initials(stack.author.name)}</span>
-          <span className={s.lcNames}>
-            <span className={s.lcName}>{stack.author.name}</span>
-            <span className={s.lcHandle}>@{stack.author.handle}</span>
-            <span className={s.lcTime}>· {timeAgo(stack.published_at)}</span>
-          </span>
-        </Link>
-        {!mine && <FollowButton small following={isFollowing} onClick={() => a.toggleFollow(stack.author, isFollowing)} />}
-      </div>
-      <div className={s.lcTitle}>{stack.title}</div>
-      {lines.map((l, i) => (
-        <div key={i}>
-          {l.label && <div className={s.lcLabel}>{l.label}</div>}
-          <div className={s.lcLine}>
-            {l.num && <span className={s.lcNum}>{l.num}</span>}
-            <span className={s.lcText}>{l.text}</span>
-            {l.link && (
-              <span className={s.linkChip} aria-label="Has a link">
-                ↗
-              </span>
-            )}
-          </div>
-        </div>
-      ))}
-      <div className={s.lcActions} onClick={stop}>
-        <button className={s.lcAction} style={{ color: likeColor }} onClick={() => a.toggleLike(stack.id, e)} aria-pressed={e.liked} aria-label={e.liked ? "Unlike" : "Like"}>
-          <span style={{ fontSize: 14, lineHeight: 1 }}>{e.liked ? "♥" : "♡"}</span>
-          {fmtCount(e.likes)}
-        </button>
-        <span style={{ flex: 1 }} />
-        <button className={s.lcAction} style={{ color: saveColor }} onClick={() => a.toggleSave(stack.id, e)} aria-pressed={e.saved} aria-label={e.saved ? "Unsave" : "Save"}>
-          <span style={{ fontSize: 13, lineHeight: 1 }}>{e.saved ? "◆" : "◇"}</span>
-          {fmtCount(e.saves)}
-        </button>
+      <div className={s.pmTrendBar}>
+        <ActionRow stack={stack} shareLabel />
       </div>
     </div>
   );
 }
 
 /**
- * Square profile tile: title, first 3 lines and line count. On your own profile it shows who can see the stack
+ * Square profile tile, as in the design: a strip in the Stack's theme with its emoji, the title, first 3 lines and line count. On your own profile it shows who can see the stack
  * and a pin on the pinned one; on someone else's it shows a save button, and reposts show the original author.
  */
 export function GridCard({ stack, pinned = false, visitor = false, repost = false }: { stack: Stack; pinned?: boolean; visitor?: boolean; repost?: boolean }) {
@@ -389,10 +359,14 @@ export function GridCard({ stack, pinned = false, visitor = false, repost = fals
   const a = useStackActions();
   const e = useEngagement(stack);
   const lines = flatten(stack);
+  const theme = stackTheme(stack);
   const visColor = visibility === "public" ? "var(--muted-66)" : "var(--warn)";
   const saveColor = e.saved ? "var(--accent)" : "var(--muted-66)";
   return (
-    <div className={`${s.gridCard} ${pinned ? s.gridCardPinned : ""}`} {...open}>
+    <div className={s.gridCard} {...open}>
+      <div className={s.gridStrip} style={{ background: theme.color }} aria-hidden>
+        {theme.emoji}
+      </div>
       {pinned && (
         <span className={s.gridPin} title="Pinned" aria-label="Pinned">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="var(--accent)" stroke="var(--accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

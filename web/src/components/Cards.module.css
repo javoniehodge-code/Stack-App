@@ -661,71 +661,13 @@
   border-top: 1px solid var(--line);
 }
 
-/* ── List card (search results, own profile) ── */
-.listCard {
-  padding: 14px 20px 8px;
-  border-bottom: 1px solid var(--line);
-  cursor: pointer;
-}
 
-.lcAuthor {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
 
-.lcAuthorLink {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  flex: 1;
-}
 
-.lcAvatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--on-accent);
-  font-weight: 700;
-  font-size: 11px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
 
-.lcNames {
-  display: flex;
-  align-items: baseline;
-  gap: 5px;
-  min-width: 0;
-  flex: 1;
-}
 
-.lcName {
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--text);
-  white-space: nowrap;
-}
 
-.lcHandle {
-  font-size: 12px;
-  color: var(--muted-66);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
-.lcTime {
-  font-size: 12px;
-  color: var(--muted-56);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
 
 .followSmall {
   font-size: 12px;
@@ -736,88 +678,23 @@
   border: 1px solid;
 }
 
-.lcTitle {
-  font-weight: 400;
-  font-size: 13.5px;
-  color: var(--text-2);
-  margin-bottom: 8px;
-  line-height: 1.3;
-  text-wrap: pretty;
-}
 
-.lcLabel {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--muted-66);
-  margin: 8px 0 3px;
-}
 
-.lcLine {
-  display: flex;
-  gap: 8px;
-  font-size: 13.5px;
-  color: var(--text-2);
-  line-height: 1.6;
-  text-wrap: pretty;
-}
 
-.lcNum {
-  color: var(--accent);
-  font-weight: 700;
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-}
 
-.lcText {
-  flex: 1;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
 
-.linkChip {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
-  background: var(--bg);
-  border: 2px solid var(--accent);
-  color: var(--accent);
-  font-size: 12px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
 
-.lcActions {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  margin-top: 6px;
-  margin-left: -8px;
-}
 
-.lcAction {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12.5px;
-  font-weight: 600;
-  padding: 9px 8px;
-}
 
 /* ── Own profile: two-column grid of compact cards ── */
 .gridCard {
+  --accent: var(--pm-pink);
   position: relative;
   aspect-ratio: 1 / 1;
-  border-radius: 18px;
-  background: var(--bg);
-  border: 1px solid var(--line-2);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.04),
-    0 8px 24px rgba(0, 0, 0, 0.05);
+  border-radius: 20px;
+  background: oklch(99.5% 0.01 95);
+  border: 2px solid oklch(22% 0.04 300);
+  box-shadow: 4px 4px 0 oklch(22% 0.04 300);
   display: flex;
   flex-direction: column;
   padding: 12px;
@@ -825,8 +702,17 @@
   overflow: hidden;
 }
 
-.gridCardPinned {
-  border-color: oklch(86.3% 0.03 60);
+/* The tile's top strip in the Stack's theme, with its emoji (design). */
+.gridStrip {
+  flex-shrink: 0;
+  margin: -12px -12px 10px;
+  height: 46px;
+  border-bottom: 2px solid oklch(22% 0.04 300);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 22px;
+  line-height: 1;
 }
 
 .gridPin {
@@ -845,7 +731,7 @@
 .gridTitle {
   font-size: 13.5px;
   font-weight: 600;
-  color: var(--text-bright);
+  color: oklch(14.8% 0.035 300);
   line-height: 1.3;
   margin-bottom: 8px;
   display: -webkit-box;
@@ -997,4 +883,233 @@
   text-wrap: pretty;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
+}
+
+/* ── Feed card in Party Mode (the design's feed card, agreed Nov 27): an ink border with an offset shadow, the
+   theme band, the author with Follow, a big title, and the first picks in the Stack page's style. ── */
+.pmFeedCard {
+  /* The design's pink for Follow, likes, saves and comments, as on the Stack page. */
+  --accent: var(--pm-pink);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: oklch(99.5% 0.01 95);
+  border: 2px solid oklch(22% 0.04 300);
+  border-radius: 26px;
+  overflow: hidden;
+  box-shadow: 5px 5px 0 oklch(22% 0.04 300);
+}
+.pmFeedBand {
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.pmFeedBody {
+  padding: 18px 18px 0;
+}
+.pmAuthorRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.pmAuthorLink {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pmAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: oklch(22% 0.04 300);
+  color: oklch(99.5% 0.01 95);
+  font-weight: 700;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.pmName {
+  min-width: 0;
+  font-weight: 600;
+  font-size: 14px;
+  color: oklch(19.4% 0.035 300);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pmHandle {
+  min-width: 0;
+  font-size: 13px;
+  color: oklch(47.1% 0.035 300);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pmFollow {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 15px;
+  border-radius: 999px;
+}
+.pmClip {
+  position: relative;
+  max-height: 470px;
+  overflow: hidden;
+}
+.pmTitle {
+  font-family: Outfit, Inter, sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: oklch(14.8% 0.035 300);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+  text-wrap: balance;
+}
+.pmDesc {
+  font-size: 13.5px;
+  color: oklch(39.7% 0.035 300);
+  line-height: 1.5;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+.pmFade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 64px;
+  background: linear-gradient(to bottom, oklch(99.6% 0.002 80 / 0), oklch(99.5% 0.01 95) 90%);
+  pointer-events: none;
+}
+.pmSeeAll {
+  height: 40px;
+  margin-top: 6px;
+  border-radius: 12px;
+  background: oklch(96.5% 0.025 95);
+  border: 1px solid oklch(91.2% 0.025 95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: oklch(24.9% 0.035 300);
+}
+
+/* ── Explore's Trending card in Party Mode (design): small theme band, author, title, 3 picks, Like · Save · Share ── */
+.pmTrending {
+  /* The design's pink for Follow, likes, saves and comments, as on the Stack page. */
+  --accent: var(--pm-pink);
+  width: 268px;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  border-radius: 22px;
+  background: oklch(99.5% 0.01 95);
+  border: 2px solid oklch(22% 0.04 300);
+  box-shadow: 4px 4px 0 oklch(22% 0.04 300);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.pmTrendBody {
+  cursor: pointer;
+  padding: 12px 14px 4px;
+  flex: 1;
+}
+.pmTrendAuthor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  min-width: 0;
+}
+.pmTrendAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: oklch(22% 0.04 300);
+  color: oklch(99.5% 0.01 95);
+  font-weight: 800;
+  font-size: 9.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.pmTrendName {
+  font-weight: 700;
+  font-size: 12.5px;
+  color: oklch(19.4% 0.035 300);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pmTrendTitle {
+  font-family: Outfit, Inter, sans-serif;
+  font-size: 19px;
+  font-weight: 800;
+  color: oklch(14.8% 0.035 300);
+  line-height: 1.12;
+  letter-spacing: -0.3px;
+  margin-bottom: 8px;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.pmTrendLine {
+  display: flex;
+  gap: 10px;
+  padding: 6px 0;
+  border-top: 1px solid oklch(92% 0.02 95);
+  font-size: 13px;
+  line-height: 1.35;
+  color: oklch(18% 0.04 300);
+}
+.pmTrendNum {
+  font-family: "IBM Plex Mono", var(--mono), monospace;
+  font-size: 11px;
+  line-height: 18px;
+  color: oklch(55% 0.035 300);
+  flex-shrink: 0;
+  width: 18px;
+}
+.pmTrendText {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pmTrendMore {
+  font-size: 12px;
+  font-weight: 800;
+  color: oklch(55% 0.22 350);
+  padding: 4px 0 6px;
+}
+.pmTrendBar .actions {
+  margin: 0;
+  padding: 0 8px;
+  height: 44px;
+  gap: 4px;
+  border-top: 2px solid oklch(22% 0.04 300);
+  font-size: 12px;
+  font-weight: 700;
+}
+.pmTrendBar .action {
+  height: 36px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+.pmTrendBar .heart {
+  font-size: 15px;
+}
+.pmTrendBar .copy {
+  margin-left: auto;
+  font-weight: 800;
+  color: oklch(22% 0.04 300);
 }

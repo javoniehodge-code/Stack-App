@@ -11,7 +11,7 @@ export type ThemedSection = { key: string; label: string | null; lines: ViewLine
 // Tags show in the tray's order: Highlight, Price, Good for, Know before, When, then typed ones.
 const ORDER = new Map(TAG_GROUPS.flatMap((g) => g.tags.map(([name]) => name.toLowerCase())).map((k, i) => [k, i]));
 const rank = (tag: string) => ORDER.get(tag.trim().toLowerCase()) ?? 1e6;
-const sortTags = (tags: string[]) => [...tags].sort((a, b) => rank(a) - rank(b));
+export const sortTags = (tags: string[]) => [...tags].sort((a, b) => rank(a) - rank(b));
 const tagKey = (tag: string) => tag.trim().toLowerCase();
 const tagText = (tag: string) => {
   const info = tagInfo(tag);
@@ -83,15 +83,7 @@ export function ThemedStack({
       <div className={t.pmTop}>{top}</div>
       <div className={t.pmCardWrap}>
         <article className={t.pmCard}>
-          <div className={t.pmBand} style={{ background: color }}>
-            <span className={t.pmWallShort} aria-hidden>
-              {Array(24).fill(emoji).join("")}
-            </span>
-            <span className={t.pmPicks}>
-              <span aria-hidden>{emoji}</span>
-              {n} {n === 1 ? "pick" : "picks"}
-            </span>
-          </div>
+          <ThemeBand emoji={emoji} color={color} count={n} />
           <div className={t.pmBody}>
             {author}
             {banner}
@@ -186,6 +178,26 @@ export function ThemedStack({
           {footer && <div className={t.pmBar}>{footer}</div>}
         </article>
       </div>
+    </div>
+  );
+}
+
+/**
+ * The theme band, as in the design: the theme colour with its emoji wallpaper and "{emoji} N picks". On the Stack
+ * page the pill sits on the right; on a card (`end`) it's on the left with `end` (the time, or a category) on the
+ * right. `small` is the 46 px band of Explore's Trending cards.
+ */
+export function ThemeBand({ emoji, color, count, end, small }: { emoji: string; color: string; count: number; end?: string; small?: boolean }) {
+  return (
+    <div className={`${t.pmBand} ${small ? t.pmBandSmall : ""}`} style={{ background: color }} data-split={end !== undefined || undefined}>
+      <span className={small ? t.pmWallSmall : t.pmWallShort} aria-hidden>
+        {Array(24).fill(emoji).join("")}
+      </span>
+      <span className={t.pmPicks}>
+        <span aria-hidden>{emoji}</span>
+        {count} {count === 1 ? "pick" : "picks"}
+      </span>
+      {end && <span className={t.pmBandEnd}>{end}</span>}
     </div>
   );
 }

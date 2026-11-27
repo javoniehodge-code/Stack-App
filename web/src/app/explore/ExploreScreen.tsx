@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore, useTransition } from "react";
 import { SearchIcon } from "@/components/icons";
-import { ListCard, TrendingCard } from "@/components/StackCards";
+import { FeedCard, TrendingCard } from "@/components/StackCards";
 import shell from "@/components/AppShell.module.css";
 import cards from "@/components/Cards.module.css";
 import { EXPLORE_CATS, plural, timeAgo } from "@/lib/format";
@@ -12,7 +12,7 @@ import type { Stack } from "@/lib/types";
 import s from "./Explore.module.css";
 
 type Category = { name: string; dot: string; samples: string[] };
-type Recent = { id: string; title: string; meta: string; dot: string; publishedAt: string | null };
+type Recent = { id: string; href: string; title: string; meta: string; emoji: string; color: string; publishedAt: string | null };
 
 const RECENTS_KEY = "stack.recentSearches";
 
@@ -65,9 +65,12 @@ export default function ExploreScreen({
   recent,
   results,
   following,
+  trendingCats,
 }: {
   query: string;
   trending: Stack[];
+  /** Each Trending Stack's category, shown on its band. */
+  trendingCats: Record<string, string>;
   categories: Category[];
   recent: Recent[];
   results: Stack[] | null;
@@ -178,7 +181,7 @@ export default function ExploreScreen({
               </h2>
               <div className={cards.trendingRow}>
                 {trending.map((st) => (
-                  <TrendingCard key={st.id} stack={st} />
+                  <TrendingCard key={st.id} stack={st} category={trendingCats[st.id]} />
                 ))}
               </div>
             </section>
@@ -212,9 +215,12 @@ export default function ExploreScreen({
               <h2 className={s.sectionTitle} style={{ marginBottom: 6 }}>
                 Recently added
               </h2>
+              <div className={s.recentList}>
               {recent.map((r) => (
-                <Link key={r.id} href={`/s/${r.id}`} className={s.recentStack}>
-                  <span className={s.dot} style={{ background: r.dot }} />
+                <Link key={r.id} href={r.href} className={s.recentStack}>
+                  <span className={s.recentSig} style={{ background: r.color }} aria-hidden>
+                    {r.emoji}
+                  </span>
                   <span className={s.recentMain}>
                     <span className={s.recentTitle}>{r.title}</span>
                     <span className={s.recentMeta}>{r.meta}</span>
@@ -222,6 +228,7 @@ export default function ExploreScreen({
                   <span className={s.recentWhen}>{timeAgo(r.publishedAt)}</span>
                 </Link>
               ))}
+              </div>
             </section>
           )}
         </div>
@@ -232,9 +239,11 @@ export default function ExploreScreen({
           ) : (
             <>
               <div className={s.resultCount}>{plural(results.length, "stack")}</div>
-              {results.map((st) => (
-                <ListCard key={st.id} stack={st} following={following.includes(st.author.id)} />
-              ))}
+              <div className={s.resultList}>
+                {results.map((st) => (
+                  <FeedCard key={st.id} stack={st} following={following.includes(st.author.id)} />
+                ))}
+              </div>
               {results.length === 0 && (
                 <div className={s.noResults}>
                   <div className={s.noResultsTitle}>No results for “{submitted}”</div>
