@@ -101,6 +101,7 @@ Agreed Nov 27: to publish, a Stack needs only a title, at least 1 pick, and noth
 - [x] A Stack's page fills the screen at its readable address too (no tab bar), however it's opened.
 - [x] Safe when two requests overlap: while someone is giving up a username, nobody else can take it (the second request waits, then is refused).
 - Followers and Following lists stay at `/u/{username}/followers` and `/u/{username}/following`.
+- **Checked on production (Nov 27, iPhone, after PR #54, with migration 20261203000000 applied first):** a Stack opened from Profile showed `/stackapp/cities-to-travel-to` and filled the screen with no tab bar, and an old `/s/{id}` link landed on the same Stack at its readable address.
 
 ## Later tasks
 
