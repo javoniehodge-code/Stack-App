@@ -567,6 +567,68 @@ check(
   JSON.stringify(notes15),
 );
 
+// 16. Save & exit's history (agreed Nov 27): three trips Profile › the Stack › ⋯ › Edit stack › Finalize › Save & exit
+//     each land on the profile, and the skipped pages are left behind: afterwards browser Back goes to the feed (where
+//     the profile was opened from) and Forward returns to the profile, and the Stack page's own Back returns to the
+//     profile. Opening the editor directly (its address, nothing before it) and saving lands on the profile. All of it
+//     with the browser's history list (Navigation API) and without it (the app's own list).
+const pathOf = (pg) => new URL(pg.url()).pathname;
+async function editTrip(pg, emoji) {
+  await pg.getByText("Late-night tacos in CDMX").first().click();
+  await pg.waitForURL(new RegExp(`/s/${id}$`), { timeout: 15000 }).catch(() => {});
+  await pg.getByRole("button", { name: "Edit, visibility and delete" }).click();
+  await pg.getByRole("button", { name: "Edit stack" }).click();
+  await pg.waitForURL(/\/create\?edit=/, { timeout: 15000 }).catch(() => {});
+  await pg.getByRole("button", { name: "Finalize" }).click();
+  await pg.getByRole("button", { name: `Theme emoji ${emoji}` }).click();
+  await pg.getByRole("button", { name: "Save & exit" }).click();
+  await pg.waitForURL(/\/profile$/, { timeout: 15000 }).catch(() => {});
+  return pathOf(pg) === "/profile" && stackRow(id)?.theme_emoji === emoji;
+}
+const notes16 = [];
+let ok16 = true;
+for (const mode of ["Navigation API", "no Navigation API"]) {
+  const c = await browser.newContext({ storageState: await ctx.storageState(), viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  if (mode === "no Navigation API") await c.addInitScript(() => Object.defineProperty(window, "navigation", { value: undefined, configurable: true }));
+  const pg = await c.newPage();
+  const hasNav = async () => pg.evaluate(() => !!window.navigation);
+  await pg.goto(APP + "/");
+  await pg.getByRole("link", { name: "Profile" }).click();
+  await pg.waitForURL(/\/profile$/, { timeout: 15000 }).catch(() => {});
+  const trips = [];
+  for (const emoji of ["🎧", "✨", "🌴"]) trips.push(await editTrip(pg, emoji));
+  await pg.goBack();
+  await pg.waitForURL((u) => u.pathname === "/", { timeout: 10000 }).catch(() => {});
+  const backTo = pathOf(pg);
+  await pg.goForward();
+  await pg.waitForURL(/\/profile$/, { timeout: 10000 }).catch(() => {});
+  const forwardTo = pathOf(pg);
+  // The Stack page's own Back, after the trips.
+  await pg.getByText("Late-night tacos in CDMX").first().click();
+  await pg.waitForURL(new RegExp(`/s/${id}$`), { timeout: 15000 }).catch(() => {});
+  await pg.getByRole("button", { name: "Back", exact: true }).click();
+  await pg.waitForURL(/\/profile$/, { timeout: 10000 }).catch(() => {});
+  const appBack = pathOf(pg);
+  // The editor opened directly: nothing to go back to, so the profile.
+  const direct = await c.newPage();
+  await direct.goto(APP + `/create?edit=${id}`);
+  await direct.getByRole("button", { name: "Finalize" }).click();
+  await direct.getByRole("button", { name: "Theme emoji 🎨" }).click();
+  await direct.getByRole("button", { name: "Save & exit" }).click();
+  await direct.waitForURL(/\/profile$/, { timeout: 15000 }).catch(() => {});
+  const directTo = pathOf(direct);
+  const nav = await hasNav();
+  const ok = trips.every(Boolean) && backTo === "/" && forwardTo === "/profile" && appBack === "/profile" && directTo === "/profile" && stackRow(id)?.theme_emoji === "🎨" && nav === (mode === "Navigation API");
+  ok16 &&= ok;
+  notes16.push(`${mode}: trips ${trips.join(",")} back ${backTo} forward ${forwardTo} app Back ${appBack} direct ${directTo} (navigation ${nav})`);
+  await c.close();
+}
+check(
+  "16. Save & exit history: three edit trips from the profile each land on it; then browser Back goes to the feed and Forward to the profile, the Stack page's Back returns to the profile, and the editor opened directly lands on the profile; with and without the Navigation API",
+  ok16,
+  notes16.join(" | "),
+);
+
 await browser.close();
 cleanup();
 const failed = results.filter((r) => !r).length;

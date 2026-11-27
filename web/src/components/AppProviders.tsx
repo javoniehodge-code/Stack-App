@@ -96,15 +96,41 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [resumers] = useState(() => new Map<string, Resumer>());
 
-  // Count in-app navigations so Back knows whether there is anywhere to go back to, and keep the recent paths (newest
-  // last) for useLeave. Going back (the browser's popstate) to the previous path takes the newest one off instead.
-  const depth = useRef(0);
-  const paths = useRef<string[]>([]);
-  const popped = useRef(false);
+  // Where the viewer is in the app's history, for Back and useLeave: how many app pages are behind this one, and the
+  // path k pages back. The browser's own list (the Navigation API: Safari 26, Chrome, Firefox 147) answers exactly,
+  // including after Back, Forward and a jump of two. Without it, a list kept here: a new page drops anything ahead of
+  // the current one; Back, Forward and our own jumps move the position.
+  const track = useRef<{ entries: string[]; pos: number; popped: boolean; jump: number }>({ entries: [], pos: -1, popped: false, jump: 0 });
   useEffect(() => {
-    const onPop = () => (popped.current = true);
+    const onPop = () => (track.current.popped = true);
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  useEffect(() => {
+    const t = track.current;
+    if (!t.popped) {
+      t.entries = [...t.entries.slice(0, t.pos + 1), pathname].slice(-50);
+      t.pos = t.entries.length - 1;
+    } else if (t.jump) t.pos = Math.max(0, t.pos - t.jump);
+    else if (t.entries[t.pos - 1] === pathname) t.pos--;
+    else if (t.entries[t.pos + 1] === pathname) t.pos++;
+    else {
+      t.entries = [pathname];
+      t.pos = 0;
+    }
+    t.popped = false;
+    t.jump = 0;
+  }, [pathname]);
+  const where = useCallback(() => {
+    type Nav = { currentEntry?: { index: number } | null; entries(): { url: string | null }[] };
+    const nav = (window as unknown as { navigation?: Nav }).navigation;
+    if (nav?.currentEntry && nav.currentEntry.index >= 0) {
+      const list = nav.entries();
+      const i = nav.currentEntry.index;
+      return { behind: i, at: (k: number) => (list[i - k]?.url ? new URL(list[i - k].url!).pathname : null) };
+    }
+    const t = track.current;
+    return { behind: Math.max(0, t.pos), at: (k: number) => t.entries[t.pos - k] ?? null };
   }, []);
   // iPhone and iPad Safari zoom the page in when a text box under 16px is tapped (the editor's are 13–15px), and the
   // zoom stays for every later screen, since the app never loads a new page: the Stack page then runs off the screen
@@ -123,33 +149,27 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
     watch.observe(document.head, { subtree: true, childList: true, attributes: true, attributeFilter: ["content"] });
     return () => watch.disconnect();
   }, []);
-  useEffect(() => {
-    depth.current++;
-    const p = paths.current;
-    if (popped.current && p[p.length - 2] === pathname) p.pop();
-    else p.push(pathname);
-    popped.current = false;
-    paths.current = p.slice(-30);
-  }, [pathname]);
   const back = useCallback(
     (fallback?: unknown) => {
-      if (depth.current > 1) router.back();
+      if (where().behind > 0) router.back();
       else router.push(typeof fallback === "string" ? fallback : "/");
     },
-    [router],
+    [router, where],
   );
 
   const leave = useCallback(
     (skip: string, fallback: string) => {
-      const p = paths.current;
-      const steps = p[p.length - 2] === skip ? 2 : 1;
-      if (p.length > steps && depth.current > steps) {
-        // The page landed on shows what was just saved.
+      const w = where();
+      const steps = w.at(1) === skip ? 2 : 1;
+      if (w.behind >= steps) {
+        // The page landed on shows what was just saved. Both skipped pages are left behind: the position moves back
+        // two, and the next new page replaces them.
+        track.current.jump = steps;
         window.addEventListener("popstate", () => setTimeout(() => router.refresh(), 0), { once: true });
         window.history.go(-steps);
       } else router.replace(fallback);
     },
-    [router],
+    [router, where],
   );
 
   useEffect(() => {
