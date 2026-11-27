@@ -106,6 +106,23 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
+  // iPhone and iPad Safari zoom the page in when a text box under 16px is tapped (the editor's are 13–15px), and the
+  // zoom stays for every later screen, since the app never loads a new page: the Stack page then runs off the screen
+  // until you pinch out. maximum-scale=1 stops that zoom there; Safari still lets people pinch-zoom (it ignores the
+  // limit for gestures, for accessibility). Not on other phones: Android browsers would block pinch-zoom with it.
+  // Next.js rewrites the viewport tag when the screen changes, so it's watched and put back each time.
+  useEffect(() => {
+    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if (!ios) return;
+    const apply = () => {
+      const meta = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
+      if (meta && !/maximum-scale/.test(meta.content)) meta.content = `${meta.content}, maximum-scale=1`;
+    };
+    apply();
+    const watch = new MutationObserver(apply);
+    watch.observe(document.head, { subtree: true, childList: true, attributes: true, attributeFilter: ["content"] });
+    return () => watch.disconnect();
+  }, []);
   useEffect(() => {
     depth.current++;
     const p = paths.current;

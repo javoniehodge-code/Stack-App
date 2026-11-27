@@ -538,6 +538,35 @@ check(
 );
 await phone.close();
 
+// 15. iPhone Safari's tap-to-zoom: on an iPhone (and iPad) the viewport tag gets maximum-scale=1, on first load and
+//     after moving between screens in the app, so tapping a text box under 16px doesn't zoom the page (and leave the
+//     Stack page running off the screen). Not on Android, where it would block pinch-zoom. Only Chrome's engine runs
+//     here, so this checks the tag; Safari's zoom itself can only be seen on a phone.
+const { devices } = createRequire(import.meta.url)("playwright");
+const viewportTag = (pg) => pg.evaluate(() => document.querySelector('meta[name="viewport"]')?.getAttribute("content") ?? "");
+const notes15 = {};
+for (const [name, dev] of [["iPhone 15 Pro", devices["iPhone 15 Pro"]], ["Pixel 7", devices["Pixel 7"]]]) {
+  const c = await browser.newContext({ ...dev, storageState: await ctx.storageState() });
+  const pg = await c.newPage();
+  await pg.goto(APP + `/s/${id}`);
+  await pg.locator("[class*=pmPicks]").waitFor({ timeout: 10000 }).catch(() => {});
+  const first = await viewportTag(pg);
+  // In-app: back to the profile and into the editor (no page load).
+  await pg.getByRole("button", { name: "Edit, visibility and delete" }).click();
+  await pg.getByRole("button", { name: "Edit stack" }).click();
+  await pg.waitForURL(/\/create\?edit=/, { timeout: 15000 }).catch(() => {});
+  await pg.waitForTimeout(300);
+  notes15[name] = [first, await viewportTag(pg)];
+  await c.close();
+}
+const iosTag = notes15["iPhone 15 Pro"], androidTag = notes15["Pixel 7"];
+check(
+  "15. On an iPhone the viewport tag has maximum-scale=1 (no tap-to-zoom), on first load and after moving in the app; on Android it doesn't, so pinch-zoom isn't blocked; width=device-width and no user-scalable=no either way",
+  iosTag.every((t) => /maximum-scale=1/.test(t) && /width=device-width/.test(t) && !/user-scalable/.test(t)) &&
+    androidTag.every((t) => !/maximum-scale/.test(t) && /width=device-width/.test(t)),
+  JSON.stringify(notes15),
+);
+
 await browser.close();
 cleanup();
 const failed = results.filter((r) => !r).length;

@@ -79,7 +79,8 @@ Agreed Nov 27: to publish, a Stack needs only a title, at least 1 pick, and noth
 - [x] Changing only the theme, place, city or categories doesn't mark the Stack "Updated", and can't be shared as an update; that stays for the title, description and picks.
 - [x] Unsaved edits kept from before this (Nov 26) reopen with their pick edits and the published Stack's theme, place answer, city and categories. Edits saved since keep the person's own Finalize choices, including clearing the categories.
 - [x] Editing's buttons are **Save & exit** and **Save & share** (agreed Nov 27). After saving you go back to where you opened the editor from, past the Stack's own page if that's where you tapped Edit (so Profile › Stack › Edit › Save & exit lands on the profile); with nowhere to go back to, the profile.
-- [x] On a narrow iPhone the Stack page and Finalize › Preview fit at default zoom: a long name or handle shortens with "…" so Follow stays in the card, and the comment box is 16px on iPhone and iPad so tapping it doesn't zoom the page. Pinch-to-zoom still works.
+- [x] On a narrow iPhone the Stack page and Finalize › Preview fit at default zoom: a long name or handle shortens with "…" so Follow stays in the card.
+- [x] No tap-to-zoom on iPhone and iPad (agreed Nov 27, instead of 16px text boxes): Safari zoomed in when a text box under 16px was tapped (the editor's are 13–15px) and kept the zoom on every later screen, so the Stack page ran off the screen. On iPhone and iPad the page now tells Safari not to auto-zoom (maximum-scale=1); pinch-to-zoom still works there. Android is unchanged, since it would block pinch-zoom.
 
 ## Later tasks
 
