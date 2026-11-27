@@ -198,7 +198,7 @@ function FeedCardBody({ stack, note, following = false }: { stack: Stack; note?:
             <span className={s.pmName}>{stack.author.name}</span>
             <span className={s.pmHandle}>@{stack.author.handle}</span>
           </Link>
-          {!mine && <FollowButton className={s.pmFollow} following={isFollowing} onClick={() => a.toggleFollow(stack.author, isFollowing)} />}
+          {!mine && <FollowButton className={s.pmFollow} outline following={isFollowing} onClick={() => a.toggleFollow(stack.author, isFollowing)} />}
         </div>
         {note}
         <UpdateBanner stack={stack} />
@@ -426,6 +426,7 @@ export function FollowButton({
   className,
   style,
   label = "Follow",
+  outline,
 }: {
   following: boolean;
   onClick: () => void;
@@ -433,6 +434,8 @@ export function FollowButton({
   className?: string;
   style?: React.CSSProperties;
   label?: string;
+  /** Follow as an outline (accent text and border on white), so it doesn't dominate the card. Following is unchanged. */
+  outline?: boolean;
 }) {
   return (
     <button
@@ -443,8 +446,8 @@ export function FollowButton({
       }}
       aria-pressed={following}
       style={{
-        background: following ? "transparent" : "var(--accent)",
-        color: following ? "var(--text-2)" : "var(--on-accent)",
+        background: following ? "transparent" : outline ? "oklch(100% 0 0)" : "var(--accent)",
+        color: following ? "var(--text-2)" : outline ? "var(--accent)" : "var(--on-accent)",
         border: `1px solid ${following ? "var(--line-4)" : "var(--accent)"}`,
         ...style,
       }}

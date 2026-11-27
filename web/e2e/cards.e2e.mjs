@@ -146,6 +146,25 @@ check("2. The band is in the chosen theme colour", /oklch\((84%|0\.84) 0\.12 40\
 const picks = await fc.locator("[class*=pmNum]").count();
 check("3. It shows the first 5 of 7 picks and See all 7 lines", picks === 5 && (await fc.getByText("See all 7 lines").isVisible()), `${picks} picks`);
 await shot(page, "feed-card");
+const followStyle = await fc.locator("[class*=pmAuthorRow]").getByRole("button", { name: "Follow" }).evaluate((el) => {
+  const c = getComputedStyle(el);
+  return { bg: c.backgroundColor, color: c.color, border: c.borderTopColor };
+});
+check(
+  "3b. Follow is an outline: white inside, pink text and border (agreed Nov 27)",
+  /oklch\(1 0 0\)|rgb\(255, 255, 255\)|lab\(100 0 0\)/.test(followStyle.bg) && followStyle.color === followStyle.border && !/oklch\(1 0 0\)|rgb\(255, 255, 255\)|lab\(100 0 0\)/.test(followStyle.color),
+  JSON.stringify(followStyle),
+);
+const bar = await fc.locator("[class*=actions]").first().evaluate((el) => {
+  const c = getComputedStyle(el);
+  const kids = [...el.children].map((k) => Math.round(k.getBoundingClientRect().height));
+  return { h: Math.round(el.getBoundingClientRect().height), padTop: c.paddingTop, font: c.fontSize, kids };
+});
+check(
+  "3c. The bar is the design's: 48 px tall, no extra space above, 12.5 px text, 44 px buttons",
+  bar.h === 48 && bar.padTop === "0px" && bar.font === "12.5px" && bar.kids.every((k) => k === 44),
+  JSON.stringify(bar),
+);
 await fc.getByRole("button", { name: "Follow" }).first().click();
 await page.waitForFunction(() => true);
 for (let i = 0; i < 40 && !follows(uidB, uidA); i++) await new Promise((r) => setTimeout(r, 250));
