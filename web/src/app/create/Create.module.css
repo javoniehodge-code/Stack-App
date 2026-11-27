@@ -859,13 +859,6 @@
   color: var(--text);
 }
 
-.cantPublish {
-  font-size: 12.5px;
-  color: var(--muted-66);
-  margin-top: 12px;
-  text-align: center;
-}
-
 /* ── Preview: the visitor view ── */
 .previewHeader {
   padding: calc(var(--safe-top) + 10px) 20px 0;
@@ -1923,7 +1916,81 @@ button.tagChip {
   cursor: pointer;
 }
 .fzPublish[aria-disabled="true"] {
-  opacity: 0.45;
+  opacity: 0.4;
+}
+/* Publish with the reason under it while it can't publish (spec, Flow 1 Publish). */
+.fzPublishWrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fzPublishWrap .fzPublish {
+  flex: none;
+  width: 100%;
+}
+.fzWhy {
+  font-size: 12px;
+  font-weight: 600;
+  color: oklch(50% 0.18 30);
+  text-align: center;
+}
+
+/* Finalize's red box, as in the design: "Fix N things before publishing:" and each problem. */
+.fixBox {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 2px solid oklch(50% 0.2 25);
+  background: oklch(97% 0.03 25);
+}
+.fixTitle {
+  font-size: 13px;
+  font-weight: 800;
+  color: oklch(42% 0.18 25);
+  margin-bottom: 6px;
+}
+.fixList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.fixList li {
+  display: flex;
+  gap: 6px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: oklch(22% 0.04 300);
+  padding: 2px 0;
+}
+.fixList li::before {
+  content: "•" / "";
+}
+
+/* The city field, highlighted when Publish is tapped without it (two names so each tap replays it). */
+.fzCity[data-flag] {
+  border-color: oklch(50% 0.2 25);
+  box-shadow: 0 0 0 3px oklch(50% 0.2 25 / 0.2);
+}
+.fzCity[data-flag="0"] {
+  animation: cityNudgeA 420ms ease;
+}
+.fzCity[data-flag="1"] {
+  animation: cityNudgeB 420ms ease;
+}
+@keyframes cityNudgeA {
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+@keyframes cityNudgeB {
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fzCity[data-flag] {
+    animation: none;
+  }
 }
 .fzPublish:disabled {
   opacity: 0.6;

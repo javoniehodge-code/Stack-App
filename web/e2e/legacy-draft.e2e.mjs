@@ -32,6 +32,16 @@ for (const u of [APP, MAIL]) if (!["localhost", "127.0.0.1"].includes(new URL(u)
 verifyTestDatabase({ conn: DB, token: TOKEN, read: sql, refuse });
 if (sql("select to_regclass('public.drafts') is not null") !== "t") refuse("the drafts migration isn't applied to the test database");
 
+/** Task 3: publishing needs a category, and a city for a place Stack. Picks Food & Drink when none is picked, and answers
+ *  No to the place question when the city is empty, so the checks below publish as before. */
+async function readyToPublish(page) {
+  const cat = page.getByRole("button", { name: "Food & Drink" });
+  await cat.waitFor({ timeout: 5000 }).catch(() => {});
+  if ((await cat.count()) && !(await page.locator("button[class*=catChip][aria-pressed=true]").count())) await cat.click();
+  const city = page.getByLabel("City");
+  if ((await city.isVisible().catch(() => false)) && !(await city.inputValue())) await page.getByRole("radio", { name: "No" }).click();
+}
+
 const results = [];
 const check = (name, ok, detail = "") => {
   results.push(!!ok);
@@ -141,6 +151,7 @@ if (phase === "old") {
   // The footer shows once no field is being typed in.
   await page.getByRole("button", { name: "Done", exact: true }).click();
   await page.getByRole("button", { name: "Finalize" }).click();
+  await readyToPublish(page);
   await page.getByRole("button", { name: "Publish", exact: true }).click();
   await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
   check(

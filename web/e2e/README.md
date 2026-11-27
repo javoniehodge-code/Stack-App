@@ -59,6 +59,7 @@ node web/e2e/callback-redirect.test.mjs   # /auth/callback only returns to the a
 node web/e2e/drafts.e2e.mjs          # drafts: autosave, own address, retries, leaving, publish once, edits
 node web/e2e/picks.e2e.mjs           # the pick editor: subheadings, tags, counters, limits, Undo, older content, the create flow's small details (SHOTS=<dir> saves screenshots)
 node web/e2e/finalize.e2e.mjs        # the Finalize step: theme, place and city, visibility, categories, order, preview, publish
+node web/e2e/publish-checks.e2e.mjs  # the publish checks: the red box, Publish off with its reason, the city, the Couldn't publish sheet, slugs, the server's checks
 node web/e2e/legacy-draft.e2e.mjs old|new   # a draft from the previous app build is recovered by this one (run old, then new)
 node --experimental-strip-types web/e2e/legacy-adopt.test.mjs   # old-draft recovery is safe to retry (no network or database)
 ```

@@ -45,6 +45,16 @@ process.on("uncaughtException", (e) => {
   }
 });
 
+/** Task 3: publishing needs a category, and a city for a place Stack. Picks Food & Drink when none is picked, and answers
+ *  No to the place question when the city is empty, so the checks below publish as before. */
+async function readyToPublish(page) {
+  const cat = page.getByRole("button", { name: "Food & Drink" });
+  await cat.waitFor({ timeout: 5000 }).catch(() => {});
+  if ((await cat.count()) && !(await page.locator("button[class*=catChip][aria-pressed=true]").count())) await cat.click();
+  const city = page.getByLabel("City");
+  if ((await city.isVisible().catch(() => false)) && !(await city.inputValue())) await page.getByRole("radio", { name: "No" }).click();
+}
+
 const results = [];
 const check = (name, ok, detail = "") => {
   results.push(!!ok);
@@ -213,6 +223,7 @@ check(
 await page.getByRole("button", { name: "Edit", exact: true }).click();
 
 // 8. Publishing keeps every choice on the Stack.
+await readyToPublish(page);
 await page.getByRole("button", { name: "Publish", exact: true }).click();
 await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
 const r8 = stackRow(id);
@@ -251,12 +262,13 @@ await page.getByRole("radio", { name: "Yes" }).click();
 await page.getByLabel("City").fill("Oakland");
 await page.getByRole("radio", { name: "No" }).click();
 await untilDraft(id9, (c) => c.isPlace === false);
+await readyToPublish(page);
 await page.getByRole("button", { name: "Publish", exact: true }).click();
 await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
 const r9 = stackRow(id9);
 check(
   "9. A title with no place starts at No; the suggested theme (📖) is published; answered No, the typed city isn't kept",
-  noAtFirst && r9?.theme_emoji === "📖" && ["oklch(86% 0.13 85)", "oklch(84% 0.12 40)", "oklch(84% 0.09 260)", "oklch(85% 0.1 160)", "oklch(85% 0.1 340)", "oklch(88% 0.12 110)"].includes(r9.theme_color) && r9.is_place === false && r9.location === "" && r9.categories.length === 0,
+  noAtFirst && r9?.theme_emoji === "📖" && ["oklch(86% 0.13 85)", "oklch(84% 0.12 40)", "oklch(84% 0.09 260)", "oklch(85% 0.1 160)", "oklch(85% 0.1 340)", "oklch(88% 0.12 110)"].includes(r9.theme_color) && r9.is_place === false && r9.location === "" && r9.categories.join() === "Food & Drink",
   JSON.stringify({ ...r9, sections: undefined }),
 );
 await page.goto(APP + `/s/${id9}`);
@@ -299,6 +311,7 @@ check(
   `${moved} · rows: ${rows}`,
 );
 await page.getByRole("radio", { name: "No" }).click();
+await readyToPublish(page);
 await page.getByRole("button", { name: "Publish", exact: true }).click();
 await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
 const pub10 = shape(stackRow(id10)?.sections);
