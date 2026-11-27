@@ -15,8 +15,10 @@ import s from "./Feed.module.css";
 type Tab = "forYou" | "following";
 type FeedState = { stacks: FeedItem[]; page: number; done: boolean; loading: boolean };
 
-export default function FeedScreen({ initial }: { initial: Stack[] }) {
+export default function FeedScreen({ initial, following = [] }: { initial: Stack[]; following?: string[] }) {
   const { viewer } = useAuth();
+  // Who the viewer follows when the page loaded (Follow on a card updates it from there).
+  const followed = new Set(following);
   // Stacks made invite only or private in this session leave the feed right away.
   const visOf = useVisibilityLookup();
   const [tab, setTab] = useState<Tab>("forYou");
@@ -130,7 +132,7 @@ export default function FeedScreen({ initial }: { initial: Stack[] }) {
         </div>
       ) : (
         <div ref={railRef} className={cards.feedScroll}>
-          {shown.map((st) => <FeedCard key={st.id} stack={st} />)}
+          {shown.map((st) => <FeedCard key={st.id} stack={st} following={tab === "following" || followed.has(st.author.id)} />)}
           {feed && !feed.done && (
             <div ref={sentinelRef} className={cards.feedLoading}>
               Loading…

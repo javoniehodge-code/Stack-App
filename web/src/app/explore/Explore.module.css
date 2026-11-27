@@ -186,12 +186,39 @@
   text-overflow: ellipsis;
 }
 
+/* Recently added, as in the design: one framed list; each Stack's theme as a small square with its emoji. */
+.recentList {
+  margin: 6px -4px 0;
+  border-radius: 22px;
+  background: oklch(100% 0 0);
+  border: 2px solid oklch(22% 0.04 300);
+  box-shadow: 4px 4px 0 oklch(22% 0.04 300);
+  padding: 2px 14px;
+}
+
 .recentStack {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 11px 0;
+  border-bottom: 1px solid oklch(92% 0.02 95);
+}
+
+.recentStack:last-child {
+  border-bottom: none;
+}
+
+.recentSig {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  flex-shrink: 0;
+  border: 2px solid oklch(22% 0.04 300);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  line-height: 1;
 }
 
 .recentMain {
@@ -202,25 +229,31 @@
 }
 
 .recentTitle {
-  font-size: 13.5px;
-  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  color: oklch(19.4% 0.035 300);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .recentMeta {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  color: var(--muted-56);
-  margin-top: 3px;
+  font-size: 12px;
+  color: oklch(42% 0.04 300);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .recentWhen {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  color: var(--muted-56);
   flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: oklch(93% 0.04 95);
+  color: oklch(22% 0.04 300);
 }
 
 .results {
@@ -233,6 +266,14 @@
   padding: 12px 20px 10px;
   font-size: 12px;
   color: var(--muted-66);
+}
+
+/* Search results are feed cards (design). */
+.resultList {
+  padding: 2px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .noResults {

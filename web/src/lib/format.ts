@@ -288,6 +288,12 @@ export function suggestColor(title: string) {
   for (const c of title.trim()) h = (h * 31 + c.codePointAt(0)!) >>> 0;
   return THEME_COLORS[h % THEME_COLORS.length];
 }
+/** A Stack's theme as shown everywhere: its Finalize choice, or for one published before themes, the one its title suggests. */
+export const stackTheme = (st: { title: string; theme_emoji?: string | null; theme_color?: string | null }) => ({
+  emoji: st.theme_emoji ?? suggestEmoji(st.title),
+  color: st.theme_color ?? suggestColor(st.title),
+});
+
 const TAG_INFO = new Map(TAG_GROUPS.flatMap((g) => g.tags.map(([t, e]) => [t.toLowerCase(), { group: g.key, emoji: e, name: t }] as const)));
 /** A tag's group ("" for a typed one), emoji and name as shown (a suggested tag keeps its own spelling). */
 export const tagInfo = (t: string) => TAG_INFO.get(t.trim().toLowerCase()) ?? { group: "", emoji: "", name: t.trim() };
