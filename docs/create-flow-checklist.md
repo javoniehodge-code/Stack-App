@@ -78,6 +78,8 @@ Agreed Nov 27: to publish, a Stack needs only a title, at least 1 pick, and noth
 - [x] Editing a published Stack follows the same steps as creating: the picks, then **Finalize** (theme, "Is this about a place?" and the city, categories, Order, Preview), with Back, **Save** and **Save and share update**. It starts from the Stack's choices. Who can see it stays in the ⋯ menu.
 - [x] Changing only the theme, place, city or categories doesn't mark the Stack "Updated", and can't be shared as an update; that stays for the title, description and picks.
 - [x] Unsaved edits kept from before this (Nov 26) reopen with their pick edits and the published Stack's theme, place answer, city and categories. Edits saved since keep the person's own Finalize choices, including clearing the categories.
+- [x] Editing's buttons are **Save & exit** and **Save & share** (agreed Nov 27). After saving you go back to where you opened the editor from, past the Stack's own page if that's where you tapped Edit (so Profile › Stack › Edit › Save & exit lands on the profile); with nowhere to go back to, the profile.
+- [x] On a narrow iPhone the Stack page and Finalize › Preview fit at default zoom: a long name or handle shortens with "…" so Follow stays in the card, and the comment box is 16px on iPhone and iPad so tapping it doesn't zoom the page. Pinch-to-zoom still works.
 
 ## Later tasks
 

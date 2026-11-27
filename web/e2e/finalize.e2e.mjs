@@ -318,7 +318,7 @@ const pub10 = shape(stackRow(id10)?.sections);
 check("10b. Publishing keeps the new section order, each with its picks", pub10 === "Condesa:Departamento | Roma Norte:Licorería Limantour+Baltra", pub10);
 
 // 11. Editing a published Stack follows the same steps as creating (agreed Nov 27): the picks, then Finalize, which
-//     starts from the Stack's choices and has Back, Save, and Save and share update.
+//     starts from the Stack's choices and has Back, Save & exit, and Save & share.
 const updatedOf = (sid) => sql(`select updated_at from public.stacks where id = '${sid}'`);
 const before11 = updatedOf(id);
 await page.goto(APP + `/create?edit=${id}`);
@@ -336,13 +336,13 @@ const startsFrom =
   (await page.getByRole("button", { name: "Travel & Places" }).getAttribute("aria-pressed")) === "true";
 const actions =
   (await page.getByRole("button", { name: "Back", exact: true }).isVisible()) &&
-  (await page.getByRole("button", { name: "Save", exact: true }).isVisible()) &&
-  (await page.getByRole("button", { name: "Save and share update" }).isVisible()) &&
+  (await page.getByRole("button", { name: "Save & exit" }).isVisible()) &&
+  (await page.getByRole("button", { name: "Save & share" }).isVisible()) &&
   !(await page.getByRole("button", { name: "Publish", exact: true }).count()) &&
   // Who can see it stays in the Stack's ⋯ menu.
   !(await page.getByText("Privacy", { exact: true }).count());
 check(
-  "11a. Editing: the picks screen has only Finalize; Finalize starts from the Stack's theme, place, city and categories, has no Privacy, with Back, Save and Save and share update",
+  "11a. Editing: the picks screen has only Finalize; Finalize starts from the Stack's theme, place, city and categories, has no Privacy, with Back, Save & exit and Save & share",
   buildFooter === "Finalize" && startsFrom && actions,
   `footer: ${buildFooter} / starts from ${startsFrom} / actions ${actions}`,
 );
@@ -351,8 +351,10 @@ check(
 await page.getByRole("button", { name: "Theme emoji 🌮" }).click();
 await page.getByRole("button", { name: "Travel & Places" }).click();
 await page.getByLabel("City").fill("Oaxaca");
-await page.getByRole("button", { name: "Save", exact: true }).click();
-await page.waitForURL(new RegExp(`/s/${id}$`), { timeout: 15000 }).catch(() => {});
+await page.getByRole("button", { name: "Save & exit" }).click();
+// Save & exit goes back to where the editor was opened from (agreed Nov 27); the Stack page is checked directly.
+await page.getByText("Changes published").waitFor({ timeout: 15000 }).catch(() => {});
+await page.goto(APP + `/s/${id}`);
 await page.locator("[class*=pmPicks]").waitFor({ timeout: 10000 }).catch(() => {});
 const r11 = stackRow(id);
 const meta11 = await metaText(page);
@@ -369,8 +371,10 @@ await page.getByText("Orinoco").click();
 await page.getByRole("textbox", { name: "Item heading" }).first().fill("Orinoco (Roma)");
 await page.getByRole("button", { name: "Done", exact: true }).last().click();
 await page.getByRole("button", { name: "Finalize" }).click();
-await page.getByRole("button", { name: "Save", exact: true }).click();
-await page.waitForURL(new RegExp(`/s/${id}$`), { timeout: 15000 }).catch(() => {});
+await page.getByRole("button", { name: "Save & exit" }).click();
+// Save & exit goes back to where the editor was opened from (agreed Nov 27); the Stack page is checked directly.
+await page.getByText("Changes published").waitFor({ timeout: 15000 }).catch(() => {});
+await page.goto(APP + `/s/${id}`);
 await page.locator("[class*=pmPicks]").waitFor({ timeout: 10000 }).catch(() => {});
 const meta11c = await metaText(page);
 check(
@@ -406,8 +410,10 @@ const inherited =
   (await page.getByRole("radio", { name: "Yes" }).getAttribute("aria-checked")) === "true" &&
   (await page.getByLabel("City").inputValue()) === "Oaxaca" &&
   (await page.getByRole("button", { name: "Food & Drink" }).getAttribute("aria-pressed")) === "true";
-await page.getByRole("button", { name: "Save", exact: true }).click();
-await page.waitForURL(new RegExp(`/s/${id}$`), { timeout: 15000 }).catch(() => {});
+await page.getByRole("button", { name: "Save & exit" }).click();
+// Save & exit goes back to where the editor was opened from (agreed Nov 27); the Stack page is checked directly.
+await page.getByText("Changes published").waitFor({ timeout: 15000 }).catch(() => {});
+await page.goto(APP + `/s/${id}`);
 const r12 = stackRow(id);
 check(
   "12a. An old edits draft (v 1, no theme or categories) reopens with its pick edit and the Stack's 🌮 theme, place answer, city Oaxaca and Food & Drink; saving keeps them",
@@ -434,8 +440,10 @@ const noneAfterRefresh =
   (await page.getByRole("button", { name: "Food & Drink" }).getAttribute("aria-pressed")) === "false" &&
   !(await page.locator("button[class*=catChip][aria-pressed=true]").count()) &&
   (await page.getByRole("button", { name: "Theme emoji 🌮" }).getAttribute("aria-pressed")) === "true";
-await page.getByRole("button", { name: "Save", exact: true }).click();
-await page.waitForURL(new RegExp(`/s/${id}$`), { timeout: 15000 }).catch(() => {});
+await page.getByRole("button", { name: "Save & exit" }).click();
+// Save & exit goes back to where the editor was opened from (agreed Nov 27); the Stack page is checked directly.
+await page.getByText("Changes published").waitFor({ timeout: 15000 }).catch(() => {});
+await page.goto(APP + `/s/${id}`);
 await page.locator("[class*=pmPicks]").waitFor({ timeout: 10000 }).catch(() => {});
 const meta12 = await metaText(page);
 check(
@@ -443,6 +451,92 @@ check(
   saved12 && noneAfterRefresh && stackRow(id)?.categories.length === 0 && stackRow(id)?.theme_emoji === "🌮" && !meta12.includes("Food") && meta12.startsWith("📍 Oaxaca · "),
   `saved ${saved12} / after refresh ${noneAfterRefresh} / ${meta12}`,
 );
+
+// 13. Save & exit goes back to where you were before the Stack (agreed Nov 27): Profile › the Stack › ⋯ › Edit stack
+//     › Finalize › Save & exit lands on the profile, with the change saved.
+await page.goto(APP + "/profile");
+await page.getByText("Late-night tacos in CDMX").first().click();
+await page.waitForURL(new RegExp(`/s/${id}$`), { timeout: 15000 }).catch(() => {});
+await page.getByRole("button", { name: "Edit, visibility and delete" }).click();
+await page.getByRole("button", { name: "Edit stack" }).click();
+await page.waitForURL(/\/create\?edit=/, { timeout: 15000 }).catch(() => {});
+await page.getByRole("button", { name: "Finalize" }).click();
+await page.getByRole("button", { name: "Theme emoji 🎨" }).click();
+await page.getByRole("button", { name: "Save & exit" }).click();
+await page.waitForURL(/\/profile$/, { timeout: 15000 }).catch(() => {});
+check(
+  "13. Save & exit from Profile › the Stack › Edit lands back on the profile, and the change is saved",
+  new URL(page.url()).pathname === "/profile" && stackRow(id)?.theme_emoji === "🎨" && (await page.getByText("Changes published").isVisible().catch(() => false)),
+  page.url(),
+);
+
+// 14. iPhone fit: the narrowest iPhone (320 wide) with Safari's toolbar showing (460 tall). The Stack page and
+//     Finalize › Preview fit without zooming out: nothing wider than the screen, Follow inside the card, the bottom
+//     bar fully on screen, the picks scroll inside the card, and the tag filter stays pinned while they do.
+const phone = await browser.newContext({ storageState: await ctx.storageState(), viewport: { width: 320, height: 460 }, deviceScaleFactor: SHOTS ? 2 : 1, isMobile: true, hasTouch: true });
+const iphone = await phone.newPage();
+const fit = (pg) =>
+  pg.evaluate(() => {
+    const vw = document.documentElement.clientWidth;
+    const card = document.querySelector("[class*=pmCard]")?.getBoundingClientRect();
+    const inCard = (sel) => {
+      const b = document.querySelector(sel)?.getBoundingClientRect();
+      return !b || !card || (b.left >= card.left - 0.5 && b.right <= card.right + 0.5);
+    };
+    const bar = document.querySelector("[class*=pmBar]")?.getBoundingClientRect();
+    return {
+      wide: document.documentElement.scrollWidth > vw || [...document.querySelectorAll("body *")].some((el) => el.getBoundingClientRect().right > vw + 0.5 && getComputedStyle(el).visibility !== "hidden"),
+      follow: inCard("[class*=pmFollow], [class*=follow]"),
+      card: !!card && card.left >= 0 && card.right <= vw,
+      bar: !bar || bar.bottom <= innerHeight,
+      scale: visualViewport.scale,
+    };
+  });
+// The test's own Stack gets tags on its picks (as the database owner), so the tag filter shows; a visitor's view
+// (Follow shows) is the fixture account's Stack.
+psql(`update public.stacks set sections = jsonb_set(jsonb_set(sections, '{0,lines,0,tags}', '["Late night", "$$"]'), '{0,lines,1,tags}', '["Late night"]') where id = '${id}'`, false);
+const other = sql("select id from public.stacks where status = 'published' and visibility = 'public' and author_id <> '" + sql(`select author_id from public.stacks where id = '${id}'`) + "' order by line_count desc limit 1");
+const pages14 = [`/s/${id}`, ...(other ? [`/s/${other}`] : [])];
+let ok14 = true;
+const notes14 = [];
+for (const path of pages14) {
+  await iphone.goto(APP + path);
+  await iphone.locator("[class*=pmPicks]").waitFor({ timeout: 10000 }).catch(() => {});
+  const f = await fit(iphone);
+  const body = iphone.locator("[class*=pmBody]");
+  const scrolls = await body.evaluate((el) => {
+    const before = el.scrollTop;
+    el.scrollTop = el.scrollHeight;
+    return el.scrollHeight > el.clientHeight && el.scrollTop > before;
+  });
+  await iphone.waitForTimeout(200);
+  const pinned = await iphone.evaluate(() => {
+    const flt = document.querySelector("[class*=pmFilter]"), body = document.querySelector("[class*=pmBody]");
+    if (!flt) return "no filter";
+    const fb = flt.getBoundingClientRect(), bb = body.getBoundingClientRect();
+    return Math.abs(fb.top - bb.top) < 1.5 && [...flt.querySelectorAll("button")].every((c) => c.getBoundingClientRect().top >= bb.top - 0.5);
+  });
+  // The own Stack has tags, so its filter must be there and pinned.
+  const own = path === `/s/${id}`;
+  // The own Stack is long enough to scroll on this screen; the fixture's short one isn't.
+  const ok = !f.wide && f.follow && f.card && f.bar && f.scale === 1 && (own ? scrolls && pinned === true : pinned !== false);
+  ok14 &&= ok;
+  notes14.push(`${path.slice(0, 10)}: ${JSON.stringify({ ...f, scrolls, pinned })}`);
+  await shot(iphone, `iphone-320-${own ? "own" : "visitor"}`);
+}
+await iphone.goto(APP + `/create?edit=${id}`);
+await iphone.getByRole("button", { name: "Finalize" }).click();
+await iphone.getByRole("button", { name: /Preview your Stack/ }).click();
+await iphone.locator("[class*=pmPicks]").waitFor({ timeout: 10000 }).catch(() => {});
+const fp = await fit(iphone);
+const saveShown = await iphone.getByRole("button", { name: "Save & exit" }).evaluate((el) => el.getBoundingClientRect().bottom <= innerHeight).catch(() => false);
+await shot(iphone, "iphone-320-preview");
+check(
+  "14. On a 320-wide iPhone with Safari's toolbar showing, the Stack page (own and a visitor's) and Finalize › Preview fit at default zoom: nothing wider than the screen, Follow inside the card, the bottom bar and Save & exit on screen, the picks scroll and the tag filter stays pinned",
+  ok14 && !fp.wide && fp.follow && fp.card && fp.scale === 1 && saveShown,
+  `${notes14.join(" | ")} | preview ${JSON.stringify(fp)} save ${saveShown}`,
+);
+await phone.close();
 
 await browser.close();
 cleanup();

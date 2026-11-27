@@ -357,8 +357,10 @@ await page.getByRole("textbox", { name: "Item subheading" }).fill("Trompo tacos 
 await page.getByRole("button", { name: "Done", exact: true }).first().click();
 // Editing saves from Finalize (agreed Nov 27).
 await page.getByRole("button", { name: "Finalize" }).click();
-await page.getByRole("button", { name: "Save", exact: true }).click();
-await page.waitForURL(new RegExp(`/s/${id}`), { timeout: 15000 }).catch(() => {});
+await page.getByRole("button", { name: "Save & exit" }).click();
+// Save & exit goes back to where the editor was opened from (agreed Nov 27); the Stack page is checked directly.
+await page.getByText("Changes published").waitFor({ timeout: 15000 }).catch(() => {});
+await page.goto(APP + `/s/${id}`);
 const edited = JSON.parse(sql(`select sections from public.stacks where id = '${id}'`) || "[]").flatMap((s) => s.lines);
 check("8. Publishing an edit updates the pick and keeps its id", edited[1]?.id === pickId && edited[1]?.note === "Trompo tacos until 4am.", JSON.stringify(edited[1]));
 await page.goto(APP + `/s/${id}`);

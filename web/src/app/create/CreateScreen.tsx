@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useAuth, useBack, useToast } from "@/components/AppProviders";
+import { useAuth, useBack, useLeave, useToast } from "@/components/AppProviders";
 import shell from "@/components/AppShell.module.css";
 import { ShareSheet, systemShare } from "@/components/Share";
 import { DRAFT_VERSION } from "@/lib/drafts";
@@ -520,6 +520,7 @@ function caretEnd(el: HTMLElement) {
 export default function CreateScreen({ initial, start, edit: target = null }: { initial: Draft; start: Step; edit?: EditTarget | null }) {
   const router = useRouter();
   const back = useBack();
+  const leave = useLeave();
   const { viewer, requireAuth } = useAuth();
   const toast = useToast();
   const [work, setWork] = useState<Work>(() => fromDraft(initial));
@@ -1227,8 +1228,9 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
     if (error) return toast(error.code === "PGRST202" ? "Editing published stacks isn't available yet." : `Couldn't publish: ${error.message}`);
     setShareOpen(false);
     toast(share ? "Update shared to the feed" : "Changes published");
-    router.replace(`/s/${target.stackId}`);
-    router.refresh();
+    // Save & exit (agreed Nov 27): back to where the editor was opened from, past the Stack's own page if that's
+    // where Edit was tapped; with nowhere to go back to, the profile.
+    leave(`/s/${target.stackId}`, "/profile");
   }
 
   function openShare() {
@@ -1502,7 +1504,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
         disabled={busy}
         onClick={target ? () => applyEdit(false) : publish}
       >
-        {target ? (busy && !shareOpen ? "Saving…" : "Save") : busy ? "Publishing…" : "Publish"}
+        {target ? (busy && !shareOpen ? "Saving…" : "Save & exit") : busy ? "Publishing…" : "Publish"}
       </button>
       {blockedWhy && (
         <div id="publish-why" className={s.fzWhy}>
@@ -1511,7 +1513,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
       )}
     </div>
   );
-  // Editing: Save and share update, under Finalize's footer.
+  // Editing: Save & share (the update), under Finalize's footer.
   const shareRow = (
     <div className={s.fzShareRow}>
       <button className={s.shareUpdate} aria-disabled={!shareState?.can} onClick={openShare}>
@@ -1521,7 +1523,7 @@ export default function CreateScreen({ initial, start, edit: target = null }: { 
           <path d="M20 12a8 8 0 0 1-13.7 5.7L4 15.5" />
           <path d="M4 20v-4.5h4.5" />
         </svg>
-        Save and share update
+        Save & share
       </button>
       <div className={s.shareHint}>{shareState?.hint}</div>
     </div>

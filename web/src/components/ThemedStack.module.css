@@ -152,16 +152,27 @@
   justify-content: center;
   flex-shrink: 0;
 }
+/* On a narrow phone the name, then the handle, shorten with "…", so Follow always fits in the card (Finalize › Preview
+   has no other rules for them; the Stack page adds its own). */
 .pmName {
   font-weight: 600;
   font-size: 14px;
   color: oklch(19.4% 0.035 300);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .pmHandle {
   font-size: 13px;
   color: oklch(47.1% 0.035 300);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .pmFollow {
+  flex-shrink: 0;
   font-size: 12px;
   font-weight: 700;
   padding: 7px 15px;

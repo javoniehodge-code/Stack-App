@@ -67,6 +67,7 @@ const GOOGLE_NOTICE: Record<string, string> = {
 export type ToastAction = { label: string; run: () => void };
 const ToastContext = createContext<(msg: string, action?: ToastAction) => void>(() => {});
 const BackContext = createContext<(fallback?: unknown) => void>(() => {});
+const LeaveContext = createContext<(skip: string, fallback: string) => void>(() => {});
 
 export const useAuth = () => useContext(AuthContext)!;
 export const useToast = () => useContext(ToastContext);
@@ -75,6 +76,12 @@ export const useToast = () => useContext(ToastContext);
  * It can be passed straight to onClick; anything but a string is ignored.
  */
 export const useBack = () => useContext(BackContext);
+/**
+ * Leaves the current screen for the one the viewer came from, also skipping the one before it when that's `skip` (a
+ * path): Save & exit in the editor skips the Stack's own page when Edit was opened from it, so it lands where the
+ * viewer was before (say, their profile). With nowhere in the app to go back to, it goes to `fallback`.
+ */
+export const useLeave = () => useContext(LeaveContext);
 
 export default function AppProviders({ initialViewer, children }: { initialViewer: Profile | null; children: React.ReactNode }) {
   const router = useRouter();
@@ -89,15 +96,41 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [resumers] = useState(() => new Map<string, Resumer>());
 
-  // Count in-app navigations so Back knows whether there is anywhere to go back to.
+  // Count in-app navigations so Back knows whether there is anywhere to go back to, and keep the recent paths (newest
+  // last) for useLeave. Going back (the browser's popstate) to the previous path takes the newest one off instead.
   const depth = useRef(0);
+  const paths = useRef<string[]>([]);
+  const popped = useRef(false);
+  useEffect(() => {
+    const onPop = () => (popped.current = true);
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
   useEffect(() => {
     depth.current++;
+    const p = paths.current;
+    if (popped.current && p[p.length - 2] === pathname) p.pop();
+    else p.push(pathname);
+    popped.current = false;
+    paths.current = p.slice(-30);
   }, [pathname]);
   const back = useCallback(
     (fallback?: unknown) => {
       if (depth.current > 1) router.back();
       else router.push(typeof fallback === "string" ? fallback : "/");
+    },
+    [router],
+  );
+
+  const leave = useCallback(
+    (skip: string, fallback: string) => {
+      const p = paths.current;
+      const steps = p[p.length - 2] === skip ? 2 : 1;
+      if (p.length > steps && depth.current > steps) {
+        // The page landed on shows what was just saved.
+        window.addEventListener("popstate", () => setTimeout(() => router.refresh(), 0), { once: true });
+        window.history.go(-steps);
+      } else router.replace(fallback);
     },
     [router],
   );
@@ -213,6 +246,7 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
       <ResumeContext.Provider value={resumers}>
       <ToastContext.Provider value={showToast}>
         <BackContext.Provider value={back}>
+        <LeaveContext.Provider value={leave}>
           {children}
           {toast && (
             <div className={`${styles.toast} ${toast.action ? styles.toastAction : ""}`} role="status">
@@ -243,6 +277,7 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
               onSignedIn={(p) => completeAttempt(sheet.id, p)}
             />
           )}
+        </LeaveContext.Provider>
         </BackContext.Provider>
       </ToastContext.Provider>
       </ResumeContext.Provider>

@@ -85,6 +85,8 @@
   font-size: 13px;
   color: var(--muted-60);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .follow {
@@ -345,6 +347,15 @@
 
 .composerInput:focus {
   border-color: var(--accent);
+}
+/* iPhone and iPad Safari zoom the page in when a text box under 16px is tapped, and it stays zoomed, so the Stack page
+   no longer fits until you pinch out. There the comment box is 16px (same height). Pinch-to-zoom still works. */
+@supports (-webkit-touch-callout: none) {
+  .composerInput {
+    font-size: 16px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
 }
 
 .post {
