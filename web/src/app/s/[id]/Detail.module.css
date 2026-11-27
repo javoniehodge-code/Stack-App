@@ -85,6 +85,8 @@
   font-size: 13px;
   color: var(--muted-60);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .follow {

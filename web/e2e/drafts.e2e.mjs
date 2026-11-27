@@ -358,8 +358,10 @@ let uid, draftId;
   await page.getByLabel("Title").blur();
   // Editing saves from Finalize (agreed Nov 27).
   await page.getByRole("button", { name: "Finalize" }).click();
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  await page.waitForURL(new RegExp(`/s/${draftId}`), { timeout: 15000 }).catch(() => {});
+  await page.getByRole("button", { name: "Save & exit" }).click();
+  // Save & exit goes back to where the editor was opened from (agreed Nov 27); the Stack page is checked directly.
+  await page.getByText("Changes published").waitFor({ timeout: 15000 }).catch(() => {});
+  await page.goto(APP + `/s/${draftId}`);
   check(
     "4d. Publishing the changes updates the stack and removes the edits draft",
     sql(`select title from public.stacks where id = '${draftId}'`) === `Late-night tacos ${RUN}, edited` && draftsOf(uid) === "0",
