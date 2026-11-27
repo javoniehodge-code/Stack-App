@@ -112,6 +112,12 @@ Agreed Nov 27: to publish, a Stack needs only a title, at least 1 pick, and noth
 - [x] Explore › Recently added: each Stack's theme as a small square with its emoji, "Maria · 7 picks", and the time.
 - [x] Profile tiles: a strip in the Stack's theme with its emoji on top.
 - [x] A Stack published before themes shows the theme its title suggests.
+- [x] Follow on feed and search cards is an outline (agreed Nov 27, instead of the design's filled pink, so it doesn't dominate the card): pink text and border on white. Following is unchanged.
+- [x] The feed card's bar matches the design: 48 px tall, Like, Save and Repost on the left, Share on the right.
+- **Checked on production (Nov 27, after PR #56):**
+  - Signed out, on an iPhone-size screen: feed, Explore (Trending, Recently added), search results and profile tiles show the themes, and nothing scrolls sideways at 320 px.
+  - With a second account, a comment on "Test 23" stayed after signing out, and @stackapp got a notification for it.
+  - Follow on a repost wasn't checked on production: it needs three accounts. The local tests cover it.
 - Part 2, next: Explore and search use the 12 categories (needs a database change).
 
 ## Later tasks
