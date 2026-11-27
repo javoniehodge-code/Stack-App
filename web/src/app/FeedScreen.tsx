@@ -17,7 +17,8 @@ type FeedState = { stacks: FeedItem[]; page: number; done: boolean; loading: boo
 
 export default function FeedScreen({ initial, following = [] }: { initial: Stack[]; following?: string[] }) {
   const { viewer } = useAuth();
-  // Who the viewer follows when the page loaded (Follow on a card updates it from there).
+  // Who the viewer follows when the page loaded (Follow on a card updates it from there). A card's Follow is for its
+  // author, who for a repost in Following may be someone the viewer doesn't follow.
   const followed = new Set(following);
   // Stacks made invite only or private in this session leave the feed right away.
   const visOf = useVisibilityLookup();
@@ -132,7 +133,7 @@ export default function FeedScreen({ initial, following = [] }: { initial: Stack
         </div>
       ) : (
         <div ref={railRef} className={cards.feedScroll}>
-          {shown.map((st) => <FeedCard key={st.id} stack={st} following={tab === "following" || followed.has(st.author.id)} />)}
+          {shown.map((st) => <FeedCard key={st.id} stack={st} following={followed.has(st.author.id)} />)}
           {feed && !feed.done && (
             <div ref={sentinelRef} className={cards.feedLoading}>
               Loading…

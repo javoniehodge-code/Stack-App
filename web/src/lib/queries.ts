@@ -232,7 +232,8 @@ export async function fetchSaved(sb: SupabaseClient, viewerId: string) {
 }
 
 export async function searchStacks(sb: SupabaseClient, viewerId: string | null, q: string) {
-  const { data, error } = await sb.rpc("search_stacks", { q }).select(STACK_SELECT);
+  // With their comments, like the feed: results are feed cards, whose discussion opens inline.
+  const { data, error } = await sb.rpc("search_stacks", { q }).select(STACK_WITH_COMMENTS);
   if (error) throw error;
   return withViewerState(sb, viewerId, (data ?? []) as unknown as StackRow[]);
 }
