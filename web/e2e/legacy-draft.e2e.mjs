@@ -32,8 +32,8 @@ for (const u of [APP, MAIL]) if (!["localhost", "127.0.0.1"].includes(new URL(u)
 verifyTestDatabase({ conn: DB, token: TOKEN, read: sql, refuse });
 if (sql("select to_regclass('public.drafts') is not null") !== "t") refuse("the drafts migration isn't applied to the test database");
 
-/** Task 3: publishing needs a category, and a city for a place Stack. Picks Food & Drink when none is picked, and answers
- *  No to the place question when the city is empty, so the checks below publish as before. */
+/** Picks Food & Drink when no category is picked, and answers No to the place question when the city is empty, so the
+ *  Stacks below are published as they were when categories and the city were required (Task 3; optional since Nov 27). */
 async function readyToPublish(page) {
   const cat = page.getByRole("button", { name: "Food & Drink" });
   await cat.waitFor({ timeout: 5000 }).catch(() => {});

@@ -80,7 +80,19 @@ export function toDraftSections(sections: unknown, style: Draft["style"]): Draft
 
 /** A published stack's row → the editor's starting point (for editing it). */
 export function stackToDraft(
-  d: { title: string; description?: string; sections: Section[]; style: Draft["style"]; forked_from_id: string | null; visibility?: Visibility; location?: string },
+  d: {
+    title: string;
+    description?: string;
+    sections: Section[];
+    style: Draft["style"];
+    forked_from_id: string | null;
+    visibility?: Visibility;
+    location?: string;
+    theme_emoji?: string | null;
+    theme_color?: string | null;
+    is_place?: boolean;
+    categories?: string[];
+  },
   tags: string[],
 ): Draft {
   const sections = toDraftSections(d.sections, d.style);
@@ -94,6 +106,10 @@ export function stackToDraft(
     forkedFromId: d.forked_from_id,
     visibility: d.visibility ?? "public",
     location: d.location ?? "",
+    // The Finalize choices, so editing starts from them (a Stack from before themes gets the suggested one).
+    theme: d.theme_emoji && d.theme_color ? { emoji: d.theme_emoji, color: d.theme_color } : null,
+    isPlace: typeof d.is_place === "boolean" ? d.is_place : null,
+    categories: d.categories ?? [],
   };
 }
 

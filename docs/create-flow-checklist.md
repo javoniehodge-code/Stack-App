@@ -55,11 +55,12 @@ Every detail of creating and publishing a Stack, and where it's built. Tick item
 
 ## Task 3: publish checks
 
+Agreed Nov 27: to publish, a Stack needs only a title, at least 1 pick, and nothing over a limit. The theme always has one selected; the categories and the city are optional.
+
 - [x] The red "Fix N things before publishing" box on Finalize, listing each problem ("Fix this before publishing:" for one).
-- [x] Publish looks off, with the reason under it, while a check fails ("Fix 3 things on this page to publish.", or "Add a city to publish."). Tapping it anyway publishes nothing and shows the first problem in a toast.
-- [x] A place Stack with no city: the city field is highlighted, with the toast "Add a city to publish this place stack."
-- [x] At least 1 category.
-- [x] A place Stack's city: "City is 5 over 80 characters." is in the list too.
+- [x] Publish looks off, with the reason under it, while a check fails ("Fix 3 things on this page to publish."). Tapping it anyway publishes nothing and shows the first problem in a toast.
+- [x] The city and the categories are optional (Nov 27): "City (optional), e.g. Mexico City", "Looks like a place stack. Adding the city helps people find it.", and "Optional. Pick up to 2 to help people find your Stack in Explore and search." (Task 3 first required them.)
+- [x] A place Stack's city: "City is 5 over 80 characters." is in the list.
 - [x] A section with no items: "“Roma Norte” has no items. Add one or remove the section."
 - [x] On failure (agreed Nov 26): a sheet with **Try again** and **Keep editing**. Everything is kept.
   - If the draft couldn't be saved, nothing was published: "Your latest changes couldn't be saved, so nothing was published. They're still here. Check your connection and try again." The save status says "Not saved · Retry".
@@ -69,7 +70,13 @@ Every detail of creating and publishing a Stack, and where it's built. Tick item
     - the look fails too: "Publish status unknown", with only **Check again** (editing stays closed until it knows). A failed Check again says "Still couldn't check. Try again in a moment."
 - [x] A title typed in "Name your Stack to publish" is saved to the draft at once, so it's kept if the publish fails and after a refresh.
 - [x] The slug at first publish (agreed Nov 26): saved from the title and never changed; Stacks published earlier got theirs too. Links still use the Stack's id for now (see "Readable links" below).
-- The server refuses the same things: no title, no category, a place Stack with no city, a city over 80 characters, no items, a titled section with no items. The older save path (from app versions before drafts) still saves drafts, but publishing through it gets the same checks, so it's refused (it has no categories). Every published Stack gets a slug, whichever way it was published.
+- The server refuses the same things: no title, a city over 80 characters, no items, a titled section with no items. The older save path (from app versions before drafts) still saves drafts, and publishing through it gets the same checks. Every published Stack gets a slug, whichever way it was published.
+
+## After Task 3 (agreed Nov 27)
+
+- [x] The row after the last pick shows the categories too: "📍 Mexico City · Published Nov 24 · Food & Drink" ("Food & Drink, Travel & Places" with two; nothing added with none).
+- [x] Editing a published Stack follows the same steps as creating: the picks, then **Finalize** (theme, "Is this about a place?" and the city, categories, Order, Preview), with Back, **Save** and **Save and share update**. It starts from the Stack's choices. Who can see it stays in the ⋯ menu.
+- [x] Changing only the theme, place, city or categories doesn't mark the Stack "Updated", and can't be shared as an update; that stays for the title, description and picks.
 
 ## Later tasks
 
@@ -88,7 +95,5 @@ Every detail of creating and publishing a Stack, and where it's built. Tick item
 - **Link titles:** "Fetching link…", then the page title and site icon, falling back to the domain after 6 seconds.
 - **Preview of the feed card** ("This is how your card looks in feeds", as a full feed card).
 - **Showing the Finalize choices in feeds**, and categories in Explore and search. (The Stack page comes right after 2d, above.)
-- **Editing a published Stack:**
-  - the theme, place and categories;
-  - "This stack changed on another device".
+- **Editing a published Stack:** "This stack changed on another device".
 - **Remix:** a freshly suggested theme, and remixedFrom.

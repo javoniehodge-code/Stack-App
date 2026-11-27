@@ -45,8 +45,8 @@ process.on("uncaughtException", (e) => {
   }
 });
 
-/** Task 3: publishing needs a category, and a city for a place Stack. Picks Food & Drink when none is picked, and answers
- *  No to the place question when the city is empty, so the checks below publish as before. */
+/** Picks Food & Drink when no category is picked, and answers No to the place question when the city is empty, so the
+ *  Stacks below are published as they were when categories and the city were required (Task 3; optional since Nov 27). */
 async function readyToPublish(page) {
   const cat = page.getByRole("button", { name: "Food & Drink" });
   await cat.waitFor({ timeout: 5000 }).catch(() => {});
@@ -145,7 +145,7 @@ check(
     (await page.getByText("Suggested from your title. Tap to change.").isVisible()) &&
     (await page.getByRole("radio", { name: "Yes" }).getAttribute("aria-checked")) === "true" &&
     (await page.getByLabel("City").isVisible()) &&
-    (await page.getByText("A city is required for place stacks.").isVisible()),
+    (await page.getByText("Looks like a place stack. Adding the city helps people find it.").isVisible()),
 );
 
 // 2. Picking a theme: the hint changes, and the draft keeps it through a refresh (and reopens at Finalize).
@@ -208,14 +208,14 @@ await shot(page, "finalize-preview");
 const screenBg = await page.locator("[class*=pmScreen]").evaluate((el) => getComputedStyle(el).backgroundColor).catch(() => "");
 const bandH = await page.locator("[class*=pmBand]").evaluate((el) => el.getBoundingClientRect().height).catch(() => 0);
 check(
-  "7. Preview: theme background, Edit and Preview · Unlisted, a 52px band with only 📖 3 picks on the right, the picks in order, and 📍 Mexico City · Published today at the bottom",
+  "7. Preview: theme background, Edit and Preview · Unlisted, a 52px band with only 📖 3 picks on the right, the picks in order, and 📍 Mexico City · Published today · Food & Drink, Travel & Places at the bottom",
   !!screenBg && screenBg !== "rgba(0, 0, 0, 0)" &&
     (await page.getByRole("button", { name: "Edit", exact: true }).isVisible()) &&
     (await page.getByText("👀 Preview · Unlisted").isVisible()) &&
     Math.round(bandH) === 52 &&
     (await page.locator("[class*=pmPicks]").innerText()).replace(/\s+/g, " ").trim() === "📖 3 picks" &&
     (await bandRight(page)) &&
-    (await metaText(page)) === `📍 Mexico City · Published ${TODAY}` &&
+    (await metaText(page)) === `📍 Mexico City · Published ${TODAY} · Food & Drink, Travel & Places` &&
     (await page.locator("[class*=pmHead]").allInnerTexts()).join() === "Orinoco,Los Cocuyos,El Huequito" &&
     !(await page.getByText("Saved just now").isVisible()),
   `${screenBg} · band ${bandH}px`,
@@ -243,8 +243,8 @@ const right8 = await bandRight(page);
 const meta8 = await metaText(page);
 await shot(page, "stack-page-bottom");
 check(
-  "8b. The Stack page is in its theme: the colour with the 📖 wallpaper (hidden from screen readers), only 📖 3 picks in the band on the right, and 📍 Mexico City · Published today after the last pick",
-  !!pageBg && pageBg !== "rgba(0, 0, 0, 0)" && wall === "📖📖|true" && pill8 === "📖 3 picks" && right8 && meta8 === `📍 Mexico City · Published ${TODAY}` && !(await page.getByText("stack.", { exact: true }).isVisible()),
+  "8b. The Stack page is in its theme: the colour with the 📖 wallpaper (hidden from screen readers), only 📖 3 picks in the band on the right, and 📍 Mexico City · Published today · Food & Drink, Travel & Places after the last pick",
+  !!pageBg && pageBg !== "rgba(0, 0, 0, 0)" && wall === "📖📖|true" && pill8 === "📖 3 picks" && right8 && meta8 === `📍 Mexico City · Published ${TODAY} · Food & Drink, Travel & Places` && !(await page.getByText("stack.", { exact: true }).isVisible()),
   `${pageBg} · ${wall} · ${pill8} · ${right8} · ${meta8}`,
 );
 
@@ -274,7 +274,7 @@ check(
 await page.goto(APP + `/s/${id9}`);
 await page.locator("[class*=pmPicks]").waitFor({ timeout: 10000 }).catch(() => {});
 const meta9 = await metaText(page);
-check("9b. A Stack that isn't about a place shows only the date at the bottom", meta9 === `Published ${TODAY}`, meta9);
+check("9b. A Stack that isn't about a place shows the date and its category at the bottom, no city", meta9 === `Published ${TODAY} · Food & Drink`, meta9);
 
 // 10. Order with two populated sections: a section's arrow moves the whole section, its title and its picks. The new
 //     order survives a refresh and publishing.
@@ -316,6 +316,68 @@ await page.getByRole("button", { name: "Publish", exact: true }).click();
 await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
 const pub10 = shape(stackRow(id10)?.sections);
 check("10b. Publishing keeps the new section order, each with its picks", pub10 === "Condesa:Departamento | Roma Norte:Licorería Limantour+Baltra", pub10);
+
+// 11. Editing a published Stack follows the same steps as creating (agreed Nov 27): the picks, then Finalize, which
+//     starts from the Stack's choices and has Back, Save, and Save and share update.
+const updatedOf = (sid) => sql(`select updated_at from public.stacks where id = '${sid}'`);
+const before11 = updatedOf(id);
+await page.goto(APP + `/create?edit=${id}`);
+await page.getByRole("button", { name: "Finalize" }).waitFor({ timeout: 10000 }).catch(() => {});
+const buildFooter = (await page.locator("footer").last().getByRole("button").allInnerTexts()).map((t) => t.trim()).join(",");
+await page.getByRole("button", { name: "Finalize" }).click();
+await page.getByRole("button", { name: "Theme emoji 📖" }).waitFor({ timeout: 10000 }).catch(() => {});
+await shot(page, "edit-finalize");
+const startsFrom =
+  (await page.getByRole("button", { name: "Theme emoji 📖" }).getAttribute("aria-pressed")) === "true" &&
+  (await page.getByRole("button", { name: "Theme colour 3" }).getAttribute("aria-pressed")) === "true" &&
+  (await page.getByRole("radio", { name: "Yes" }).getAttribute("aria-checked")) === "true" &&
+  (await page.getByLabel("City").inputValue()) === "Mexico City" &&
+  (await page.getByRole("button", { name: "Food & Drink" }).getAttribute("aria-pressed")) === "true" &&
+  (await page.getByRole("button", { name: "Travel & Places" }).getAttribute("aria-pressed")) === "true";
+const actions =
+  (await page.getByRole("button", { name: "Back", exact: true }).isVisible()) &&
+  (await page.getByRole("button", { name: "Save", exact: true }).isVisible()) &&
+  (await page.getByRole("button", { name: "Save and share update" }).isVisible()) &&
+  !(await page.getByRole("button", { name: "Publish", exact: true }).count()) &&
+  // Who can see it stays in the Stack's ⋯ menu.
+  !(await page.getByText("Privacy", { exact: true }).count());
+check(
+  "11a. Editing: the picks screen has only Finalize; Finalize starts from the Stack's theme, place, city and categories, has no Privacy, with Back, Save and Save and share update",
+  buildFooter === "Finalize" && startsFrom && actions,
+  `footer: ${buildFooter} / starts from ${startsFrom} / actions ${actions}`,
+);
+
+// 11b. Changing only the Finalize choices saves them, and the Stack stays "Published" (no Updated date).
+await page.getByRole("button", { name: "Theme emoji 🌮" }).click();
+await page.getByRole("button", { name: "Travel & Places" }).click();
+await page.getByLabel("City").fill("Oaxaca");
+await page.getByRole("button", { name: "Save", exact: true }).click();
+await page.waitForURL(new RegExp(`/s/${id}$`), { timeout: 15000 }).catch(() => {});
+await page.locator("[class*=pmPicks]").waitFor({ timeout: 10000 }).catch(() => {});
+const r11 = stackRow(id);
+const meta11 = await metaText(page);
+check(
+  "11b. Saving only Finalize choices: the theme, city and categories change, the edit date doesn't, and the row says 📍 Oaxaca · Published today · Food & Drink",
+  r11?.theme_emoji === "🌮" && r11.theme_color === C3 && r11.location === "Oaxaca" && r11.categories.join() === "Food & Drink" && updatedOf(id) === before11 &&
+    meta11 === `📍 Oaxaca · Published ${TODAY} · Food & Drink` && sql(`select count(*) from public.drafts where edit_of = '${id}'`) === "0",
+  `${JSON.stringify({ ...r11, sections: undefined })} / ${meta11}`,
+);
+
+// 11c. A change to the picks, saved from Finalize, does move it: Updated today.
+await page.goto(APP + `/create?edit=${id}`);
+await page.getByText("Orinoco").click();
+await page.getByRole("textbox", { name: "Item heading" }).first().fill("Orinoco (Roma)");
+await page.getByRole("button", { name: "Done", exact: true }).last().click();
+await page.getByRole("button", { name: "Finalize" }).click();
+await page.getByRole("button", { name: "Save", exact: true }).click();
+await page.waitForURL(new RegExp(`/s/${id}$`), { timeout: 15000 }).catch(() => {});
+await page.locator("[class*=pmPicks]").waitFor({ timeout: 10000 }).catch(() => {});
+const meta11c = await metaText(page);
+check(
+  "11c. A pick change saved from Finalize moves the edit date: 📍 Oaxaca · Updated today · Food & Drink",
+  updatedOf(id) !== before11 && meta11c === `📍 Oaxaca · Updated ${TODAY} · Food & Drink` && stackRow(id)?.sections[0].lines[0].text === "Orinoco (Roma)",
+  meta11c,
+);
 
 await browser.close();
 cleanup();

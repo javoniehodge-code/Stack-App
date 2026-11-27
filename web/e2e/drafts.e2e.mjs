@@ -43,8 +43,8 @@ process.on("uncaughtException", (e) => {
   }
 });
 
-/** Task 3: publishing needs a category, and a city for a place Stack. Picks Food & Drink when none is picked, and answers
- *  No to the place question when the city is empty, so the checks below publish as before. */
+/** Picks Food & Drink when no category is picked, and answers No to the place question when the city is empty, so the
+ *  Stacks below are published as they were when categories and the city were required (Task 3; optional since Nov 27). */
 async function readyToPublish(page) {
   const cat = page.getByRole("button", { name: "Food & Drink" });
   await cat.waitFor({ timeout: 5000 }).catch(() => {});
@@ -356,6 +356,8 @@ let uid, draftId;
   check("4c. Reopening the edit brings the unsaved title back", (await page.getByLabel("Title").inputValue()) === `Late-night tacos ${RUN}, edited`);
   // The footer shows once no field is being typed in.
   await page.getByLabel("Title").blur();
+  // Editing saves from Finalize (agreed Nov 27).
+  await page.getByRole("button", { name: "Finalize" }).click();
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await page.waitForURL(new RegExp(`/s/${draftId}`), { timeout: 15000 }).catch(() => {});
   check(

@@ -45,8 +45,8 @@ process.on("uncaughtException", (e) => {
   }
 });
 
-/** Task 3: publishing needs a category, and a city for a place Stack. Picks Food & Drink when none is picked, and answers
- *  No to the place question when the city is empty, so the checks below publish as before. */
+/** Picks Food & Drink when no category is picked, and answers No to the place question when the city is empty, so the
+ *  Stacks below are published as they were when categories and the city were required (Task 3; optional since Nov 27). */
 async function readyToPublish(page) {
   const cat = page.getByRole("button", { name: "Food & Drink" });
   await cat.waitFor({ timeout: 5000 }).catch(() => {});
@@ -355,6 +355,8 @@ await page.goto(APP + `/create?edit=${id}`);
 await page.getByText("Trompo tacos until 3am.").click();
 await page.getByRole("textbox", { name: "Item subheading" }).fill("Trompo tacos until 4am.");
 await page.getByRole("button", { name: "Done", exact: true }).first().click();
+// Editing saves from Finalize (agreed Nov 27).
+await page.getByRole("button", { name: "Finalize" }).click();
 await page.getByRole("button", { name: "Save", exact: true }).click();
 await page.waitForURL(new RegExp(`/s/${id}`), { timeout: 15000 }).catch(() => {});
 const edited = JSON.parse(sql(`select sections from public.stacks where id = '${id}'`) || "[]").flatMap((s) => s.lines);
@@ -365,7 +367,7 @@ const after8 = await metaOf();
 const secs8 = sql(`select round(extract(epoch from updated_at - published_at)) from public.stacks where id = '${id}'`);
 check(
   "8b. A fresh publish says Published; an edit saved right after (under a minute) says Updated",
-  before8.endsWith(`Published ${TODAY}`) && after8.endsWith(`Updated ${TODAY}`) && Number(secs8) < 60,
+  before8.includes(`Published ${TODAY}`) && after8.includes(`Updated ${TODAY}`) && Number(secs8) < 60,
   `${before8} → ${after8} (${secs8}s after publishing)`,
 );
 

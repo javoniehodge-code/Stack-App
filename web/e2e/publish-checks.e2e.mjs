@@ -46,8 +46,8 @@ process.on("uncaughtException", (e) => {
   }
 });
 
-/** Task 3: publishing needs a category, and a city for a place Stack. Picks Food & Drink when none is picked, and answers
- *  No to the place question when the city is empty, so the checks below publish as before. */
+/** Picks Food & Drink when no category is picked, and answers No to the place question when the city is empty, so the
+ *  Stacks below are published as they were when categories and the city were required (Task 3; optional since Nov 27). */
 async function readyToPublish(page) {
   const cat = page.getByRole("button", { name: "Food & Drink" });
   await cat.waitFor({ timeout: 5000 }).catch(() => {});
@@ -115,8 +115,8 @@ const publishBtn = () => page.getByRole("button", { name: "Publish", exact: true
 const why = async () => (await page.locator("#publish-why").innerText().catch(() => "")).trim();
 const stackCount = () => Number(sql(`select count(*) from public.stacks where author_id = '${uid}'`));
 
-// A draft with every kind of problem: a description over the limit, a titled section with no items, no category, and
-// a place Stack (tacos) with no city.
+// A draft with a description over the limit and a titled section with no items. It's a place Stack (tacos) with no
+// city and no category, which is fine (agreed Nov 27: only a title, one pick and the limits are needed).
 await page.goto(APP + "/new");
 await page.getByLabel("Title").fill("Late-night tacos in CDMX");
 await page.getByRole("button", { name: "Next" }).click();
@@ -135,30 +135,20 @@ await page.locator("[class*=fixBox]").waitFor({ timeout: 10000 }).catch(() => {}
 await page.locator("[class*=fixBox]").scrollIntoViewIfNeeded().catch(() => {});
 await shot(page, "checks-box");
 const box1 = await boxText();
-const want1 = [
-  "Fix 4 things before publishing:",
-  "Description is 12 over 160 characters.",
-  "“Roma Norte” has no items. Add one or remove the section.",
-  "Pick at least 1 category.",
-  "Add a city, or answer No to the place question.",
-].join(" ");
-check("1. Finalize's red box lists each problem, in order, with Fix 4 things before publishing:", box1 === want1, box1);
+const want1 = ["Fix 2 things before publishing:", "Description is 12 over 160 characters.", "“Roma Norte” has no items. Add one or remove the section."].join(" ");
+check("1. Finalize's red box lists each problem, in order, with Fix 2 things before publishing:; no category or city is asked for", box1 === want1, box1);
 check(
   "2. Publish looks off, with the reason under it",
-  (await publishBtn().getAttribute("aria-disabled")) === "true" && (await why()) === "Fix 4 things on this page to publish." &&
+  (await publishBtn().getAttribute("aria-disabled")) === "true" && (await why()) === "Fix 2 things on this page to publish." &&
     (await publishBtn().getAttribute("aria-describedby")) === "publish-why",
   await why(),
 );
 await publishBtn().click({ force: true });
 await page.waitForTimeout(400);
 const t3 = await toastText();
-check("3. Tapping it anyway publishes nothing and says the first problem (+3 more)", t3.includes("Description is 12 over 160 characters. (+3 more)") && stackCount() === 0, t3);
+check("3. Tapping it anyway publishes nothing and says the first problem (+1 more)", t3.includes("Description is 12 over 160 characters. (+1 more)") && stackCount() === 0, t3);
 
-// 4. Fixing them one by one shrinks the box; with only the city left, it has its own reason, toast and highlight.
-await page.getByRole("button", { name: "Food & Drink" }).click();
-await untilDraft(id, (c) => (c.categories ?? []).length === 1);
-const box4a = await boxText();
-// Back to Build: remove the empty section's heading; back once more to the description and shorten it.
+// 4. Fixing them: back to Build to remove the empty section's heading, and once more to shorten the description.
 await page.getByRole("button", { name: "Back", exact: true }).click();
 await page.getByRole("textbox", { name: "Section title" }).click();
 await page.getByRole("button", { name: "Remove heading" }).click();
@@ -168,25 +158,19 @@ await page.getByRole("button", { name: "Back", exact: true }).click();
 await page.getByLabel("Description").fill("x".repeat(150));
 await page.getByRole("button", { name: "Next" }).click();
 await page.getByRole("button", { name: "Finalize" }).click();
-await page.locator("[class*=fixBox]").waitFor({ timeout: 10000 }).catch(() => {});
-const box4b = await boxText();
-const why4 = await why();
-await publishBtn().click({ force: true });
-await page.waitForTimeout(400);
-const t4 = await toastText();
-const city = page.locator("label[class*=fzCity]");
-const flagged = (await city.getAttribute("data-flag")) !== null;
-const focused = await page.getByLabel("City").evaluate((el) => el === document.activeElement);
+await page.getByLabel("City").waitFor({ timeout: 10000 }).catch(() => {});
 await shot(page, "checks-city");
+const city = page.getByLabel("City");
 check(
-  "4. Fixing problems shrinks the box; with only the city left: Fix this before publishing:, Add a city to publish. under Publish, and tapping it toasts Add a city to publish this place stack. and highlights the city",
-  box4a.startsWith("Fix 3 things before publishing:") && !box4a.includes("category") &&
-    box4b === "Fix this before publishing: Add a city, or answer No to the place question." && why4 === "Add a city to publish." &&
-    t4.includes("Add a city to publish this place stack.") && flagged && focused && stackCount() === 0,
-  `${box4a} / ${box4b} / ${why4} / ${t4} / flag ${flagged} focus ${focused}`,
+  "4. With those fixed, nothing is left to fix, though it's a place Stack with no city and no category: no box, Publish looks on, and the city says (optional)",
+  !(await page.locator("[class*=fixBox]").count()) && !(await why()) && (await publishBtn().getAttribute("aria-disabled")) !== "true" &&
+    (await city.getAttribute("placeholder")) === "City (optional), e.g. Mexico City" && (await city.getAttribute("aria-required")) === null &&
+    (await page.getByText("Looks like a place stack. Adding the city helps people find it.").isVisible()) &&
+    !(await page.getByText("Add a city to publish.").count()) &&
+    (await page.getByText("Optional. Pick up to 2 to help people find your Stack in Explore and search.").isVisible()),
 );
-// 4b. The city's 80-character limit is in the list too.
-await page.getByLabel("City").fill("M".repeat(85));
+// 4b. The city's 80-character limit is still listed.
+await city.fill("M".repeat(85));
 await untilDraft(id, (c) => (c.location ?? "").length === 85);
 const box4c = await boxText();
 check(
@@ -194,12 +178,9 @@ check(
   box4c === "Fix this before publishing: City is 5 over 80 characters." && (await publishBtn().getAttribute("aria-disabled")) === "true" && (await why()) === "Fix 1 thing on this page to publish.",
   `${box4c} / ${await why()}`,
 );
-await page.getByLabel("City").fill("Mexico City");
+await city.fill("Mexico City");
 await untilDraft(id, (c) => c.location === "Mexico City");
-check(
-  "5. With nothing left to fix, the box, the reason and the highlight go, and Publish looks on",
-  !(await page.locator("[class*=fixBox]").count()) && !(await why()) && (await publishBtn().getAttribute("aria-disabled")) !== "true" && (await city.getAttribute("data-flag")) === null,
-);
+check("5. With the city shortened, the box and the reason go, and Publish looks on", !(await page.locator("[class*=fixBox]").count()) && !(await why()) && (await publishBtn().getAttribute("aria-disabled")) !== "true");
 
 const sheet = page.getByRole("alertdialog");
 const sheetNow = async () => (await sheet.innerText().catch(() => "")).replace(/\s+/g, " ").trim();
@@ -263,7 +244,8 @@ await page.unroute("**/rest/v1/rpc/publish_draft*");
 await publishBtn().click({ force: true });
 await page.getByText("Your Stack is live").waitFor({ timeout: 15000 }).catch(() => {});
 const slug1 = sql(`select slug from public.stacks where id = '${id}'`);
-check("7. Publishing again works, with the slug late-night-tacos-in-cdmx", (await page.getByText("Your Stack is live").isVisible()) && slug1 === "late-night-tacos-in-cdmx", slug1);
+const row7 = sql(`select slug || '|' || location || '|' || cardinality(categories) from public.stacks where id = '${id}'`);
+check("7. Publishing again works, with no category: the slug late-night-tacos-in-cdmx, the city, and no categories", (await page.getByText("Your Stack is live").isVisible()) && slug1 === "late-night-tacos-in-cdmx" && row7 === "late-night-tacos-in-cdmx|Mexico City|0", row7);
 
 // 7b. The server commits the publish, but its reply and the status check right after are both lost: Publish status
 //     unknown, with the Stack already live. Check again finds it live and opens the published Stack; one Stack only.
@@ -410,10 +392,10 @@ const r8 = {
   section: tryPublish("Empty section", '[{"label":null,"lines":[{"text":"Orinoco","format":"num"}]},{"label":"Roma Norte","lines":[]}]'),
   ok: tryPublish("Late-night tacos in CDMX", one),
 };
+const uuidLine = /^[0-9a-f-]{36}$/m;
 check(
-  "8. The database refuses no category, a place Stack with no city, no items and a titled section with no items; a fine one publishes with the next free slug",
-  r8.cat.includes("pick at least 1 category") && r8.city.includes("add a city to publish this place stack") && r8.empty.includes("add at least one item") &&
-    r8.section.includes("a section has no items") && /^[0-9a-f-]{36}$/m.test(r8.ok),
+  "8. The database publishes with no category and a place Stack with no city; it refuses no items and a titled section with no items; a fine one publishes with the next free slug",
+  uuidLine.test(r8.cat) && uuidLine.test(r8.city) && r8.empty.includes("add at least one item") && r8.section.includes("a section has no items") && uuidLine.test(r8.ok),
   JSON.stringify(r8),
 );
 const slugs = asUser("select public.stack_slug('Late-night tacos in CDMX') || ' ' || public.stack_slug('Café São Paulo: ¡Más!') || ' ' || public.stack_slug('🌮🌮') || ' ' || public.stack_slug('  Top 10 — Ramen  ')");
@@ -463,13 +445,15 @@ const legacyLines = '[{"label":null,"lines":[{"text":"Orinoco","format":"num"}]}
 const l11 = {
   // Saved, then read in a statement of its own (a statement doesn't see its own function's writes).
   draft: asUser(`select public.save_stack(null, 'Old draft', '${legacyLines}'::jsonb, null, 'draft') as sid \\gset\nselect status || '|' || coalesce(slug, '-') from public.stacks where id = :'sid'`),
-  publish: asUser(`select public.save_stack(null, 'Old publish', '${legacyLines}'::jsonb, null, 'published')`),
-  fromDraft: asUser(`select public.save_stack(public.save_stack(null, 'Old draft', '${legacyLines}'::jsonb, null, 'draft'), 'Old draft', '${legacyLines}'::jsonb, null, 'published')`),
+  publish: asUser(`select public.save_stack(null, 'Old publish', '${legacyLines}'::jsonb, null, 'published') as sid \\gset\nselect status || '|' || slug from public.stacks where id = :'sid'`),
+  fromDraft: asUser(`select public.save_stack(public.save_stack(null, 'Old draft', '${legacyLines}'::jsonb, null, 'draft'), 'Old draft', '${legacyLines}'::jsonb, null, 'published') as sid \\gset\nselect status || '|' || slug from public.stacks where id = :'sid'`),
   empty: asUser(`select public.save_stack(null, 'Nothing', '[]'::jsonb, null, 'published')`),
+  untitled: asUser(`select public.save_stack(null, '', '${legacyLines}'::jsonb, null, 'published')`),
 };
 check(
-  "11. save_stack still saves drafts (no slug), but publishing through it, new or from its draft, is refused by the publish checks",
-  l11.draft === "draft|-" && l11.publish.includes("pick at least 1 category") && l11.fromDraft.includes("pick at least 1 category") && l11.empty.includes("pick at least 1 category"),
+  "11. save_stack still saves drafts (no slug); publishing through it gets the same checks: with a title and a pick it publishes with a slug, new or from its draft; no picks or no title is refused",
+  l11.draft === "draft|-" && l11.publish === "published|old-publish" && l11.fromDraft === "published|old-draft" && l11.empty.includes("add at least one item") &&
+    l11.untitled.includes("add a title"),
   JSON.stringify(l11),
 );
 
