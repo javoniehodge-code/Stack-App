@@ -67,7 +67,7 @@ const GOOGLE_NOTICE: Record<string, string> = {
 export type ToastAction = { label: string; run: () => void };
 const ToastContext = createContext<(msg: string, action?: ToastAction) => void>(() => {});
 const BackContext = createContext<(fallback?: unknown) => void>(() => {});
-const LeaveContext = createContext<(skip: string, fallback: string) => void>(() => {});
+const LeaveContext = createContext<(skip: string | string[], fallback: string) => void>(() => {});
 
 export const useAuth = () => useContext(AuthContext)!;
 export const useToast = () => useContext(ToastContext);
@@ -78,7 +78,7 @@ export const useToast = () => useContext(ToastContext);
 export const useBack = () => useContext(BackContext);
 /**
  * Leaves the current screen for the one the viewer came from, also skipping the one before it when that's `skip` (a
- * path): Save & exit in the editor skips the Stack's own page when Edit was opened from it, so it lands where the
+ * path, or any of several: a Stack page has its readable address and the older /s/{id}): Save & exit in the editor skips the Stack's own page when Edit was opened from it, so it lands where the
  * viewer was before (say, their profile). With nowhere in the app to go back to, it goes to `fallback`.
  */
 export const useLeave = () => useContext(LeaveContext);
@@ -158,9 +158,10 @@ export default function AppProviders({ initialViewer, children }: { initialViewe
   );
 
   const leave = useCallback(
-    (skip: string, fallback: string) => {
+    (skip: string | string[], fallback: string) => {
       const w = where();
-      const steps = w.at(1) === skip ? 2 : 1;
+      const prev = w.at(1);
+      const steps = prev !== null && [skip].flat().includes(prev) ? 2 : 1;
       if (w.behind >= steps) {
         // The page landed on shows what was just saved. Both skipped pages are left behind: the position moves back
         // two, and the next new page replaces them.

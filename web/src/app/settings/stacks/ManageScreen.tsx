@@ -16,6 +16,7 @@ import type { Stack, Visibility } from "@/lib/types";
 import p from "../../profile/Profile.module.css";
 import SettingsHeader from "../SettingsHeader";
 import s from "./Manage.module.css";
+import { stackPath } from "@/lib/links";
 
 export type Filter = "all" | Visibility | "drafts";
 
@@ -123,7 +124,7 @@ export default function ManageScreen({ data, initialFilter = "all" }: { data: { 
         {shownStacks.map((st) => {
           const edited = editedDay(st.published_at, st.updated_at);
           return (
-            <div key={st.id} className={s.row} role="link" tabIndex={0} onClick={go(`/s/${st.id}`)} onKeyDown={(e) => e.target === e.currentTarget && e.key === "Enter" && go(`/s/${st.id}`)()}>
+            <div key={st.id} className={s.row} role="link" tabIndex={0} onClick={go(stackPath(st))} onKeyDown={(e) => e.target === e.currentTarget && e.key === "Enter" && go(stackPath(st))()}>
               <div className={s.main}>
                 <div className={s.title}>{st.title}</div>
                 <div className={s.meta}>

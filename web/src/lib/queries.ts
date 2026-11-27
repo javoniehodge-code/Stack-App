@@ -132,6 +132,21 @@ export async function fetchStack(sb: SupabaseClient, viewerId: string | null, id
   return s;
 }
 
+/** A published Stack by its readable address: its author's id and its slug. */
+export async function fetchStackBySlug(sb: SupabaseClient, viewerId: string | null, authorId: string, slug: string) {
+  if (!/^[a-z0-9-]{1,80}$/.test(slug)) return null;
+  const { data } = await sb.from("stacks").select(STACK_WITH_COMMENTS).eq("author_id", authorId).eq("slug", slug).eq("status", "published").maybeSingle();
+  if (!data) return null;
+  const [s] = await withViewerState(sb, viewerId, [data as unknown as StackRow]);
+  return s;
+}
+
+/** The current username for one someone used to have (their old links forward), or null. */
+export async function fetchCurrentHandle(sb: SupabaseClient, handle: string) {
+  const { data } = await sb.rpc("current_handle", { p_handle: handle.toLowerCase() });
+  return typeof data === "string" && data ? data : null;
+}
+
 export async function fetchFollowing(sb: SupabaseClient, viewerId: string | null) {
   if (!viewerId) return [] as string[];
   const { data } = await sb.from("follows").select("followee_id").eq("follower_id", viewerId);

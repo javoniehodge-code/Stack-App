@@ -1,31 +1,20 @@
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { plainText } from "@/lib/format";
-import { fetchFollowing, fetchStack } from "@/lib/queries";
+import { notFound, redirect } from "next/navigation";
+import { stackPath } from "@/lib/links";
+import { fetchStack } from "@/lib/queries";
 import { createClient, getViewerId } from "@/lib/supabase/server";
-import DetailScreen from "./DetailScreen";
 
-export async function generateMetadata({ params }: PageProps<"/s/[id]">): Promise<Metadata> {
-  const { id } = await params;
-  const sb = await createClient();
-  const stack = await fetchStack(sb, null, id);
-  if (!stack) return { title: "Stack not found" };
-  const first = stack.sections.flatMap((x) => x.lines).slice(0, 3).map((l) => plainText(l.text)).join(" · ");
-  return {
-    title: stack.title,
-    description: `${stack.line_count} lines by @${stack.author.handle}${first ? ` — ${first}` : ""}`,
-    openGraph: { title: stack.title, description: first, type: "article" },
-    // Unlisted stacks open from their link but stay out of search engines.
-    ...(stack.visibility && stack.visibility !== "public" ? { robots: { index: false } } : {}),
-  };
-}
-
-export default async function StackPage({ params, searchParams }: PageProps<"/s/[id]">) {
+// /s/{id}: the older address of a Stack. It forwards to the readable one, /{username}/{slug} (agreed Nov 27), keeping
+// ?comment=1 and ?from=create (and the browser keeps any #comment-… part).
+export default async function StackByIdPage({ params, searchParams }: PageProps<"/s/[id]">) {
   const { id } = await params;
   const { comment, from } = await searchParams;
   const sb = await createClient();
-  const viewerId = await getViewerId(sb);
-  const [stack, following] = await Promise.all([fetchStack(sb, viewerId, id), fetchFollowing(sb, viewerId)]);
+  const stack = await fetchStack(sb, await getViewerId(sb), id);
   if (!stack) notFound();
-  return <DetailScreen stack={stack} following={following.includes(stack.author.id)} openComposer={comment === "1"} fromCreate={from === "create"} />;
+  const path = stackPath(stack);
+  if (path.startsWith("/s/")) notFound();
+  const q = new URLSearchParams();
+  if (typeof comment === "string") q.set("comment", comment);
+  if (typeof from === "string") q.set("from", from);
+  redirect(path + (q.size ? `?${q}` : ""));
 }

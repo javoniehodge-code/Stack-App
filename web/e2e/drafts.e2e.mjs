@@ -53,6 +53,14 @@ async function readyToPublish(page) {
   if ((await city.isVisible().catch(() => false)) && !(await city.inputValue())) await page.getByRole("radio", { name: "No" }).click();
 }
 
+/** A published Stack's readable address, /{username}/{slug} (agreed Nov 27). */
+const readableOf = (sid) => sql(`select '/' || p.handle || '/' || s.slug from public.stacks s join public.profiles p on p.id = s.author_id where s.id = '${sid}'`);
+/** Waits for the address bar to show the Stack's address: its readable one (it starts as /s/{id} and moves). */
+const atStack = async (pg, sid) => {
+  await pg.waitForURL((u) => u.pathname === readableOf(sid), { timeout: 10000 }).catch(() => {});
+  return new URL(pg.url()).pathname === readableOf(sid);
+};
+
 const results = [];
 const check = (name, ok, detail = "") => {
   results.push({ name, ok: !!ok });
@@ -340,7 +348,7 @@ let uid, draftId;
     stacksOf(uid) === "1" && sql(`select count(*) from public.stacks where id = '${draftId}' and status = 'published'`) === "1" && draftsOf(uid) === "0",
     `stacks ${stacksOf(uid)}, drafts ${draftsOf(uid)}`,
   );
-  check("3d. The address is now the stack's", new URL(page.url()).pathname === `/s/${draftId}`, page.url());
+  check("3d. The address is now the stack's (its readable one)", await atStack(page, draftId), page.url());
 
   // 4. Editing the published stack keeps unsaved edits in an edits draft; publishing the changes removes it.
   await page.goto(APP + `/create?edit=${draftId}`);

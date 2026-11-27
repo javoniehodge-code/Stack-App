@@ -91,9 +91,18 @@ Agreed Nov 27: to publish, a Stack needs only a title, at least 1 pick, and noth
   - Two trips in a row, Profile › Stack › ⋯ › Edit stack › Finalize › Save & exit, both landed on Profile.
   - After those trips (Feed › Profile › Edit › Save & exit), Safari's Back went from Profile to the Feed, not back into the editor or the Stack.
 
+## Readable links (agreed Nov 27)
+
+- [x] A Stack's address is `/{username}/{slug}`, like `/stackapp/cities-to-travel-to`, and a profile's is `/{username}`, like `/stackapp`. Your own `/{username}` opens your Profile tab.
+- [x] The older `/s/{id}` and `/u/{username}` addresses forward to them (keeping `?comment=1`), so links already shared keep working.
+- [x] The links people tap or share use them: Stack cards, Share and Copy link, the address after publishing, profile links, @mentions, follow notifications.
+- [x] After a username change, links with the old username forward to the new one. The old username stays reserved to its owner (nobody else can take it), and switching back to it works (D-1).
+- [x] Usernames can't be the app's file names (`favicon.ico` and the like).
+- Followers and Following lists stay at `/u/{username}/followers` and `/u/{username}/following`.
+
 ## Later tasks
 
-- **Readable links** (agreed Nov 26 to come later): `/{handle}/{slug}` for every Stack, with the old `/s/…` links still working, and old usernames redirecting (D-1).
+- **Editing at its own address** (spec: `/{handle}/{slug}/edit`): editing still opens at `/create?edit=…`.
 - **The "+" format menu** by the current pick (Section, Numbered, Bulleted), deferred from 2d: the spec has it, the design doesn't.
 - **Tablet:**
   - a centered column, max 680 px;
