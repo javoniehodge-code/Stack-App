@@ -6,7 +6,7 @@
 // Stacks, and removes them at the end.
 //
 //   APP_URL API_URL MAILPIT_URL ANON_KEY TEST_DB TEST_ENV_TOKEN [SHOTS=<dir>]  node web/e2e/explore.e2e.mjs
-import { execFileSync, spawn } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { verifyTestDatabase } from "./test-target.mjs";
 
@@ -91,7 +91,7 @@ const uidA = await signUp(await ctxA.newPage(), "a");
 await ctxA.close();
 const ctx = await browser.newContext(phone);
 const page = await ctx.newPage();
-const uidB = await signUp(page, "b");
+await signUp(page, "b");
 const handleA = sql(`select handle from public.profiles where id = '${uidA}'`);
 const shot = async (pg, name) => SHOTS && (await pg.screenshot({ path: `${SHOTS}/${name}.png` }));
 const pathOf = (pg) => decodeURIComponent(new URL(pg.url()).pathname + new URL(pg.url()).search);
@@ -219,6 +219,30 @@ await page.goto(APP + "/explore");
 const trend = page.locator("[class*=pmTrending]").filter({ hasText: ramen });
 check("13. Trending shows the Stack's category on its band", (await trend.locator("[data-split]").innerText()).includes("Food & Drink"));
 
+// 15. Back while a category is still loading: Explore stays open after the slow request finishes.
+await page.goto(APP + "/explore");
+await chips.first().waitFor();
+let delayed = 0;
+const slow = async (route) => {
+  delayed++;
+  await new Promise((r) => setTimeout(r, 3000));
+  await route.continue().catch(() => {});
+};
+await page.route(/\/explore\?cat=/, slow);
+await chips.first().click(); // Food & Drink
+await page.getByText("Loading…").waitFor({ timeout: 2000 }).catch(() => {});
+const loadingShown = await page.getByText("Loading…").isVisible();
+await page.getByRole("button", { name: "Back to Explore" }).click();
+await page.waitForTimeout(5000); // the delayed category request has finished by now
+await page.unroute(/\/explore\?cat=/, slow);
+const after = pathOf(page);
+const exploreOpen = (await chips.count()) === 7 && (await page.getByRole("heading", { name: "Categories" }).isVisible());
+const categoryShown = await page.getByRole("heading", { name: "Food & Drink" }).isVisible().catch(() => false);
+check(
+  "15. Back while a category is loading (request delayed 3 s) returns to Explore, and Explore stays open after the request finishes",
+  delayed > 0 && loadingShown && after === "/explore" && exploreOpen && !categoryShown,
+  `delayed ${delayed} · loading shown ${loadingShown} · ${after} · Explore open ${exploreOpen} · category shown ${categoryShown}`,
+);
 // 14. Nothing scrolls sideways on a 320 px phone.
 const narrow = await browser.newContext({ ...phone, viewport: { width: 320, height: 640 } });
 const np = await narrow.newPage();

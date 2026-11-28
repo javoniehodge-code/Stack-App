@@ -120,12 +120,13 @@ export default function ExploreScreen({
     startTransition(() => router.push(`/explore?cat=${encodeURIComponent(name)}`));
   }
 
-  /** Back: clears the search or category and returns to Explore. */
+  /** Back: clears the search or category and returns to Explore. While one is still loading (`pending`), this
+   *  navigation replaces it, so the slow answer can't open it afterwards. */
   function clear() {
     setInput("");
     setSubmitted("");
     setOpenCat(null);
-    if (query || category) router.replace("/explore");
+    if (query || category || pending) router.replace("/explore");
   }
 
   /** The dashed "More categories" chip: opens the full grid and scrolls to it. */
