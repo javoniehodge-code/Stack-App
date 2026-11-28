@@ -195,19 +195,7 @@ export function flatten(stack: Pick<Stack, "sections" | "style">): FlatLine[] {
 
 export const plural = (n: number, one: string, many = one + "s") => `${n} ${n === 1 ? one : many}`;
 
-/** Browse topics and categories, in display order, with their colour dots. */
-export const EXPLORE_CATS = ["Food & Drink", "Travel", "Books", "Home", "Art & Design", "Tech"];
 export const TAG_SUGGESTIONS = ["Food & Drink", "Books", "Travel", "Home", "Shopping", "Tech"];
-export const CATEGORY_DOTS: Record<string, string> = {
-  "Food & Drink": "oklch(54% 0.16 45)",
-  Travel: "oklch(64% 0.16 50)",
-  Books: "oklch(64% 0.16 50)",
-  Home: "oklch(64% 0.16 50)",
-  "Art & Design": "oklch(64% 0.16 50)",
-  Tech: "oklch(64% 0.16 50)",
-  Shopping: "oklch(64% 0.16 50)",
-};
-export const DEFAULT_DOT = "oklch(64% 0.16 50)";
 
 // Content limits (spec, Content rules). The database checks the same numbers when a stack is published
 // (migration 20261129000000_pick_model). Drafts can go over them; the editor shows what to fix.
@@ -261,6 +249,45 @@ export const CATEGORIES: { name: string; color: string }[] = [
   { name: "Games & Hobbies", color: "oklch(88% 0.1 60)" },
 ];
 export const MAX_CATEGORIES = 2;
+/** Explore's order for the 12 categories (design): the first 6 show as chips and boxes, then "More categories". */
+export const EXPLORE_CATS = [
+  "Food & Drink",
+  "Travel & Places",
+  "Art & Design",
+  "Technology",
+  "Learning",
+  "Home & Living",
+  "Style & Shopping",
+  "Entertainment & Culture",
+  "Health & Wellness",
+  "Business & Money",
+  "Sports & Outdoors",
+  "Games & Hobbies",
+];
+export const EXPLORE_CATS_SHOWN = 6;
+const CATEGORY_EMOJI: Record<string, string> = {
+  "Food & Drink": "🍜",
+  "Travel & Places": "✈️",
+  "Art & Design": "🎨",
+  Technology: "🖥️",
+  Learning: "📖",
+  "Home & Living": "🏺",
+  "Style & Shopping": "🛍️",
+  "Entertainment & Culture": "🎤",
+  "Health & Wellness": "🧘",
+  "Business & Money": "💼",
+  "Sports & Outdoors": "⛰️",
+  "Games & Hobbies": "🎲",
+};
+/** A category's emoji and colour, as in the design. */
+export const categoryStyle = (name: string) => ({
+  emoji: CATEGORY_EMOJI[name] ?? "✨",
+  color: CATEGORIES.find((c) => c.name === name)?.color ?? "oklch(99.5% 0.01 95)",
+});
+/** A category's name for a narrow box: "Entertainment" may break as "Entertain-ment" (a soft hyphen), never mid-word. */
+export const categoryLabel = (name: string) => name.replace("Entertainment", "Entertain\u00ADment");
+/** One of the 12 categories, matched in any letter case (for addresses like /explore?cat=food%20%26%20drink). */
+export const findCategory = (name: string) => CATEGORIES.find((c) => c.name.toLowerCase() === name.trim().toLowerCase())?.name ?? null;
 export const MAX_CITY = 80;
 
 /** The theme emoji a title suggests (✨ when nothing matches). */
