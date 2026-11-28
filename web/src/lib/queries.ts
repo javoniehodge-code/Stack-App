@@ -238,10 +238,9 @@ export async function searchStacks(sb: SupabaseClient, viewerId: string | null, 
   return withViewerState(sb, viewerId, (data ?? []) as unknown as StackRow[]);
 }
 
-export async function fetchCategoriesFor(sb: SupabaseClient, ids: string[], cats: string[]) {
-  if (ids.length === 0) return {} as Record<string, string>;
-  const { data } = await sb.rpc("stack_categories", { ids, cats });
-  const out: Record<string, string> = {};
-  for (const r of (data ?? []) as { stack_id: string; category: string }[]) out[r.stack_id] = r.category;
-  return out;
+/** The Stacks in one of the 12 categories (Explore, when a category is tapped), with comments like the feed. */
+export async function fetchCategoryStacks(sb: SupabaseClient, viewerId: string | null, category: string) {
+  const { data, error } = await sb.rpc("category_stacks", { cat: category }).select(STACK_WITH_COMMENTS);
+  if (error) throw error;
+  return withViewerState(sb, viewerId, (data ?? []) as unknown as StackRow[]);
 }

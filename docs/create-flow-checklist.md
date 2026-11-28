@@ -118,7 +118,16 @@ Agreed Nov 27: to publish, a Stack needs only a title, at least 1 pick, and noth
   - Signed out, on an iPhone-size screen: feed, Explore (Trending, Recently added), search results and profile tiles show the themes, and nothing scrolls sideways at 320 px.
   - With a second account, a comment on "Test 23" stayed after signing out, and @stackapp got a notification for it.
   - Follow on a repost wasn't checked on production: it needs three accounts. The local tests cover it.
-- Part 2, next: Explore and search use the 12 categories (needs a database change).
+
+## Categories in Explore and search (agreed Nov 27, part 2 of showing the Finalize choices)
+
+- [x] Explore uses the 12 categories, with their emoji and colour (design): 6 chips, then a dashed "More categories" that opens all 12 and scrolls to them.
+- [x] Category boxes: 6, then "More categories · 6 more" and "Fewer categories". Each box shows its two most-liked Stacks, or "Nothing here yet · Be the first to add one".
+- [x] Tapping a category shows only the Stacks whose author picked it in Finalize (choice 2A), at `/explore?cat=Food %26 Drink`. An empty one says "Nothing in Games & Hobbies yet".
+- [x] Search also matches a category ("outdoors" finds Sports & Outdoors), and still the title, city, name and @username.
+- [x] A Back button to the left of the search box while a search or category is open (no Cancel).
+- [x] Trending shows the category the author picked. Older Stacks without one show none.
+- Stacks published before categories existed aren't in any category until their author picks one in Finalize (Edit stack).
 
 ## Later tasks
 
@@ -136,6 +145,5 @@ Agreed Nov 27: to publish, a Stack needs only a title, at least 1 pick, and noth
   - Publish also in the top bar.
 - **Link titles:** "Fetching link…", then the page title and site icon, falling back to the domain after 6 seconds.
 - **Preview of the feed card** ("This is how your card looks in feeds", as a full feed card).
-- **Categories in Explore and search** (part 2 of showing the Finalize choices): the 12 categories with their emoji and colour, 6 shown then "More categories"; tapping one shows only Stacks in it; search also matches categories; a Back button instead of Cancel.
 - **Editing a published Stack:** "This stack changed on another device".
 - **Remix:** a freshly suggested theme, and remixedFrom.

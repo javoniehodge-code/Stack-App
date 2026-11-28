@@ -114,7 +114,7 @@ These apply to every flow unless a flow says otherwise.
 | Screen | URL |
 | --- | --- |
 | Home | `/` |
-| Explore / search | `/explore`, `/explore?q=term` |
+| Explore / search | `/explore`, `/explore?q=term`, a category `/explore?cat=Food %26 Drink` |
 | Stack (in app and as shared link) | `/{handle}/{stack-slug}` |
 | User profile | `/{handle}` |
 | Own profile tabs | `/me`, `/me/buckets`, `/me/saved`, `/me/reposts`, `/me/drafts` |
@@ -456,7 +456,7 @@ Tapping the card body or "See all" opens the Stack detail. **Like** toggles and 
 
 - **Search bar** "Search bars, books, gear, people…". Typing then submitting runs a search. While there's a search term or a category is open, a round **Back** button sits to the left of the search bar (no Cancel button on the right); Back clears the search and returns to Explore.
 - **With no search:** topic chips (the first 6 categories, then a dashed "More categories" chip that opens the full grid and scrolls to it); Recent searches (up to 5, newest first, each removable with ×, plus **Clear**); 🔥 Trending this week (4 most-liked Public Stacks, not the user's own); Categories (6 tiles shown first (Food & Drink, Travel & Places, Art & Design, Technology, Learning, Home & Living), then a "More categories · 6 more" button that reveals the other 6 (Style & Shopping, Entertainment & Culture, Health & Wellness, Business & Money, Sports & Outdoors, Games & Hobbies) and turns into "Fewer categories", each showing two sample titles, or "Nothing here yet · Be the first to add one"); Recently added (4 newest Public Stacks).
-- **Search results:** Public Stacks whose title, author name, handle or category tags contain the term, shown as feed cards with "N stacks". With no matches: "No results for “term” · Try a different word, or browse a topic instead." Tapping a topic chip or category tile shows that category's Public Stacks.
+- **Search results:** Public Stacks whose title, city, author name, handle or categories contain the term (so "outdoors" finds Sports & Outdoors), shown as feed cards with "N stacks". With no matches: "No results for “term” · Try a different word, or browse a topic instead." Tapping a topic chip or category tile shows only that category's Public Stacks (Agreed Nov 27: the Stacks whose author picked it in Finalize, not a text search for its name), under the category's emoji and name. An empty category says "Nothing in {category} yet".
 
 **Saved.** Likes, saves, reposts, follows and comments save straight away. Recent searches are stored per user (signed out: on the device only). Pull to refresh reloads the feed. Proposed default: Explore lists refresh on each visit.
 

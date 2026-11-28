@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { CATEGORY_DOTS, DEFAULT_DOT, EXPLORE_CATS, plural, stackTheme } from "@/lib/format";
+import { EXPLORE_CATS, categoryStyle, findCategory, plural, stackTheme } from "@/lib/format";
 import { stackPath } from "@/lib/links";
-import { STACK_SELECT, fetchCategoriesFor, fetchFollowing, publicOnly, searchStacks, withViewerState } from "@/lib/queries";
+import { STACK_SELECT, fetchCategoryStacks, fetchFollowing, publicOnly, searchStacks, withViewerState } from "@/lib/queries";
 import { createClient, getViewerId } from "@/lib/supabase/server";
 import type { StackRow } from "@/lib/types";
 import ExploreScreen from "./ExploreScreen";
@@ -9,8 +9,10 @@ import ExploreScreen from "./ExploreScreen";
 export const metadata: Metadata = { title: "Explore" };
 
 export default async function ExplorePage({ searchParams }: PageProps<"/explore">) {
-  const { q } = await searchParams;
+  const { q, cat } = await searchParams;
   const query = typeof q === "string" ? q.trim().slice(0, 100) : "";
+  // A tapped category (choice 2A): only the Stacks in it. An unknown name is ignored.
+  const category = !query && typeof cat === "string" ? findCategory(cat) : null;
   const sb = await createClient();
   const viewerId = await getViewerId(sb);
 
@@ -26,25 +28,25 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
     }),
     publicOnly((pub) => published(pub).order("published_at", { ascending: false }).limit(4)),
     sb.rpc("explore_categories", { cats: EXPLORE_CATS }),
-    query ? searchStacks(sb, viewerId, query) : Promise.resolve(null),
-    query ? fetchFollowing(sb, viewerId) : Promise.resolve([] as string[]),
+    query ? searchStacks(sb, viewerId, query) : category ? fetchCategoryStacks(sb, viewerId, category) : Promise.resolve(null),
+    query || category ? fetchFollowing(sb, viewerId) : Promise.resolve([] as string[]),
   ]);
 
   const trending = await withViewerState(sb, viewerId, (trendingRes.data ?? []) as unknown as StackRow[]);
   const recent = (recentRes.data ?? []) as unknown as StackRow[];
-  // Each Trending Stack's category: the author's first choice, or else the one its picks suggest.
-  const guessed = await fetchCategoriesFor(sb, trending.filter((t) => !t.categories?.length).map((t) => t.id), [...EXPLORE_CATS, "Shopping"]);
-  const trendingCats = Object.fromEntries(trending.map((t) => [t.id, t.categories?.[0] ?? guessed[t.id] ?? ""]));
+  // Each Trending Stack's category: the first one its author chose in Finalize (none for older Stacks).
+  const trendingCats = Object.fromEntries(trending.map((t) => [t.id, t.categories?.[0] ?? ""]));
 
   const categories = ((catsRes.data ?? []) as { name: string; titles: string[] }[]).map((c) => ({
     name: c.name,
-    dot: CATEGORY_DOTS[c.name] ?? DEFAULT_DOT,
+    ...categoryStyle(c.name),
     samples: c.titles.length ? c.titles : ["Nothing here yet", "Be the first to add one"],
   }));
 
   return (
     <ExploreScreen
       query={query}
+      category={category}
       trending={trending}
       categories={categories}
       trendingCats={trendingCats}
